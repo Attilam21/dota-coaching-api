@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
+import PlayerIdInput from '@/components/PlayerIdInput'
 
 export default function MatchAnalysisPage() {
   const [matchId, setMatchId] = useState('')
   const router = useRouter()
+  const { playerId } = usePlayerIdContext()
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault()
@@ -13,6 +16,10 @@ export default function MatchAnalysisPage() {
       router.push(`/analysis/match/${matchId.trim()}`)
     }
   }
+
+  // Show Player ID input if not available (optional, for consistency)
+  // But this page doesn't strictly need it since it uses Match ID, not Player ID
+  // So we'll keep it simple and just show the form
 
   return (
     <div className="p-8">

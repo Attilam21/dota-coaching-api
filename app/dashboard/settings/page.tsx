@@ -36,6 +36,18 @@ export default function SettingsPage() {
       // Load from PlayerIdContext (which uses localStorage)
       if (playerId) {
         setDotaAccountId(playerId)
+      } else {
+        // Also try direct localStorage read as fallback
+        try {
+          const saved = localStorage.getItem('fzth_player_id')
+          if (saved) {
+            setDotaAccountId(saved)
+            // Sync with context
+            setPlayerId(saved)
+          }
+        } catch (err) {
+          console.error('Failed to read localStorage:', err)
+        }
       }
     } catch (err) {
       console.error('Failed to load settings:', err)
@@ -74,11 +86,29 @@ export default function SettingsPage() {
       // Salva SOLO in localStorage (via PlayerIdContext)
       // Non usiamo più Supabase per evitare errori RLS
       const playerIdString = dotaAccountId.trim() || null
+      
+      // Force update: salva in localStorage direttamente E tramite context
+      // Questo assicura che tutte le pagine vedano il cambio immediatamente
+      if (playerIdString) {
+        try {
+          localStorage.setItem('fzth_player_id', playerIdString)
+        } catch (err) {
+          console.error('Failed to save to localStorage:', err)
+        }
+      } else {
+        try {
+          localStorage.removeItem('fzth_player_id')
+        } catch (err) {
+          console.error('Failed to remove from localStorage:', err)
+        }
+      }
+      
+      // Update context (this will trigger re-renders in all consuming components)
       setPlayerId(playerIdString)
 
       setMessage({ 
         type: 'success', 
-        text: 'Player ID salvato con successo! Ora disponibile in tutte le sezioni del dashboard.' 
+        text: 'Player ID salvato con successo! Naviga tra le sezioni per vedere i dati aggiornati.' 
       })
     } catch (err) {
       console.error('Failed to save settings:', err)

@@ -35,6 +35,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Sync with localStorage on mount (in case it changed externally)
+  // Note: Removed playerId from dependencies to avoid infinite loop
   useEffect(() => {
     if (!isMounted) return
 
@@ -47,7 +48,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('[PlayerIdContext] Failed to load from localStorage:', err)
     }
-  }, [isMounted, playerId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted]) // Only run on mount, not when playerId changes
 
   // Save to localStorage whenever playerId changes
   const setPlayerId = useCallback((id: string | null) => {
