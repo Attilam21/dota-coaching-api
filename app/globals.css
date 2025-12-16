@@ -18,6 +18,12 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Dashboard dark theme */
+body.dashboard-mode {
+  background: #111827;
+  color: white;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
