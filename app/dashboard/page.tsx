@@ -31,6 +31,12 @@ interface PlayerStats {
     xpm: number
     start_time: number
   }>
+  advanced?: {
+    lane: { avgLastHits: number; avgDenies: number; firstBloodInvolvement: number }
+    farm: { avgGPM: number; avgXPM: number; goldUtilization: number; avgNetWorth: number }
+    fights: { killParticipation: number; avgHeroDamage: number; avgTowerDamage: number; avgDeaths: number }
+    vision: { avgObserverPlaced: number; visionScore: number }
+  }
 }
 
 export default function DashboardPage() {
@@ -55,11 +61,25 @@ export default function DashboardPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/stats`)
-      if (!response.ok) throw new Error('Failed to fetch player stats')
+      const [statsResponse, advancedResponse] = await Promise.all([
+        fetch(`/api/player/${playerId}/stats`),
+        fetch(`/api/player/${playerId}/advanced-stats`)
+      ])
 
-      const data = await response.json()
-      setStats(data.stats)
+      if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
+
+      const statsData = await statsResponse.json()
+      const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
+
+      // Enhance stats with advanced data if available
+      if (advancedData?.stats) {
+        setStats({
+          ...statsData.stats,
+          advanced: advancedData.stats
+        })
+      } else {
+        setStats(statsData.stats)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load stats')
     } finally {
@@ -318,18 +338,110 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Quick Stats Cards */}
+          {stats.advanced && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
+                  <span className="text-2xl">⚔️</span>
+                </div>
+                <p className="text-3xl font-bold text-white">{stats.advanced.lane.avgLastHits.toFixed(1)}</p>
+                <p className="text-xs text-gray-500 mt-1">Media per partita</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Hero Damage</h4>
+                  <span className="text-2xl">🔥</span>
+                </div>
+                <p className="text-3xl font-bold text-red-400">{Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">Danno medio</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Kill Participation</h4>
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <p className="text-3xl font-bold text-green-400">{stats.advanced.fights.killParticipation.toFixed(1)}%</p>
+                <p className="text-xs text-gray-500 mt-1">Partecipazione fight</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Net Worth</h4>
+                  <span className="text-2xl">💰</span>
+                </div>
+                <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.advanced.farm.avgNetWorth).toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">Valore medio</p>
+              </div>
+            </div>
+          )}
+
+          {/* Recent Matches Grid */}
+          {stats.matches.length > 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold">Ultime Partite</h3>
+                <Link
+                  href="/dashboard/matches"
+                  className="text-sm text-red-400 hover:text-red-300"
+                >
+                  Vedi tutte →
+                </Link>
+              </div>
+              <div className="grid md:grid-cols-5 gap-4">
+                {stats.matches.slice(0, 5).map((match, idx) => (
+                  <Link
+                    key={match.match_id}
+                    href={`/analysis/match/${match.match_id}`}
+                    className="bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-400">Match {idx + 1}</span>
+                      <span className={`text-xs px-2 py-1 rounded ${match.win ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                        {match.win ? 'V' : 'S'}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">KDA:</span>
+                        <span className="font-bold">{match.kda.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">GPM:</span>
+                        <span className="font-bold">{match.gpm}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Identità Giocatore */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Identità Giocatore</h3>
-            <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <div>
-                <span className="text-gray-400">Nome giocatore: </span>
-                <span className="font-semibold">Giocatore #{playerId}</span>
+                <h3 className="text-xl font-semibold mb-2">Profilo Giocatore</h3>
+                <div className="space-y-1">
+                  <div>
+                    <span className="text-gray-400">Player ID: </span>
+                    <span className="font-semibold text-red-400">{playerId}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Partite analizzate: </span>
+                    <span className="font-semibold">{stats.matches.length}</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-gray-400">Player ID: </span>
-                <span className="font-semibold">{playerId}</span>
-              </div>
+              <Link
+                href="/dashboard/profiling"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+              >
+                Profilo Completo →
+              </Link>
             </div>
           </div>
         </>

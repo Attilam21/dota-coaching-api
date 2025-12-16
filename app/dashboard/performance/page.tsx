@@ -40,32 +40,49 @@ export default function PerformancePage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/stats`)
-      if (!response.ok) throw new Error('Failed to fetch player stats')
+      const [statsResponse, advancedResponse] = await Promise.all([
+        fetch(`/api/player/${playerId}/stats`),
+        fetch(`/api/player/${playerId}/advanced-stats`)
+      ])
 
-      const data = await response.json()
-      if (!data.stats) throw new Error('No stats available')
+      if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
 
-      // Calculate performance metrics
-      const matches = data.stats.matches || []
+      const statsData = await statsResponse.json()
+      const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
+
+      if (!statsData.stats) throw new Error('No stats available')
+
+      // Calculate performance metrics from basic stats
+      const matches = statsData.stats.matches || []
       const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
       const avgGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
       const avgXPM = matches.reduce((acc: number, m: { xpm: number }) => acc + m.xpm, 0) / matches.length || 0
       
-      // Determine playstyle
+      // Use advanced stats if available
+      const advanced = advancedData?.stats
+      const avgDeaths = advanced?.fights?.avgDeaths || 5
+      const avgAssists = advanced?.fights?.avgAssists || 10
+      const killParticipation = advanced?.fights?.killParticipation || 0
+      const goldUtilization = advanced?.farm?.goldUtilization || 0
+      
+      // Determine playstyle with advanced data
       let playstyle = 'Bilanciato'
-      if (avgGPM > 600) playstyle = 'Aggressivo - Farm Focus'
+      if (avgGPM > 600 && goldUtilization > 90) playstyle = 'Farm Focus - Late Game'
+      else if (avgGPM > 550 && killParticipation > 70) playstyle = 'Aggressivo - Teamfight Focus'
+      else if (avgGPM < 400 && advanced?.vision?.avgObserverPlaced > 5) playstyle = 'Support - Utility Focus'
+      else if (killParticipation > 75) playstyle = 'Team Player - High Impact'
+      else if (avgGPM > 600) playstyle = 'Farm Focus'
       else if (avgGPM < 400) playstyle = 'Support - Team Focus'
 
       setStats({
         avgKDA: avgKDA || 0,
         avgGPM: avgGPM || 0,
         avgXPM: avgXPM || 0,
-        avgDeaths: 5, // Placeholder
-        avgAssists: 10, // Placeholder
+        avgDeaths,
+        avgAssists,
         playstyle,
         farmEfficiency: Math.min((avgGPM / 600) * 100, 100),
-        teamfightParticipation: 75, // Placeholder
+        teamfightParticipation: killParticipation,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load performance data')
@@ -130,37 +147,84 @@ export default function PerformancePage() {
 
       {stats && !loading && (
         <div className="space-y-6">
+          {/* Playstyle Banner */}
+          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Stile di Gioco Identificato</h2>
+                <p className="text-3xl font-bold text-red-400">{stats.playstyle}</p>
+                <p className="text-sm text-gray-400 mt-2">Basato sulle tue performance recenti</p>
+              </div>
+              <div className="text-6xl">🎯</div>
+            </div>
+          </div>
+
           {/* Performance Overview */}
           <div className="grid md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">KDA Medio</h3>
-              <p className="text-3xl font-bold">{stats.avgKDA.toFixed(2)}</p>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-red-600 transition-colors">
+              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</h3>
+              <p className="text-3xl font-bold text-white mb-1">{stats.avgKDA.toFixed(2)}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Kill Participation: {stats.teamfightParticipation.toFixed(0)}%</span>
+              </div>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
-              <p className="text-3xl font-bold">{stats.avgGPM.toFixed(0)}</p>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-yellow-600 transition-colors">
+              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</h3>
+              <p className="text-3xl font-bold text-yellow-400 mb-1">{stats.avgGPM.toFixed(0)}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Efficienza: {stats.farmEfficiency.toFixed(0)}%</span>
+              </div>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
-              <p className="text-3xl font-bold">{stats.avgXPM.toFixed(0)}</p>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-blue-600 transition-colors">
+              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</h3>
+              <p className="text-3xl font-bold text-blue-400 mb-1">{stats.avgXPM.toFixed(0)}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Exp acquisita</span>
+              </div>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Stile di Gioco</h3>
-              <p className="text-lg font-semibold">{stats.playstyle}</p>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-red-600 transition-colors">
+              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">Morti Medie</h3>
+              <p className="text-3xl font-bold text-red-400 mb-1">{stats.avgDeaths.toFixed(1)}</p>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Assist: {stats.avgAssists.toFixed(1)}</span>
+              </div>
             </div>
           </div>
 
           {/* Radar Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Profilo Performance</h2>
-            <ResponsiveContainer width="100%" height={400}>
-              <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                <Radar name="Performance" dataKey="value" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
-              </RadarChart>
-            </ResponsiveContainer>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Profilo Performance Multi-Dimensionale</h2>
+              <span className="text-sm text-gray-400">Analisi su 20 partite recenti</span>
+            </div>
+            {radarData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="#374151" />
+                  <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" tick={{ fill: '#9CA3AF' }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" />
+                  <Radar 
+                    name="Performance" 
+                    dataKey="value" 
+                    stroke="#EF4444" 
+                    fill="#EF4444" 
+                    fillOpacity={0.6}
+                    strokeWidth={2}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Dati non disponibili
+              </div>
+            )}
           </div>
 
           {/* Performance Metrics */}
