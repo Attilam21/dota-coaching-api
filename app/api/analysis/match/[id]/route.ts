@@ -39,23 +39,45 @@ export async function GET(
     const radiantAvgKda = radiantPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
     const direAvgKda = direPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
 
-    // Generate recommendations based on match data
-    const recommendations: string[] = []
-    
-    if (match.duration < 1800) { // Less than 30 minutes
-      recommendations.push('Partita conclusa rapidamente. Valuta se il team ha sfruttato correttamente i vantaggi iniziali.')
-    } else if (match.duration > 3600) { // More than 60 minutes
-      recommendations.push('Partita molto lunga. Analizza le decisioni in late game e la gestione delle risorse.')
-    }
-    
-    const winningTeam = match.radiant_win ? radiantPlayers : direPlayers
-    const losingTeam = match.radiant_win ? direPlayers : radiantPlayers
-    
-    const winningAvgGpm = match.radiant_win ? radiantAvgGpm : direAvgGpm
-    const losingAvgGpm = match.radiant_win ? direAvgGpm : radiantAvgGpm
-    
-    if (winningAvgGpm > losingAvgGpm * 1.2) {
-      recommendations.push('Il team vincente ha dominato la fase di farm. Migliora la gestione del gold e la priorità degli obiettivi.')
+    // Meta standards for Dota 2 (2024)
+    const META_STANDARDS = {
+      carry: {
+        gpm: 550,
+        xpm: 600,
+        csPerMin: 7,
+        killParticipation: 60,
+        towerDamage: 1500,
+        deaths: 5,
+        kda: 2.5
+      },
+      mid: {
+        gpm: 550,
+        xpm: 650,
+        csPerMin: 6.5,
+        killParticipation: 70,
+        towerDamage: 1000,
+        deaths: 5,
+        kda: 2.8
+      },
+      offlane: {
+        gpm: 450,
+        xpm: 500,
+        csPerMin: 5,
+        killParticipation: 75,
+        towerDamage: 800,
+        deaths: 6,
+        kda: 2.2
+      },
+      support: {
+        gpm: 300,
+        xpm: 350,
+        wards: 10,
+        assists: 12,
+        killParticipation: 80,
+        deaths: 6,
+        kda: 1.8,
+        campsStacked: 4
+      }
     }
     
     // Analyze individual player performance with advanced metrics
@@ -134,95 +156,250 @@ export async function GET(
         rating = 'average'
       }
       
-      // Role-specific recommendations with more detailed analysis
+      // Role-specific recommendations with meta comparisons and detailed analysis
       const roleRecommendations: string[] = []
       
       if (isCarry) {
-        if (goldPerMin < 450) {
-          roleRecommendations.push('⚠️ Farm rate basso per un carry. Pratica il last hitting, migliora la gestione delle lane e considera rotazioni più efficienti.')
+        const meta = META_STANDARDS.carry
+        // GPM comparison
+        if (goldPerMin < meta.gpm * 0.85) {
+          const diff = Math.round(meta.gpm - goldPerMin)
+          roleRecommendations.push(`⚠️ GPM ${goldPerMin} vs meta ${meta.gpm} (-${diff}). Pratica il last hitting, migliora la gestione delle lane e considera rotazioni più efficienti.`)
+        } else if (goldPerMin >= meta.gpm * 1.1) {
+          roleRecommendations.push(`✅ Eccellente GPM ${goldPerMin} (meta: ${meta.gpm}). Ottimo farm rate, continua così!`)
         }
-        if (towerDamage < 500) {
-          roleRecommendations.push('⚠️ Push damage insufficiente. Come carry, contribuisci di più alla distruzione delle torri per chiudere le partite.')
+        
+        // XPM comparison
+        if (xpPerMin < meta.xpm * 0.85) {
+          const diff = Math.round(meta.xpm - xpPerMin)
+          roleRecommendations.push(`⚠️ XPM ${xpPerMin} vs meta ${meta.xpm} (-${diff}). Partecipa di più ai fight e alle rotazioni per guadagnare più XP.`)
+        } else if (xpPerMin >= meta.xpm * 1.1) {
+          roleRecommendations.push(`✅ Eccellente XPM ${xpPerMin} (meta: ${meta.xpm}). Ottima gestione dell'XP!`)
         }
+        
+        // CS per minute
+        const csPerMinNum = parseFloat(csPerMin)
+        if (csPerMinNum < meta.csPerMin * 0.85) {
+          roleRecommendations.push(`⚠️ CS/min ${csPerMin} vs meta ${meta.csPerMin}. Migliora il farm continuo durante tutta la partita, non solo in laning phase.`)
+        } else if (csPerMinNum >= meta.csPerMin * 1.1) {
+          roleRecommendations.push(`✅ Eccellente CS/min ${csPerMin} (meta: ${meta.csPerMin}). Farm molto efficiente!`)
+        }
+        
+        // Kill Participation
+        const kpNum = parseFloat(killParticipation)
+        if (kpNum < meta.killParticipation * 0.85) {
+          roleRecommendations.push(`⚠️ Kill Participation ${killParticipation}% vs meta ${meta.killParticipation}%. Partecipa di più ai teamfight critici per avere maggiore impatto.`)
+        } else if (kpNum >= meta.killParticipation * 1.1) {
+          roleRecommendations.push(`✅ Eccellente Kill Participation ${killParticipation}% (meta: ${meta.killParticipation}%). Ottima presenza nei fight!`)
+        }
+        
+        // Tower Damage
+        if (towerDamage < meta.towerDamage * 0.7) {
+          roleRecommendations.push(`⚠️ Tower Damage ${towerDamage} vs meta ${meta.towerDamage} (-${meta.towerDamage - towerDamage}). Come carry, contribuisci di più alla distruzione delle torri per chiudere le partite.`)
+        } else if (towerDamage >= meta.towerDamage * 1.2) {
+          roleRecommendations.push(`✅ Eccellente Tower Damage ${towerDamage} (meta: ${meta.towerDamage}). Ottimo push!`)
+        }
+        
+        // Deaths
+        if (player.deaths > meta.deaths) {
+          roleRecommendations.push(`⚠️ ${player.deaths} morti vs meta ${meta.deaths}. Migliora il positioning e valuta meglio quando ingaggiare.`)
+        } else if (player.deaths <= meta.deaths * 0.7) {
+          roleRecommendations.push(`✅ Eccellente sopravvivenza: ${player.deaths} morti (meta: ${meta.deaths}). Ottimo positioning!`)
+        }
+        
+        // KDA
+        if (kda < meta.kda * 0.85) {
+          roleRecommendations.push(`⚠️ KDA ${kda.toFixed(2)} vs meta ${meta.kda}. Migliora il rapporto kill/death per avere maggiore impatto.`)
+        } else if (kda >= meta.kda * 1.2) {
+          roleRecommendations.push(`✅ Eccellente KDA ${kda.toFixed(2)} (meta: ${meta.kda}). Performance top!`)
+        }
+        
+        // Buyback
         if (buybackCount > 2) {
-          roleRecommendations.push('⚠️ Troppi buyback utilizzati. Valuta meglio quando usare il buyback in base alla situazione e alle risorse disponibili.')
-        }
-        if (parseFloat(killParticipation) < 50) {
-          roleRecommendations.push('⚠️ Partecipazione ai fight bassa. Partecipa di più ai teamfight critici per avere maggiore impatto.')
-        }
-        if (parseFloat(csPerMin) < 5) {
-          roleRecommendations.push('⚠️ CS per minuto basso. Migliora il farm continuo durante tutta la partita, non solo in laning phase.')
+          roleRecommendations.push(`⚠️ ${buybackCount} buyback utilizzati. Valuta meglio quando usare il buyback in base alla situazione e alle risorse disponibili.`)
         }
       }
       
       if (isMid) {
-        if (goldPerMin < 450) {
-          roleRecommendations.push('⚠️ Farm rate migliorabile per un mid. Ottimizza le rotazioni tra farm e partecipazione ai fight.')
+        const meta = META_STANDARDS.mid
+        // GPM comparison
+        if (goldPerMin < meta.gpm * 0.85) {
+          const diff = Math.round(meta.gpm - goldPerMin)
+          roleRecommendations.push(`⚠️ GPM ${goldPerMin} vs meta ${meta.gpm} (-${diff}). Ottimizza le rotazioni tra farm e partecipazione ai fight.`)
+        } else if (goldPerMin >= meta.gpm * 1.1) {
+          roleRecommendations.push(`✅ Eccellente GPM ${goldPerMin} (meta: ${meta.gpm}). Ottimo farm rate!`)
         }
-        if (player.deaths > 6) {
-          roleRecommendations.push('⚠️ Troppe morti. Migliora il positioning e valuta meglio quando ingaggiare in mid game.')
+        
+        // XPM comparison
+        if (xpPerMin < meta.xpm * 0.85) {
+          const diff = Math.round(meta.xpm - xpPerMin)
+          roleRecommendations.push(`⚠️ XPM ${xpPerMin} vs meta ${meta.xpm} (-${diff}). Partecipa di più ai fight per guadagnare più XP.`)
+        } else if (xpPerMin >= meta.xpm * 1.1) {
+          roleRecommendations.push(`✅ Eccellente XPM ${xpPerMin} (meta: ${meta.xpm}). Ottima gestione dell'XP!`)
         }
+        
+        // Kill Participation
+        const kpNum = parseFloat(killParticipation)
+        if (kpNum < meta.killParticipation * 0.85) {
+          roleRecommendations.push(`⚠️ Kill Participation ${killParticipation}% vs meta ${meta.killParticipation}%. Come mid, dovresti essere presente nei fight principali.`)
+        } else if (kpNum >= meta.killParticipation * 1.1) {
+          roleRecommendations.push(`✅ Eccellente Kill Participation ${killParticipation}% (meta: ${meta.killParticipation}%). Ottima presenza nei fight!`)
+        }
+        
+        // Deaths
+        if (player.deaths > meta.deaths) {
+          roleRecommendations.push(`⚠️ ${player.deaths} morti vs meta ${meta.deaths}. Migliora il positioning e valuta meglio quando ingaggiare in mid game.`)
+        } else if (player.deaths <= meta.deaths * 0.7) {
+          roleRecommendations.push(`✅ Eccellente sopravvivenza: ${player.deaths} morti (meta: ${meta.deaths}). Ottimo positioning!`)
+        }
+        
+        // KDA
+        if (kda < meta.kda * 0.85) {
+          roleRecommendations.push(`⚠️ KDA ${kda.toFixed(2)} vs meta ${meta.kda}. Migliora il rapporto kill/death.`)
+        } else if (kda >= meta.kda * 1.2) {
+          roleRecommendations.push(`✅ Eccellente KDA ${kda.toFixed(2)} (meta: ${meta.kda}). Performance top!`)
+        }
+        
+        // Roshan control
         if (roshKills === 0 && match.duration > 2400) {
           roleRecommendations.push('💡 Considera di contribuire di più al controllo di Roshan nelle partite lunghe.')
+        } else if (roshKills > 0) {
+          roleRecommendations.push(`✅ Ottimo controllo di Roshan: ${roshKills} kill.`)
         }
       }
       
       if (isOfflane) {
-        if (player.deaths > 8) {
-          roleRecommendations.push('⚠️ Troppe morti per un offlane. Migliora la gestione della lane difficile e la sopravvivenza.')
+        const meta = META_STANDARDS.offlane
+        // Kill Participation (most important for offlane)
+        const kpNum = parseFloat(killParticipation)
+        if (kpNum < meta.killParticipation * 0.85) {
+          roleRecommendations.push(`⚠️ Kill Participation ${killParticipation}% vs meta ${meta.killParticipation}%. Come offlane, dovresti essere presente nei teamfight principali.`)
+        } else if (kpNum >= meta.killParticipation * 1.1) {
+          roleRecommendations.push(`✅ Eccellente Kill Participation ${killParticipation}% (meta: ${meta.killParticipation}%). Ottima presenza nei fight!`)
         }
-        if (parseFloat(killParticipation) < 60) {
-          roleRecommendations.push('⚠️ Partecipazione ai fight migliorabile. Come offlane, dovresti essere presente nei teamfight principali.')
+        
+        // Deaths (critical for offlane)
+        if (player.deaths > meta.deaths) {
+          roleRecommendations.push(`⚠️ ${player.deaths} morti vs meta ${meta.deaths}. Migliora la gestione della lane difficile e la sopravvivenza.`)
+        } else if (player.deaths <= meta.deaths * 0.7) {
+          roleRecommendations.push(`✅ Eccellente sopravvivenza: ${player.deaths} morti (meta: ${meta.deaths}). Ottima gestione della lane!`)
+        }
+        
+        // GPM
+        if (goldPerMin < meta.gpm * 0.85) {
+          const diff = Math.round(meta.gpm - goldPerMin)
+          roleRecommendations.push(`⚠️ GPM ${goldPerMin} vs meta ${meta.gpm} (-${diff}). Migliora il farm nelle rotazioni.`)
+        } else if (goldPerMin >= meta.gpm * 1.1) {
+          roleRecommendations.push(`✅ Eccellente GPM ${goldPerMin} (meta: ${meta.gpm}). Ottimo farm rate!`)
+        }
+        
+        // KDA
+        if (kda < meta.kda * 0.85) {
+          roleRecommendations.push(`⚠️ KDA ${kda.toFixed(2)} vs meta ${meta.kda}. Migliora il rapporto kill/death.`)
+        } else if (kda >= meta.kda * 1.2) {
+          roleRecommendations.push(`✅ Eccellente KDA ${kda.toFixed(2)} (meta: ${meta.kda}). Performance top!`)
         }
       }
       
       if (isSupport) {
-        if (player.assists < 10) {
-          roleRecommendations.push('⚠️ Assist insufficienti. Come support, aumenta la partecipazione ai teamfight e proteggi i tuoi core.')
+        const meta = META_STANDARDS.support
+        // Warding (most important for support)
+        const totalWards = observerWards + sentryWards
+        if (totalWards < meta.wards * 0.8) {
+          const diff = meta.wards - totalWards
+          roleRecommendations.push(`⚠️ ${totalWards} wards vs meta ${meta.wards} (-${diff}). Le wards sono cruciali - punta ad almeno ${meta.wards} wards per partita.`)
+        } else if (totalWards >= meta.wards * 1.2) {
+          roleRecommendations.push(`✅ Eccellente warding: ${totalWards} wards (meta: ${meta.wards}). Ottima visione!`)
         }
-        if (observerWards + sentryWards < 8) {
-          roleRecommendations.push('⚠️ Warding insufficiente. Le wards sono cruciali - punta ad almeno 8-10 wards per partita.')
+        
+        // Assists
+        if (player.assists < meta.assists * 0.85) {
+          const diff = meta.assists - player.assists
+          roleRecommendations.push(`⚠️ ${player.assists} assist vs meta ${meta.assists} (-${diff}). Aumenta la partecipazione ai teamfight e proteggi i tuoi core.`)
+        } else if (player.assists >= meta.assists * 1.2) {
+          roleRecommendations.push(`✅ Eccellenti assist: ${player.assists} (meta: ${meta.assists}). Ottima presenza nei fight!`)
         }
+        
+        // Kill Participation
+        const kpNum = parseFloat(killParticipation)
+        if (kpNum < meta.killParticipation * 0.85) {
+          roleRecommendations.push(`⚠️ Kill Participation ${killParticipation}% vs meta ${meta.killParticipation}%. Come support, dovresti essere presente in quasi tutti i fight.`)
+        } else if (kpNum >= meta.killParticipation * 1.1) {
+          roleRecommendations.push(`✅ Eccellente Kill Participation ${killParticipation}% (meta: ${meta.killParticipation}%). Ottima presenza nei fight!`)
+        }
+        
+        // Healing
         if (heroHealing > 0 && heroHealing < 1500) {
-          roleRecommendations.push('⚠️ Healing migliorabile. Aumenta l\'healing ai compagni durante i teamfight e le rotazioni.')
+          roleRecommendations.push(`⚠️ Healing ${Math.round(heroHealing)}. Aumenta l'healing ai compagni durante i teamfight e le rotazioni.`)
+        } else if (heroHealing >= 3000) {
+          roleRecommendations.push(`✅ Eccellente healing: ${Math.round(heroHealing)}. Ottimo supporto ai compagni!`)
         }
-        if (campsStacked < 3) {
-          roleRecommendations.push('💡 Aumenta lo stacking dei camp per aiutare il farm dei tuoi carry.')
+        
+        // Camps Stacked
+        if (campsStacked < meta.campsStacked) {
+          const diff = meta.campsStacked - campsStacked
+          roleRecommendations.push(`⚠️ ${campsStacked} camp stacked vs meta ${meta.campsStacked} (-${diff}). Aumenta lo stacking per aiutare il farm dei tuoi carry.`)
+        } else if (campsStacked >= meta.campsStacked * 1.5) {
+          roleRecommendations.push(`✅ Eccellente stacking: ${campsStacked} camp (meta: ${meta.campsStacked}). Ottimo supporto al farm!`)
         }
-        if (goldPerMin > 350) {
-          roleRecommendations.push('💡 Considera di lasciare più farm ai tuoi core se stai accumulando troppo gold come support.')
+        
+        // GPM (should not be too high for support)
+        if (goldPerMin > meta.gpm * 1.3) {
+          roleRecommendations.push(`💡 GPM ${goldPerMin} molto alto per un support (meta: ${meta.gpm}). Considera di lasciare più farm ai tuoi core.`)
+        }
+        
+        // Deaths
+        if (player.deaths > meta.deaths) {
+          roleRecommendations.push(`⚠️ ${player.deaths} morti vs meta ${meta.deaths}. Migliora il positioning per sopravvivere meglio.`)
+        } else if (player.deaths <= meta.deaths * 0.7) {
+          roleRecommendations.push(`✅ Eccellente sopravvivenza: ${player.deaths} morti (meta: ${meta.deaths}). Ottimo positioning!`)
+        }
+        
+        // KDA
+        if (kda < meta.kda * 0.85) {
+          roleRecommendations.push(`⚠️ KDA ${kda.toFixed(2)} vs meta ${meta.kda}. Migliora il rapporto kill/death.`)
+        } else if (kda >= meta.kda * 1.2) {
+          roleRecommendations.push(`✅ Eccellente KDA ${kda.toFixed(2)} (meta: ${meta.kda}). Performance top!`)
         }
       }
       
-      // General recommendations
+      // General recommendations (apply to all roles)
       if (player.deaths > 10) {
-        roleRecommendations.push('🔴 Troppe morti. Migliora il positioning, evita posizioni pericolose senza visione, valuta meglio quando ingaggiare.')
-      } else if (player.deaths > 7) {
-        roleRecommendations.push('🟡 Morte elevate. Analizza le situazioni in cui muori e migliora la mappa awareness.')
+        roleRecommendations.push(`🔴 ${player.deaths} morti - troppe. Migliora il positioning, evita posizioni pericolose senza visione, valuta meglio quando ingaggiare.`)
+      } else if (player.deaths > 7 && !isSupport) {
+        roleRecommendations.push(`🟡 ${player.deaths} morti - elevate. Analizza le situazioni in cui muori e migliora la mappa awareness.`)
       }
       
       if (lastHits < 30 && !isSupport && !isOfflane) {
-        roleRecommendations.push('🟡 Last hits bassi. Pratica il timing dei colpi per massimizzare il farm, soprattutto in laning phase.')
+        roleRecommendations.push(`🟡 Last hits ${lastHits} bassi. Pratica il timing dei colpi per massimizzare il farm, soprattutto in laning phase.`)
       }
       
       if (parseFloat(goldUtilization) < 70) {
-        roleRecommendations.push('🟡 Utilizzo del gold inefficiente. Spendi il gold più rapidamente in item utili invece di accumularlo.')
+        roleRecommendations.push(`🟡 Gold Utilization ${goldUtilization}% basso. Spendi il gold più rapidamente in item utili invece di accumularlo.`)
+      } else if (parseFloat(goldUtilization) >= 90) {
+        roleRecommendations.push(`✅ Eccellente Gold Utilization ${goldUtilization}%. Ottima gestione del gold!`)
       }
       
       if (parseFloat(killParticipation) < 40 && !isCarry) {
-        roleRecommendations.push('🟡 Partecipazione ai fight bassa. Sii più presente nei teamfight e nelle rotazioni del team.')
+        roleRecommendations.push(`🟡 Kill Participation ${killParticipation}% bassa. Sii più presente nei teamfight e nelle rotazioni del team.`)
       }
       
       if (observerKilled < 1 && !isCarry) {
         roleRecommendations.push('💡 Considera di dewardare di più per negare visione agli avversari.')
+      } else if (observerKilled >= 3) {
+        roleRecommendations.push(`✅ Eccellente dewarding: ${observerKilled} wards distrutte. Ottima negazione della visione!`)
       }
       
       if (stuns > 0 && parseFloat(stuns.toString()) / match.duration * 60 < 2) {
         roleRecommendations.push('💡 Utilizza meglio gli stun - timing e posizionamento degli stun possono essere cruciali nei teamfight.')
+      } else if (stuns > 0 && parseFloat(stuns.toString()) / match.duration * 60 >= 3) {
+        roleRecommendations.push(`✅ Eccellente uso degli stun: ${stuns.toFixed(1)}s totali. Ottimo controllo!`)
       }
       
       if (firstBloodClaimed === 0 && (isMid || isOfflane)) {
         roleRecommendations.push('💡 Considera strategie più aggressive per ottenere first blood in early game.')
+      } else if (firstBloodClaimed > 0) {
+        roleRecommendations.push(`✅ First Blood ottenuto! Ottimo inizio di partita!`)
       }
       
       return {
@@ -268,30 +445,26 @@ export async function GET(
       }
     })
 
-    // Key moments (simulated based on match duration)
-    const keyMoments = [
-      {
-        time: 0,
-        event: 'Match Started',
-        description: 'La partita è iniziata',
-      },
-    ]
+    // Key moments - REMOVED: These were simulated. Real events are now fetched from timeline endpoint
+    // The frontend should use the timeline endpoint for real events instead
+    const keyMoments: Array<{ time: number; event: string; description: string }> = []
     
-    if (match.duration > 600) {
-      keyMoments.push({
-        time: 600,
-        event: 'Early Game',
-        description: 'Fine della fase di laning. Valuta le decisioni prese in questa fase.',
-      })
-    }
+    // Only add match start (real event)
+    keyMoments.push({
+      time: 0,
+      event: 'Match Started',
+      description: 'La partita è iniziata',
+    })
     
-    if (match.duration > 1800) {
-      keyMoments.push({
-        time: 1800,
-        event: 'Mid Game',
-        description: 'Fase centrale della partita. Controllo mappa e obiettivi cruciali.',
-      })
-    }
+    // Match end (real event)
+    keyMoments.push({
+      time: match.duration,
+      event: match.radiant_win ? 'Radiant Victory' : 'Dire Victory',
+      description: `Partita conclusa - ${match.radiant_win ? 'Radiant' : 'Dire'} vince`,
+    })
+    
+    // Note: For detailed real events (kills, towers, roshan), use the timeline endpoint
+    // which fetches real events from OpenDota match log
 
     // Calculate team-wide advanced stats
     const radiantTotalDamage = radiantPlayers.reduce((sum: number, p: any) => sum + (p.hero_damage || 0), 0)
@@ -327,7 +500,6 @@ export async function GET(
       radiantWin: match.radiant_win,
       overview,
       keyMoments,
-      recommendations,
       playerPerformance,
       teamStats: {
         radiant: {

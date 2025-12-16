@@ -166,7 +166,15 @@ export async function GET(
       avgNetWorth,
       goldUtilization: totalGoldEarned > 0 ? (totalGoldSpent / totalGoldEarned) * 100 : 0,
       avgBuybacks,
-      farmEfficiency: 0, // Calcolato basato su ruolo (placeholder)
+      // Farm Efficiency: (avg last hits + denies) per minute of average match duration
+      // Calculate based on real match data
+      farmEfficiency: validMatches.length > 0 ? (() => {
+        const avgLastHits = validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / validMatches.length
+        const avgDenies = validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / validMatches.length
+        const avgMatchDuration = validMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / validMatches.length
+        const avgDurationMinutes = avgMatchDuration > 0 ? avgMatchDuration / 60 : 1
+        return avgDurationMinutes > 0 ? ((avgLastHits + avgDenies) / avgDurationMinutes) : 0
+      })() : 0
     }
 
     // ============================================

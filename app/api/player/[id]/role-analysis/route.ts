@@ -104,12 +104,14 @@ export async function GET(
         }
       })
 
-    // Calculate winrates and metrics per role
+    // Calculate winrates and REAL metrics per role
     const stats = statsData.stats
     const advanced = advancedData.stats
     const matches = stats.matches || []
 
-    // Estimate role performance from overall stats (simplified)
+    // Calculate REAL metrics per role based on actual match data
+    // We need to fetch full match details to get role-specific stats
+    // For now, use overall stats but don't multiply by fake factors
     const overallGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
     const overallKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
     const overallDeaths = advanced.fights?.avgDeaths || 0
@@ -118,19 +120,17 @@ export async function GET(
       const perf = rolePerformance[role]
       perf.winrate = perf.games > 0 ? (perf.wins / perf.games) * 100 : 0
       
-      // Estimate metrics (in real implementation, would need match-level role data)
-      if (role === 'Carry' || role === 'Mid') {
-        perf.avgGPM = overallGPM * 1.1 // Carries/mids typically higher GPM
-        perf.avgKDA = overallKDA
-      } else if (role === 'Support') {
-        perf.avgGPM = overallGPM * 0.7 // Supports typically lower GPM
-        perf.avgKDA = overallKDA * 0.9
-        perf.avgObserverPlaced = advanced.vision?.avgObserverPlaced || 0
-      } else {
-        perf.avgGPM = overallGPM * 0.9
-        perf.avgKDA = overallKDA
-      }
+      // Use REAL overall stats (not multiplied by fake factors)
+      // Note: These are overall stats, not role-specific, because we don't have
+      // match-level role data from OpenDota. But they're REAL, not estimated.
+      perf.avgGPM = overallGPM
+      perf.avgKDA = overallKDA
       perf.avgDeaths = overallDeaths
+      
+      // Support-specific real data
+      if (role === 'Support') {
+        perf.avgObserverPlaced = advanced.vision?.avgObserverPlaced || 0
+      }
       
       // Sort heroes by games
       perf.heroes.sort((a, b) => b.games - a.games)

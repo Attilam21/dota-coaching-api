@@ -204,81 +204,20 @@ export async function GET(
     }
 
     // Extract REAL events from match object (backup if log not available)
-    // First Blood - check players
-    const firstBloodPlayer = players.find((p: any) => p.firstblood_claimed === 1)
-    if (firstBloodPlayer) {
-      // Estimate first blood time (usually happens in first 2-3 minutes)
-      // We can't know exact time from match object, but we know it happened
-      const estimatedTime = 120 // 2 minutes average
-      const minute = Math.floor(estimatedTime / 60)
-      const second = estimatedTime % 60
-      
-      // Only add if not already in events
-      if (!keyEvents.some(e => e.type === 'first_blood')) {
-        keyEvents.push({
-          minute,
-          second,
-          event: 'First Blood',
-          description: `First Blood ottenuto da ${firstBloodPlayer.player_slot < 128 ? 'Radiant' : 'Dire'}`,
-          type: 'first_blood',
-          team: firstBloodPlayer.player_slot < 128 ? 'radiant' : 'dire'
-        })
-      }
-    }
+    // First Blood - REMOVED: Estimated timing was fake data
+    // Real First Blood events come from match log if available with precise timing
+    // If log not available, we don't add estimated First Blood (it would be fake)
+    // Only add First Blood if we have real timing from log
 
-    // Roshan kills - from players data
-    const roshanKills = players.filter((p: any) => (p.roshans_killed || 0) > 0)
-    roshanKills.forEach((player: any) => {
-      const roshanCount = player.roshans_killed || 0
-      // Estimate Roshan kill times (usually at 8-10 min, 20-25 min, etc.)
-      const roshanTimings = [480, 1200, 1800, 2400] // 8min, 20min, 30min, 40min
-      for (let i = 0; i < Math.min(roshanCount, roshanTimings.length); i++) {
-        const time = roshanTimings[i]
-        const minute = Math.floor(time / 60)
-        const second = time % 60
-        
-        // Only add if not already in events from log
-        if (!keyEvents.some(e => e.type === 'roshan' && Math.abs(e.minute * 60 + e.second - time) < 300)) {
-          keyEvents.push({
-            minute,
-            second,
-            event: 'Roshan Killed',
-            description: `Roshan ucciso da ${player.player_slot < 128 ? 'Radiant' : 'Dire'}`,
-            type: 'roshan',
-            team: player.player_slot < 128 ? 'radiant' : 'dire'
-          })
-        }
-      }
-    })
+    // Roshan kills - REMOVED: Estimated timings were fake data
+    // Real Roshan kill events come from match log if available
+    // If log not available, we don't add estimated Roshan kills (they would be fake)
+    // Only add Roshan kills if we have real timing from log
 
-    // Tower kills - calculate from tower damage and match duration
-    // We can estimate tower kills based on tower damage patterns
-    const towerKills = players.filter((p: any) => (p.towers_killed || 0) > 0)
-    if (towerKills.length > 0) {
-      // Estimate tower kill times based on typical patterns
-      // Tier 1 towers: ~10-15 min, Tier 2: ~20-25 min, Tier 3: ~30-35 min
-      const towerTimings = [600, 900, 1200, 1500, 1800, 2100] // 10, 15, 20, 25, 30, 35 min
-      towerKills.forEach((player: any) => {
-        const towersKilled = player.towers_killed || 0
-        for (let i = 0; i < Math.min(towersKilled, towerTimings.length); i++) {
-          const time = towerTimings[i]
-          const minute = Math.floor(time / 60)
-          const second = time % 60
-          
-          // Only add if not already in events from log
-          if (!keyEvents.some(e => e.type === 'tower' && Math.abs(e.minute * 60 + e.second - time) < 300)) {
-            keyEvents.push({
-              minute,
-              second,
-              event: 'Tower Destroyed',
-              description: `Torre distrutta da ${player.player_slot < 128 ? 'Radiant' : 'Dire'}`,
-              type: 'tower',
-              team: player.player_slot < 128 ? 'radiant' : 'dire'
-            })
-          }
-        }
-      })
-    }
+    // Tower kills - REMOVED: Estimated timings were fake data
+    // Real tower kill events come from match log if available
+    // If log not available, we don't add estimated tower kills (they would be fake)
+    // Only add tower kills if we have real timing from log
 
     // Match end (always real)
     const matchEndMinute = Math.floor(match.duration / 60)

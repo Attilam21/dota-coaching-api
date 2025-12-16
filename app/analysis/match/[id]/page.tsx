@@ -38,7 +38,6 @@ interface AnalysisData {
   radiantWin: boolean
   overview: string
   keyMoments: Array<{ time: number; event: string; description: string }>
-  recommendations: string[]
   playerPerformance: Array<{
     heroId: number
     kills: number
@@ -568,17 +567,6 @@ export default function MatchAnalysisPage() {
               🤖 AI Analysis & Insights
             </h3>
             <p className="text-blue-200 mb-4">{analysis.overview}</p>
-            
-            {analysis.recommendations && analysis.recommendations.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold text-blue-300 mb-2">💡 Consigli Personalizzati:</h4>
-                <ul className="list-disc list-inside space-y-2 text-blue-200">
-                  {analysis.recommendations.map((rec, idx) => (
-                    <li key={idx}>{rec}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             {analysis.keyMoments && analysis.keyMoments.length > 0 && (
               <div className="mt-4">
