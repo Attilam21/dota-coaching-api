@@ -1,6 +1,8 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 
 interface MatchData {
   match_id: number
@@ -8,6 +10,7 @@ interface MatchData {
   radiant_win: boolean
   radiant_score: number
   dire_score: number
+  start_time: number
   players: Array<{
     account_id: number
     hero_id: number
@@ -18,6 +21,29 @@ interface MatchData {
     denies: number
     gold_per_min: number
     xp_per_min: number
+    net_worth?: number
+    hero_damage?: number
+    tower_damage?: number
+    hero_healing?: number
+    player_slot: number
+  }>
+}
+
+interface AnalysisData {
+  matchId: string
+  duration: number
+  radiantWin: boolean
+  overview: string
+  keyMoments: Array<{ time: number; event: string; description: string }>
+  recommendations: string[]
+  playerPerformance: Array<{
+    heroId: number
+    kills: number
+    deaths: number
+    assists: number
+    gpm: number
+    xpm: number
+    rating: string
   }>
 }
 

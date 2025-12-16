@@ -19,33 +19,122 @@ export async function GET(
 
     const match = await response.json()
     
-    // Basic analysis (AI analysis coming soon)
-    const analysis = {
-      matchId: id,
-      duration: match.duration,
-      radiantWin: match.radiant_win,
-      overview: `Match lasted ${Math.floor(match.duration / 60)} minutes. ${match.radiant_win ? 'Radiant' : 'Dire'} victory.`,
-      keyMoments: [
-        {
-          time: 0,
-          event: 'Match started',
-          description: 'Game begins',
-        },
-      ],
-      recommendations: [
-        'Focus on last hitting in the laning phase',
-        'Improve map awareness and vision control',
-        'Work on positioning in teamfights',
-      ],
-      playerPerformance: match.players.map((player: any) => ({
+    // Calculate team statistics
+    const radiantPlayers = match.players.slice(0, 5)
+    const direPlayers = match.players.slice(5, 10)
+    
+    const radiantAvgGpm = radiantPlayers.reduce((sum: number, p: any) => sum + (p.gold_per_min || 0), 0) / 5
+    const direAvgGpm = direPlayers.reduce((sum: number, p: any) => sum + (p.gold_per_min || 0), 0) / 5
+    
+    const radiantAvgKda = radiantPlayers.reduce((sum: number, p: any) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
+    const direAvgKda = direPlayers.reduce((sum: number, p: any) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
+
+    // Generate recommendations based on match data
+    const recommendations: string[] = []
+    
+    if (match.duration < 1800) { // Less than 30 minutes
+      recommendations.push('Partita conclusa rapidamente. Valuta se il team ha sfruttato correttamente i vantaggi iniziali.')
+    } else if (match.duration > 3600) { // More than 60 minutes
+      recommendations.push('Partita molto lunga. Analizza le decisioni in late game e la gestione delle risorse.')
+    }
+    
+    const winningTeam = match.radiant_win ? radiantPlayers : direPlayers
+    const losingTeam = match.radiant_win ? direPlayers : radiantPlayers
+    
+    const winningAvgGpm = match.radiant_win ? radiantAvgGpm : direAvgGpm
+    const losingAvgGpm = match.radiant_win ? direAvgGpm : radiantAvgGpm
+    
+    if (winningAvgGpm > losingAvgGpm * 1.2) {
+      recommendations.push('Il team vincente ha dominato la fase di farm. Migliora la gestione del gold e la priorità degli obiettivi.')
+    }
+    
+    // Analyze individual player performance
+    const playerPerformance = match.players.map((player: any) => {
+      const kda = (player.kills + player.assists) / Math.max(player.deaths, 1)
+      const isCarry = player.gold_per_min > 500
+      const isSupport = player.gold_per_min < 300 && player.assists > player.kills
+      
+      let rating = 'needs improvement'
+      if (kda > 2 && player.deaths < 5) {
+        rating = 'good'
+      } else if (kda > 1.5 && player.deaths < 7) {
+        rating = 'average'
+      }
+      
+      // Role-specific recommendations
+      const roleRecommendations: string[] = []
+      if (isCarry && player.gold_per_min < 400) {
+        roleRecommendations.push('Come carry, concentrati sul migliorare il farm rate.')
+      }
+      if (isSupport && player.assists < 10) {
+        roleRecommendations.push('Come support, aumenta la partecipazione ai teamfight.')
+      }
+      if (player.deaths > 10) {
+        roleRecommendations.push('Troppe morti. Migliora il positioning e la mappa awareness.')
+      }
+      
+      return {
         heroId: player.hero_id,
         kills: player.kills,
         deaths: player.deaths,
         assists: player.assists,
         gpm: player.gold_per_min,
         xpm: player.xp_per_min,
-        rating: player.kills + player.assists > player.deaths * 2 ? 'good' : 'needs improvement',
-      })),
+        kda: kda.toFixed(2),
+        rating,
+        roleRecommendations,
+      }
+    })
+
+    // Key moments (simulated based on match duration)
+    const keyMoments = [
+      {
+        time: 0,
+        event: 'Match Started',
+        description: 'La partita è iniziata',
+      },
+    ]
+    
+    if (match.duration > 600) {
+      keyMoments.push({
+        time: 600,
+        event: 'Early Game',
+        description: 'Fine della fase di laning. Valuta le decisioni prese in questa fase.',
+      })
+    }
+    
+    if (match.duration > 1800) {
+      keyMoments.push({
+        time: 1800,
+        event: 'Mid Game',
+        description: 'Fase centrale della partita. Controllo mappa e obiettivi cruciali.',
+      })
+    }
+
+    // Generate overview
+    const overview = `Partita durata ${Math.floor(match.duration / 60)} minuti e ${match.duration % 60} secondi. ` +
+      `Vittoria ${match.radiant_win ? 'Radiant' : 'Dire'}. ` +
+      `Il team vincente ha mantenuto una media GPM di ${Math.round(match.radiant_win ? radiantAvgGpm : direAvgGpm)} ` +
+      `rispetto ai ${Math.round(match.radiant_win ? direAvgGpm : radiantAvgGpm)} del team sconfitto.`
+
+    const analysis = {
+      matchId: id,
+      duration: match.duration,
+      radiantWin: match.radiant_win,
+      overview,
+      keyMoments,
+      recommendations,
+      playerPerformance,
+      teamStats: {
+        radiant: {
+          avgGpm: Math.round(radiantAvgGpm),
+          avgKda: radiantAvgKda.toFixed(2),
+        },
+        dire: {
+          avgGpm: Math.round(direAvgGpm),
+          avgKda: direAvgKda.toFixed(2),
+        },
+      },
     }
     
     return NextResponse.json(analysis, {
