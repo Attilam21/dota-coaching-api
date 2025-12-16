@@ -106,7 +106,7 @@ export default function DashboardPage() {
                       Match #{savedMatch.match_id}
                     </Link>
                     <p className="text-sm text-gray-500 mt-1">
-                      Saved on {new Date(savedMatch.created_at).toLocaleDateString('en-US', {
+                      Saved on {new Date(savedMatch.created_at).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
