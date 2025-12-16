@@ -60,8 +60,9 @@ export async function GET(
     // Analyze individual player performance
     const playerPerformance = (match.players as Player[]).map((player: Player) => {
       const kda = (player.kills + player.assists) / Math.max(player.deaths, 1)
-      const isCarry = player.gold_per_min > 500
-      const isSupport = player.gold_per_min < 300 && player.assists > player.kills
+      const goldPerMin = player.gold_per_min || 0
+      const isCarry = goldPerMin > 500
+      const isSupport = goldPerMin < 300 && player.assists > player.kills
       
       let rating = 'needs improvement'
       if (kda > 2 && player.deaths < 5) {
@@ -72,7 +73,7 @@ export async function GET(
       
       // Role-specific recommendations
       const roleRecommendations: string[] = []
-      if (isCarry && player.gold_per_min < 400) {
+      if (isCarry && goldPerMin < 400) {
         roleRecommendations.push('Come carry, concentrati sul migliorare il farm rate.')
       }
       if (isSupport && player.assists < 10) {
@@ -83,12 +84,12 @@ export async function GET(
       }
       
       return {
-        heroId: player.hero_id,
+        heroId: (player as { hero_id?: number }).hero_id,
         kills: player.kills,
         deaths: player.deaths,
         assists: player.assists,
-        gpm: player.gold_per_min,
-        xpm: player.xp_per_min,
+        gpm: goldPerMin,
+        xpm: player.xp_per_min || 0,
         kda: kda.toFixed(2),
         rating,
         roleRecommendations,
