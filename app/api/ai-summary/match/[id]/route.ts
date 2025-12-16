@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Helper function to generate AI summary with fallback
 async function generateSummary(prompt: string): Promise<{ summary: string; provider: string }> {
   const geminiApiKey = process.env.GEMINI_API_KEY
-  const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
+  const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
 
   // Try Gemini first
   if (geminiApiKey) {
@@ -129,7 +129,7 @@ export async function GET(
     const playerId = searchParams.get('playerId')
     
     const geminiApiKey = process.env.GEMINI_API_KEY
-    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
 
     console.log('AI Summary Match - Starting:', {
       matchId: id,

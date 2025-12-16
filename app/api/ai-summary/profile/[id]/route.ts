@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Helper function to generate AI summary with fallback
 async function generateSummary(prompt: string): Promise<{ summary: string; provider: string }> {
   const geminiApiKey = process.env.GEMINI_API_KEY
-  const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
+  const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
 
   let geminiEmptyResponse = false
   let openaiEmptyResponse = false
@@ -148,7 +148,7 @@ export async function GET(
   try {
     const { id } = await params
     const geminiApiKey = process.env.GEMINI_API_KEY
-    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
 
     console.log('AI Summary Profile - Starting:', {
       playerId: id,
