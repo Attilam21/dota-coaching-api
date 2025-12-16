@@ -90,7 +90,7 @@ export default function AISummaryPage() {
       setError(null)
       setSummary('')
 
-      const response = await fetch(`/api/ai-summary/match/${selectedMatchId}`)
+      const response = await fetch(`/api/ai-summary/match/${selectedMatchId}?playerId=${playerId}`)
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Failed to generate summary')

@@ -6,6 +6,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const playerId = searchParams.get('playerId')
+    
     const geminiApiKey = process.env.GEMINI_API_KEY
 
     if (!geminiApiKey) {
@@ -16,32 +19,63 @@ export async function GET(
       )
     }
 
-    // Fetch match analysis data
-    // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const analysisResponse = await fetch(`${request.nextUrl.origin}/api/analysis/match/${id}`)
-    if (!analysisResponse.ok) {
-      const errorData = await analysisResponse.json().catch(() => ({}))
-      console.error('Match analysis fetch failed:', errorData)
+    if (!playerId) {
       return NextResponse.json(
-        { error: errorData.error || 'Failed to fetch match data' },
-        { status: analysisResponse.status }
+        { error: 'Player ID is required' },
+        { status: 400 }
       )
     }
 
-    const analysisData = await analysisResponse.json()
-    const match = analysisData.match
-    const player = analysisData.player
-    const analysis = analysisData.analysis
+    // Fetch match data directly from OpenDota
+    const matchResponse = await fetch(`https://api.opendota.com/api/matches/${id}`)
+    if (!matchResponse.ok) {
+      return NextResponse.json(
+        { error: 'Match not found' },
+        { status: 404 }
+      )
+    }
+    const match = await matchResponse.json()
+
+    // Find the player in the match
+    const player = match.players.find((p: any) => p.account_id === parseInt(playerId))
+    if (!player) {
+      return NextResponse.json(
+        { error: 'Player not found in this match' },
+        { status: 404 }
+      )
+    }
+
+    // Fetch match analysis data for recommendations
+    const analysisResponse = await fetch(`${request.nextUrl.origin}/api/analysis/match/${id}`)
+    let playerPerformance = null
+    if (analysisResponse.ok) {
+      const analysisData = await analysisResponse.json()
+      // Find player performance in the analysis array
+      playerPerformance = analysisData.playerPerformance?.find((p: any) => {
+        // Match by hero ID and similar stats
+        return p.heroId === player.hero_id
+      })
+    }
+
+    // Get hero name
+    const heroesResponse = await fetch('https://api.opendota.com/api/heroes')
+    const heroes = heroesResponse.ok ? await heroesResponse.json() : []
+    const hero = heroes.find((h: any) => h.id === player.hero_id)
+    const heroName = hero?.localized_name || 'Unknown'
+
+    // Determine win/loss
+    const playerTeam = player.player_slot < 128 ? 'radiant' : 'dire'
+    const won = (playerTeam === 'radiant' && match.radiant_win) || (playerTeam === 'dire' && !match.radiant_win)
 
     // Prepare data for Gemini
     const matchSummary = {
       matchId: id,
       duration: `${Math.floor(match.duration / 60)}:${String(match.duration % 60).padStart(2, '0')}`,
-      result: player.win ? 'Vittoria' : 'Sconfitta',
-      hero: player.hero_name || 'Unknown',
-      role: analysis.role || 'Unknown',
+      result: won ? 'Vittoria' : 'Sconfitta',
+      hero: heroName,
+      role: playerPerformance?.role || 'Unknown',
       kda: `${player.kills}/${player.deaths}/${player.assists}`,
-      kdaValue: player.kda?.toFixed(2) || '0.00',
+      kdaValue: player.deaths > 0 ? ((player.kills + player.assists) / player.deaths).toFixed(2) : (player.kills + player.assists).toFixed(2),
       gpm: player.gold_per_min || 0,
       xpm: player.xp_per_min || 0,
       lastHits: player.last_hits || 0,
@@ -49,9 +83,9 @@ export async function GET(
       heroDamage: player.hero_damage || 0,
       towerDamage: player.tower_damage || 0,
       netWorth: player.net_worth || 0,
-      strengths: analysis.strengths || [],
-      weaknesses: analysis.weaknesses || [],
-      recommendations: analysis.recommendations || [],
+      strengths: [], // Not available in current structure
+      weaknesses: [], // Not available in current structure
+      recommendations: playerPerformance?.roleRecommendations || [],
     }
 
     // Create prompt for Gemini
@@ -74,15 +108,14 @@ PERFORMANCE:
 - Tower Damage: ${matchSummary.towerDamage.toLocaleString()}
 - Net Worth: ${matchSummary.netWorth.toLocaleString()}
 
-PUNTI DI FORZA: ${matchSummary.strengths.join(', ') || 'Nessuno identificato'}
-DEBOLEZZE: ${matchSummary.weaknesses.join(', ') || 'Nessuna identificata'}
+RACCOMANDAZIONI: ${matchSummary.recommendations.length > 0 ? matchSummary.recommendations.join(' | ') : 'Nessuna raccomandazione specifica disponibile'}
 
 Genera un riassunto professionale in italiano (max 300 parole) che includa:
-1. Analisi dell'esito della partita
-2. Performance chiave del giocatore
-3. Punti di forza evidenziati
-4. Aree di miglioramento
-5. Un suggerimento principale per migliorare
+1. Analisi dell'esito della partita e del contesto generale
+2. Performance chiave del giocatore (KDA, farm, damage, ecc.)
+3. Analisi delle metriche principali rispetto al ruolo giocato
+4. Aree di miglioramento identificate
+5. Un suggerimento principale per migliorare basato sulle raccomandazioni
 
 Il tono deve essere professionale, costruttivo e orientato al miglioramento.`
 
