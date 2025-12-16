@@ -141,6 +141,19 @@ Se dopo aver eseguito lo script vedi ancora errori **"permission denied for tabl
 
 ---
 
+## 🔍 VERIFICA CONFIGURAZIONE
+
+Prima di testare, esegui lo script di diagnostica per verificare lo stato:
+
+1. Nel SQL Editor, apri `supabase/quick_check.sql`
+2. Esegui lo script
+3. Verifica che tutti i check siano ✅
+
+**Oppure** per un controllo completo:
+- Esegui `supabase/diagnostic_script.sql` per vedere tutti i dettagli
+
+---
+
 ## 📋 CHECKLIST POST-SETUP
 
 - [ ] Tabella `users` creata con colonna `dota_account_id`
