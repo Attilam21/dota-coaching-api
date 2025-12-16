@@ -9,10 +9,19 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 
 interface PlayerProfile {
   role: string
+  roleConfidence: string
   playstyle: string
   strengths: string[]
   weaknesses: string[]
   recommendations: string[]
+  radarData: Array<{ subject: string; value: number; fullMark: number }>
+  metrics: {
+    avgGPM: string
+    avgKDA: string
+    winrate: string
+    avgDeaths: string
+    killParticipation: string
+  }
 }
 
 export default function ProfilingPage() {
@@ -37,50 +46,11 @@ export default function ProfilingPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/stats`)
-      if (!response.ok) throw new Error('Failed to fetch player stats')
+      const response = await fetch(`/api/player/${playerId}/profile`)
+      if (!response.ok) throw new Error('Failed to fetch player profile')
 
       const data = await response.json()
-      if (!data.stats) throw new Error('No stats available')
-
-      // Generate profile based on stats
-      const matches = data.stats.matches || []
-      const avgGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
-      const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
-
-      let role = 'Core'
-      if (avgGPM > 550) role = 'Carry'
-      else if (avgGPM < 400) role = 'Support'
-
-      let playstyle = 'Bilanciato'
-      if (avgKDA > 3) playstyle = 'Aggressivo'
-      else if (avgKDA < 1.5) playstyle = 'Difensivo'
-
-      const strengths: string[] = []
-      const weaknesses: string[] = []
-      const recommendations: string[] = []
-
-      if (avgGPM > 500) {
-        strengths.push('Buon farm rate')
-      } else {
-        weaknesses.push('Farm rate da migliorare')
-        recommendations.push('Concentrati sul migliorare il farm rate')
-      }
-
-      if (avgKDA > 2) {
-        strengths.push('Buona performance KDA')
-      } else {
-        weaknesses.push('KDA da migliorare')
-        recommendations.push('Riduci le morti e aumenta kill/assist')
-      }
-
-      setProfile({
-        role,
-        playstyle,
-        strengths,
-        weaknesses,
-        recommendations,
-      })
+      setProfile(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile')
     } finally {
@@ -118,19 +88,10 @@ export default function ProfilingPage() {
     )
   }
 
-  const radarData = profile
-    ? [
-        { subject: 'Farm', value: 70, fullMark: 100 },
-        { subject: 'Teamfight', value: 65, fullMark: 100 },
-        { subject: 'Positioning', value: 60, fullMark: 100 },
-        { subject: 'Decision Making', value: 75, fullMark: 100 },
-      ]
-    : []
-
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-4">Profilazione FZTH</h1>
-      <p className="text-gray-400 mb-6">Il tuo profilo di giocatore basato sulle tue performance</p>
+      <p className="text-gray-400 mb-6">Il tuo profilo di giocatore basato sulle tue performance reali</p>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -151,7 +112,16 @@ export default function ProfilingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Ruolo Principale</h2>
-              <p className="text-3xl font-bold text-red-400">{profile.role}</p>
+              <p className="text-3xl font-bold text-red-400 mb-2">{profile.role}</p>
+              <p className="text-sm text-gray-400">
+                Confidenza: <span className={`font-semibold ${
+                  profile.roleConfidence === 'high' ? 'text-green-400' : 
+                  profile.roleConfidence === 'medium' ? 'text-yellow-400' : 
+                  'text-gray-400'
+                }`}>
+                  {profile.roleConfidence === 'high' ? 'Alta' : profile.roleConfidence === 'medium' ? 'Media' : 'Bassa'}
+                </span>
+              </p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Stile di Gioco</h2>
@@ -159,18 +129,46 @@ export default function ProfilingPage() {
             </div>
           </div>
 
+          {/* Key Metrics */}
+          {profile.metrics && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400 mb-1">GPM Medio</p>
+                <p className="text-xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
+              </div>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400 mb-1">KDA Medio</p>
+                <p className="text-xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
+              </div>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400 mb-1">Winrate</p>
+                <p className="text-xl font-bold text-green-400">{profile.metrics.winrate}%</p>
+              </div>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400 mb-1">Morte/Game</p>
+                <p className="text-xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
+              </div>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-400 mb-1">Kill Part.</p>
+                <p className="text-xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
+              </div>
+            </div>
+          )}
+
           {/* Radar Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Profilo Completo</h2>
-            <ResponsiveContainer width="100%" height={400}>
-              <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                <Radar name="Profilo" dataKey="value" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
+          {profile.radarData && profile.radarData.length > 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Profilo Completo</h2>
+              <ResponsiveContainer width="100%" height={400}>
+                <RadarChart data={profile.radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" />
+                  <Radar name="Profilo" dataKey="value" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           {/* Strengths & Weaknesses */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -208,9 +206,9 @@ export default function ProfilingPage() {
           </div>
 
           {/* Recommendations */}
-          {profile.recommendations.length > 0 && (
+          {profile.recommendations && profile.recommendations.length > 0 && (
             <div className="bg-gray-800 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4 text-blue-400">Raccomandazioni</h3>
+              <h3 className="text-lg font-semibold mb-4 text-blue-400">Raccomandazioni Personalizzate</h3>
               <ul className="space-y-2">
                 {profile.recommendations.map((rec, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-gray-300">
