@@ -91,12 +91,6 @@ export default function DashboardPage() {
     return null
   }
 
-  // Allow manual input if player ID is not configured from profile
-  const [manualPlayerId, setManualPlayerId] = useState<string>('')
-  const [usingManualId, setUsingManualId] = useState(false)
-  
-  const effectivePlayerId = playerId || (usingManualId ? manualPlayerId : null)
-  
   // Show input option if no player ID from profile
   if (!playerId && !usingManualId) {
     return (
