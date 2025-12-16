@@ -32,6 +32,21 @@ export default function SettingsPage() {
 
     try {
       setLoading(true)
+      
+      // Prima controlla localStorage (veloce, sincrono)
+      try {
+        const savedInLocalStorage = localStorage.getItem('fzth_player_id')
+        if (savedInLocalStorage) {
+          setDotaAccountId(savedInLocalStorage)
+          setLoading(false)
+          // Opzionalmente carica anche da Supabase per mostrare valore "permanente"
+          // ma non bloccare l'UI
+        }
+      } catch (localStorageErr) {
+        console.error('Failed to read localStorage:', localStorageErr)
+      }
+
+      // Poi carica da Supabase (per mostrare valore permanente salvato)
       const { data, error } = await supabase
         .from('users')
         .select('dota_account_id')
@@ -40,24 +55,42 @@ export default function SettingsPage() {
 
       // PGRST116 = no rows returned, which is OK (user might not have a profile yet)
       if (error && error.code !== 'PGRST116') {
-        console.error('Failed to load settings:', error)
-        setMessage({
-          type: 'error',
-          text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
-        })
+        console.error('Failed to load settings from Supabase:', error)
+        // Non mostrare errore se localStorage ha un valore
+        if (!localStorage.getItem('fzth_player_id')) {
+          setMessage({
+            type: 'error',
+            text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
+          })
+        }
         return
       }
 
+      // Se Supabase ha un valore, usalo (è la "verità" permanente)
       if (data?.dota_account_id) {
         setDotaAccountId(data.dota_account_id.toString())
+        // Sincronizza anche localStorage se diverso
+        const currentLocalStorage = localStorage.getItem('fzth_player_id')
+        if (currentLocalStorage !== data.dota_account_id.toString()) {
+          try {
+            localStorage.setItem('fzth_player_id', data.dota_account_id.toString())
+            // Aggiorna anche context se necessario
+            setPlayerId(data.dota_account_id.toString())
+          } catch (syncErr) {
+            console.error('Failed to sync localStorage:', syncErr)
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load settings:', err)
       const errorMessage = err instanceof Error ? err.message : 'Errore sconosciuto nel caricamento'
-      setMessage({
-        type: 'error',
-        text: errorMessage,
-      })
+      // Non mostrare errore se localStorage ha un valore
+      if (!localStorage.getItem('fzth_player_id')) {
+        setMessage({
+          type: 'error',
+          text: errorMessage,
+        })
+      }
     } finally {
       setLoading(false)
     }

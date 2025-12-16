@@ -1,8 +1,6 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { useAuth } from './auth-context'
-import { supabase } from './supabase'
 
 const PLAYER_ID_KEY = 'fzth_player_id'
 
@@ -17,7 +15,6 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
 })
 
 export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
   const [playerId, setPlayerIdState] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -26,48 +23,19 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true)
   }, [])
 
-  // Load from localStorage first, then Supabase as fallback (only on client)
+  // Load from localStorage ONLY (sincrono, veloce, disponibile subito)
   useEffect(() => {
-    if (!isMounted || !user) return
+    if (!isMounted) return
 
-    const loadPlayerId = async () => {
-      try {
-        // Step 1: Try localStorage first (fastest)
-        const saved = localStorage.getItem(PLAYER_ID_KEY)
-        if (saved) {
-          setPlayerIdState(saved)
-          return
-        }
-
-        // Step 2: If localStorage empty, query Supabase as fallback
-        const { data, error } = await supabase
-          .from('users')
-          .select('dota_account_id')
-          .eq('id', user.id)
-          .single()
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('[PlayerIdContext] Failed to load from Supabase:', error)
-          return
-        }
-
-        if (data?.dota_account_id) {
-          const dbPlayerId = data.dota_account_id.toString()
-          setPlayerIdState(dbPlayerId)
-          // Also save to localStorage for next time (performance)
-          try {
-            localStorage.setItem(PLAYER_ID_KEY, dbPlayerId)
-          } catch (err) {
-            console.error('[PlayerIdContext] Failed to save to localStorage:', err)
-          }
-        }
-      } catch (err) {
-        console.error('[PlayerIdContext] Error loading player ID:', err)
+    try {
+      const saved = localStorage.getItem(PLAYER_ID_KEY)
+      if (saved) {
+        setPlayerIdState(saved)
       }
+    } catch (err) {
+      console.error('[PlayerIdContext] Failed to load from localStorage:', err)
     }
-
-    loadPlayerId()
-  }, [isMounted, user])
+  }, [isMounted])
 
   // Save to localStorage whenever playerId changes
   const setPlayerId = useCallback((id: string | null) => {
