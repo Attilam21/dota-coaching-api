@@ -37,7 +37,8 @@ export async function GET(
   try {
     const { id } = await params
     
-    // Fetch recent matches (20 per analisi avanzate)
+    // Fetch recent matches summary (20 per analisi avanzate)
+    // Note: Summary endpoint has limited fields, we'll fetch full details for first 10 matches
     const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
       next: { revalidate: 3600 }
     })
@@ -49,9 +50,9 @@ export async function GET(
       )
     }
 
-    const matches: OpenDotaMatch[] = await matchesResponse.json()
+    const matchesSummary: any[] = await matchesResponse.json()
 
-    if (!matches || matches.length === 0) {
+    if (!matchesSummary || matchesSummary.length === 0) {
       return NextResponse.json({
         matches: [],
         stats: null
@@ -59,7 +60,65 @@ export async function GET(
     }
 
     // Filter valid matches
-    const validMatches = matches.filter(m => m.duration > 0)
+    const validSummaryMatches = matchesSummary.filter((m: any) => m.duration > 0)
+    
+    // Fetch full match details for first 10 matches (to get advanced stats)
+    // We limit to 10 to avoid too many API calls
+    const matchesToFetch = validSummaryMatches.slice(0, 10)
+    const fullMatchesPromises = matchesToFetch.map((m: any) =>
+      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+        next: { revalidate: 3600 }
+      }).then(res => res.ok ? res.json() : null).catch(() => null)
+    )
+    
+    const fullMatchesData = await Promise.all(fullMatchesPromises)
+    
+    // Map full match data to player data
+    const enrichedMatches = validSummaryMatches.map((summaryMatch: any, idx: number) => {
+      const fullMatch = idx < fullMatchesData.length ? fullMatchesData[idx] : null
+      // Find player in match - try by account_id first, then by player_slot
+      let playerInMatch = null
+      if (fullMatch?.players) {
+        playerInMatch = fullMatch.players.find((p: any) => 
+          p.account_id?.toString() === id
+        ) || fullMatch.players.find((p: any) => 
+          p.player_slot === summaryMatch.player_slot
+        )
+      }
+      
+      return {
+        match_id: summaryMatch.match_id,
+        player_slot: summaryMatch.player_slot,
+        radiant_win: summaryMatch.radiant_win,
+        kills: summaryMatch.kills || 0,
+        deaths: summaryMatch.deaths || 0,
+        assists: summaryMatch.assists || 0,
+        gold_per_min: summaryMatch.gold_per_min || 0,
+        xp_per_min: summaryMatch.xp_per_min || 0,
+        // Advanced fields from full match data (if available)
+        last_hits: playerInMatch?.last_hits || 0,
+        denies: playerInMatch?.denies || 0,
+        hero_damage: playerInMatch?.hero_damage || 0,
+        tower_damage: playerInMatch?.tower_damage || 0,
+        hero_healing: playerInMatch?.hero_healing || 0,
+        observer_uses: playerInMatch?.observer_uses || 0,
+        sentry_uses: playerInMatch?.sentry_uses || 0,
+        observer_killed: playerInMatch?.observer_kills || playerInMatch?.obs_killed || 0,
+        sentry_killed: playerInMatch?.sentry_kills || playerInMatch?.sen_killed || 0,
+        firstblood_claimed: playerInMatch?.firstblood_claimed ? 1 : 0,
+        firstblood_killed: playerInMatch?.firstblood_killed ? 1 : 0,
+        gold: playerInMatch?.total_gold || 0,
+        gold_spent: playerInMatch?.gold_spent || 0,
+        net_worth: playerInMatch?.net_worth || 0,
+        buyback_count: playerInMatch?.buyback_count || 0,
+        runes: playerInMatch?.rune_pickups || 0,
+        start_time: summaryMatch.start_time,
+        duration: summaryMatch.duration || 0,
+        lane_role: summaryMatch.lane_role,
+      }
+    })
+    
+    const validMatches = enrichedMatches
 
     // ============================================
     // 1. LANE & EARLY GAME STATS
