@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -8,7 +8,6 @@ import Link from 'next/link'
 export default function AdvancedPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [playerId, setPlayerId] = useState<string>('')
 
   useEffect(() => {
     if (!authLoading && !user) {
