@@ -251,4 +251,3 @@ Il tono deve essere professionale, costruttivo e orientato al miglioramento.`
     )
   }
 }
-

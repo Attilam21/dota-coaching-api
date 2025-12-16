@@ -5,6 +5,11 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
   const geminiApiKey = process.env.GEMINI_API_KEY
   const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
 
+  let geminiEmptyResponse = false
+  let openaiEmptyResponse = false
+  let geminiFailed = false
+  let openaiFailed = false
+
   // Try Gemini first
   if (geminiApiKey) {
     try {
@@ -28,14 +33,19 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
       if (geminiResponse.ok) {
         const geminiData = await geminiResponse.json()
         const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
-        if (summary) {
+        if (summary && summary.trim().length > 0) {
           console.log('Summary generated with Gemini')
           return { summary, provider: 'gemini' }
+        } else {
+          geminiEmptyResponse = true
+          console.warn('Gemini API returned empty summary, trying OpenAI fallback')
         }
       } else {
+        geminiFailed = true
         console.warn('Gemini API failed, trying OpenAI fallback:', geminiResponse.status)
       }
     } catch (error) {
+      geminiFailed = true
       console.warn('Gemini API error, trying OpenAI fallback:', error)
     }
   }
@@ -69,20 +79,41 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
       if (openaiResponse.ok) {
         const openaiData = await openaiResponse.json()
         const summary = openaiData.choices?.[0]?.message?.content
-        if (summary) {
+        if (summary && summary.trim().length > 0) {
           console.log('Summary generated with OpenAI')
           return { summary, provider: 'openai' }
+        } else {
+          openaiEmptyResponse = true
+          console.warn('OpenAI API returned empty summary')
         }
       } else {
+        openaiFailed = true
         const errorText = await openaiResponse.text()
         console.error('OpenAI API error:', openaiResponse.status, errorText)
       }
     } catch (error) {
+      openaiFailed = true
       console.error('OpenAI API error:', error)
     }
   }
 
-  throw new Error('Both Gemini and OpenAI failed or are not configured')
+  // Generate accurate error message based on what actually happened
+  if (geminiEmptyResponse || openaiEmptyResponse) {
+    const emptyProviders = []
+    if (geminiEmptyResponse) emptyProviders.push('Gemini')
+    if (openaiEmptyResponse) emptyProviders.push('OpenAI')
+    throw new Error(`${emptyProviders.join(' and ')} returned empty summary content`)
+  }
+
+  if (geminiFailed && openaiFailed) {
+    throw new Error('Both Gemini and OpenAI API calls failed')
+  }
+
+  if (!geminiApiKey && !openaiApiKey) {
+    throw new Error('No AI API keys configured. Please set GEMINI_API_KEY or OPENAI_API_KEY')
+  }
+
+  throw new Error('Failed to generate summary: all configured providers returned empty or failed')
 }
 
 export async function GET(
