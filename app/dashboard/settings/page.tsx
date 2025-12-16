@@ -29,19 +29,35 @@ export default function SettingsPage() {
     if (!user) return
 
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('users')
         .select('dota_account_id')
         .eq('id', user.id)
         .single()
 
-      if (error && error.code !== 'PGRST116') throw error
+      // PGRST116 = no rows returned, which is OK (user might not have a profile yet)
+      if (error && error.code !== 'PGRST116') {
+        console.error('Failed to load settings:', error)
+        setMessage({
+          type: 'error',
+          text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
+        })
+        return
+      }
 
       if (data?.dota_account_id) {
         setDotaAccountId(data.dota_account_id.toString())
       }
     } catch (err) {
       console.error('Failed to load settings:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Errore sconosciuto nel caricamento'
+      setMessage({
+        type: 'error',
+        text: errorMessage,
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -53,18 +69,50 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
+      // Use UPSERT to create the record if it doesn't exist, or update if it does
+      const accountIdValue = dotaAccountId.trim() ? parseInt(dotaAccountId.trim()) : null
+      
+      // Validate that it's a valid number if provided
+      if (dotaAccountId.trim() && isNaN(accountIdValue as number)) {
+        setMessage({
+          type: 'error',
+          text: 'L\'ID Dota deve essere un numero valido',
+        })
+        return
+      }
+
       const { error } = await supabase
         .from('users')
-        .update({ dota_account_id: dotaAccountId ? parseInt(dotaAccountId) : null })
-        .eq('id', user.id)
+        .upsert(
+          {
+            id: user.id,
+            email: user.email || '',
+            dota_account_id: accountIdValue,
+          },
+          {
+            onConflict: 'id',
+          }
+        )
 
-      if (error) throw error
+      if (error) {
+        console.error('Error saving settings:', error)
+        throw error
+      }
 
-      setMessage({ type: 'success', text: 'Impostazioni salvate con successo!' })
+      setMessage({ 
+        type: 'success', 
+        text: 'Profilo salvato con successo! Le modifiche saranno visibili nelle altre sezioni.' 
+      })
+      
+      // Reload settings to reflect changes
+      await loadUserSettings()
     } catch (err) {
+      console.error('Failed to save settings:', err)
+      const errorObj = err as { message?: string; code?: string; details?: string }
+      const errorMessage = errorObj?.message || 'Errore nel salvataggio delle impostazioni'
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni',
+        text: errorMessage,
       })
     } finally {
       setSaving(false)

@@ -35,7 +35,9 @@ export function usePlayerId() {
         }
       } catch (err) {
         console.error('Failed to fetch player ID:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load player ID')
+        const errorObj = err as { message?: string; code?: string }
+        const errorMessage = errorObj?.message || 'Failed to load player ID'
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
@@ -43,27 +45,13 @@ export function usePlayerId() {
 
     fetchPlayerId()
 
-    // Subscribe to changes in user profile
-    const channel = supabase
-      .channel('user-profile-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'users',
-          filter: `id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newAccountId = payload.new.dota_account_id
-          setPlayerId(newAccountId ? newAccountId.toString() : null)
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    // Note: Real-time subscription requires enabling replication for users table in Supabase
+    // For now, components will refetch when they remount or when explicitly refreshed
+    // To enable real-time updates, go to Supabase Dashboard > Database > Replication
+    // and enable replication for the users table
+    
+    // No cleanup needed for now since we're not using subscriptions
+    // return () => { supabase.removeChannel(channel) }
   }, [user])
 
   return { playerId, loading, error }
