@@ -5,10 +5,12 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { setPlayerId } = usePlayerIdContext()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -91,7 +93,15 @@ export default function SettingsPage() {
         throw error
       }
 
-      setMessage({ type: 'success', text: 'Impostazioni salvate con successo!' })
+      // Sincronizza PlayerIdContext e localStorage dopo save in Supabase
+      // Questo assicura che Dashboard e altre pagine vedano immediatamente il valore
+      const playerIdString = accountIdValue ? accountIdValue.toString() : null
+      setPlayerId(playerIdString)
+
+      setMessage({ 
+        type: 'success', 
+        text: 'Impostazioni salvate con successo! Il Player ID è ora disponibile in tutte le sezioni.' 
+      })
     } catch (err) {
       console.error('Failed to save settings:', err)
       const errorObj = err as { message?: string; code?: string; details?: string }
@@ -203,4 +213,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
