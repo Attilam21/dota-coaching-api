@@ -26,7 +26,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { name: 'Hero Pool', href: '/dashboard/heroes', icon: '🎭' },
         { name: 'Team & Compagni', href: '/dashboard/teammates', icon: '👥' },
         { name: 'Partite', href: '/dashboard/matches', icon: '🎮' },
-        { name: 'Analisi partita', href: '/dashboard/match-analysis', icon: '🔍' },
       ],
     },
     {

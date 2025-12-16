@@ -1,70 +1,82 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
 import Link from 'next/link'
+import PlayerIdInput from '@/components/PlayerIdInput'
 
-interface MatchData {
-  duration: number
-  radiant_win: boolean
-  [key: string]: unknown
-}
-
-interface AnalysisData {
-  [key: string]: unknown
-}
-
-interface SavedMatch {
-  id: string
+interface Match {
   match_id: number
-  analysis_data: {
-    match: MatchData
-    analysis: AnalysisData
-    saved_at: string
-  }
-  created_at: string
+  player_slot: number
+  radiant_win: boolean
+  kills: number
+  deaths: number
+  assists: number
+  gold_per_min?: number
+  xp_per_min?: number
+  start_time: number
+  duration: number
+  hero_id?: number
 }
 
 export default function MatchesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([])
-  const [loading, setLoading] = useState(true)
+  const { playerId } = usePlayerIdContext()
+  const [matches, setMatches] = useState<Match[]>([])
+  const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
       return
     }
-
-    if (user) {
-      fetchSavedMatches()
-    }
   }, [user, authLoading, router])
 
-  const fetchSavedMatches = async () => {
-    if (!user) return
+  useEffect(() => {
+    // Fetch heroes list
+    fetch('/api/opendota/heroes')
+      .then((res) => res.json())
+      .then((data) => {
+        const heroesMap: Record<number, { name: string; localized_name: string }> = {}
+        data.forEach((hero: { id: number; name: string; localized_name: string }) => {
+          heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+        })
+        setHeroes(heroesMap)
+      })
+      .catch(console.error)
+  }, [])
+
+  const fetchMatches = useCallback(async () => {
+    if (!playerId) return
 
     try {
-      const { data, error } = await supabase
-        .from('match_analyses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+      setLoading(true)
+      setError(null)
 
-      if (error) throw error
+      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=20`)
+      if (!response.ok) throw new Error('Failed to fetch matches')
 
-      setSavedMatches(data || [])
+      const data = await response.json()
+      setMatches(data || [])
     } catch (err) {
-      console.error('Failed to fetch saved matches:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load matches')
     } finally {
       setLoading(false)
     }
-  }
+  }, [playerId])
 
-  if (authLoading || loading) {
+  useEffect(() => {
+    if (playerId) {
+      fetchMatches()
+    }
+  }, [playerId, fetchMatches])
+
+  if (authLoading) {
     return (
       <div className="p-8">
         <div className="text-center">
@@ -78,71 +90,130 @@ export default function MatchesPage() {
     return null
   }
 
+  if (!playerId) {
+    return (
+      <PlayerIdInput
+        pageTitle="Partite"
+        title="Inserisci Player ID"
+        description="Inserisci il tuo Dota 2 Account ID per visualizzare le tue ultime partite. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
+      />
+    )
+  }
+
+  const getHeroName = (heroId?: number) => {
+    if (!heroId) return 'Sconosciuto'
+    return heroes[heroId]?.localized_name || `Hero ${heroId}`
+  }
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('it-IT', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const isWin = (match: Match) => {
+    return (match.player_slot < 128 && match.radiant_win) || (match.player_slot >= 128 && !match.radiant_win)
+  }
+
+  const getKDA = (match: Match) => {
+    return ((match.kills + match.assists) / Math.max(match.deaths, 1)).toFixed(2)
+  }
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-4">Partite</h1>
-      <p className="text-gray-400 mb-8">Le tue partite analizzate e salvate</p>
+      <p className="text-gray-400 mb-8">Le tue ultime 20 partite</p>
 
-      {savedMatches.length === 0 ? (
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
-          <p className="text-gray-400 mb-4">Non hai ancora salvato alcuna analisi di partita.</p>
-          <Link
-            href="/dashboard/match-analysis"
-            className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
-          >
-            Analizza la Prima Partita
-          </Link>
+      {error && (
+        <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+          {error}
         </div>
-      ) : (
+      )}
+
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <p className="mt-4 text-gray-400">Caricamento partite...</p>
+        </div>
+      )}
+
+      {matches.length > 0 && !loading && (
         <div className="space-y-4">
-          {savedMatches.map((savedMatch) => (
-            <div
-              key={savedMatch.id}
-              className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-750 transition"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <Link
-                    href={`/analysis/match/${savedMatch.match_id}`}
-                    className="text-xl font-semibold text-red-400 hover:text-red-300"
-                  >
-                    Match #{savedMatch.match_id}
-                  </Link>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Salvato il {new Date(savedMatch.created_at).toLocaleString('it-IT', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                  {savedMatch.analysis_data?.match && (
-                    <div className="mt-3 flex gap-6 text-sm">
-                      <span className="text-gray-300">
-                        Durata: {Math.floor(savedMatch.analysis_data.match.duration / 60)}:
-                        {(savedMatch.analysis_data.match.duration % 60).toString().padStart(2, '0')}
-                      </span>
-                      <span className={`font-semibold ${
-                        savedMatch.analysis_data.match.radiant_win ? 'text-green-400' : 'text-red-400'
+          {matches.map((match) => {
+            const win = isWin(match)
+            const kda = getKDA(match)
+            
+            return (
+              <Link
+                key={match.match_id}
+                href={`/analysis/match/${match.match_id}`}
+                className="block bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-750 transition cursor-pointer"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-2">
+                      <h3 className="text-xl font-semibold text-white">
+                        {getHeroName(match.hero_id)}
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        win ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                       }`}>
-                        {savedMatch.analysis_data.match.radiant_win ? 'Vittoria Radiant' : 'Vittoria Dire'}
+                        {win ? 'Vittoria' : 'Sconfitta'}
                       </span>
                     </div>
-                  )}
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">K/D/A</span>
+                        <p className="text-white font-semibold">
+                          {match.kills}/{match.deaths}/{match.assists}
+                        </p>
+                        <p className="text-gray-500 text-xs">KDA: {kda}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">GPM/XPM</span>
+                        <p className="text-white font-semibold">
+                          {match.gold_per_min || 0} / {match.xp_per_min || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Durata</span>
+                        <p className="text-white font-semibold">{formatDuration(match.duration)}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Data</span>
+                        <p className="text-white font-semibold">{formatDate(match.start_time)}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="ml-4">
+                    <span className="text-red-400 hover:text-red-300 text-sm font-semibold">
+                      Vedi Analisi →
+                    </span>
+                  </div>
                 </div>
-                <Link
-                  href={`/analysis/match/${savedMatch.match_id}`}
-                  className="ml-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
-                >
-                  Vedi Analisi
-                </Link>
-              </div>
-            </div>
-          ))}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
+      {matches.length === 0 && !loading && (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
+          <p className="text-gray-400">Nessuna partita trovata</p>
         </div>
       )}
     </div>
   )
 }
-
