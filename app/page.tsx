@@ -45,21 +45,21 @@ export default function Home() {
       {/* Features Grid */}
       <div className="grid md:grid-cols-3 gap-8 mb-16">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">📊</div>
+          <div className="text-4xl mb-4" role="img" aria-label="chart">📊</div>
           <h3 className="text-xl font-semibold mb-2">Match Analysis</h3>
           <p className="text-gray-600">
             Deep dive into your matches with AI-powered insights on farm efficiency, positioning, and decision-making.
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">🎯</div>
+          <div className="text-4xl mb-4" role="img" aria-label="target">🎯</div>
           <h3 className="text-xl font-semibold mb-2">Learning Paths</h3>
           <p className="text-gray-600">
             Personalized training modules tailored to your skill level and role preferences.
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">🏆</div>
+          <div className="text-4xl mb-4" role="img" aria-label="trophy">🏆</div>
           <h3 className="text-xl font-semibold mb-2">Gamification</h3>
           <p className="text-gray-600">
             Track your progress with XP, achievements, and compete in community challenges.
@@ -74,10 +74,11 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-4">Analyze Match</h2>
           <form onSubmit={handleMatchAnalysis} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="matchId" className="block text-sm font-medium text-gray-700 mb-2">
                 Match ID
               </label>
               <input
+                id="matchId"
                 type="text"
                 value={matchId}
                 onChange={(e) => setMatchId(e.target.value)}
@@ -99,10 +100,11 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-4">Player Stats</h2>
           <form onSubmit={handlePlayerAnalysis} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-2">
                 Account ID
               </label>
               <input
+                id="accountId"
                 type="text"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
