@@ -403,6 +403,9 @@ export default function MatchAnalysisPage() {
       {timeline && timeline.timeline && timeline.timeline.length > 0 && (
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mt-6">
           <h3 className="text-xl font-semibold mb-4 text-white">Timeline Partita - Gold & XP Advantage</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Grafico basato su dati reali da OpenDota. Gli eventi mostrati sono eventi reali della partita.
+          </p>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={timeline.timeline}>
               <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
@@ -415,6 +418,11 @@ export default function MatchAnalysisPage() {
               <Tooltip
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '4px' }}
                 itemStyle={{ color: '#e5e7eb' }}
+                formatter={(value: any, name: string) => {
+                  if (name === 'radiant_gold_adv') return [`${value > 0 ? '+' : ''}${value}`, 'Radiant Gold Advantage']
+                  if (name === 'radiant_xp_adv') return [`${value > 0 ? '+' : ''}${value}`, 'Radiant XP Advantage']
+                  return [value, name]
+                }}
               />
               <Legend />
               <Line 
@@ -437,13 +445,75 @@ export default function MatchAnalysisPage() {
           </ResponsiveContainer>
           {timeline.keyEvents && timeline.keyEvents.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-700">
-              <h4 className="text-sm font-semibold text-gray-400 mb-2">Eventi Chiave</h4>
-              <div className="flex flex-wrap gap-2">
-                {timeline.keyEvents.map((event: any, idx: number) => (
-                  <span key={idx} className="text-xs bg-gray-700 px-2 py-1 rounded">
-                    {event.minute}' - {event.event}
-                  </span>
-                ))}
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">📅 Eventi Reali della Partita</h4>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {timeline.keyEvents.map((event: any, idx: number) => {
+                  const timeStr = `${event.minute}:${String(event.second || 0).padStart(2, '0')}`
+                  const getEventColor = () => {
+                    switch (event.type) {
+                      case 'first_blood':
+                        return 'bg-red-900/50 border-red-700 text-red-300'
+                      case 'kill':
+                        return 'bg-orange-900/50 border-orange-700 text-orange-300'
+                      case 'tower':
+                        return 'bg-yellow-900/50 border-yellow-700 text-yellow-300'
+                      case 'roshan':
+                        return 'bg-purple-900/50 border-purple-700 text-purple-300'
+                      case 'match_start':
+                        return 'bg-green-900/50 border-green-700 text-green-300'
+                      case 'match_end':
+                        return event.team === 'radiant' 
+                          ? 'bg-blue-900/50 border-blue-700 text-blue-300'
+                          : 'bg-red-900/50 border-red-700 text-red-300'
+                      default:
+                        return 'bg-gray-700 border-gray-600 text-gray-300'
+                    }
+                  }
+                  
+                  const getEventIcon = () => {
+                    switch (event.type) {
+                      case 'first_blood':
+                        return '🩸'
+                      case 'kill':
+                        return '⚔️'
+                      case 'tower':
+                        return '🏰'
+                      case 'roshan':
+                        return '🐉'
+                      case 'match_start':
+                        return '▶️'
+                      case 'match_end':
+                        return '🏆'
+                      default:
+                        return '•'
+                    }
+                  }
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${getEventColor()}`}
+                    >
+                      <span className="text-xs font-mono font-semibold min-w-[50px]">{timeStr}</span>
+                      <span className="text-sm">{getEventIcon()}</span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm">{event.event}</div>
+                        {event.description && (
+                          <div className="text-xs opacity-80 mt-0.5">{event.description}</div>
+                        )}
+                      </div>
+                      {event.team && (
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          event.team === 'radiant' 
+                            ? 'bg-green-900/50 text-green-300' 
+                            : 'bg-red-900/50 text-red-300'
+                        }`}>
+                          {event.team === 'radiant' ? 'Radiant' : 'Dire'}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
