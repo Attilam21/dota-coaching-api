@@ -62,9 +62,8 @@ export async function GET(
     // Filter valid matches
     const validSummaryMatches = matchesSummary.filter((m: any) => m.duration > 0)
     
-    // Fetch full match details for first 10 matches (to get advanced stats)
-    // We limit to 10 to avoid too many API calls
-    const matchesToFetch = validSummaryMatches.slice(0, 10)
+    // Fetch full match details for all 20 matches (to get advanced stats)
+    const matchesToFetch = validSummaryMatches.slice(0, 20)
     const fullMatchesPromises = matchesToFetch.map((m: any) =>
       fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
         next: { revalidate: 3600 }

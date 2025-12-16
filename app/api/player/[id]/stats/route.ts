@@ -19,8 +19,8 @@ export async function GET(
   try {
     const { id } = await params
     
-    // Fetch recent matches
-    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=10`, {
+    // Fetch recent matches (20 per allineare con analisi avanzate)
+    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
       next: { revalidate: 3600 }
     })
     
@@ -88,7 +88,7 @@ export async function GET(
         gpm: { last5: gpm5, last10: gpm10 },
         xpm: { last5: xpm5, last10: xpm10 },
       },
-      matches: recent10.map((m) => ({
+      matches: matches.slice(0, 20).map((m) => ({
         match_id: m.match_id,
         win: (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win),
         kda: (m.kills + m.assists) / Math.max(m.deaths, 1),
@@ -99,7 +99,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      matches: recent10,
+      matches: matches.slice(0, 20),
       stats,
     })
   } catch (error) {
