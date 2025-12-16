@@ -134,7 +134,15 @@ export async function GET(
       }
     })
     
-    const validMatches = enrichedMatches
+    const validMatches = enrichedMatches.filter((m: any) => m.duration > 0)
+
+    // Guard against empty validMatches to prevent division by zero
+    if (validMatches.length === 0) {
+      return NextResponse.json({
+        matches: [],
+        stats: null
+      })
+    }
 
     // ============================================
     // 1. LANE & EARLY GAME STATS

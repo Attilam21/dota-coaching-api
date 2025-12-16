@@ -74,8 +74,8 @@ export default function PerformancePage() {
       
       // Use advanced stats if available
       const advanced = advancedData?.stats
-      const avgDeaths = advanced?.fights?.avgDeaths || 5
-      const avgAssists = advanced?.fights?.avgAssists || 10
+      const avgDeaths = advanced?.fights?.avgDeaths || 0
+      const avgAssists = advanced?.fights?.avgAssists || 0
       const killParticipation = advanced?.fights?.killParticipation || 0
       const goldUtilization = advanced?.farm?.goldUtilization || 0
       

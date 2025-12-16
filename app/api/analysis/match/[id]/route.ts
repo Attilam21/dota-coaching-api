@@ -105,10 +105,26 @@ export async function GET(
       const teamfightParticipations = player.teamfight_participations || 0
       const towersKilled = player.towers_killed || 0
       
-      const isCarry = goldPerMin > 500
-      const isSupport = goldPerMin < 350 && player.assists > player.kills
-      const isMid = goldPerMin > 450 && goldPerMin < 550 && player.kills > player.assists
-      const isOfflane = goldPerMin > 350 && goldPerMin < 500 && player.deaths < 8
+      // Determine role with mutually exclusive conditions (priority order: Carry > Mid > Offlane > Support)
+      let role = 'Core' // default
+      let isCarry = false
+      let isSupport = false
+      let isMid = false
+      let isOfflane = false
+      
+      if (goldPerMin > 500) {
+        role = 'Carry'
+        isCarry = true
+      } else if (goldPerMin < 350 && player.assists > player.kills) {
+        role = 'Support'
+        isSupport = true
+      } else if (goldPerMin > 450 && goldPerMin <= 550 && player.kills > player.assists) {
+        role = 'Mid'
+        isMid = true
+      } else if (goldPerMin > 350 && goldPerMin <= 500 && player.deaths < 8) {
+        role = 'Offlane'
+        isOfflane = true
+      }
       
       // Farm efficiency: (last_hits + denies) / (duration in minutes)
       const farmEfficiency = match.duration > 0 ? ((lastHits + denies) / (match.duration / 60)).toFixed(1) : '0'
@@ -441,7 +457,7 @@ export async function GET(
         firstBloodClaimed,
         teamfightParticipations,
         towersKilled,
-        role: isCarry ? 'Carry' : isSupport ? 'Support' : isMid ? 'Mid' : isOfflane ? 'Offlane' : 'Core',
+        role,
       }
     })
 
