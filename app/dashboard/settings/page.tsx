@@ -69,10 +69,9 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
-      // Use UPSERT to create the record if it doesn't exist, or update if it does
+      // Validate that it's a valid number if provided
       const accountIdValue = dotaAccountId.trim() ? parseInt(dotaAccountId.trim()) : null
       
-      // Validate that it's a valid number if provided
       if (dotaAccountId.trim() && isNaN(accountIdValue as number)) {
         setMessage({
           type: 'error',
@@ -81,31 +80,18 @@ export default function SettingsPage() {
         return
       }
 
+      // Use UPDATE as before - the record should exist from the signup trigger
       const { error } = await supabase
         .from('users')
-        .upsert(
-          {
-            id: user.id,
-            email: user.email || '',
-            dota_account_id: accountIdValue,
-          },
-          {
-            onConflict: 'id',
-          }
-        )
+        .update({ dota_account_id: accountIdValue })
+        .eq('id', user.id)
 
       if (error) {
         console.error('Error saving settings:', error)
         throw error
       }
 
-      setMessage({ 
-        type: 'success', 
-        text: 'Profilo salvato con successo! Le modifiche saranno visibili nelle altre sezioni.' 
-      })
-      
-      // Reload settings to reflect changes
-      await loadUserSettings()
+      setMessage({ type: 'success', text: 'Impostazioni salvate con successo!' })
     } catch (err) {
       console.error('Failed to save settings:', err)
       const errorObj = err as { message?: string; code?: string; details?: string }
