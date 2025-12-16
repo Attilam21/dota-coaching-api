@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import React from 'react'
 import { AuthProvider } from '@/lib/auth-context'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
