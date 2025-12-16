@@ -1,13 +1,29 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+let supabase: SupabaseClient
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key not configured. Some features may not work.')
+  console.warn('Supabase URL or Anon Key not configured. Authentication features will not work.')
+  // Create a mock client that will fail gracefully
+  supabase = createClient('https://placeholder.supabase.co', 'placeholder', {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  })
+} else {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  })
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export { supabase }
 
 // Database Types (to be expanded)
 export type Database = {

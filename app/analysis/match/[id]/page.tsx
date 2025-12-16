@@ -1,7 +1,9 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 
 interface MatchData {
@@ -49,6 +51,8 @@ interface AnalysisData {
 
 export default function MatchAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: matchId } = use(params)
+  const { user } = useAuth()
+  const router = useRouter()
   const [match, setMatch] = useState<MatchData | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -116,18 +120,15 @@ export default function MatchAnalysisPage({ params }: { params: Promise<{ id: st
   const handleSaveAnalysis = async () => {
     if (!match || !analysis) return
 
+    if (!user) {
+      if (confirm('Please sign in to save your analysis. Would you like to go to the login page?')) {
+        router.push('/auth/login')
+      }
+      return
+    }
+
     try {
       setSaving(true)
-      
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        // Show login prompt or save anonymously
-        alert('Please sign in to save your analysis. For now, this analysis is available in your browser session.')
-        setSaving(false)
-        return
-      }
 
       // Save to Supabase
       const { error: saveError } = await supabase
@@ -146,19 +147,23 @@ export default function MatchAnalysisPage({ params }: { params: Promise<{ id: st
 
       if (saveError) throw saveError
 
-      // Update user stats
-      const { error: statsError } = await supabase.rpc('add_user_xp', {
-        p_user_id: user.id,
-        p_xp: 50 // XP for saving an analysis
-      })
-
-      if (statsError) console.error('Failed to update XP:', statsError)
+      // Update user stats (if function exists)
+      try {
+        const { error: statsError } = await supabase.rpc('add_user_xp', {
+          p_user_id: user.id,
+          p_xp: 50 // XP for saving an analysis
+        })
+        if (statsError) console.error('Failed to update XP:', statsError)
+      } catch (rpcError) {
+        // RPC might not exist yet, ignore
+        console.log('XP update skipped (RPC might not be configured)')
+      }
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save analysis:', err)
-      alert('Failed to save analysis. Please try again.')
+      alert(`Failed to save analysis: ${err.message || 'Please try again.'}`)
     } finally {
       setSaving(false)
     }

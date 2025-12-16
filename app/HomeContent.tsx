@@ -17,8 +17,8 @@ export default function HomeContent() {
 
   const handlePlayerAnalysis = (e: React.FormEvent) => {
     e.preventDefault()
-    if (accountId) {
-      router.push(`/analysis/player/${accountId}`)
+    if (accountId && accountId.trim()) {
+      router.push(`/analysis/player/${accountId.trim()}`)
     }
   }
 
