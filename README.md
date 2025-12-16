@@ -264,3 +264,5 @@ npm run dev
 ---
 
 Last updated: December 16, 2025
+
+<!-- Vercel deployment trigger -->
