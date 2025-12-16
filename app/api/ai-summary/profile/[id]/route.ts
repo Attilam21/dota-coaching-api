@@ -8,6 +8,12 @@ export async function GET(
     const { id } = await params
     const geminiApiKey = process.env.GEMINI_API_KEY
 
+    console.log('AI Summary Profile - Starting:', {
+      playerId: id,
+      apiKeyPresent: !!geminiApiKey,
+      apiKeyLength: geminiApiKey?.length || 0
+    })
+
     if (!geminiApiKey) {
       console.error('GEMINI_API_KEY not found in environment variables')
       return NextResponse.json(
@@ -18,12 +24,24 @@ export async function GET(
 
     // Fetch profile data
     // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const profileResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/profile`)
+    const profileUrl = `${request.nextUrl.origin}/api/player/${id}/profile`
+    console.log('Fetching profile from:', profileUrl)
+    
+    const profileResponse = await fetch(profileUrl)
     if (!profileResponse.ok) {
       const errorData = await profileResponse.json().catch(() => ({}))
-      console.error('Profile fetch failed:', errorData)
+      const errorText = await profileResponse.text().catch(() => 'Unknown error')
+      console.error('Profile fetch failed:', {
+        status: profileResponse.status,
+        statusText: profileResponse.statusText,
+        errorData,
+        errorText
+      })
       return NextResponse.json(
-        { error: errorData.error || 'Failed to fetch profile data' },
+        { 
+          error: errorData.error || 'Failed to fetch profile data',
+          details: `Profile API returned ${profileResponse.status}: ${errorText.substring(0, 200)}`
+        },
         { status: profileResponse.status }
       )
     }
@@ -122,26 +140,67 @@ Il tono deve essere professionale, motivazionale e orientato al miglioramento co
     )
 
     if (!geminiResponse.ok) {
-      const error = await geminiResponse.text()
-      console.error('Gemini API error:', error)
+      const errorText = await geminiResponse.text().catch(() => 'Unknown error')
+      const errorStatus = geminiResponse.status
+      console.error('Gemini API error:', {
+        status: errorStatus,
+        statusText: geminiResponse.statusText,
+        error: errorText,
+        apiKeyPresent: !!geminiApiKey,
+        apiKeyLength: geminiApiKey?.length || 0
+      })
+      
+      // Try to parse error as JSON
+      let errorMessage = 'Failed to generate summary'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = errorJson.error?.message || errorJson.error || errorMessage
+      } catch {
+        errorMessage = errorText || errorMessage
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to generate summary' },
+        { 
+          error: errorMessage,
+          details: errorStatus === 401 ? 'Invalid API key' : errorStatus === 429 ? 'Rate limit exceeded' : 'Gemini API error'
+        },
         { status: 500 }
       )
     }
 
-    const geminiData = await geminiResponse.json()
+    let geminiData
+    try {
+      geminiData = await geminiResponse.json()
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid response from Gemini API' },
+        { status: 500 }
+      )
+    }
+    
     const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Impossibile generare il riassunto.'
+    
+    if (!summary || summary === 'Impossibile generare il riassunto.') {
+      console.error('Empty or invalid summary from Gemini:', geminiData)
+    }
 
     return NextResponse.json({
       summary,
       playerId: id,
       timestamp: new Date().toISOString(),
     })
-  } catch (error) {
-    console.error('Error generating profile summary:', error)
+  } catch (error: any) {
+    console.error('Error generating profile summary:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error?.message || 'Unknown error occurred'
+      },
       { status: 500 }
     )
   }

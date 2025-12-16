@@ -11,6 +11,13 @@ export async function GET(
     
     const geminiApiKey = process.env.GEMINI_API_KEY
 
+    console.log('AI Summary Match - Starting:', {
+      matchId: id,
+      playerId,
+      apiKeyPresent: !!geminiApiKey,
+      apiKeyLength: geminiApiKey?.length || 0
+    })
+
     if (!geminiApiKey) {
       console.error('GEMINI_API_KEY not found in environment variables')
       return NextResponse.json(
@@ -138,26 +145,67 @@ Il tono deve essere professionale, costruttivo e orientato al miglioramento.`
     )
 
     if (!geminiResponse.ok) {
-      const error = await geminiResponse.text()
-      console.error('Gemini API error:', error)
+      const errorText = await geminiResponse.text().catch(() => 'Unknown error')
+      const errorStatus = geminiResponse.status
+      console.error('Gemini API error:', {
+        status: errorStatus,
+        statusText: geminiResponse.statusText,
+        error: errorText,
+        apiKeyPresent: !!geminiApiKey,
+        apiKeyLength: geminiApiKey?.length || 0
+      })
+      
+      // Try to parse error as JSON
+      let errorMessage = 'Failed to generate summary'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = errorJson.error?.message || errorJson.error || errorMessage
+      } catch {
+        errorMessage = errorText || errorMessage
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to generate summary' },
+        { 
+          error: errorMessage,
+          details: errorStatus === 401 ? 'Invalid API key' : errorStatus === 429 ? 'Rate limit exceeded' : 'Gemini API error'
+        },
         { status: 500 }
       )
     }
 
-    const geminiData = await geminiResponse.json()
+    let geminiData
+    try {
+      geminiData = await geminiResponse.json()
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid response from Gemini API' },
+        { status: 500 }
+      )
+    }
+    
     const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Impossibile generare il riassunto.'
+    
+    if (!summary || summary === 'Impossibile generare il riassunto.') {
+      console.error('Empty or invalid summary from Gemini:', geminiData)
+    }
 
     return NextResponse.json({
       summary,
       matchId: id,
       timestamp: new Date().toISOString(),
     })
-  } catch (error) {
-    console.error('Error generating match summary:', error)
+  } catch (error: any) {
+    console.error('Error generating match summary:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error?.message || 'Unknown error occurred'
+      },
       { status: 500 }
     )
   }
