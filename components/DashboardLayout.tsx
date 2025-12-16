@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       items: [
         { name: 'Coaching & Task', href: '/dashboard/coaching', icon: '📚' },
         { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: '🎯' },
+        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: '🤖' },
       ],
     },
     {
