@@ -62,6 +62,7 @@ export default function MatchAnalysisPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [timeline, setTimeline] = useState<any>(null)
 
   useEffect(() => {
     const fetchHeroes = async () => {
@@ -98,6 +99,17 @@ export default function MatchAnalysisPage() {
         
         const data = await response.json()
         setMatch(data)
+
+        // Fetch timeline data
+        try {
+          const timelineResponse = await fetch(`/api/match/${matchId}/timeline`)
+          if (timelineResponse.ok) {
+            const timelineData = await timelineResponse.json()
+            setTimeline(timelineData)
+          }
+        } catch (err) {
+          console.error('Failed to fetch timeline:', err)
+        }
 
         // Fetch AI analysis
         try {
@@ -341,6 +353,57 @@ export default function MatchAnalysisPage() {
           </div>
         </div>
       </div>
+
+      {/* Timeline Chart */}
+      {timeline && timeline.timeline && timeline.timeline.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mt-6">
+          <h3 className="text-xl font-semibold mb-4 text-white">Timeline Partita - Gold & XP Advantage</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={timeline.timeline}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
+              <XAxis 
+                dataKey="minute" 
+                stroke="#9ca3af"
+                label={{ value: 'Minuti', position: 'insideBottom', offset: -5, style: { fill: '#9ca3af' } }}
+              />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '4px' }}
+                itemStyle={{ color: '#e5e7eb' }}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="radiant_gold_adv" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                name="Radiant Gold Advantage"
+                dot={false}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="radiant_xp_adv" 
+                stroke="#3b82f6" 
+                strokeWidth={2}
+                name="Radiant XP Advantage"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          {timeline.keyEvents && timeline.keyEvents.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-400 mb-2">Eventi Chiave</h4>
+              <div className="flex flex-wrap gap-2">
+                {timeline.keyEvents.map((event: any, idx: number) => (
+                  <span key={idx} className="text-xs bg-gray-700 px-2 py-1 rounded">
+                    {event.minute}' - {event.event}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Statistics Charts */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">

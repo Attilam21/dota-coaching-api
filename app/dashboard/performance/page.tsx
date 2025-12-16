@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 
 interface PerformanceStats {
@@ -16,6 +16,20 @@ interface PerformanceStats {
   playstyle: string
   farmEfficiency: number
   teamfightParticipation: number
+  matches?: Array<{
+    match_id: number
+    win: boolean
+    kda: number
+    gpm: number
+    xpm: number
+    start_time: number
+  }>
+  advanced?: {
+    lane: { avgLastHits: number; avgDenies: number; firstBloodInvolvement: number }
+    farm: { avgGPM: number; avgXPM: number; goldUtilization: number; avgNetWorth: number }
+    fights: { killParticipation: number; avgHeroDamage: number; avgTowerDamage: number; avgDeaths: number }
+    vision: { avgObserverPlaced: number; visionScore: number }
+  }
 }
 
 export default function PerformancePage() {
@@ -83,6 +97,8 @@ export default function PerformancePage() {
         playstyle,
         farmEfficiency: Math.min((avgGPM / 600) * 100, 100),
         teamfightParticipation: killParticipation,
+        matches: matches.slice(0, 20),
+        advanced: advanced || undefined,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load performance data')
@@ -147,70 +163,56 @@ export default function PerformancePage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Playstyle Banner */}
-          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6">
+          {/* Playstyle Banner - Compact */}
+          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Stile di Gioco Identificato</h2>
-                <p className="text-3xl font-bold text-red-400">{stats.playstyle}</p>
-                <p className="text-sm text-gray-400 mt-2">Basato sulle tue performance recenti</p>
+                <h2 className="text-xl font-bold mb-1">Stile di Gioco Identificato</h2>
+                <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
+                <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
               </div>
-              <div className="text-6xl">🎯</div>
+              <div className="text-4xl">🎯</div>
             </div>
           </div>
 
-          {/* Performance Overview */}
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-red-600 transition-colors">
-              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</h3>
-              <p className="text-3xl font-bold text-white mb-1">{stats.avgKDA.toFixed(2)}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Kill Participation: {stats.teamfightParticipation.toFixed(0)}%</span>
-              </div>
+          {/* Performance Overview - Smaller Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
+              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA</h3>
+              <p className="text-2xl font-bold text-white">{stats.avgKDA.toFixed(2)}</p>
+              <p className="text-xs text-gray-500 mt-1">KP: {stats.teamfightParticipation.toFixed(0)}%</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-yellow-600 transition-colors">
-              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</h3>
-              <p className="text-3xl font-bold text-yellow-400 mb-1">{stats.avgGPM.toFixed(0)}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Efficienza: {stats.farmEfficiency.toFixed(0)}%</span>
-              </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors">
+              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM</h3>
+              <p className="text-2xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</p>
+              <p className="text-xs text-gray-500 mt-1">Eff: {stats.farmEfficiency.toFixed(0)}%</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-blue-600 transition-colors">
-              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</h3>
-              <p className="text-3xl font-bold text-blue-400 mb-1">{stats.avgXPM.toFixed(0)}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Exp acquisita</span>
-              </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors">
+              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">XPM</h3>
+              <p className="text-2xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</p>
+              <p className="text-xs text-gray-500 mt-1">Exp acquisita</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-red-600 transition-colors">
-              <h3 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">Morti Medie</h3>
-              <p className="text-3xl font-bold text-red-400 mb-1">{stats.avgDeaths.toFixed(1)}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Assist: {stats.avgAssists.toFixed(1)}</span>
-              </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
+              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deaths</h3>
+              <p className="text-2xl font-bold text-red-400">{stats.avgDeaths.toFixed(1)}</p>
+              <p className="text-xs text-gray-500 mt-1">Assist: {stats.avgAssists.toFixed(1)}</p>
             </div>
           </div>
 
-          {/* Radar Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Profilo Performance Multi-Dimensionale</h2>
-              <span className="text-sm text-gray-400">Analisi su 20 partite recenti</span>
-            </div>
-            {radarData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="#374151" />
-                  <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" tick={{ fill: '#9CA3AF' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" />
-                  <Radar 
-                    name="Performance" 
-                    dataKey="value" 
-                    stroke="#EF4444" 
-                    fill="#EF4444" 
-                    fillOpacity={0.6}
-                    strokeWidth={2}
-                  />
+          {/* Trend Chart - New */}
+          {stats.matches && stats.matches.length > 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3">Trend Performance (Ultime 10 Partite)</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={stats.matches.slice(0, 10).map((m, idx) => ({
+                  match: `M${idx + 1}`,
+                  kda: m.kda,
+                  gpm: m.gpm,
+                  xpm: m.xpm,
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="match" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#1F2937',
@@ -218,47 +220,117 @@ export default function PerformancePage() {
                       borderRadius: '8px',
                     }}
                   />
-                </RadarChart>
+                  <Legend />
+                  <Line type="monotone" dataKey="kda" stroke="#EF4444" strokeWidth={2} name="KDA" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="gpm" stroke="#F59E0B" strokeWidth={2} name="GPM" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="xpm" stroke="#3B82F6" strokeWidth={2} name="XPM" dot={{ r: 3 }} />
+                </LineChart>
               </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Dati non disponibili
+            </div>
+          )}
+
+          {/* Charts Grid */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Radar Chart - Compact */}
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">Profilo Performance</h3>
+                <span className="text-xs text-gray-400">Multi-dimensionale</span>
+              </div>
+              {radarData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="#374151" />
+                    <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" tick={{ fontSize: 10 }} />
+                    <Radar 
+                      name="Performance" 
+                      dataKey="value" 
+                      stroke="#EF4444" 
+                      fill="#EF4444" 
+                      fillOpacity={0.6}
+                      strokeWidth={2}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1F2937',
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-12 text-gray-500 text-sm">
+                  Dati non disponibili
+                </div>
+              )}
+            </div>
+
+            {/* Additional Metrics Bar Chart */}
+            {stats.advanced && (
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Metriche Chiave</h3>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={[
+                    { name: 'Last Hits', value: stats.advanced.lane.avgLastHits },
+                    { name: 'Hero Damage', value: Math.round(stats.advanced.fights.avgHeroDamage / 1000) },
+                    { name: 'Tower Dmg', value: Math.round(stats.advanced.fights.avgTowerDamage / 100) },
+                    { name: 'Wards', value: stats.advanced.vision.avgObserverPlaced },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                    <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1F2937',
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Bar dataKey="value" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          {/* Performance Metrics */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Efficienza Farm</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Efficienza</span>
-                  <span className="font-bold">{stats.farmEfficiency.toFixed(1)}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-4">
-                  <div
-                    className="bg-red-600 h-4 rounded-full"
-                    style={{ width: `${stats.farmEfficiency}%` }}
-                  ></div>
-                </div>
+          {/* Performance Metrics - Compact */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold">Efficienza Farm</h3>
+                <span className="text-sm font-bold text-red-400">{stats.farmEfficiency.toFixed(1)}%</span>
               </div>
+              <div className="w-full bg-gray-700 rounded-full h-3">
+                <div
+                  className="bg-red-600 h-3 rounded-full transition-all"
+                  style={{ width: `${stats.farmEfficiency}%` }}
+                ></div>
+              </div>
+              {stats.advanced && (
+                <div className="mt-2 text-xs text-gray-400">
+                  Gold Utilization: {stats.advanced.farm.goldUtilization.toFixed(1)}%
+                </div>
+              )}
             </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Partecipazione Teamfight</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Partecipazione</span>
-                  <span className="font-bold">{stats.teamfightParticipation}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-4">
-                  <div
-                    className="bg-blue-600 h-4 rounded-full"
-                    style={{ width: `${stats.teamfightParticipation}%` }}
-                  ></div>
-                </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold">Partecipazione Teamfight</h3>
+                <span className="text-sm font-bold text-blue-400">{stats.teamfightParticipation.toFixed(1)}%</span>
               </div>
+              <div className="w-full bg-gray-700 rounded-full h-3">
+                <div
+                  className="bg-blue-600 h-3 rounded-full transition-all"
+                  style={{ width: `${stats.teamfightParticipation}%` }}
+                ></div>
+              </div>
+              {stats.advanced && (
+                <div className="mt-2 text-xs text-gray-400">
+                  Hero Damage medio: {Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}
+                </div>
+              )}
             </div>
           </div>
         </div>
