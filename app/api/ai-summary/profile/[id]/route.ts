@@ -127,10 +127,18 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
   }
 
   if (!geminiApiKey && !openaiApiKey) {
-    throw new Error('No AI API keys configured. Please set GEMINI_API_KEY or OPENAI_API_KEY')
+    throw new Error('No AI API keys configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in Vercel environment variables')
   }
 
-  throw new Error('Failed to generate summary: all configured providers returned empty or failed')
+  // Generate detailed error message for mixed cases
+  const hasGeminiKey = !!geminiApiKey
+  const hasOpenaiKey = !!openaiApiKey
+  const configuredProviders = []
+  if (hasGeminiKey) configuredProviders.push('Gemini')
+  if (hasOpenaiKey) configuredProviders.push('OpenAI')
+  
+  const bothText = configuredProviders.length > 1 ? 'both ' : ''
+  throw new Error(`Failed to generate summary: ${configuredProviders.join(' and ')} ${bothText}returned empty content or failed. Check Vercel logs for details.`)
 }
 
 export async function GET(

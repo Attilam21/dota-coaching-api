@@ -115,7 +115,8 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
   if (hasGeminiKey) configuredProviders.push('Gemini')
   if (hasOpenaiKey) configuredProviders.push('OpenAI')
   
-  throw new Error(`Failed to generate summary: ${configuredProviders.join(' and ')} ${configuredProviders.length > 1 ? 'both' : ''} returned empty content or failed. Check Vercel logs for details.`)
+  const bothText = configuredProviders.length > 1 ? 'both ' : ''
+  throw new Error(`Failed to generate summary: ${configuredProviders.join(' and ')} ${bothText}returned empty content or failed. Check Vercel logs for details.`)
 }
 
 export async function GET(
