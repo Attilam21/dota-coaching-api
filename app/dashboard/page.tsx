@@ -39,6 +39,11 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [manualPlayerId, setManualPlayerId] = useState<string>('')
+  const [usingManualId, setUsingManualId] = useState(false)
+
+  // Use playerId from profile if available, otherwise use manual input
+  const effectivePlayerId = playerId || (usingManualId ? manualPlayerId : null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,19 +53,19 @@ export default function DashboardPage() {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    if (playerId && !playerIdLoading) {
+    if (effectivePlayerId && !playerIdLoading) {
       fetchStats()
     }
-  }, [playerId, playerIdLoading])
+  }, [effectivePlayerId, playerIdLoading])
 
   const fetchStats = async () => {
-    if (!playerId) return
+    if (!effectivePlayerId) return
 
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/stats`)
+      const response = await fetch(`/api/player/${effectivePlayerId}/stats`)
       if (!response.ok) throw new Error('Failed to fetch player stats')
 
       const data = await response.json()
@@ -86,23 +91,52 @@ export default function DashboardPage() {
     return null
   }
 
-  // Show setup message if player ID is not configured
-  if (!playerId) {
+  // Allow manual input if player ID is not configured from profile
+  const [manualPlayerId, setManualPlayerId] = useState<string>('')
+  const [usingManualId, setUsingManualId] = useState(false)
+  
+  const effectivePlayerId = playerId || (usingManualId ? manualPlayerId : null)
+  
+  // Show input option if no player ID from profile
+  if (!playerId && !usingManualId) {
     return (
       <div className="p-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold mb-4">FZTH Dota 2 Dashboard</h1>
-          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-8 text-center">
-            <h2 className="text-xl font-semibold mb-4 text-yellow-200">Configura il tuo Profilo</h2>
+          
+          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-8 mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-blue-200">Inserisci Player ID</h2>
             <p className="text-gray-300 mb-6">
-              Per visualizzare le tue statistiche e analisi, devi prima configurare il tuo Dota 2 Account ID nel profilo.
+              Inserisci il tuo Dota 2 Account ID per visualizzare le statistiche. Puoi anche configurarlo nel profilo per salvarlo permanentemente.
             </p>
-            <Link
-              href="/dashboard/settings"
-              className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
-            >
-              Configura Profilo
-            </Link>
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              if (manualPlayerId.trim()) {
+                setUsingManualId(true)
+              }
+            }} className="flex gap-4">
+              <input
+                type="text"
+                value={manualPlayerId}
+                onChange={(e) => setManualPlayerId(e.target.value)}
+                placeholder="es. 1903287666"
+                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+              >
+                Carica
+              </button>
+            </form>
+            <div className="mt-4 pt-4 border-t border-blue-700">
+              <Link
+                href="/dashboard/settings"
+                className="text-blue-300 hover:text-blue-200 text-sm"
+              >
+                → Salva l'ID nel profilo per non doverlo reinserire ogni volta
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -152,10 +186,15 @@ export default function DashboardPage() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
-            <p className="text-gray-400">Player #{playerId}</p>
+            <p className="text-gray-400">Player #{effectivePlayerId}</p>
+            {usingManualId && (
+              <p className="text-yellow-400 text-sm mt-1">
+                Usando ID inserito manualmente. <Link href="/dashboard/settings" className="underline">Salvalo nel profilo</Link> per non doverlo reinserire.
+              </p>
+            )}
           </div>
           <Link
             href="/dashboard/settings"
