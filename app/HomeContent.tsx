@@ -1,12 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
 
 export default function HomeContent() {
   const [matchId, setMatchId] = useState('')
   const [accountId, setAccountId] = useState('')
   const router = useRouter()
+  const { user, loading } = useAuth()
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, loading, router])
 
   const handleMatchAnalysis = (e: React.FormEvent) => {
     e.preventDefault()
