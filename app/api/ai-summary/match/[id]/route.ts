@@ -28,12 +28,23 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
       if (geminiResponse.ok) {
         const geminiData = await geminiResponse.json()
         const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
-        if (summary) {
+        if (summary && summary.trim().length > 0) {
           console.log('Summary generated with Gemini')
           return { summary, provider: 'gemini' }
+        } else {
+          console.warn('Gemini API returned empty or undefined summary:', {
+            hasCandidates: !!geminiData.candidates,
+            candidatesLength: geminiData.candidates?.length || 0,
+            dataStructure: JSON.stringify(geminiData).substring(0, 200)
+          })
         }
       } else {
-        console.warn('Gemini API failed, trying OpenAI fallback:', geminiResponse.status)
+        const errorText = await geminiResponse.text().catch(() => 'Unknown error')
+        console.warn('Gemini API failed, trying OpenAI fallback:', {
+          status: geminiResponse.status,
+          statusText: geminiResponse.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
       console.warn('Gemini API error, trying OpenAI fallback:', error)
@@ -69,20 +80,42 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
       if (openaiResponse.ok) {
         const openaiData = await openaiResponse.json()
         const summary = openaiData.choices?.[0]?.message?.content
-        if (summary) {
+        if (summary && summary.trim().length > 0) {
           console.log('Summary generated with OpenAI')
           return { summary, provider: 'openai' }
+        } else {
+          console.warn('OpenAI API returned empty or undefined summary:', {
+            hasChoices: !!openaiData.choices,
+            choicesLength: openaiData.choices?.length || 0,
+            dataStructure: JSON.stringify(openaiData).substring(0, 200)
+          })
         }
       } else {
-        const errorText = await openaiResponse.text()
-        console.error('OpenAI API error:', openaiResponse.status, errorText)
+        const errorText = await openaiResponse.text().catch(() => 'Unknown error')
+        console.error('OpenAI API error:', {
+          status: openaiResponse.status,
+          statusText: openaiResponse.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
       console.error('OpenAI API error:', error)
     }
   }
 
-  throw new Error('Both Gemini and OpenAI failed or are not configured')
+  // Generate detailed error message
+  const hasGeminiKey = !!geminiApiKey
+  const hasOpenaiKey = !!openaiApiKey
+  
+  if (!hasGeminiKey && !hasOpenaiKey) {
+    throw new Error('No AI API keys configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in Vercel environment variables')
+  }
+  
+  const configuredProviders = []
+  if (hasGeminiKey) configuredProviders.push('Gemini')
+  if (hasOpenaiKey) configuredProviders.push('OpenAI')
+  
+  throw new Error(`Failed to generate summary: ${configuredProviders.join(' and ')} ${configuredProviders.length > 1 ? 'both' : ''} returned empty content or failed. Check Vercel logs for details.`)
 }
 
 export async function GET(

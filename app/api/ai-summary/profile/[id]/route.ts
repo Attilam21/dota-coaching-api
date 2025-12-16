@@ -38,11 +38,20 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
           return { summary, provider: 'gemini' }
         } else {
           geminiEmptyResponse = true
-          console.warn('Gemini API returned empty summary, trying OpenAI fallback')
+          console.warn('Gemini API returned empty summary, trying OpenAI fallback:', {
+            hasCandidates: !!geminiData.candidates,
+            candidatesLength: geminiData.candidates?.length || 0,
+            dataStructure: JSON.stringify(geminiData).substring(0, 200)
+          })
         }
       } else {
         geminiFailed = true
-        console.warn('Gemini API failed, trying OpenAI fallback:', geminiResponse.status)
+        const errorText = await geminiResponse.text().catch(() => 'Unknown error')
+        console.warn('Gemini API failed, trying OpenAI fallback:', {
+          status: geminiResponse.status,
+          statusText: geminiResponse.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
       geminiFailed = true
@@ -84,12 +93,20 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
           return { summary, provider: 'openai' }
         } else {
           openaiEmptyResponse = true
-          console.warn('OpenAI API returned empty summary')
+          console.warn('OpenAI API returned empty summary:', {
+            hasChoices: !!openaiData.choices,
+            choicesLength: openaiData.choices?.length || 0,
+            dataStructure: JSON.stringify(openaiData).substring(0, 200)
+          })
         }
       } else {
         openaiFailed = true
-        const errorText = await openaiResponse.text()
-        console.error('OpenAI API error:', openaiResponse.status, errorText)
+        const errorText = await openaiResponse.text().catch(() => 'Unknown error')
+        console.error('OpenAI API error:', {
+          status: openaiResponse.status,
+          statusText: openaiResponse.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
       openaiFailed = true
