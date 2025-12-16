@@ -25,6 +25,7 @@ export async function GET(
       assists: number
       gold_per_min?: number
       xp_per_min?: number
+      hero_id?: number
       [key: string]: unknown
     }
     
@@ -84,7 +85,7 @@ export async function GET(
       }
       
       return {
-        heroId: (player as { hero_id?: number }).hero_id,
+        heroId: player.hero_id,
         kills: player.kills,
         deaths: player.deaths,
         assists: player.assists,
