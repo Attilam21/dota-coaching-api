@@ -24,6 +24,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { name: 'Panoramica', href: '/dashboard', icon: '📊' },
         { name: 'Performance & Stile di Gioco', href: '/dashboard/performance', icon: '⚡' },
         { name: 'Hero Pool', href: '/dashboard/heroes', icon: '🎭' },
+        { name: 'Hero Analysis', href: '/dashboard/hero-analysis', icon: '🔍' },
+        { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: '🎯' },
         { name: 'Team & Compagni', href: '/dashboard/teammates', icon: '👥' },
         { name: 'Partite', href: '/dashboard/matches', icon: '🎮' },
       ],
