@@ -126,7 +126,7 @@ export default function SettingsPage() {
                 id="dotaAccountId"
                 type="text"
                 value={dotaAccountId}
-                onChange={(e) => setDotaAccountId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
                 placeholder="es. 86745912"
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
