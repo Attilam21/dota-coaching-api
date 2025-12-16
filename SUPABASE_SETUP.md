@@ -85,6 +85,9 @@ DROP POLICY IF EXISTS "Users can insert own profile" ON public.users;
 CREATE POLICY "Users can insert own profile" ON public.users
   FOR INSERT WITH CHECK (auth.uid() = id);
 
+-- IMPORTANTE: Verifica che RLS sia abilitato
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
 -- Match analyses policies
 ALTER TABLE public.match_analyses ENABLE ROW LEVEL SECURITY;
 
@@ -101,6 +104,13 @@ CREATE POLICY "Users can insert own analyses" ON public.match_analyses
 1. Clicca sul pulsante **"RUN"** (o premi `Ctrl+Enter`)
 2. Attendi che la query finisca
 3. Dovresti vedere "Success. No rows returned" o un messaggio di successo
+
+### Passo 4.5: Se vedi "permission denied" ⚠️
+Se dopo aver eseguito lo script vedi ancora errori **"permission denied for table users"**, esegui anche questo script:
+
+1. Nel SQL Editor, apri il file `supabase/fix_rls_policies.sql` (o copia il contenuto)
+2. Esegui lo script
+3. Questo configurerà correttamente le Row Level Security policies
 
 ### Passo 5: Verifica
 1. Vai su **"Table Editor"** nel menu laterale
