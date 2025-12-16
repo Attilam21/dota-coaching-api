@@ -104,8 +104,14 @@ export default function ProfilingPage() {
   return (
     <div className="p-8 relative min-h-screen">
       {/* Background with overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 opacity-90 -z-10"></div>
-      <div className="absolute inset-0 bg-[url('/profile-bg.jpg')] bg-cover bg-center opacity-20 -z-20"></div>
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20"
+        style={{
+          backgroundImage: "url('/profile-bg.jpg')",
+          backgroundColor: '#0f172a' // fallback color
+        }}
+      ></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/75 via-blue-900/65 to-slate-900/75 -z-10"></div>
       
       <div className="relative z-10">
         <h1 className="text-3xl font-bold mb-2">Profilazione FZTH</h1>
