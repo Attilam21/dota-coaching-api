@@ -251,12 +251,21 @@ export default function AISummaryPage() {
                   <button
                     onClick={generateMatchSummary}
                     disabled={loading}
-                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors mb-4"
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                   >
                     {loading ? 'Generazione in corso...' : '🚀 Genera Riassunto Partita Selezionata'}
                   </button>
                 )}
               </div>
+
+              {summary && (
+                <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                  </div>
+                </div>
+              )}
 
               {loadingMatches && (
                 <div className="text-center py-12">
@@ -291,47 +300,47 @@ export default function AISummaryPage() {
                       <div
                         key={match.match_id}
                         onClick={() => setSelectedMatchId(match.match_id)}
-                        className={`bg-gray-800 border rounded-lg p-6 hover:bg-gray-750 transition cursor-pointer ${
+                        className={`bg-gray-800 border rounded-lg p-3 hover:bg-gray-750 transition cursor-pointer ${
                           isSelected ? 'border-red-500 bg-red-900/20' : 'border-gray-700'
                         }`}
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-center">
                           <div className="flex-1">
-                            <div className="flex items-center gap-4 mb-2">
-                              <h3 className="text-xl font-semibold text-white">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-lg font-semibold text-white">
                                 {heroName}
                               </h3>
-                              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                                 isWin ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                               }`}>
                                 {isWin ? 'Vittoria' : 'Sconfitta'}
                               </span>
                               {isSelected && (
-                                <span className="text-red-400 font-semibold">✓ Selezionata</span>
+                                <span className="text-red-400 font-semibold text-sm">✓ Selezionata</span>
                               )}
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                            <div className="grid grid-cols-4 gap-3 mt-2 text-xs">
                               <div>
-                                <span className="text-gray-400">K/D/A</span>
-                                <p className="text-white font-semibold">
+                                <span className="text-gray-400 block">K/D/A</span>
+                                <p className="text-white font-semibold text-sm">
                                   {match.kills}/{match.deaths}/{match.assists}
                                 </p>
                                 <p className="text-gray-500 text-xs">KDA: {kda}</p>
                               </div>
                               <div>
-                                <span className="text-gray-400">GPM/XPM</span>
-                                <p className="text-white font-semibold">
+                                <span className="text-gray-400 block">GPM/XPM</span>
+                                <p className="text-white font-semibold text-sm">
                                   {match.gold_per_min || 0} / {match.xp_per_min || 0}
                                 </p>
                               </div>
                               <div>
-                                <span className="text-gray-400">Durata</span>
-                                <p className="text-white font-semibold">{formatDuration(match.duration)}</p>
+                                <span className="text-gray-400 block">Durata</span>
+                                <p className="text-white font-semibold text-sm">{formatDuration(match.duration)}</p>
                               </div>
                               <div>
-                                <span className="text-gray-400">Data</span>
-                                <p className="text-white font-semibold">{formatDate(match.start_time)}</p>
+                                <span className="text-gray-400 block">Data</span>
+                                <p className="text-white font-semibold text-sm">{formatDate(match.start_time)}</p>
                               </div>
                             </div>
                           </div>
@@ -345,15 +354,6 @@ export default function AISummaryPage() {
               {matches.length === 0 && !loadingMatches && (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
                   <p className="text-gray-400">Nessuna partita trovata</p>
-                </div>
-              )}
-
-              {summary && (
-                <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
-                  </div>
                 </div>
               )}
             </>
