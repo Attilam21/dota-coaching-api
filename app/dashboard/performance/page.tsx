@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { usePlayerIdWithManual } from '@/lib/usePlayerIdWithManual'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
-import Link from 'next/link'
+import PlayerIdInput from '@/components/PlayerIdInput'
 
 interface PerformanceStats {
   avgKDA: number
@@ -21,7 +21,7 @@ interface PerformanceStats {
 export default function PerformancePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, manualPlayerId, setManualPlayerId, activateManualId, usingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
+  const { playerId } = usePlayerIdContext()
   const [stats, setStats] = useState<PerformanceStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,10 +34,10 @@ export default function PerformancePage() {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    if (playerId && !playerIdLoading) {
+    if (playerId) {
       fetchPerformance()
     }
-  }, [playerId, playerIdLoading])
+  }, [playerId])
 
   const fetchPerformance = async () => {
     if (!playerId) return
@@ -80,7 +80,7 @@ export default function PerformancePage() {
     }
   }
 
-  if (authLoading || playerIdLoading) {
+  if (authLoading) {
     return (
       <div className="p-8">
         <div className="text-center">
@@ -94,45 +94,13 @@ export default function PerformancePage() {
     return null
   }
 
-  if (!hasPlayerId) {
+  if (!playerId) {
     return (
-      <div className="p-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4">Performance & Stile di Gioco</h1>
-          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-8">
-            <h2 className="text-xl font-semibold mb-4 text-blue-200">Inserisci Player ID</h2>
-            <p className="text-gray-300 mb-6">
-              Inserisci il tuo Dota 2 Account ID per visualizzare le performance. Puoi anche configurarlo nel profilo per salvarlo permanentemente.
-            </p>
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              activateManualId(manualPlayerId)
-            }} className="flex gap-4">
-              <input
-                type="text"
-                value={manualPlayerId}
-                onChange={(e) => setManualPlayerId(e.target.value)}
-                placeholder="es. 1903287666"
-                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-              <button
-                type="submit"
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
-              >
-                Carica
-              </button>
-            </form>
-            <div className="mt-4 pt-4 border-t border-blue-700">
-              <Link
-                href="/dashboard/settings"
-                className="text-blue-300 hover:text-blue-200 text-sm"
-              >
-                → Salva l'ID nel profilo per non doverlo reinserire ogni volta
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PlayerIdInput
+        pageTitle="Performance & Stile di Gioco"
+        title="Inserisci Player ID"
+        description="Inserisci il tuo Dota 2 Account ID per visualizzare le performance. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
+      />
     )
   }
 

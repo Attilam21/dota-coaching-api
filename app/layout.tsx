@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import React from 'react'
 import { AuthProvider } from '@/lib/auth-context'
+import { PlayerIdProvider } from '@/lib/playerIdContext'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <AuthProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
+          <PlayerIdProvider>
+            <ConditionalLayout>{children}</ConditionalLayout>
+          </PlayerIdProvider>
         </AuthProvider>
       </body>
     </html>
