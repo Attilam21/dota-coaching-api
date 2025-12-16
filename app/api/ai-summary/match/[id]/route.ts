@@ -1,5 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Helper function to generate AI summary with fallback
+async function generateSummary(prompt: string): Promise<{ summary: string; provider: string }> {
+  const geminiApiKey = process.env.GEMINI_API_KEY
+  const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
+
+  // Try Gemini first
+  if (geminiApiKey) {
+    try {
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          }),
+        }
+      )
+
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json()
+        const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+        if (summary) {
+          console.log('Summary generated with Gemini')
+          return { summary, provider: 'gemini' }
+        }
+      } else {
+        console.warn('Gemini API failed, trying OpenAI fallback:', geminiResponse.status)
+      }
+    } catch (error) {
+      console.warn('Gemini API error, trying OpenAI fallback:', error)
+    }
+  }
+
+  // Fallback to OpenAI
+  if (openaiApiKey) {
+    try {
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'Sei un coach professionista di Dota 2. Rispondi sempre in italiano.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      })
+
+      if (openaiResponse.ok) {
+        const openaiData = await openaiResponse.json()
+        const summary = openaiData.choices?.[0]?.message?.content
+        if (summary) {
+          console.log('Summary generated with OpenAI')
+          return { summary, provider: 'openai' }
+        }
+      } else {
+        const errorText = await openaiResponse.text()
+        console.error('OpenAI API error:', openaiResponse.status, errorText)
+      }
+    } catch (error) {
+      console.error('OpenAI API error:', error)
+    }
+  }
+
+  throw new Error('Both Gemini and OpenAI failed or are not configured')
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,18 +95,19 @@ export async function GET(
     const playerId = searchParams.get('playerId')
     
     const geminiApiKey = process.env.GEMINI_API_KEY
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY
 
     console.log('AI Summary Match - Starting:', {
       matchId: id,
       playerId,
-      apiKeyPresent: !!geminiApiKey,
-      apiKeyLength: geminiApiKey?.length || 0
+      geminiKeyPresent: !!geminiApiKey,
+      openaiKeyPresent: !!openaiApiKey
     })
 
-    if (!geminiApiKey) {
-      console.error('GEMINI_API_KEY not found in environment variables')
+    if (!geminiApiKey && !openaiApiKey) {
+      console.error('No AI API keys found in environment variables')
       return NextResponse.json(
-        { error: 'Gemini API key not configured. Please set GEMINI_API_KEY in Vercel environment variables.' },
+        { error: 'No AI API key configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in Vercel environment variables.' },
         { status: 500 }
       )
     }
@@ -126,68 +212,23 @@ Genera un riassunto professionale in italiano (max 300 parole) che includa:
 
 Il tono deve essere professionale, costruttivo e orientato al miglioramento.`
 
-    // Call Gemini API
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        }),
-      }
-    )
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text().catch(() => 'Unknown error')
-      const errorStatus = geminiResponse.status
-      console.error('Gemini API error:', {
-        status: errorStatus,
-        statusText: geminiResponse.statusText,
-        error: errorText,
-        apiKeyPresent: !!geminiApiKey,
-        apiKeyLength: geminiApiKey?.length || 0
-      })
-      
-      // Try to parse error as JSON
-      let errorMessage = 'Failed to generate summary'
-      try {
-        const errorJson = JSON.parse(errorText)
-        errorMessage = errorJson.error?.message || errorJson.error || errorMessage
-      } catch {
-        errorMessage = errorText || errorMessage
-      }
-      
+    // Generate summary with fallback (Gemini -> OpenAI)
+    let summary: string
+    let provider: string
+    try {
+      const result = await generateSummary(prompt)
+      summary = result.summary
+      provider = result.provider
+      console.log(`Summary generated successfully using ${provider}`)
+    } catch (summaryError: any) {
+      console.error('Failed to generate summary with both providers:', summaryError)
       return NextResponse.json(
         { 
-          error: errorMessage,
-          details: errorStatus === 401 ? 'Invalid API key' : errorStatus === 429 ? 'Rate limit exceeded' : 'Gemini API error'
+          error: 'Failed to generate summary',
+          details: summaryError?.message || 'Both Gemini and OpenAI failed or are not configured'
         },
         { status: 500 }
       )
-    }
-
-    let geminiData
-    try {
-      geminiData = await geminiResponse.json()
-    } catch (parseError) {
-      console.error('Failed to parse Gemini response:', parseError)
-      return NextResponse.json(
-        { error: 'Invalid response from Gemini API' },
-        { status: 500 }
-      )
-    }
-    
-    const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'Impossibile generare il riassunto.'
-    
-    if (!summary || summary === 'Impossibile generare il riassunto.') {
-      console.error('Empty or invalid summary from Gemini:', geminiData)
     }
 
     return NextResponse.json({
