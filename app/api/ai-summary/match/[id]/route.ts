@@ -9,18 +9,22 @@ export async function GET(
     const geminiApiKey = process.env.GEMINI_API_KEY
 
     if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY not found in environment variables')
       return NextResponse.json(
-        { error: 'Gemini API key not configured' },
+        { error: 'Gemini API key not configured. Please set GEMINI_API_KEY in Vercel environment variables.' },
         { status: 500 }
       )
     }
 
     // Fetch match analysis data
+    // Use request.nextUrl.origin for internal API calls (works on Vercel)
     const analysisResponse = await fetch(`${request.nextUrl.origin}/api/analysis/match/${id}`)
     if (!analysisResponse.ok) {
+      const errorData = await analysisResponse.json().catch(() => ({}))
+      console.error('Match analysis fetch failed:', errorData)
       return NextResponse.json(
-        { error: 'Failed to fetch match data' },
-        { status: 404 }
+        { error: errorData.error || 'Failed to fetch match data' },
+        { status: analysisResponse.status }
       )
     }
 

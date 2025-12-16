@@ -9,26 +9,37 @@ export async function GET(
     const geminiApiKey = process.env.GEMINI_API_KEY
 
     if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY not found in environment variables')
       return NextResponse.json(
-        { error: 'Gemini API key not configured' },
+        { error: 'Gemini API key not configured. Please set GEMINI_API_KEY in Vercel environment variables.' },
         { status: 500 }
       )
     }
 
     // Fetch profile data
+    // Use request.nextUrl.origin for internal API calls (works on Vercel)
     const profileResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/profile`)
     if (!profileResponse.ok) {
+      const errorData = await profileResponse.json().catch(() => ({}))
+      console.error('Profile fetch failed:', errorData)
       return NextResponse.json(
-        { error: 'Failed to fetch profile data' },
-        { status: 404 }
+        { error: errorData.error || 'Failed to fetch profile data' },
+        { status: profileResponse.status }
       )
     }
 
     const profile = await profileResponse.json()
 
-    // Fetch stats for trends
-    const statsResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/stats`)
-    const stats = statsResponse.ok ? await statsResponse.json() : null
+    // Fetch stats for trends (optional, don't fail if this fails)
+    let stats = null
+    try {
+      const statsResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/stats`)
+      if (statsResponse.ok) {
+        stats = await statsResponse.json()
+      }
+    } catch (err) {
+      console.warn('Failed to fetch stats for trends:', err)
+    }
 
     // Prepare data for Gemini
     const profileData = {

@@ -8,6 +8,7 @@ export async function GET(
     const { id } = await params
     
     // Fetch player data
+    // Use request.nextUrl.origin for internal API calls (works on Vercel)
     const [statsResponse, advancedStatsResponse, heroesResponse] = await Promise.all([
       fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
       fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
@@ -16,23 +17,48 @@ export async function GET(
       })
     ])
     
-    if (!statsResponse.ok || !advancedStatsResponse.ok || !heroesResponse.ok) {
+    // Parse responses safely
+    let statsData: any = null
+    let advancedData: any = null
+    let playerHeroes: any = null
+    
+    if (statsResponse.ok) {
+      try {
+        statsData = await statsResponse.json()
+      } catch (err) {
+        console.error('Failed to parse stats response:', err)
+      }
+    } else {
+      const errorText = await statsResponse.text().catch(() => 'Unknown error')
+      console.error('Stats fetch failed:', statsResponse.status, errorText)
+    }
+    
+    if (advancedStatsResponse.ok) {
+      try {
+        advancedData = await advancedStatsResponse.json()
+      } catch (err) {
+        console.error('Failed to parse advanced stats response:', err)
+      }
+    } else {
+      const errorText = await advancedStatsResponse.text().catch(() => 'Unknown error')
+      console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
+    }
+    
+    if (heroesResponse.ok) {
+      try {
+        playerHeroes = await heroesResponse.json()
+      } catch (err) {
+        console.error('Failed to parse heroes response:', err)
+      }
+    } else {
+      console.error('Heroes fetch failed:', heroesResponse.status)
+    }
+    
+    if (!statsData?.stats || !advancedData?.stats) {
       return NextResponse.json(
-        { error: 'Failed to fetch player data' },
+        { error: 'Failed to fetch or parse player data' },
         { status: 500 }
       )
-    }
-
-    const statsData = await statsResponse.json()
-    const advancedData = await advancedStatsResponse.json()
-    const playerHeroes = await heroesResponse.json()
-
-    if (!statsData.stats || !advancedData.stats) {
-      return NextResponse.json({
-        roles: [],
-        preferredRole: null,
-        recommendations: []
-      })
     }
 
     // Fetch heroes data to get role info
