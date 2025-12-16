@@ -19,15 +19,24 @@ export async function GET(
 
     const match = await response.json()
     
+    interface Player {
+      kills: number
+      deaths: number
+      assists: number
+      gold_per_min?: number
+      xp_per_min?: number
+      [key: string]: unknown
+    }
+    
     // Calculate team statistics
-    const radiantPlayers = match.players.slice(0, 5)
-    const direPlayers = match.players.slice(5, 10)
+    const radiantPlayers = (match.players as Player[]).slice(0, 5)
+    const direPlayers = (match.players as Player[]).slice(5, 10)
     
-    const radiantAvgGpm = radiantPlayers.reduce((sum: number, p: any) => sum + (p.gold_per_min || 0), 0) / 5
-    const direAvgGpm = direPlayers.reduce((sum: number, p: any) => sum + (p.gold_per_min || 0), 0) / 5
+    const radiantAvgGpm = radiantPlayers.reduce((sum: number, p: Player) => sum + (p.gold_per_min || 0), 0) / 5
+    const direAvgGpm = direPlayers.reduce((sum: number, p: Player) => sum + (p.gold_per_min || 0), 0) / 5
     
-    const radiantAvgKda = radiantPlayers.reduce((sum: number, p: any) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
-    const direAvgKda = direPlayers.reduce((sum: number, p: any) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
+    const radiantAvgKda = radiantPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
+    const direAvgKda = direPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
 
     // Generate recommendations based on match data
     const recommendations: string[] = []
@@ -49,7 +58,7 @@ export async function GET(
     }
     
     // Analyze individual player performance
-    const playerPerformance = match.players.map((player: any) => {
+    const playerPerformance = (match.players as Player[]).map((player: Player) => {
       const kda = (player.kills + player.assists) / Math.max(player.deaths, 1)
       const isCarry = player.gold_per_min > 500
       const isSupport = player.gold_per_min < 300 && player.assists > player.kills

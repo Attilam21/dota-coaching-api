@@ -61,7 +61,7 @@ export default function PlayerAnalysisPage() {
         if (response.ok) {
           const heroesData = await response.json()
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
-          heroesData.forEach((hero: any) => {
+          heroesData.forEach((hero: { id: number; name: string; localized_name: string }) => {
             heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
           })
           setHeroes(heroesMap)

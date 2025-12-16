@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+interface OpenDotaMatch {
+  match_id: number
+  player_slot: number
+  radiant_win: boolean
+  kills: number
+  deaths: number
+  assists: number
+  gold_per_min?: number
+  xp_per_min?: number
+  start_time: number
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,7 +31,7 @@ export async function GET(
       )
     }
 
-    const matches = await matchesResponse.json()
+    const matches: OpenDotaMatch[] = await matchesResponse.json()
     
     if (!matches || matches.length === 0) {
       return NextResponse.json({
@@ -33,10 +45,10 @@ export async function GET(
     const recent10 = matches.slice(0, 10)
 
     // Winrate calculations
-    const wins5 = recent5.filter((m: any) => 
+    const wins5 = recent5.filter((m) => 
       (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)
     ).length
-    const wins10 = recent10.filter((m: any) => 
+    const wins10 = recent10.filter((m) => 
       (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)
     ).length
     
@@ -44,22 +56,22 @@ export async function GET(
     const winrate10 = (wins10 / recent10.length) * 100
 
     // KDA calculations
-    const kda5 = recent5.reduce((acc: number, m: any) => {
+    const kda5 = recent5.reduce((acc, m) => {
       const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
       return acc + kda
     }, 0) / recent5.length
 
-    const kda10 = recent10.reduce((acc: number, m: any) => {
+    const kda10 = recent10.reduce((acc, m) => {
       const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
       return acc + kda
     }, 0) / recent10.length
 
     // GPM/XPM calculations
-    const gpm5 = recent5.reduce((acc: number, m: any) => acc + (m.gold_per_min || 0), 0) / recent5.length
-    const gpm10 = recent10.reduce((acc: number, m: any) => acc + (m.gold_per_min || 0), 0) / recent10.length
+    const gpm5 = recent5.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent5.length
+    const gpm10 = recent10.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent10.length
     
-    const xpm5 = recent5.reduce((acc: number, m: any) => acc + (m.xp_per_min || 0), 0) / recent5.length
-    const xpm10 = recent10.reduce((acc: number, m: any) => acc + (m.xp_per_min || 0), 0) / recent10.length
+    const xpm5 = recent5.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent5.length
+    const xpm10 = recent10.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent10.length
 
     const stats = {
       winrate: {
@@ -76,7 +88,7 @@ export async function GET(
         gpm: { last5: gpm5, last10: gpm10 },
         xpm: { last5: xpm5, last10: xpm10 },
       },
-      matches: recent10.map((m: any) => ({
+      matches: recent10.map((m) => ({
         match_id: m.match_id,
         win: (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win),
         kda: (m.kills + m.assists) / Math.max(m.deaths, 1),

@@ -69,7 +69,7 @@ export default function MatchAnalysisPage() {
         if (response.ok) {
           const heroesData = await response.json()
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
-          heroesData.forEach((hero: any) => {
+          heroesData.forEach((hero: { id: number; name: string; localized_name: string }) => {
             heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
           })
           setHeroes(heroesMap)
@@ -162,9 +162,9 @@ export default function MatchAnalysisPage() {
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save analysis:', err)
-      alert(`Failed to save analysis: ${err.message || 'Please try again.'}`)
+      alert(`Failed to save analysis: ${err instanceof Error ? err.message : 'Please try again.'}`)
     } finally {
       setSaving(false)
     }

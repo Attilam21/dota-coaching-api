@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session } from '@supabase/supabase-js'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 interface AuthContextType {
@@ -24,23 +24,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    let subscription: { unsubscribe: () => void } | null = null
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    // Get initial session with error handling
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }: { data: { session: Session | null }; error: Error | null }) => {
+        if (error) {
+          console.error('Error getting session:', error)
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to get session:', error)
+        setSession(null)
+        setUser(null)
+      })
+      .finally(() => {
+        // Always set loading to false, even on error
+        setLoading(false)
+      })
 
-    return () => subscription.unsubscribe()
+    // Listen for auth changes with error handling
+    try {
+      const authStateChangeResult = supabase.auth.onAuthStateChange(
+        (_event: AuthChangeEvent, session: Session | null) => {
+          setSession(session)
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
+      )
+
+      // Safe access to subscription property
+      if (authStateChangeResult?.data?.subscription) {
+        subscription = authStateChangeResult.data.subscription
+      }
+    } catch (error) {
+      console.error('Failed to set up auth state listener:', error)
+      setLoading(false)
+    }
+
+    // Safe cleanup function
+    return () => {
+      if (subscription?.unsubscribe) {
+        try {
+          subscription.unsubscribe()
+        } catch (error) {
+          console.error('Error unsubscribing from auth state:', error)
+        }
+      }
+    }
   }, [])
 
   const signOut = async () => {

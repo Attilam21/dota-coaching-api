@@ -6,12 +6,22 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+interface MatchData {
+  duration: number
+  radiant_win: boolean
+  [key: string]: unknown
+}
+
+interface AnalysisData {
+  [key: string]: unknown
+}
+
 interface SavedMatch {
   id: string
   match_id: number
   analysis_data: {
-    match: any
-    analysis: any
+    match: MatchData
+    analysis: AnalysisData
     saved_at: string
   }
   created_at: string
