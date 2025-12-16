@@ -112,6 +112,12 @@ Se dopo aver eseguito lo script vedi ancora errori **"permission denied for tabl
 2. Esegui lo script
 3. Questo configurerà correttamente le Row Level Security policies
 
+### Passo 4.6: Se vedi policies duplicate ⚠️
+Se lo script `quick_check.sql` mostra più di 1 policy INSERT (come "Enable insert for authenticated users only" + "Users can insert own profile"):
+
+1. Esegui `supabase/fix_duplicate_policies.sql` per rimuovere la policy troppo permissiva
+2. Questo manterrà solo la policy corretta che verifica `auth.uid() = id`
+
 ### Passo 5: Verifica
 1. Vai su **"Table Editor"** nel menu laterale
 2. Controlla se la tabella `users` esiste
