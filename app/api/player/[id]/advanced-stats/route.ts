@@ -85,6 +85,23 @@ export async function GET(
         )
       }
       
+      // Calculate GPM/XPM from full match if not available in summary
+      let gpm = summaryMatch.gold_per_min || playerInMatch?.gold_per_min || 0
+      let xpm = summaryMatch.xp_per_min || playerInMatch?.xp_per_min || 0
+      
+      // If still 0, calculate from total gold/XP and duration
+      const matchDuration = fullMatch?.duration || summaryMatch.duration || 0
+      if ((gpm === 0 || xpm === 0) && matchDuration > 0) {
+        const totalGold = playerInMatch?.total_gold || playerInMatch?.gold || 0
+        const totalXP = playerInMatch?.total_xp || playerInMatch?.xp || 0
+        if (gpm === 0 && totalGold > 0) {
+          gpm = (totalGold / matchDuration) * 60
+        }
+        if (xpm === 0 && totalXP > 0) {
+          xpm = (totalXP / matchDuration) * 60
+        }
+      }
+      
       return {
         match_id: summaryMatch.match_id,
         player_slot: summaryMatch.player_slot,
@@ -92,8 +109,8 @@ export async function GET(
         kills: summaryMatch.kills || 0,
         deaths: summaryMatch.deaths || 0,
         assists: summaryMatch.assists || 0,
-        gold_per_min: summaryMatch.gold_per_min || 0,
-        xp_per_min: summaryMatch.xp_per_min || 0,
+        gold_per_min: gpm,
+        xp_per_min: xpm,
         // Advanced fields from full match data (if available)
         last_hits: playerInMatch?.last_hits || 0,
         denies: playerInMatch?.denies || 0,
@@ -106,13 +123,13 @@ export async function GET(
         sentry_killed: playerInMatch?.sentry_kills || playerInMatch?.sen_killed || 0,
         firstblood_claimed: playerInMatch?.firstblood_claimed ? 1 : 0,
         firstblood_killed: playerInMatch?.firstblood_killed ? 1 : 0,
-        gold: playerInMatch?.total_gold || 0,
+        gold: playerInMatch?.total_gold || playerInMatch?.gold || 0,
         gold_spent: playerInMatch?.gold_spent || 0,
         net_worth: playerInMatch?.net_worth || 0,
         buyback_count: playerInMatch?.buyback_count || 0,
         runes: playerInMatch?.rune_pickups || 0,
         start_time: summaryMatch.start_time,
-        duration: summaryMatch.duration || 0,
+        duration: matchDuration,
         lane_role: summaryMatch.lane_role,
       }
     })

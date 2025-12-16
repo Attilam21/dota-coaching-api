@@ -47,7 +47,52 @@ interface AnalysisData {
     gpm: number
     xpm: number
     rating: string
+    roleRecommendations?: string[]
+    lastHits?: number
+    denies?: number
+    heroDamage?: number
+    towerDamage?: number
+    heroHealing?: number
+    netWorth?: number
+    goldSpent?: number
+    observerWards?: number
+    sentryWards?: number
+    observerKilled?: number
+    buybackCount?: number
+    farmEfficiency?: string
+    damageEfficiency?: string
+    goldUtilization?: string
+    killParticipation?: string
+    csPerMin?: string
+    xpmGpmRatio?: string
+    supportScore?: string
+    carryImpactScore?: string
+    stuns?: number
+    runePickups?: number
+    campsStacked?: number
+    courierKills?: number
+    roshKills?: number
+    firstBloodClaimed?: number
+    teamfightParticipations?: number
+    towersKilled?: number
+    role?: string
   }>
+  teamStats?: {
+    radiant: {
+      avgGpm: number
+      avgKda: string
+      totalDamage?: number
+      totalWards?: number
+      totalTowerDamage?: number
+    }
+    dire: {
+      avgGpm: number
+      avgKda: string
+      totalDamage?: number
+      totalWards?: number
+      totalTowerDamage?: number
+    }
+  }
 }
 
 export default function MatchAnalysisPage() {
@@ -479,26 +524,165 @@ export default function MatchAnalysisPage() {
             )}
           </div>
 
+          {/* Team Comparison */}
+          {analysis.teamStats && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4 text-white">⚔️ Confronto Team</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-400 mb-3">Radiant</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">GPM Medio:</span>
+                      <span className="text-green-400 font-semibold">{analysis.teamStats.radiant.avgGpm}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">KDA Medio:</span>
+                      <span className="text-green-400 font-semibold">{analysis.teamStats.radiant.avgKda}</span>
+                    </div>
+                    {analysis.teamStats.radiant.totalDamage && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Hero Damage:</span>
+                        <span className="text-green-400 font-semibold">
+                          {(analysis.teamStats.radiant.totalDamage / 1000).toFixed(1)}K
+                        </span>
+                      </div>
+                    )}
+                    {analysis.teamStats.radiant.totalWards !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Wards:</span>
+                        <span className="text-green-400 font-semibold">{analysis.teamStats.radiant.totalWards}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-red-900/30 border border-red-700 rounded-lg p-4">
+                  <h4 className="font-semibold text-red-400 mb-3">Dire</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">GPM Medio:</span>
+                      <span className="text-red-400 font-semibold">{analysis.teamStats.dire.avgGpm}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">KDA Medio:</span>
+                      <span className="text-red-400 font-semibold">{analysis.teamStats.dire.avgKda}</span>
+                    </div>
+                    {analysis.teamStats.dire.totalDamage && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Hero Damage:</span>
+                        <span className="text-red-400 font-semibold">
+                          {(analysis.teamStats.dire.totalDamage / 1000).toFixed(1)}K
+                        </span>
+                      </div>
+                    )}
+                    {analysis.teamStats.dire.totalWards !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Wards:</span>
+                        <span className="text-red-400 font-semibold">{analysis.teamStats.dire.totalWards}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Player Performance Ratings */}
           {analysis.playerPerformance && analysis.playerPerformance.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4 text-white">📊 Performance Ratings</h3>
+              <h3 className="text-xl font-semibold mb-4 text-white">📊 Performance Dettagliate</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {analysis.playerPerformance.map((perf, idx) => (
                   <div key={idx} className="border border-gray-700 rounded-lg p-4 bg-gray-700/50">
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-3">
                       <span className="font-medium text-white">{getHeroName(perf.heroId)}</span>
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        perf.rating === 'good' 
+                        perf.rating === 'excellent' 
+                          ? 'bg-blue-600 text-white'
+                          : perf.rating === 'good' 
                           ? 'bg-green-600 text-white' 
-                          : 'bg-yellow-600 text-white'
+                          : perf.rating === 'average'
+                          ? 'bg-yellow-600 text-white'
+                          : 'bg-red-600 text-white'
                       }`}>
-                        {perf.rating === 'good' ? '✓ Buona' : '⚠️ Migliorabile'}
+                        {perf.rating === 'excellent' ? '⭐ Eccellente' :
+                         perf.rating === 'good' ? '✓ Buona' :
+                         perf.rating === 'average' ? '⚠️ Media' : '❌ Da migliorare'}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-300">
-                      K/D/A: {perf.kills}/{perf.deaths}/{perf.assists} | GPM: {perf.gpm} | XPM: {perf.xpm}
+                    
+                    {perf.role && (
+                      <div className="mb-2">
+                        <span className="text-xs px-2 py-1 rounded bg-gray-600 text-gray-300">
+                          {perf.role}
+                        </span>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                      <div><span className="text-gray-400">K/D/A:</span> <span className="text-white font-semibold">{perf.kills}/{perf.deaths}/{perf.assists}</span></div>
+                      <div><span className="text-gray-400">GPM/XPM:</span> <span className="text-white font-semibold">{perf.gpm}/{perf.xpm}</span></div>
+                      {perf.heroDamage !== undefined && (
+                        <div><span className="text-gray-400">Hero Dmg:</span> <span className="text-red-400 font-semibold">{(perf.heroDamage / 1000).toFixed(1)}K</span></div>
+                      )}
+                      {perf.lastHits !== undefined && (
+                        <div><span className="text-gray-400">LH/D:</span> <span className="text-green-400 font-semibold">{perf.lastHits}/{perf.denies || 0}</span></div>
+                      )}
+                      {perf.csPerMin && (
+                        <div><span className="text-gray-400">CS/Min:</span> <span className="text-green-400 font-semibold">{perf.csPerMin}</span></div>
+                      )}
+                      {perf.farmEfficiency && (
+                        <div><span className="text-gray-400">Farm Eff:</span> <span className="text-green-400 font-semibold">{perf.farmEfficiency}</span></div>
+                      )}
+                      {perf.killParticipation && (
+                        <div><span className="text-gray-400">Kill Part:</span> <span className="text-blue-400 font-semibold">{perf.killParticipation}%</span></div>
+                      )}
+                      {perf.goldUtilization && (
+                        <div><span className="text-gray-400">Gold Util:</span> <span className="text-purple-400 font-semibold">{perf.goldUtilization}%</span></div>
+                      )}
+                      {perf.supportScore && (
+                        <div><span className="text-gray-400">Support Score:</span> <span className="text-cyan-400 font-semibold">{perf.supportScore}</span></div>
+                      )}
+                      {perf.carryImpactScore && (
+                        <div><span className="text-gray-400">Impact Score:</span> <span className="text-orange-400 font-semibold">{perf.carryImpactScore}</span></div>
+                      )}
                     </div>
+                    
+                    {(perf.stuns || perf.runePickups || perf.campsStacked || perf.roshKills || perf.firstBloodClaimed) && (
+                      <div className="mb-3 pt-2 border-t border-gray-600 grid grid-cols-2 gap-2 text-xs">
+                        {perf.stuns && (
+                          <div><span className="text-gray-400">Stun:</span> <span className="text-gray-300">{perf.stuns}s</span></div>
+                        )}
+                        {perf.runePickups && (
+                          <div><span className="text-gray-400">Rune:</span> <span className="text-gray-300">{perf.runePickups}</span></div>
+                        )}
+                        {perf.campsStacked && (
+                          <div><span className="text-gray-400">Stacked:</span> <span className="text-gray-300">{perf.campsStacked}</span></div>
+                        )}
+                        {perf.roshKills && (
+                          <div><span className="text-gray-400">Roshan:</span> <span className="text-orange-400 font-semibold">{perf.roshKills}</span></div>
+                        )}
+                        {perf.firstBloodClaimed && (
+                          <div><span className="text-gray-400">First Blood:</span> <span className="text-red-400 font-semibold">✓</span></div>
+                        )}
+                        {perf.towersKilled && (
+                          <div><span className="text-gray-400">Towers:</span> <span className="text-yellow-400">{perf.towersKilled}</span></div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {perf.roleRecommendations && perf.roleRecommendations.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-gray-600">
+                        <p className="text-xs font-semibold text-blue-400 mb-1">💡 Consigli Personalizzati:</p>
+                        <ul className="text-xs text-gray-300 space-y-1">
+                          {perf.roleRecommendations.slice(0, 3).map((rec, recIdx) => (
+                            <li key={recIdx} className="flex items-start gap-1">
+                              <span>•</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

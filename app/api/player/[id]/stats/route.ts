@@ -39,6 +39,55 @@ export async function GET(
         stats: null
       })
     }
+    
+    // Always fetch full match details for ALL matches to ensure accurate GPM/XPM
+    // OpenDota's match list endpoint may not always include or have accurate GPM/XPM
+    const fullMatchesPromises = matches.slice(0, 20).map((m) =>
+      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+        next: { revalidate: 3600 }
+      }).then(res => res.ok ? res.json() : null).catch(() => null)
+    )
+    const fullMatches = await Promise.all(fullMatchesPromises)
+    
+    // Enrich matches with accurate GPM/XPM from full match details
+    matches.forEach((match, idx) => {
+      if (idx < fullMatches.length) {
+        const fullMatch = fullMatches[idx]
+        if (fullMatch?.players && fullMatch.duration > 0) {
+          // Find the player in the full match data by player_slot (most reliable)
+          const playerInMatch = fullMatch.players.find((p: any) => 
+            p.player_slot === match.player_slot
+          )
+          
+          if (playerInMatch) {
+            // Prioritize gold_per_min/xp_per_min from full match data
+            if (playerInMatch.gold_per_min && playerInMatch.gold_per_min > 0) {
+              match.gold_per_min = playerInMatch.gold_per_min
+            } else {
+              // Calculate from total_gold if gold_per_min not available
+              const totalGold = playerInMatch.total_gold || 0
+              if (totalGold > 0) {
+                match.gold_per_min = Math.round((totalGold / fullMatch.duration) * 60)
+              } else {
+                match.gold_per_min = match.gold_per_min || 0
+              }
+            }
+            
+            if (playerInMatch.xp_per_min && playerInMatch.xp_per_min > 0) {
+              match.xp_per_min = playerInMatch.xp_per_min
+            } else {
+              // Calculate from total_xp if xp_per_min not available
+              const totalXP = playerInMatch.total_xp || 0
+              if (totalXP > 0) {
+                match.xp_per_min = Math.round((totalXP / fullMatch.duration) * 60)
+              } else {
+                match.xp_per_min = match.xp_per_min || 0
+              }
+            }
+          }
+        }
+      }
+    })
 
     // Calculate statistics
     const recent5 = matches.slice(0, 5)
