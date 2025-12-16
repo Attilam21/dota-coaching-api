@@ -4,13 +4,12 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { setPlayerId } = usePlayerIdContext()
+  const { playerId, setPlayerId } = usePlayerIdContext()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -27,74 +26,32 @@ export default function SettingsPage() {
     }
   }, [user, authLoading, router])
 
-  const loadUserSettings = async () => {
+  // Load from PlayerIdContext (which reads from localStorage)
+  const loadUserSettings = () => {
     if (!user) return
 
     try {
       setLoading(true)
       
-      // Prima controlla localStorage (veloce, sincrono)
-      try {
-        const savedInLocalStorage = localStorage.getItem('fzth_player_id')
-        if (savedInLocalStorage) {
-          setDotaAccountId(savedInLocalStorage)
-          setLoading(false)
-          // Opzionalmente carica anche da Supabase per mostrare valore "permanente"
-          // ma non bloccare l'UI
-        }
-      } catch (localStorageErr) {
-        console.error('Failed to read localStorage:', localStorageErr)
-      }
-
-      // Poi carica da Supabase (per mostrare valore permanente salvato)
-      const { data, error } = await supabase
-        .from('users')
-        .select('dota_account_id')
-        .eq('id', user.id)
-        .single()
-
-      // PGRST116 = no rows returned, which is OK (user might not have a profile yet)
-      if (error && error.code !== 'PGRST116') {
-        console.error('Failed to load settings from Supabase:', error)
-        // Non mostrare errore se localStorage ha un valore
-        if (!localStorage.getItem('fzth_player_id')) {
-          setMessage({
-            type: 'error',
-            text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
-          })
-        }
-        return
-      }
-
-      // Se Supabase ha un valore, usalo (è la "verità" permanente)
-      if (data?.dota_account_id) {
-        setDotaAccountId(data.dota_account_id.toString())
-        // Sincronizza anche localStorage se diverso
-        const currentLocalStorage = localStorage.getItem('fzth_player_id')
-        if (currentLocalStorage !== data.dota_account_id.toString()) {
-          try {
-            localStorage.setItem('fzth_player_id', data.dota_account_id.toString())
-            // Aggiorna anche context se necessario
-            setPlayerId(data.dota_account_id.toString())
-          } catch (syncErr) {
-            console.error('Failed to sync localStorage:', syncErr)
-          }
-        }
+      // Load from PlayerIdContext (which uses localStorage)
+      if (playerId) {
+        setDotaAccountId(playerId)
       }
     } catch (err) {
       console.error('Failed to load settings:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Errore sconosciuto nel caricamento'
-      // Non mostrare errore se localStorage ha un valore
-      if (!localStorage.getItem('fzth_player_id')) {
-        setMessage({
-          type: 'error',
-          text: errorMessage,
-        })
-      }
     } finally {
       setLoading(false)
     }
   }
+
+  // Update local state when playerId changes
+  useEffect(() => {
+    if (playerId) {
+      setDotaAccountId(playerId)
+    } else {
+      setDotaAccountId('')
+    }
+  }, [playerId])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,40 +62,27 @@ export default function SettingsPage() {
       setMessage(null)
 
       // Validate that it's a valid number if provided
-      const accountIdValue = dotaAccountId.trim() ? parseInt(dotaAccountId.trim()) : null
-      
-      if (dotaAccountId.trim() && isNaN(accountIdValue as number)) {
+      if (dotaAccountId.trim() && isNaN(parseInt(dotaAccountId.trim()))) {
         setMessage({
           type: 'error',
           text: 'L\'ID Dota deve essere un numero valido',
         })
+        setSaving(false)
         return
       }
 
-      // Use UPDATE as before - the record should exist from the signup trigger
-      const { error } = await supabase
-        .from('users')
-        .update({ dota_account_id: accountIdValue })
-        .eq('id', user.id)
-
-      if (error) {
-        console.error('Error saving settings:', error)
-        throw error
-      }
-
-      // Sincronizza PlayerIdContext e localStorage dopo save in Supabase
-      // Questo assicura che Dashboard e altre pagine vedano immediatamente il valore
-      const playerIdString = accountIdValue ? accountIdValue.toString() : null
+      // Salva SOLO in localStorage (via PlayerIdContext)
+      // Non usiamo più Supabase per evitare errori RLS
+      const playerIdString = dotaAccountId.trim() || null
       setPlayerId(playerIdString)
 
       setMessage({ 
         type: 'success', 
-        text: 'Impostazioni salvate con successo! Il Player ID è ora disponibile in tutte le sezioni.' 
+        text: 'Player ID salvato con successo! Ora disponibile in tutte le sezioni del dashboard.' 
       })
     } catch (err) {
       console.error('Failed to save settings:', err)
-      const errorObj = err as { message?: string; code?: string; details?: string }
-      const errorMessage = errorObj?.message || 'Errore nel salvataggio delle impostazioni'
+      const errorMessage = err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni'
       setMessage({
         type: 'error',
         text: errorMessage,
@@ -204,7 +148,7 @@ export default function SettingsPage() {
                 type="text"
                 value={dotaAccountId}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
-                placeholder="es. 86745912"
+                placeholder="es. 8607682237"
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -217,6 +161,9 @@ export default function SettingsPage() {
                 >
                   OpenDota
                 </a>
+              </p>
+              <p className="text-xs text-blue-400 mt-2">
+                ℹ️ Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.
               </p>
             </div>
 
