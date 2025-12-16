@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
+import DashboardLayout from '@/components/DashboardLayout'
 
 interface MatchData {
   match_id: number
@@ -172,10 +173,10 @@ export default function MatchAnalysisPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="p-8">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-600">Loading match data...</p>
+          <p className="mt-4 text-gray-400">Loading match data...</p>
         </div>
       </div>
     )
@@ -183,12 +184,12 @@ export default function MatchAnalysisPage() {
 
   if (error || !match) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Match</h2>
-          <p className="text-red-600">{error || 'Match not found'}</p>
-          <a href="/" className="inline-block mt-4 text-red-600 hover:text-red-800">
-            ← Back to Home
+      <div className="p-8">
+        <div className="bg-red-900/50 border border-red-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-red-200 mb-2">Error Loading Match</h2>
+          <p className="text-red-300">{error || 'Match not found'}</p>
+          <a href="/dashboard" className="inline-block mt-4 text-red-400 hover:text-red-300">
+            ← Back to Dashboard
           </a>
         </div>
       </div>
@@ -230,19 +231,20 @@ export default function MatchAnalysisPage() {
   })) || []
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <DashboardLayout>
+    <div className="p-8">
       {/* Match Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Match {matchId}</h1>
-            <p className="text-gray-600">Duration: {formatDuration(match.duration)}</p>
+            <h1 className="text-3xl font-bold mb-2 text-white">Match {matchId}</h1>
+            <p className="text-gray-400">Duration: {formatDuration(match.duration)}</p>
             {match.start_time && (
               <p className="text-gray-500 text-sm mt-1">{formatDate(match.start_time)}</p>
             )}
           </div>
           <div className="text-right">
-            <div className={`text-2xl font-bold mb-2 ${match.radiant_win ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold mb-2 ${match.radiant_win ? 'text-green-400' : 'text-red-400'}`}>
               {match.radiant_win ? 'Radiant Victory' : 'Dire Victory'}
             </div>
             <button
@@ -250,9 +252,9 @@ export default function MatchAnalysisPage() {
               disabled={saving || saved}
               className={`px-4 py-2 rounded-lg font-semibold transition ${
                 saved
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-green-600 text-white'
                   : saving
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   : 'bg-red-600 text-white hover:bg-red-700'
               }`}
             >
@@ -261,25 +263,25 @@ export default function MatchAnalysisPage() {
           </div>
         </div>
         <div className="flex justify-center items-center gap-8 text-4xl font-bold">
-          <span className="text-green-600">{match.radiant_score}</span>
-          <span className="text-gray-400">-</span>
-          <span className="text-red-600">{match.dire_score}</span>
+          <span className="text-green-400">{match.radiant_score || 0}</span>
+          <span className="text-gray-500">-</span>
+          <span className="text-red-400">{match.dire_score || 0}</span>
         </div>
       </div>
 
       {/* Players Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b">
-          <h2 className="text-xl font-semibold">Player Performance</h2>
+      <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+        <div className="px-6 py-4 bg-gray-700 border-b border-gray-600">
+          <h2 className="text-xl font-semibold text-white">Player Performance</h2>
         </div>
         
         {/* Radiant Team */}
-        <div className="p-6 bg-green-50">
-          <h3 className="font-semibold text-green-800 mb-3">Radiant</h3>
+        <div className="p-6 bg-green-900/20">
+          <h3 className="font-semibold text-green-400 mb-3">Radiant</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-600">
+                <tr className="text-left text-sm text-gray-400">
                   <th className="pb-2">Hero</th>
                   <th className="pb-2">K/D/A</th>
                   <th className="pb-2">LH/D</th>
@@ -290,15 +292,15 @@ export default function MatchAnalysisPage() {
               </thead>
               <tbody className="text-sm">
                 {match.players.slice(0, 5).map((player, idx) => (
-                  <tr key={idx} className="border-t border-green-200">
-                    <td className="py-2 font-medium">{getHeroName(player.hero_id)}</td>
-                    <td className="py-2 font-semibold">
+                  <tr key={idx} className="border-t border-green-800/50">
+                    <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                    <td className="py-2 font-semibold text-gray-300">
                       {player.kills}/{player.deaths}/{player.assists}
                     </td>
-                    <td className="py-2">{player.last_hits}/{player.denies}</td>
-                    <td className="py-2">{player.gold_per_min}</td>
-                    <td className="py-2">{player.xp_per_min}</td>
-                    {player.net_worth && <td className="py-2">{player.net_worth.toLocaleString()}</td>}
+                    <td className="py-2 text-gray-300">{player.last_hits}/{player.denies}</td>
+                    <td className="py-2 text-gray-300">{player.gold_per_min}</td>
+                    <td className="py-2 text-gray-300">{player.xp_per_min}</td>
+                    {player.net_worth && <td className="py-2 text-gray-300">{player.net_worth.toLocaleString()}</td>}
                   </tr>
                 ))}
               </tbody>
@@ -307,12 +309,12 @@ export default function MatchAnalysisPage() {
         </div>
 
         {/* Dire Team */}
-        <div className="p-6 bg-red-50">
-          <h3 className="font-semibold text-red-800 mb-3">Dire</h3>
+        <div className="p-6 bg-red-900/20">
+          <h3 className="font-semibold text-red-400 mb-3">Dire</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-600">
+                <tr className="text-left text-sm text-gray-400">
                   <th className="pb-2">Hero</th>
                   <th className="pb-2">K/D/A</th>
                   <th className="pb-2">LH/D</th>
@@ -323,15 +325,15 @@ export default function MatchAnalysisPage() {
               </thead>
               <tbody className="text-sm">
                 {match.players.slice(5, 10).map((player, idx) => (
-                  <tr key={idx} className="border-t border-red-200">
-                    <td className="py-2 font-medium">{getHeroName(player.hero_id)}</td>
-                    <td className="py-2 font-semibold">
+                  <tr key={idx} className="border-t border-red-800/50">
+                    <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                    <td className="py-2 font-semibold text-gray-300">
                       {player.kills}/{player.deaths}/{player.assists}
                     </td>
-                    <td className="py-2">{player.last_hits}/{player.denies}</td>
-                    <td className="py-2">{player.gold_per_min}</td>
-                    <td className="py-2">{player.xp_per_min}</td>
-                    {player.net_worth && <td className="py-2">{player.net_worth.toLocaleString()}</td>}
+                    <td className="py-2 text-gray-300">{player.last_hits}/{player.denies}</td>
+                    <td className="py-2 text-gray-300">{player.gold_per_min}</td>
+                    <td className="py-2 text-gray-300">{player.xp_per_min}</td>
+                    {player.net_worth && <td className="py-2 text-gray-300">{player.net_worth.toLocaleString()}</td>}
                   </tr>
                 ))}
               </tbody>
@@ -342,14 +344,17 @@ export default function MatchAnalysisPage() {
 
       {/* Statistics Charts */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">Gold & Experience per Minute</h3>
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4 text-white">Gold & Experience per Minute</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={gpmData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
+              <XAxis dataKey="name" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '4px' }}
+                itemStyle={{ color: '#e5e7eb' }}
+              />
               <Legend />
               <Bar dataKey="GPM" fill="#10b981" />
               <Bar dataKey="XPM" fill="#3b82f6" />
@@ -357,14 +362,17 @@ export default function MatchAnalysisPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">Kills, Deaths & Assists</h3>
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4 text-white">Kills, Deaths & Assists</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={kdaData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
+              <XAxis dataKey="name" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '4px' }}
+                itemStyle={{ color: '#e5e7eb' }}
+              />
               <Legend />
               <Bar dataKey="Kills" fill="#10b981" />
               <Bar dataKey="Deaths" fill="#ef4444" />
@@ -377,16 +385,16 @@ export default function MatchAnalysisPage() {
       {/* AI Analysis Section */}
       {analysis && (
         <div className="mt-6 space-y-6">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold text-blue-900 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+            <h3 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
               🤖 AI Analysis & Insights
             </h3>
-            <p className="text-blue-800 mb-4">{analysis.overview}</p>
+            <p className="text-blue-200 mb-4">{analysis.overview}</p>
             
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="mt-4">
-                <h4 className="font-semibold text-blue-900 mb-2">💡 Consigli Personalizzati:</h4>
-                <ul className="list-disc list-inside space-y-2 text-blue-700">
+                <h4 className="font-semibold text-blue-300 mb-2">💡 Consigli Personalizzati:</h4>
+                <ul className="list-disc list-inside space-y-2 text-blue-200">
                   {analysis.recommendations.map((rec, idx) => (
                     <li key={idx}>{rec}</li>
                   ))}
@@ -396,10 +404,10 @@ export default function MatchAnalysisPage() {
 
             {analysis.keyMoments && analysis.keyMoments.length > 0 && (
               <div className="mt-4">
-                <h4 className="font-semibold text-blue-900 mb-2">⏱️ Momenti Chiave:</h4>
+                <h4 className="font-semibold text-blue-300 mb-2">⏱️ Momenti Chiave:</h4>
                 <div className="space-y-2">
                   {analysis.keyMoments.map((moment, idx) => (
-                    <div key={idx} className="bg-white/50 rounded p-2 text-sm">
+                    <div key={idx} className="bg-gray-800/50 rounded p-2 text-sm text-gray-300">
                       <span className="font-semibold">{formatDuration(moment.time)}</span> - {moment.event}: {moment.description}
                     </div>
                   ))}
@@ -410,22 +418,22 @@ export default function MatchAnalysisPage() {
 
           {/* Player Performance Ratings */}
           {analysis.playerPerformance && analysis.playerPerformance.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold mb-4">📊 Performance Ratings</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4 text-white">📊 Performance Ratings</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {analysis.playerPerformance.map((perf, idx) => (
-                  <div key={idx} className="border rounded-lg p-4">
+                  <div key={idx} className="border border-gray-700 rounded-lg p-4 bg-gray-700/50">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">{getHeroName(perf.heroId)}</span>
+                      <span className="font-medium text-white">{getHeroName(perf.heroId)}</span>
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         perf.rating === 'good' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-yellow-600 text-white'
                       }`}>
                         {perf.rating === 'good' ? '✓ Buona' : '⚠️ Migliorabile'}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-300">
                       K/D/A: {perf.kills}/{perf.deaths}/{perf.assists} | GPM: {perf.gpm} | XPM: {perf.xpm}
                     </div>
                   </div>
@@ -438,13 +446,14 @@ export default function MatchAnalysisPage() {
 
       {/* Fallback message if no analysis */}
       {!analysis && !loading && (
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">🤖 AI Analysis</h3>
-          <p className="text-blue-700">
+        <div className="mt-6 bg-blue-900/30 border border-blue-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-300 mb-2">🤖 AI Analysis</h3>
+          <p className="text-blue-200">
             L'analisi AI avanzata è in caricamento. Le funzionalità includeranno insights su farm efficiency, positioning, teamfight participation e itemization.
           </p>
         </div>
       )}
     </div>
+    </DashboardLayout>
   )
 }
