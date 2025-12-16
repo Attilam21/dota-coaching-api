@@ -103,7 +103,7 @@ export default function SettingsPage() {
       )}
 
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
-        <h2 className="text-xl font-semibold mb-6">Profilo</h2>
+        <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
 
         <div className="space-y-4 mb-6">
           <div>

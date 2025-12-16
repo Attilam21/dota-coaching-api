@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { usePlayerId } from '@/lib/usePlayerId'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
@@ -17,7 +18,7 @@ interface HeroStats {
 export default function HeroesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [playerId, setPlayerId] = useState<string>('')
+  const { playerId, loading: playerIdLoading } = usePlayerId()
   const [heroStats, setHeroStats] = useState<HeroStats[]>([])
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
@@ -44,8 +45,14 @@ export default function HeroesPage() {
       .catch(console.error)
   }, [])
 
+  useEffect(() => {
+    if (playerId && !playerIdLoading) {
+      fetchHeroStats()
+    }
+  }, [playerId, playerIdLoading, heroes])
+
   const fetchHeroStats = async () => {
-    if (!playerId.trim()) return
+    if (!playerId) return
 
     try {
       setLoading(true)
@@ -75,12 +82,7 @@ export default function HeroesPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    fetchHeroStats()
-  }
-
-  if (authLoading) {
+  if (authLoading || playerIdLoading) {
     return (
       <div className="p-8">
         <div className="text-center">
@@ -94,6 +96,25 @@ export default function HeroesPage() {
     return null
   }
 
+  if (!playerId) {
+    return (
+      <div className="p-8">
+        <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-8 text-center max-w-2xl mx-auto">
+          <h2 className="text-xl font-semibold mb-4 text-yellow-200">Configura il tuo Profilo</h2>
+          <p className="text-gray-300 mb-6">
+            Configura il tuo Dota 2 Account ID nel profilo per visualizzare le statistiche degli heroes.
+          </p>
+          <Link
+            href="/dashboard/settings"
+            className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+          >
+            Configura Profilo
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const chartData = heroStats.map((hero) => ({
     name: hero.hero_name,
     winrate: hero.winrate,
@@ -103,25 +124,6 @@ export default function HeroesPage() {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-4">Hero Pool</h1>
-      
-      <div className="mb-6">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={playerId}
-            onChange={(e) => setPlayerId(e.target.value)}
-            placeholder="Player Account ID"
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition"
-          >
-            {loading ? 'Caricamento...' : 'Carica Heroes'}
-          </button>
-        </form>
-      </div>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -129,7 +131,14 @@ export default function HeroesPage() {
         </div>
       )}
 
-      {heroStats.length > 0 && (
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <p className="mt-4 text-gray-400">Caricamento statistiche heroes...</p>
+        </div>
+      )}
+
+      {heroStats.length > 0 && !loading && (
         <div className="space-y-6">
           {/* Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
@@ -191,10 +200,9 @@ export default function HeroesPage() {
 
       {heroStats.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Inserisci un Player ID per vedere le statistiche degli heroes</p>
+          <p className="text-gray-400">Nessuna statistica heroes disponibile</p>
         </div>
       )}
     </div>
   )
 }
-

@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       title: 'SISTEMA',
       items: [
-        { name: 'Impostazioni account', href: '/dashboard/settings', icon: '⚙️' },
+        { name: 'Profilo Utente', href: '/dashboard/settings', icon: '⚙️' },
       ],
     },
   ]

@@ -43,9 +43,9 @@ export default function SignupPage() {
       if (error) throw error
 
       setSuccess(true)
-      // Redirect to login after 2 seconds
+      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        router.push('/auth/login')
+        router.push('/dashboard')
       }, 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during signup')

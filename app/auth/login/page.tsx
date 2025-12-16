@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       if (error) throw error
 
-      router.push('/')
+      router.push('/dashboard')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login')

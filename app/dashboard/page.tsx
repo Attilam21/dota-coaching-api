@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { usePlayerId } from '@/lib/usePlayerId'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import Link from 'next/link'
 
 interface PlayerStats {
   winrate: {
@@ -33,7 +35,7 @@ interface PlayerStats {
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [playerId, setPlayerId] = useState<string>('')
+  const { playerId, loading: playerIdLoading } = usePlayerId()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,8 +47,14 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router])
 
+  useEffect(() => {
+    if (playerId && !playerIdLoading) {
+      fetchStats()
+    }
+  }, [playerId, playerIdLoading])
+
   const fetchStats = async () => {
-    if (!playerId.trim()) return
+    if (!playerId) return
 
     try {
       setLoading(true)
@@ -64,12 +72,7 @@ export default function DashboardPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    fetchStats()
-  }
-
-  if (authLoading) {
+  if (authLoading || playerIdLoading) {
     return (
       <div className="p-8">
         <div className="text-center">
@@ -81,6 +84,29 @@ export default function DashboardPage() {
 
   if (!user) {
     return null
+  }
+
+  // Show setup message if player ID is not configured
+  if (!playerId) {
+    return (
+      <div className="p-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">FZTH Dota 2 Dashboard</h1>
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-8 text-center">
+            <h2 className="text-xl font-semibold mb-4 text-yellow-200">Configura il tuo Profilo</h2>
+            <p className="text-gray-300 mb-6">
+              Per visualizzare le tue statistiche e analisi, devi prima configurare il tuo Dota 2 Account ID nel profilo.
+            </p>
+            <Link
+              href="/dashboard/settings"
+              className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+            >
+              Configura Profilo
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const getWinrateTrend = () => {
@@ -126,27 +152,17 @@ export default function DashboardPage() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
-        <div className="flex items-center gap-4 mt-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
-              placeholder="Player Account ID"
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition"
-            >
-              {loading ? 'Caricamento...' : 'Analizza'}
-            </button>
-          </form>
-          {playerId && (
-            <span className="text-gray-400">Player #{playerId}</span>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
+            <p className="text-gray-400">Player #{playerId}</p>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            className="text-sm text-gray-400 hover:text-white"
+          >
+            Modifica Profilo
+          </Link>
         </div>
       </div>
 
@@ -156,7 +172,14 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {stats && (
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <p className="mt-4 text-gray-400">Caricamento statistiche...</p>
+        </div>
+      )}
+
+      {stats && !loading && (
         <>
           {/* Panoramica Section */}
           <div className="mb-8">
@@ -321,12 +344,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </>
-      )}
-
-      {!stats && !loading && (
-        <div className="text-center py-12">
-          <p className="text-gray-400 mb-4">Inserisci un Player ID per iniziare l'analisi</p>
-        </div>
       )}
     </div>
   )
