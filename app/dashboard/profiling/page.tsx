@@ -18,7 +18,7 @@ interface PlayerProfile {
 export default function ProfilingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, manualPlayerId, setManualPlayerId, usingManualId, setUsingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
+  const { playerId, manualPlayerId, setManualPlayerId, activateManualId, usingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -120,9 +120,7 @@ export default function ProfilingPage() {
             </p>
             <form onSubmit={(e) => {
               e.preventDefault()
-              if (manualPlayerId.trim()) {
-                setUsingManualId(true)
-              }
+              activateManualId(manualPlayerId)
             }} className="flex gap-4">
               <input
                 type="text"

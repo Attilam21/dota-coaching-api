@@ -35,13 +35,10 @@ interface PlayerStats {
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, manualPlayerId, setManualPlayerId, usingManualId, setUsingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
+  const { playerId, manualPlayerId, setManualPlayerId, activateManualId, usingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Use playerId from the hook (it already handles profile + manual)
-  const effectivePlayerId = playerId
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -51,19 +48,19 @@ export default function DashboardPage() {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    if (effectivePlayerId && !playerIdLoading) {
+    if (playerId && !playerIdLoading) {
       fetchStats()
     }
-  }, [effectivePlayerId, playerIdLoading])
+  }, [playerId, playerIdLoading])
 
   const fetchStats = async () => {
-    if (!effectivePlayerId) return
+    if (!playerId) return
 
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${effectivePlayerId}/stats`)
+      const response = await fetch(`/api/player/${playerId}/stats`)
       if (!response.ok) throw new Error('Failed to fetch player stats')
 
       const data = await response.json()
@@ -103,9 +100,7 @@ export default function DashboardPage() {
             </p>
             <form onSubmit={(e) => {
               e.preventDefault()
-              if (manualPlayerId.trim()) {
-                setUsingManualId(true)
-              }
+              activateManualId(manualPlayerId)
             }} className="flex gap-4">
               <input
                 type="text"
@@ -181,7 +176,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
-            <p className="text-gray-400">Player #{effectivePlayerId}</p>
+            <p className="text-gray-400">Player #{playerId}</p>
             {usingManualId && (
               <p className="text-yellow-400 text-sm mt-1">
                 Usando ID inserito manualmente. <Link href="/dashboard/settings" className="underline">Salvalo nel profilo</Link> per non doverlo reinserire.

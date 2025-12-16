@@ -18,7 +18,7 @@ interface HeroStats {
 export default function HeroesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, manualPlayerId, setManualPlayerId, usingManualId, setUsingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
+  const { playerId, manualPlayerId, setManualPlayerId, activateManualId, usingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
   const [heroStats, setHeroStats] = useState<HeroStats[]>([])
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
@@ -108,9 +108,7 @@ export default function HeroesPage() {
             </p>
             <form onSubmit={(e) => {
               e.preventDefault()
-              if (manualPlayerId.trim()) {
-                setUsingManualId(true)
-              }
+              activateManualId(manualPlayerId)
             }} className="flex gap-4">
               <input
                 type="text"
