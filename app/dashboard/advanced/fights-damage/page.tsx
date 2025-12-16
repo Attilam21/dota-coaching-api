@@ -1,19 +1,78 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line, Legend, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
+import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
+
+interface AdvancedStats {
+  fights: {
+    avgKills: number
+    avgAssists: number
+    avgDeaths: number
+    killParticipation: number
+    avgHeroDamage: number
+    avgTowerDamage: number
+    avgHealing: number
+    damageEfficiency: number
+  }
+}
+
+interface Match {
+  match_id: number
+  win: boolean
+  hero_damage: number
+  tower_damage: number
+  healing: number
+  kda: number
+}
 
 export default function FightsDamagePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { playerId } = usePlayerIdContext()
+  const [stats, setStats] = useState<AdvancedStats | null>(null)
+  const [matches, setMatches] = useState<Match[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
+      return
     }
   }, [user, authLoading, router])
+
+  const fetchAdvancedStats = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch(`/api/player/${playerId}/advanced-stats`)
+      if (!response.ok) throw new Error('Failed to fetch advanced stats')
+
+      const data = await response.json()
+      if (!data.stats) throw new Error('No stats available')
+
+      setStats(data.stats)
+      setMatches(data.matches || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load fights & damage data')
+    } finally {
+      setLoading(false)
+    }
+  }, [playerId])
+
+  useEffect(() => {
+    if (playerId) {
+      fetchAdvancedStats()
+    }
+  }, [playerId, fetchAdvancedStats])
 
   if (authLoading) {
     return (
@@ -25,23 +84,209 @@ export default function FightsDamagePage() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
+  if (!playerId) {
+    return (
+      <PlayerIdInput
+        pageTitle="Fights & Damage"
+        title="Inserisci Player ID"
+        description="Inserisci il tuo Dota 2 Account ID per visualizzare l'analisi avanzata di fight e damage. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
+      />
+    )
+  }
+
+  // Prepare chart data
+  const damageData = matches.map((m, idx) => ({
+    match: `M${idx + 1}`,
+    'Hero Damage': m.hero_damage,
+    'Tower Damage': m.tower_damage,
+    Healing: m.healing,
+    win: m.win,
+  }))
+
+  const radarData = stats ? [
+    { subject: 'Kills', value: Math.min(stats.fights.avgKills * 10, 100), fullMark: 100 },
+    { subject: 'Assists', value: Math.min(stats.fights.avgAssists * 5, 100), fullMark: 100 },
+    { subject: 'KP %', value: stats.fights.killParticipation, fullMark: 100 },
+    { subject: 'Hero Dmg', value: Math.min(stats.fights.avgHeroDamage / 50, 100), fullMark: 100 },
+    { subject: 'Tower Dmg', value: Math.min(stats.fights.avgTowerDamage / 10, 100), fullMark: 100 },
+    { subject: 'Healing', value: Math.min(stats.fights.avgHealing / 30, 100), fullMark: 100 },
+  ] : []
+
+  const kdaTrend = matches.map((m, idx) => ({
+    match: `M${idx + 1}`,
+    KDA: m.kda,
+    win: m.win,
+  }))
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Fights & Damage</h1>
-      <p className="text-gray-400 mb-6">
-        Contributo ai fight e damage output: kill participation, damage share, teamfight impact.
-      </p>
-
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
-        <p className="text-gray-400 mb-4">Questa funzionalità è in sviluppo</p>
-        <Link
-          href="/dashboard/advanced"
-          className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
-        >
-          Torna alle Analisi Avanzate
+      <div className="mb-6">
+        <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+          ← Torna alle Analisi Avanzate
         </Link>
+        <h1 className="text-3xl font-bold mb-2">Fights & Damage</h1>
+        <p className="text-gray-400">Analisi del contributo ai fight, damage output e teamfight impact</p>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <p className="mt-4 text-gray-400">Caricamento analisi fights & damage...</p>
+        </div>
+      )}
+
+      {stats && !loading && (
+        <div className="space-y-6">
+          {/* Overview Cards */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Kill Participation</h3>
+              <p className="text-3xl font-bold text-green-400">{stats.fights.killParticipation.toFixed(1)}%</p>
+              <p className="text-xs text-gray-500 mt-2">Partecipazione ai kill</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Hero Damage Medio</h3>
+              <p className="text-3xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-2">Damage ai nemici</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Tower Damage Medio</h3>
+              <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.fights.avgTowerDamage).toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-2">Damage alle torri</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Damage Efficiency</h3>
+              <p className="text-3xl font-bold text-purple-400">{Math.round(stats.fights.damageEfficiency).toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-2">Dmg / Death</p>
+            </div>
+          </div>
+
+          {/* Radar Chart */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Profilo Fight Contribution</h2>
+            <ResponsiveContainer width="100%" height={400}>
+              <RadarChart data={radarData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" />
+                <Radar name="Performance" dataKey="value" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Damage Breakdown Chart */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Damage Breakdown per Partita</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={damageData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="match" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number) => value.toLocaleString()}
+                />
+                <Legend />
+                <Bar dataKey="Hero Damage" fill="#EF4444" />
+                <Bar dataKey="Tower Damage" fill="#F59E0B" />
+                <Bar dataKey="Healing" fill="#10B981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* KDA Trend */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">KDA Trend</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={kdaTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="match" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="KDA" stroke="#8B5CF6" strokeWidth={2} dot={{ fill: '#8B5CF6' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Detailed Stats */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Statistiche Fight</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Kills Medio</span>
+                  <span className="font-bold">{stats.fights.avgKills.toFixed(1)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Assists Medio</span>
+                  <span className="font-bold">{stats.fights.avgAssists.toFixed(1)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Deaths Medio</span>
+                  <span className="font-bold">{stats.fights.avgDeaths.toFixed(1)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Healing Medio</span>
+                  <span className="font-bold">{Math.round(stats.fights.avgHealing).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Insights</h3>
+              <div className="space-y-2 text-sm">
+                {stats.fights.killParticipation < 50 && (
+                  <p className="text-yellow-400">
+                    ⚠️ Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
+                  </p>
+                )}
+                {stats.fights.damageEfficiency < 10000 && (
+                  <p className="text-orange-400">
+                    💡 Damage Efficiency migliorabile. Prova a fare più damage prima di morire.
+                  </p>
+                )}
+                {stats.fights.avgTowerDamage < 1000 && (
+                  <p className="text-blue-400">
+                    💡 Tower Damage basso. Concentrati di più sul push delle torri.
+                  </p>
+                )}
+                {stats.fights.avgDeaths > 8 && (
+                  <p className="text-red-400">
+                    ⚠️ Troppe morti in media ({stats.fights.avgDeaths.toFixed(1)}). Migliora il positioning.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!stats && !loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">Nessun dato disponibile per l'analisi fights & damage</p>
+        </div>
+      )}
     </div>
   )
 }
-
