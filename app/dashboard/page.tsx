@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { usePlayerId } from '@/lib/usePlayerId'
+import { usePlayerIdWithManual } from '@/lib/usePlayerIdWithManual'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
@@ -35,15 +35,13 @@ interface PlayerStats {
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, loading: playerIdLoading } = usePlayerId()
+  const { playerId, manualPlayerId, setManualPlayerId, usingManualId, setUsingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [manualPlayerId, setManualPlayerId] = useState<string>('')
-  const [usingManualId, setUsingManualId] = useState(false)
 
-  // Use playerId from profile if available, otherwise use manual input
-  const effectivePlayerId = playerId || (usingManualId ? manualPlayerId : null)
+  // Use playerId from the hook (it already handles profile + manual)
+  const effectivePlayerId = playerId
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -91,8 +89,8 @@ export default function DashboardPage() {
     return null
   }
 
-  // Show input option if no player ID from profile
-  if (!playerId && !usingManualId) {
+  // Show input option if no player ID available
+  if (!hasPlayerId) {
     return (
       <div className="p-8">
         <div className="max-w-2xl mx-auto">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { usePlayerId } from '@/lib/usePlayerId'
+import { usePlayerIdWithManual } from '@/lib/usePlayerIdWithManual'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
@@ -18,7 +18,7 @@ interface PlayerProfile {
 export default function ProfilingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, loading: playerIdLoading } = usePlayerId()
+  const { playerId, manualPlayerId, setManualPlayerId, usingManualId, setUsingManualId, loading: playerIdLoading, hasPlayerId } = usePlayerIdWithManual()
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,20 +108,45 @@ export default function ProfilingPage() {
     return null
   }
 
-  if (!playerId) {
+  if (!hasPlayerId) {
     return (
       <div className="p-8">
-        <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-8 text-center max-w-2xl mx-auto">
-          <h2 className="text-xl font-semibold mb-4 text-yellow-200">Configura il tuo Profilo</h2>
-          <p className="text-gray-300 mb-6">
-            Configura il tuo Dota 2 Account ID nel profilo per generare il tuo profilo di giocatore.
-          </p>
-          <Link
-            href="/dashboard/settings"
-            className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition"
-          >
-            Configura Profilo
-          </Link>
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">Profilazione FZTH</h1>
+          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-8">
+            <h2 className="text-xl font-semibold mb-4 text-blue-200">Inserisci Player ID</h2>
+            <p className="text-gray-300 mb-6">
+              Inserisci il tuo Dota 2 Account ID per generare il tuo profilo di giocatore. Puoi anche configurarlo nel profilo per salvarlo permanentemente.
+            </p>
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              if (manualPlayerId.trim()) {
+                setUsingManualId(true)
+              }
+            }} className="flex gap-4">
+              <input
+                type="text"
+                value={manualPlayerId}
+                onChange={(e) => setManualPlayerId(e.target.value)}
+                placeholder="es. 1903287666"
+                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+              >
+                Carica
+              </button>
+            </form>
+            <div className="mt-4 pt-4 border-t border-blue-700">
+              <Link
+                href="/dashboard/settings"
+                className="text-blue-300 hover:text-blue-200 text-sm"
+              >
+                → Salva l'ID nel profilo per non doverlo reinserire ogni volta
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     )
