@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -30,13 +30,7 @@ export default function ProfilingPage() {
     }
   }, [user, authLoading, router])
 
-  useEffect(() => {
-    if (playerId) {
-      fetchProfile()
-    }
-  }, [playerId])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!playerId) return
 
     try {
@@ -92,7 +86,13 @@ export default function ProfilingPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [playerId])
+
+  useEffect(() => {
+    if (playerId) {
+      fetchProfile()
+    }
+  }, [playerId, fetchProfile])
 
   if (authLoading) {
     return (

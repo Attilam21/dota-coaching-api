@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -33,13 +33,7 @@ export default function PerformancePage() {
     }
   }, [user, authLoading, router])
 
-  useEffect(() => {
-    if (playerId) {
-      fetchPerformance()
-    }
-  }, [playerId])
-
-  const fetchPerformance = async () => {
+  const fetchPerformance = useCallback(async () => {
     if (!playerId) return
 
     try {
@@ -78,7 +72,13 @@ export default function PerformancePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [playerId])
+
+  useEffect(() => {
+    if (playerId) {
+      fetchPerformance()
+    }
+  }, [playerId, fetchPerformance])
 
   if (authLoading) {
     return (

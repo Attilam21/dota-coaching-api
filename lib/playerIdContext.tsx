@@ -15,7 +15,18 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
 })
 
 export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
-  const [playerId, setPlayerIdState] = useState<string | null>(null)
+  // Initialize playerId from localStorage synchronously (if on client)
+  // This prevents the initial null state and eliminates timing issues
+  const [playerId, setPlayerIdState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem(PLAYER_ID_KEY)
+      } catch {
+        return null
+      }
+    }
+    return null
+  })
   const [isMounted, setIsMounted] = useState(false)
 
   // Mark as mounted on client side (SSR safety)
@@ -23,19 +34,20 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true)
   }, [])
 
-  // Load from localStorage ONLY (sincrono, veloce, disponibile subito)
+  // Sync with localStorage on mount (in case it changed externally)
   useEffect(() => {
     if (!isMounted) return
 
     try {
       const saved = localStorage.getItem(PLAYER_ID_KEY)
-      if (saved) {
+      // Only update if different from current state (avoid unnecessary re-renders)
+      if (saved !== playerId) {
         setPlayerIdState(saved)
       }
     } catch (err) {
       console.error('[PlayerIdContext] Failed to load from localStorage:', err)
     }
-  }, [isMounted])
+  }, [isMounted, playerId])
 
   // Save to localStorage whenever playerId changes
   const setPlayerId = useCallback((id: string | null) => {

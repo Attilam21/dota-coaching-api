@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -45,14 +45,8 @@ export default function HeroesPage() {
       .catch(console.error)
   }, [])
 
-  useEffect(() => {
-    if (playerId && Object.keys(heroes).length > 0) {
-      fetchHeroStats()
-    }
-  }, [playerId, heroes])
-
-  const fetchHeroStats = async () => {
-    if (!playerId) return
+  const fetchHeroStats = useCallback(async () => {
+    if (!playerId || Object.keys(heroes).length === 0) return
 
     try {
       setLoading(true)
@@ -80,7 +74,13 @@ export default function HeroesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [playerId, heroes])
+
+  useEffect(() => {
+    if (playerId && Object.keys(heroes).length > 0) {
+      fetchHeroStats()
+    }
+  }, [playerId, heroes, fetchHeroStats])
 
   if (authLoading) {
     return (
