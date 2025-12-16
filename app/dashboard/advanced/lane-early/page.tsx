@@ -13,6 +13,8 @@ interface AdvancedStats {
     avgLastHits: number
     avgDenies: number
     avgCS: number
+    csPerMinute: string
+    estimatedCSAt10Min: string
     denyRate: number
     firstBloodInvolvement: number
   }
@@ -129,14 +131,14 @@ export default function LaneEarlyPage() {
           {/* Overview Cards */}
           <div className="grid md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Last Hits Medio</h3>
-              <p className="text-3xl font-bold text-green-400">{stats.lane.avgLastHits.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">CS medio per partita</p>
+              <h3 className="text-sm text-gray-400 mb-2">CS per Minuto</h3>
+              <p className="text-3xl font-bold text-green-400">{stats.lane.csPerMinute}</p>
+              <p className="text-xs text-gray-500 mt-2">Creep score per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Denies Medio</h3>
-              <p className="text-3xl font-bold text-red-400">{stats.lane.avgDenies.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">Denies medio per partita</p>
+              <h3 className="text-sm text-gray-400 mb-2">CS Stimato a 10min</h3>
+              <p className="text-3xl font-bold text-blue-400">{stats.lane.estimatedCSAt10Min}</p>
+              <p className="text-xs text-gray-500 mt-2">CS previsto a 10 minuti</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Deny Rate</h3>
@@ -147,6 +149,20 @@ export default function LaneEarlyPage() {
               <h3 className="text-sm text-gray-400 mb-2">First Blood</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.lane.firstBloodInvolvement.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-2">% partite con FB</p>
+            </div>
+          </div>
+          
+          {/* Additional Stats */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Last Hits Medio</h3>
+              <p className="text-2xl font-bold text-green-400">{stats.lane.avgLastHits.toFixed(1)}</p>
+              <p className="text-xs text-gray-500 mt-2">CS medio per partita</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Denies Medio</h3>
+              <p className="text-2xl font-bold text-red-400">{stats.lane.avgDenies.toFixed(1)}</p>
+              <p className="text-xs text-gray-500 mt-2">Denies medio per partita</p>
             </div>
           </div>
 
@@ -178,16 +194,30 @@ export default function LaneEarlyPage() {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">Il tuo CS Medio</span>
-                  <span className="font-bold">{stats.lane.avgLastHits.toFixed(1)}</span>
+                  <span className="text-gray-300">CS per Minuto</span>
+                  <span className="font-bold">{stats.lane.csPerMinute}</span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-4">
                   <div
                     className="bg-green-600 h-4 rounded-full"
-                    style={{ width: `${Math.min((stats.lane.avgLastHits / 100) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((parseFloat(stats.lane.csPerMinute) / 8) * 100, 100)}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Obiettivo: 60-80 per carry, 30-50 per mid</p>
+                <p className="text-xs text-gray-500 mt-1">Obiettivo: 6-8 per carry, 4-6 per mid, 3-5 per offlane</p>
+              </div>
+              
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-300">CS Stimato a 10min</span>
+                  <span className="font-bold">{stats.lane.estimatedCSAt10Min}</span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-4">
+                  <div
+                    className="bg-blue-600 h-4 rounded-full"
+                    style={{ width: `${Math.min((parseFloat(stats.lane.estimatedCSAt10Min) / 80) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Obiettivo: 60-80 per carry, 40-60 per mid</p>
               </div>
               
               <div>

@@ -128,9 +128,15 @@ export async function GET(
         net_worth: playerInMatch?.net_worth || 0,
         buyback_count: playerInMatch?.buyback_count || 0,
         runes: playerInMatch?.rune_pickups || 0,
+        camps_stacked: playerInMatch?.camps_stacked || 0,
+        courier_kills: playerInMatch?.courier_kills || 0,
+        roshans_killed: playerInMatch?.roshans_killed || 0,
+        stuns: playerInMatch?.stuns || 0,
+        teamfight_participations: playerInMatch?.teamfight_participations || 0,
         start_time: summaryMatch.start_time,
         duration: matchDuration,
         lane_role: summaryMatch.lane_role,
+        win: (summaryMatch.player_slot < 128 && summaryMatch.radiant_win) || (summaryMatch.player_slot >= 128 && !summaryMatch.radiant_win),
       }
     })
     
@@ -147,16 +153,27 @@ export async function GET(
     // ============================================
     // 1. LANE & EARLY GAME STATS
     // ============================================
+    const avgLastHits = validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / validMatches.length
+    const avgDenies = validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / validMatches.length
+    const avgCS = validMatches.reduce((acc, m) => acc + (m.last_hits || 0) + (m.denies || 0), 0) / validMatches.length
+    const avgDuration = validMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / validMatches.length
+    
+    // CS per minute (real calculation based on actual match duration)
+    const csPerMinute = avgDuration > 0 ? (avgCS / (avgDuration / 60)) : 0
+    
+    // Estimated CS at 10 minutes (based on average CS rate, assuming linear growth)
+    // This is an estimate since we don't have exact 10-min data, but useful for comparison
+    const estimatedCSAt10Min = csPerMinute * 10
+    
     const laneStats = {
-      avgLastHits: validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / validMatches.length,
-      avgDenies: validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / validMatches.length,
-      avgCS: validMatches.reduce((acc, m) => acc + (m.last_hits || 0) + (m.denies || 0), 0) / validMatches.length,
-      denyRate: 0, // Calcolato dopo
+      avgLastHits,
+      avgDenies,
+      avgCS,
+      csPerMinute: csPerMinute.toFixed(2),
+      estimatedCSAt10Min: estimatedCSAt10Min.toFixed(1),
+      denyRate: avgCS > 0 ? (avgDenies / avgCS) * 100 : 0,
       firstBloodInvolvement: validMatches.filter(m => (m.firstblood_claimed || 0) > 0 || (m.firstblood_killed || 0) > 0).length / validMatches.length * 100,
     }
-    laneStats.denyRate = laneStats.avgCS > 0 
-      ? (laneStats.avgDenies / laneStats.avgCS) * 100 
-      : 0
 
     // ============================================
     // 2. FARM & ECONOMY STATS
@@ -168,21 +185,49 @@ export async function GET(
     const avgNetWorth = validMatches.reduce((acc, m) => acc + (m.net_worth || 0), 0) / validMatches.length
     const avgBuybacks = validMatches.reduce((acc, m) => acc + (m.buyback_count || 0), 0) / validMatches.length
 
+    // Buyback efficiency: calculate win rate when buyback is used
+    const matchesWithBuyback = validMatches.filter(m => (m.buyback_count || 0) > 0)
+    const buybackWins = matchesWithBuyback.filter(m => m.win).length
+    const buybackEfficiency = matchesWithBuyback.length > 0 ? (buybackWins / matchesWithBuyback.length) * 100 : 0
+    
+    // Phase analysis: estimate performance by game phase
+    // Early: 0-15min, Mid: 15-30min, Late: 30+min
+    const earlyMatches = validMatches.filter(m => (m.duration || 0) <= 900) // 15 min
+    const midMatches = validMatches.filter(m => (m.duration || 0) > 900 && (m.duration || 0) <= 1800) // 15-30 min
+    const lateMatches = validMatches.filter(m => (m.duration || 0) > 1800) // 30+ min
+    
+    const earlyWinrate = earlyMatches.length > 0 ? (earlyMatches.filter(m => m.win).length / earlyMatches.length) * 100 : 0
+    const midWinrate = midMatches.length > 0 ? (midMatches.filter(m => m.win).length / midMatches.length) * 100 : 0
+    const lateWinrate = lateMatches.length > 0 ? (lateMatches.filter(m => m.win).length / lateMatches.length) * 100 : 0
+    
     const farmStats = {
       avgGPM,
       avgXPM,
       avgNetWorth,
       goldUtilization: totalGoldEarned > 0 ? (totalGoldSpent / totalGoldEarned) * 100 : 0,
       avgBuybacks,
+      buybackEfficiency: buybackEfficiency.toFixed(1),
+      buybackUsageRate: (matchesWithBuyback.length / validMatches.length) * 100,
       // Farm Efficiency: (avg last hits + denies) per minute of average match duration
-      // Calculate based on real match data
-      farmEfficiency: validMatches.length > 0 ? (() => {
-        const avgLastHits = validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / validMatches.length
-        const avgDenies = validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / validMatches.length
-        const avgMatchDuration = validMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / validMatches.length
-        const avgDurationMinutes = avgMatchDuration > 0 ? avgMatchDuration / 60 : 1
-        return avgDurationMinutes > 0 ? ((avgLastHits + avgDenies) / avgDurationMinutes) : 0
-      })() : 0
+      farmEfficiency: avgDuration > 0 ? ((avgLastHits + avgDenies) / (avgDuration / 60)) : 0,
+      // Phase analysis
+      phaseAnalysis: {
+        early: {
+          matches: earlyMatches.length,
+          winrate: earlyWinrate.toFixed(1),
+          avgDuration: earlyMatches.length > 0 ? earlyMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / earlyMatches.length : 0
+        },
+        mid: {
+          matches: midMatches.length,
+          winrate: midWinrate.toFixed(1),
+          avgDuration: midMatches.length > 0 ? midMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / midMatches.length : 0
+        },
+        late: {
+          matches: lateMatches.length,
+          winrate: lateWinrate.toFixed(1),
+          avgDuration: lateMatches.length > 0 ? lateMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / lateMatches.length : 0
+        }
+      }
     }
 
     // ============================================
@@ -200,15 +245,29 @@ export async function GET(
     const totalKAD = totalKA + validMatches.reduce((acc, m) => acc + m.deaths, 0)
     const killParticipation = totalKAD > 0 ? (totalKA / totalKAD) * 100 : 0
 
+    // Death efficiency: deaths per minute
+    const avgDurationMinutes = avgDuration / 60
+    const deathsPerMinute = avgDurationMinutes > 0 ? avgDeaths / avgDurationMinutes : 0
+    
+    // Teamfight participation (more accurate using teamfight_participations if available)
+    const totalTeamfightParticipations = validMatches.reduce((acc, m) => acc + (m.teamfight_participations || 0), 0)
+    const avgTeamfightParticipations = totalTeamfightParticipations / validMatches.length
+    
+    // Damage per minute
+    const damagePerMinute = avgDurationMinutes > 0 ? avgHeroDamage / avgDurationMinutes : 0
+    
     const fightStats = {
       avgKills: totalKills / validMatches.length,
       avgAssists: totalAssists / validMatches.length,
       avgDeaths,
+      deathsPerMinute: deathsPerMinute.toFixed(2),
       killParticipation,
+      teamfightParticipation: avgTeamfightParticipations.toFixed(1),
       avgHeroDamage,
       avgTowerDamage,
       avgHealing,
       damageEfficiency: avgDeaths > 0 ? avgHeroDamage / avgDeaths : avgHeroDamage,
+      damagePerMinute: damagePerMinute.toFixed(0),
     }
 
     // ============================================
@@ -220,13 +279,38 @@ export async function GET(
     const totalSentryKilled = validMatches.reduce((acc, m) => acc + (m.sentry_killed || 0), 0)
     const avgRunes = validMatches.reduce((acc, m) => acc + (m.runes || 0), 0) / validMatches.length
 
+    // Rune control: runes per minute
+    const runesPerMinute = avgDurationMinutes > 0 ? avgRunes / avgDurationMinutes : 0
+    
+    // Stacking efficiency: camps stacked per match
+    const totalCampsStacked = validMatches.reduce((acc, m) => acc + (m.camps_stacked || 0), 0)
+    const avgCampsStacked = totalCampsStacked / validMatches.length
+    
+    // Courier control
+    const totalCourierKills = validMatches.reduce((acc, m) => acc + (m.courier_kills || 0), 0)
+    const avgCourierKills = totalCourierKills / validMatches.length
+    
+    // Roshan control
+    const totalRoshanKills = validMatches.reduce((acc, m) => acc + (m.roshans_killed || 0), 0)
+    const avgRoshanKills = totalRoshanKills / validMatches.length
+    const roshanControlRate = (validMatches.filter(m => (m.roshans_killed || 0) > 0).length / validMatches.length) * 100
+    
+    // Deward efficiency: sentry killed / sentry placed (higher is better)
+    const dewardEfficiency = totalSentryPlaced > 0 ? (totalSentryKilled / totalSentryPlaced) * 100 : 0
+    
     const visionStats = {
       avgObserverPlaced: totalObserverPlaced / validMatches.length,
       avgObserverKilled: totalObserverKilled / validMatches.length,
       avgSentryPlaced: totalSentryPlaced / validMatches.length,
       avgSentryKilled: totalSentryKilled / validMatches.length,
       wardEfficiency: totalObserverPlaced > 0 ? (totalObserverKilled / totalObserverPlaced) * 100 : 0,
+      dewardEfficiency: dewardEfficiency.toFixed(1),
       avgRunes,
+      runesPerMinute: runesPerMinute.toFixed(2),
+      avgCampsStacked: avgCampsStacked.toFixed(1),
+      avgCourierKills: avgCourierKills.toFixed(1),
+      avgRoshanKills: avgRoshanKills.toFixed(1),
+      roshanControlRate: roshanControlRate.toFixed(1),
       visionScore: (totalObserverPlaced * 2) + (totalObserverKilled * 1) + (totalSentryPlaced * 1),
     }
 

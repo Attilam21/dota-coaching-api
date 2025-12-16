@@ -15,7 +15,13 @@ interface AdvancedStats {
     avgSentryPlaced: number
     avgSentryKilled: number
     wardEfficiency: number
+    dewardEfficiency: string
     avgRunes: number
+    runesPerMinute: string
+    avgCampsStacked: string
+    avgCourierKills: string
+    avgRoshanKills: string
+    roshanControlRate: string
     visionScore: number
   }
 }
@@ -145,18 +151,42 @@ export default function VisionControlPage() {
               <p className="text-xs text-gray-500 mt-2">Observer wards per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Observer Killed</h3>
-              <p className="text-3xl font-bold text-green-400">{stats.vision.avgObserverKilled.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">Observer uccise per partita</p>
+              <h3 className="text-sm text-gray-400 mb-2">Deward Efficiency</h3>
+              <p className="text-3xl font-bold text-green-400">{stats.vision.dewardEfficiency}%</p>
+              <p className="text-xs text-gray-500 mt-2">Sentry killed / placed</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Ward Efficiency</h3>
-              <p className="text-3xl font-bold text-yellow-400">{stats.vision.wardEfficiency.toFixed(1)}%</p>
-              <p className="text-xs text-gray-500 mt-2">Observer killed / placed</p>
+              <h3 className="text-sm text-gray-400 mb-2">Rune Control</h3>
+              <p className="text-3xl font-bold text-yellow-400">{stats.vision.runesPerMinute}</p>
+              <p className="text-xs text-gray-500 mt-2">Rune per minuto</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Roshan Control</h3>
+              <p className="text-3xl font-bold text-purple-400">{stats.vision.roshanControlRate}%</p>
+              <p className="text-xs text-gray-500 mt-2">% partite con Roshan</p>
+            </div>
+          </div>
+          
+          {/* Support Stats */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Camps Stacked</h3>
+              <p className="text-2xl font-bold text-cyan-400">{stats.vision.avgCampsStacked}</p>
+              <p className="text-xs text-gray-500 mt-2">Camp stacked per partita</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Courier Kills</h3>
+              <p className="text-2xl font-bold text-orange-400">{stats.vision.avgCourierKills}</p>
+              <p className="text-xs text-gray-500 mt-2">Courier uccisi per partita</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Roshan Kills</h3>
+              <p className="text-2xl font-bold text-red-400">{stats.vision.avgRoshanKills}</p>
+              <p className="text-xs text-gray-500 mt-2">Roshan uccisi per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Vision Score</h3>
-              <p className="text-3xl font-bold text-purple-400">{Math.round(stats.vision.visionScore)}</p>
+              <p className="text-2xl font-bold text-purple-400">{Math.round(stats.vision.visionScore)}</p>
               <p className="text-xs text-gray-500 mt-2">Score totale vision</p>
             </div>
           </div>
@@ -223,6 +253,26 @@ export default function VisionControlPage() {
                   <span className="text-gray-400">Rune Raccolte</span>
                   <span className="font-bold">{stats.vision.avgRunes.toFixed(1)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Rune per Minuto</span>
+                  <span className="font-bold text-yellow-400">{stats.vision.runesPerMinute}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Camps Stacked</span>
+                  <span className="font-bold text-cyan-400">{stats.vision.avgCampsStacked}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Courier Kills</span>
+                  <span className="font-bold text-orange-400">{stats.vision.avgCourierKills}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Roshan Kills</span>
+                  <span className="font-bold text-red-400">{stats.vision.avgRoshanKills}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Deward Efficiency</span>
+                  <span className="font-bold text-green-400">{stats.vision.dewardEfficiency}%</span>
+                </div>
               </div>
             </div>
           </div>
@@ -246,9 +296,29 @@ export default function VisionControlPage() {
                   💡 Observer killed basse. Cerca attivamente le wards nemiche con sentry o con visione.
                 </p>
               )}
-              {stats.vision.avgRunes < 2 && (
+              {parseFloat(stats.vision.runesPerMinute) < 0.1 && (
                 <p>
-                  💡 Rune raccolte basse. Controlla più spesso le rune spawn (ogni 2 minuti).
+                  💡 Rune per minuto basse ({stats.vision.runesPerMinute}). Controlla più spesso le rune spawn (ogni 2 minuti).
+                </p>
+              )}
+              {parseFloat(stats.vision.avgCampsStacked) < 2 && (
+                <p>
+                  💡 Camps stacked bassi ({stats.vision.avgCampsStacked}). Come support, aiuta il farm dei tuoi carry con lo stacking.
+                </p>
+              )}
+              {parseFloat(stats.vision.dewardEfficiency) < 30 && stats.vision.avgSentryPlaced > 0 && (
+                <p>
+                  ⚠️ Deward efficiency bassa ({stats.vision.dewardEfficiency}%). Migliora il posizionamento delle sentry per trovare più wards nemiche.
+                </p>
+              )}
+              {parseFloat(stats.vision.roshanControlRate) < 20 && (
+                <p>
+                  💡 Roshan control basso ({stats.vision.roshanControlRate}%). Partecipa di più al controllo di Roshan nelle partite lunghe.
+                </p>
+              )}
+              {parseFloat(stats.vision.avgCourierKills) > 0 && (
+                <p>
+                  ✅ Ottimo controllo courier ({stats.vision.avgCourierKills} courier uccisi/game). Stai negando risorse agli avversari.
                 </p>
               )}
             </div>

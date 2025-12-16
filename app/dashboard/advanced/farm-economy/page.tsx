@@ -22,7 +22,14 @@ interface AdvancedStats {
     avgNetWorth: number
     goldUtilization: number
     avgBuybacks: number
+    buybackEfficiency: string
+    buybackUsageRate: number
     farmEfficiency: number
+    phaseAnalysis: {
+      early: { matches: number; winrate: string; avgDuration: number }
+      mid: { matches: number; winrate: string; avgDuration: number }
+      late: { matches: number; winrate: string; avgDuration: number }
+    }
   }
   fights: {
     avgKills: number
@@ -194,9 +201,34 @@ export default function FarmEconomyPage() {
               <p className="text-xs text-gray-500 mt-2">Gold speso / guadagnato</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-sm text-gray-400 mb-2">Net Worth Medio</h3>
-              <p className="text-3xl font-bold text-purple-400">{Math.round(stats.farm.avgNetWorth).toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-2">Net worth finale</p>
+              <h3 className="text-sm text-gray-400 mb-2">Buyback Efficiency</h3>
+              <p className="text-3xl font-bold text-purple-400">{stats.farm.buybackEfficiency}%</p>
+              <p className="text-xs text-gray-500 mt-2">Winrate con buyback</p>
+            </div>
+          </div>
+          
+          {/* Phase Analysis */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Analisi per Fase di Gioco</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <h3 className="text-sm text-gray-400 mb-2">Early Game (0-15min)</h3>
+                <p className="text-2xl font-bold text-green-400">{stats.farm.phaseAnalysis.early.winrate}%</p>
+                <p className="text-xs text-gray-500 mt-1">{stats.farm.phaseAnalysis.early.matches} partite</p>
+                <p className="text-xs text-gray-500">Durata media: {Math.round(stats.farm.phaseAnalysis.early.avgDuration / 60)}min</p>
+              </div>
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <h3 className="text-sm text-gray-400 mb-2">Mid Game (15-30min)</h3>
+                <p className="text-2xl font-bold text-blue-400">{stats.farm.phaseAnalysis.mid.winrate}%</p>
+                <p className="text-xs text-gray-500 mt-1">{stats.farm.phaseAnalysis.mid.matches} partite</p>
+                <p className="text-xs text-gray-500">Durata media: {Math.round(stats.farm.phaseAnalysis.mid.avgDuration / 60)}min</p>
+              </div>
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <h3 className="text-sm text-gray-400 mb-2">Late Game (30+min)</h3>
+                <p className="text-2xl font-bold text-purple-400">{stats.farm.phaseAnalysis.late.winrate}%</p>
+                <p className="text-xs text-gray-500 mt-1">{stats.farm.phaseAnalysis.late.matches} partite</p>
+                <p className="text-xs text-gray-500">Durata media: {Math.round(stats.farm.phaseAnalysis.late.avgDuration / 60)}min</p>
+              </div>
             </div>
           </div>
 
@@ -287,6 +319,14 @@ export default function FarmEconomyPage() {
                   <span className="text-gray-400">Buyback Medio</span>
                   <span className="font-bold">{stats.farm.avgBuybacks.toFixed(1)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Buyback Usage</span>
+                  <span className="font-bold">{stats.farm.buybackUsageRate.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Buyback Efficiency</span>
+                  <span className="font-bold text-purple-400">{stats.farm.buybackEfficiency}%</span>
+                </div>
               </div>
             </div>
 
@@ -310,7 +350,17 @@ export default function FarmEconomyPage() {
                 )}
                 {stats.farm.avgBuybacks > 1 && (
                   <p className="text-purple-400">
-                    💡 Buyback frequenti. Valuta meglio quando è utile comprare.
+                    💡 Buyback frequenti ({stats.farm.avgBuybacks.toFixed(1)}/game). Valuta meglio quando è utile comprare.
+                  </p>
+                )}
+                {parseFloat(stats.farm.buybackEfficiency) < 50 && stats.farm.buybackUsageRate > 30 && (
+                  <p className="text-red-400">
+                    ⚠️ Buyback efficiency bassa ({stats.farm.buybackEfficiency}%). I tuoi buyback spesso non portano a vittoria. Usali solo in situazioni critiche.
+                  </p>
+                )}
+                {parseFloat(stats.farm.buybackEfficiency) > 70 && (
+                  <p className="text-green-400">
+                    ✅ Ottima buyback efficiency ({stats.farm.buybackEfficiency}%). Stai usando i buyback efficacemente.
                   </p>
                 )}
               </div>

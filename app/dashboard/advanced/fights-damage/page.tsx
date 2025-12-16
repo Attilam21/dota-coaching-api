@@ -13,11 +13,14 @@ interface AdvancedStats {
     avgKills: number
     avgAssists: number
     avgDeaths: number
+    deathsPerMinute: string
     killParticipation: number
+    teamfightParticipation: string
     avgHeroDamage: number
     avgTowerDamage: number
     avgHealing: number
     damageEfficiency: number
+    damagePerMinute: string
   }
 }
 
@@ -155,18 +158,37 @@ export default function FightsDamagePage() {
               <p className="text-xs text-gray-500 mt-2">Partecipazione ai kill</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Damage per Minuto</h3>
+              <p className="text-3xl font-bold text-red-400">{stats.fights.damagePerMinute}</p>
+              <p className="text-xs text-gray-500 mt-2">Hero damage al minuto</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Deaths per Minuto</h3>
+              <p className="text-3xl font-bold text-orange-400">{stats.fights.deathsPerMinute}</p>
+              <p className="text-xs text-gray-500 mt-2">Morti al minuto</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <h3 className="text-sm text-gray-400 mb-2">Teamfight Participation</h3>
+              <p className="text-3xl font-bold text-purple-400">{stats.fights.teamfightParticipation}</p>
+              <p className="text-xs text-gray-500 mt-2">Partecipazione ai teamfight</p>
+            </div>
+          </div>
+          
+          {/* Additional Stats */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Hero Damage Medio</h3>
-              <p className="text-3xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Damage ai nemici</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Tower Damage Medio</h3>
-              <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.fights.avgTowerDamage).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-yellow-400">{Math.round(stats.fights.avgTowerDamage).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Damage alle torri</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Damage Efficiency</h3>
-              <p className="text-3xl font-bold text-purple-400">{Math.round(stats.fights.damageEfficiency).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-purple-400">{Math.round(stats.fights.damageEfficiency).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Dmg / Death</p>
             </div>
           </div>
@@ -261,9 +283,24 @@ export default function FightsDamagePage() {
                     ⚠️ Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
                   </p>
                 )}
+                {parseFloat(stats.fights.damagePerMinute) < 300 && (
+                  <p className="text-orange-400">
+                    💡 Damage per minuto basso ({stats.fights.damagePerMinute}). Aumenta la partecipazione ai fight.
+                  </p>
+                )}
+                {parseFloat(stats.fights.deathsPerMinute) > 0.15 && (
+                  <p className="text-red-400">
+                    ⚠️ Troppe morti per minuto ({stats.fights.deathsPerMinute}). Migliora il positioning e la mappa awareness.
+                  </p>
+                )}
+                {parseFloat(stats.fights.teamfightParticipation) < 5 && (
+                  <p className="text-yellow-400">
+                    💡 Teamfight participation bassa ({stats.fights.teamfightParticipation}). Sii più presente nei fight principali.
+                  </p>
+                )}
                 {stats.fights.damageEfficiency < 10000 && (
                   <p className="text-orange-400">
-                    💡 Damage Efficiency migliorabile. Prova a fare più damage prima di morire.
+                    💡 Damage Efficiency migliorabile ({Math.round(stats.fights.damageEfficiency).toLocaleString()}). Prova a fare più damage prima di morire.
                   </p>
                 )}
                 {stats.fights.avgTowerDamage < 1000 && (
