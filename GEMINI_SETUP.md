@@ -6,7 +6,7 @@
 
 **Locale (.env.local):**
 ```env
-GEMINI_API_KEY=AIzaSyBCgMb8RAMsNXbM6nbd1CXLHsP7ogw1uCU
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 **Vercel (Production):**
@@ -14,7 +14,7 @@ GEMINI_API_KEY=AIzaSyBCgMb8RAMsNXbM6nbd1CXLHsP7ogw1uCU
 2. Settings → Environment Variables
 3. Aggiungi:
    - Key: `GEMINI_API_KEY`
-   - Value: `AIzaSyBCgMb8RAMsNXbM6nbd1CXLHsP7ogw1uCU`
+   - Value: `[la tua chiave API]`
 4. Redeploy
 
 ## Funzionalità

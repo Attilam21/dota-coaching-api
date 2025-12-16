@@ -6,14 +6,31 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
 
+interface Match {
+  match_id: number
+  player_slot: number
+  radiant_win: boolean
+  kills: number
+  deaths: number
+  assists: number
+  gold_per_min?: number
+  xp_per_min?: number
+  start_time: number
+  duration: number
+  hero_id?: number
+}
+
 export default function AISummaryPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const [activeTab, setActiveTab] = useState<'match' | 'profile'>('profile')
-  const [matchId, setMatchId] = useState('')
+  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
+  const [matches, setMatches] = useState<Match[]>([])
+  const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [summary, setSummary] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingMatches, setLoadingMatches] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -23,9 +40,48 @@ export default function AISummaryPage() {
     }
   }, [user, authLoading, router])
 
+  useEffect(() => {
+    // Fetch heroes list
+    fetch('/api/opendota/heroes')
+      .then((res) => res.json())
+      .then((data) => {
+        const heroesMap: Record<number, { name: string; localized_name: string }> = {}
+        data.forEach((hero: { id: number; name: string; localized_name: string }) => {
+          heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+        })
+        setHeroes(heroesMap)
+      })
+      .catch(console.error)
+  }, [])
+
+  const fetchMatches = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setLoadingMatches(true)
+      setError(null)
+
+      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=20`)
+      if (!response.ok) throw new Error('Failed to fetch matches')
+
+      const data = await response.json()
+      setMatches(data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load matches')
+    } finally {
+      setLoadingMatches(false)
+    }
+  }, [playerId])
+
+  useEffect(() => {
+    if (playerId && activeTab === 'match') {
+      fetchMatches()
+    }
+  }, [playerId, activeTab, fetchMatches])
+
   const generateMatchSummary = useCallback(async () => {
-    if (!matchId.trim()) {
-      setError('Inserisci un Match ID valido')
+    if (!selectedMatchId) {
+      setError('Seleziona una partita')
       return
     }
 
@@ -34,7 +90,7 @@ export default function AISummaryPage() {
       setError(null)
       setSummary('')
 
-      const response = await fetch(`/api/ai-summary/match/${matchId.trim()}`)
+      const response = await fetch(`/api/ai-summary/match/${selectedMatchId}`)
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Failed to generate summary')
@@ -47,7 +103,7 @@ export default function AISummaryPage() {
     } finally {
       setLoading(false)
     }
-  }, [matchId])
+  }, [selectedMatchId])
 
   const generateProfileSummary = useCallback(async () => {
     if (!playerId) {
@@ -178,41 +234,129 @@ export default function AISummaryPage() {
       {/* Match Summary Tab */}
       {activeTab === 'match' && (
         <div className="space-y-6">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">🎮 Riassunto Partita</h2>
-            <p className="text-gray-400 mb-4 text-sm">
-              Inserisci il Match ID di una partita per generare un riassunto intelligente con analisi dettagliata.
-            </p>
-            <div className="flex gap-4">
-              <input
-                type="text"
-                value={matchId}
-                onChange={(e) => setMatchId(e.target.value)}
-                placeholder="Inserisci Match ID (es. 1234567890)"
-                className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !loading) {
-                    generateMatchSummary()
-                  }
-                }}
-              />
-              <button
-                onClick={generateMatchSummary}
-                disabled={loading || !matchId.trim()}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-              >
-                {loading ? 'Generazione...' : '🚀 Genera'}
-              </button>
-            </div>
-          </div>
-
-          {summary && (
-            <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
-              <div className="prose prose-invert max-w-none">
-                <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+          {!playerId ? (
+            <PlayerIdInput
+              pageTitle="Riassunto Partita IA"
+              title="Inserisci Player ID"
+              description="Inserisci il tuo Dota 2 Account ID per selezionare una partita e generare un riassunto. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
+            />
+          ) : (
+            <>
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">🎮 Riassunto Partita</h2>
+                <p className="text-gray-400 mb-4 text-sm">
+                  Seleziona una partita dalle tue ultime 20 partite per generare un riassunto intelligente con analisi dettagliata.
+                </p>
+                {selectedMatchId && (
+                  <button
+                    onClick={generateMatchSummary}
+                    disabled={loading}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors mb-4"
+                  >
+                    {loading ? 'Generazione in corso...' : '🚀 Genera Riassunto Partita Selezionata'}
+                  </button>
+                )}
               </div>
-            </div>
+
+              {loadingMatches && (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                  <p className="mt-4 text-gray-400">Caricamento partite...</p>
+                </div>
+              )}
+
+              {matches.length > 0 && !loadingMatches && (
+                <div className="space-y-4">
+                  {matches.map((match) => {
+                    const isWin = (match.player_slot < 128 && match.radiant_win) || (match.player_slot >= 128 && !match.radiant_win)
+                    const kda = ((match.kills + match.assists) / Math.max(match.deaths, 1)).toFixed(2)
+                    const heroName = match.hero_id ? (heroes[match.hero_id]?.localized_name || `Hero ${match.hero_id}`) : 'Sconosciuto'
+                    const formatDuration = (seconds: number) => {
+                      const mins = Math.floor(seconds / 60)
+                      const secs = seconds % 60
+                      return `${mins}:${secs.toString().padStart(2, '0')}`
+                    }
+                    const formatDate = (timestamp: number) => {
+                      return new Date(timestamp * 1000).toLocaleDateString('it-IT', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    }
+                    const isSelected = selectedMatchId === match.match_id
+
+                    return (
+                      <div
+                        key={match.match_id}
+                        onClick={() => setSelectedMatchId(match.match_id)}
+                        className={`bg-gray-800 border rounded-lg p-6 hover:bg-gray-750 transition cursor-pointer ${
+                          isSelected ? 'border-red-500 bg-red-900/20' : 'border-gray-700'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-2">
+                              <h3 className="text-xl font-semibold text-white">
+                                {heroName}
+                              </h3>
+                              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                isWin ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
+                              }`}>
+                                {isWin ? 'Vittoria' : 'Sconfitta'}
+                              </span>
+                              {isSelected && (
+                                <span className="text-red-400 font-semibold">✓ Selezionata</span>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                              <div>
+                                <span className="text-gray-400">K/D/A</span>
+                                <p className="text-white font-semibold">
+                                  {match.kills}/{match.deaths}/{match.assists}
+                                </p>
+                                <p className="text-gray-500 text-xs">KDA: {kda}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">GPM/XPM</span>
+                                <p className="text-white font-semibold">
+                                  {match.gold_per_min || 0} / {match.xp_per_min || 0}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Durata</span>
+                                <p className="text-white font-semibold">{formatDuration(match.duration)}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Data</span>
+                                <p className="text-white font-semibold">{formatDate(match.start_time)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {matches.length === 0 && !loadingMatches && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
+                  <p className="text-gray-400">Nessuna partita trovata</p>
+                </div>
+              )}
+
+              {summary && (
+                <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
