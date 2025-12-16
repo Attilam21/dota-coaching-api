@@ -1,6 +1,7 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 
 interface PlayerData {
@@ -43,8 +44,9 @@ interface PlayerMatch {
   party_size: number
 }
 
-export default function PlayerAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: accountId } = use(params)
+export default function PlayerAnalysisPage() {
+  const params = useParams()
+  const accountId = params.id as string
   const [playerData, setPlayerData] = useState<PlayerData | null>(null)
   const [winLoss, setWinLoss] = useState<PlayerWinLoss | null>(null)
   const [recentMatches, setRecentMatches] = useState<PlayerMatch[]>([])

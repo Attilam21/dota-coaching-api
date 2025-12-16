@@ -1,9 +1,9 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 
 interface MatchData {
@@ -49,8 +49,9 @@ interface AnalysisData {
   }>
 }
 
-export default function MatchAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: matchId } = use(params)
+export default function MatchAnalysisPage() {
+  const params = useParams()
+  const matchId = params.id as string
   const { user } = useAuth()
   const router = useRouter()
   const [match, setMatch] = useState<MatchData | null>(null)
