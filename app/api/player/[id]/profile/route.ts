@@ -38,9 +38,53 @@ export async function GET(
     const advanced = advancedData.stats
     const matches = stats.matches || []
 
-    // Calculate comprehensive metrics
-    const avgGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
-    const avgXPM = matches.reduce((acc: number, m: { xpm: number }) => acc + m.xpm, 0) / matches.length || 0
+    // Calculate comprehensive metrics - prioritize stats.farm (already calculated averages)
+    // Then fallback to matches calculation, then advanced stats
+    let avgGPM = 0
+    let avgXPM = 0
+    
+    // Priority 1: Use pre-calculated stats from stats endpoint
+    if (stats?.farm?.gpm?.last10 && stats.farm.gpm.last10 > 0) {
+      avgGPM = stats.farm.gpm.last10
+    }
+    if (stats?.farm?.xpm?.last10 && stats.farm.xpm.last10 > 0) {
+      avgXPM = stats.farm.xpm.last10
+    }
+    
+    // Priority 2: Calculate from matches if stats not available
+    if (avgGPM === 0 && matches.length > 0) {
+      const validGPM = matches.filter((m: any) => {
+        const gpm = m.gpm || m.gold_per_min || 0
+        return gpm > 0
+      })
+      if (validGPM.length > 0) {
+        avgGPM = validGPM.reduce((acc: number, m: any) => {
+          const gpm = m.gpm || m.gold_per_min || 0
+          return acc + gpm
+        }, 0) / validGPM.length
+      }
+    }
+    
+    if (avgXPM === 0 && matches.length > 0) {
+      const validXPM = matches.filter((m: any) => {
+        const xpm = m.xpm || m.xp_per_min || 0
+        return xpm > 0
+      })
+      if (validXPM.length > 0) {
+        avgXPM = validXPM.reduce((acc: number, m: any) => {
+          const xpm = m.xpm || m.xp_per_min || 0
+          return acc + xpm
+        }, 0) / validXPM.length
+      }
+    }
+    
+    // Priority 3: Final fallback to advanced stats
+    if (avgGPM === 0 && advanced?.farm?.avgGPM && advanced.farm.avgGPM > 0) {
+      avgGPM = advanced.farm.avgGPM
+    }
+    if (avgXPM === 0 && advanced?.farm?.avgXPM && advanced.farm.avgXPM > 0) {
+      avgXPM = advanced.farm.avgXPM
+    }
     const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
     const winrate = stats.winrate.last10 || 0
     const avgDeaths = advanced.fights?.avgDeaths || 0
@@ -153,8 +197,10 @@ export async function GET(
     // Calculate trend (compare last 5 vs last 10)
     const recent5 = matches.slice(0, 5)
     const recent10 = matches.slice(5, 10)
-    const avgGPM5 = recent5.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / recent5.length || 0
-    const avgGPM10 = recent10.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / recent10.length || 0
+    const avgGPM5 = recent5.length > 0 ? recent5.reduce((acc: number, m: any) => acc + (m.gpm || m.gold_per_min || 0), 0) / recent5.length : 0
+    const avgGPM10 = recent10.length > 0 ? recent10.reduce((acc: number, m: any) => acc + (m.gpm || m.gold_per_min || 0), 0) / recent10.length : 0
+    const avgXPM5 = recent5.length > 0 ? recent5.reduce((acc: number, m: any) => acc + (m.xpm || m.xp_per_min || 0), 0) / recent5.length : 0
+    const avgXPM10 = recent10.length > 0 ? recent10.reduce((acc: number, m: any) => acc + (m.xpm || m.xp_per_min || 0), 0) / recent10.length : 0
     const avgKDA5 = recent5.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent5.length || 0
     const avgKDA10 = recent10.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent10.length || 0
     const winrate5 = (recent5.filter((m: { win: boolean }) => m.win).length / recent5.length) * 100 || 0
@@ -165,6 +211,11 @@ export async function GET(
         value: avgGPM5 - avgGPM10, 
         direction: avgGPM5 > avgGPM10 ? 'up' : avgGPM5 < avgGPM10 ? 'down' : 'stable',
         label: avgGPM5 > avgGPM10 ? 'Miglioramento' : avgGPM5 < avgGPM10 ? 'Peggioramento' : 'Stabile'
+      },
+      xpm: {
+        value: avgXPM5 - avgXPM10,
+        direction: avgXPM5 > avgXPM10 ? 'up' : avgXPM5 < avgXPM10 ? 'down' : 'stable',
+        label: avgXPM5 > avgXPM10 ? 'Miglioramento' : avgXPM5 < avgXPM10 ? 'Peggioramento' : 'Stabile'
       },
       kda: { 
         value: avgKDA5 - avgKDA10, 
@@ -247,10 +298,11 @@ export async function GET(
     ]
 
     // Trend data for chart
-    const trendData = matches.slice(0, 10).reverse().map((m: { gpm: number; kda: number; win: boolean }, idx: number) => ({
+    const trendData = matches.slice(0, 10).reverse().map((m: any, idx: number) => ({
       match: `M${10 - idx}`,
-      gpm: m.gpm,
-      kda: m.kda,
+      gpm: m.gpm || m.gold_per_min || 0,
+      xpm: m.xpm || m.xp_per_min || 0,
+      kda: m.kda || 0,
       winrate: m.win ? 100 : 0,
     }))
 
@@ -263,11 +315,22 @@ export async function GET(
       recommendations: recommendations.slice(0, 8), // Increased to 8
       radarData,
       metrics: {
-        avgGPM: avgGPM.toFixed(0),
+        avgGPM: avgGPM > 0 ? avgGPM.toFixed(0) : '0',
+        avgXPM: avgXPM > 0 ? avgXPM.toFixed(0) : '0',
         avgKDA: avgKDA.toFixed(2),
         winrate: winrate.toFixed(1),
         avgDeaths: avgDeaths.toFixed(1),
         killParticipation: advanced.fights.killParticipation.toFixed(1),
+        avgHeroDamage: Math.round(advanced.fights.avgHeroDamage || 0).toLocaleString(),
+        avgTowerDamage: Math.round(advanced.fights.avgTowerDamage || 0).toLocaleString(),
+        avgLastHits: Math.round(advanced.lane.avgLastHits || 0),
+        avgDenies: Math.round(advanced.lane.avgDenies || 0),
+        avgNetWorth: Math.round(advanced.farm.avgNetWorth || 0).toLocaleString(),
+        visionScore: Math.round((advanced.vision.avgObserverPlaced * 2) + (advanced.vision.avgObserverKilled * 1) + (advanced.vision.avgSentryPlaced * 1)),
+        goldUtilization: advanced.farm.goldUtilization.toFixed(1),
+        denyRate: advanced.lane.denyRate.toFixed(1),
+        avgAssists: advanced.fights.avgAssists.toFixed(1),
+        avgKills: matches.length > 0 ? (matches.reduce((acc: number, m: any) => acc + (m.kills || 0), 0) / matches.length).toFixed(1) : '0',
       },
       fzthScore,
       trends,

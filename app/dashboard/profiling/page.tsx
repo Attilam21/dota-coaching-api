@@ -17,14 +17,26 @@ interface PlayerProfile {
   radarData: Array<{ subject: string; value: number; fullMark: number }>
   metrics: {
     avgGPM: string
+    avgXPM: string
     avgKDA: string
     winrate: string
     avgDeaths: string
     killParticipation: string
+    avgHeroDamage?: string
+    avgTowerDamage?: string
+    avgLastHits?: string
+    avgDenies?: string
+    avgNetWorth?: string
+    visionScore?: string
+    goldUtilization?: string
+    denyRate?: string
+    avgAssists?: string
+    avgKills?: string
   }
   fzthScore?: number
   trends?: {
     gpm: { value: number; direction: string; label: string }
+    xpm?: { value: number; direction: string; label: string }
     kda: { value: number; direction: string; label: string }
     winrate: { value: number; direction: string; label: string }
   }
@@ -34,7 +46,7 @@ interface PlayerProfile {
     mid: { score: number; strength: string }
     late: { score: number; strength: string }
   }
-  trendData?: Array<{ match: string; gpm: number; kda: number; winrate: number }>
+  trendData?: Array<{ match: string; gpm: number; xpm: number; kda: number; winrate: number }>
 }
 
 export default function ProfilingPage() {
@@ -212,8 +224,8 @@ export default function ProfilingPage() {
           {profile.trends && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">📈 Trend Performance</h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">GPM Trend</span>
                     <span className={`text-lg font-bold ${
@@ -229,7 +241,25 @@ export default function ProfilingPage() {
                     {profile.trends.gpm.value > 0 ? '+' : ''}{profile.trends.gpm.value.toFixed(0)} vs partite precedenti
                   </p>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4">
+                {profile.trends.xpm && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-400">XPM Trend</span>
+                      <span className={`text-lg font-bold ${
+                        profile.trends.xpm.direction === 'up' ? 'text-green-400' :
+                        profile.trends.xpm.direction === 'down' ? 'text-red-400' :
+                        'text-gray-400'
+                      }`}>
+                        {profile.trends.xpm.direction === 'up' ? '↑' : profile.trends.xpm.direction === 'down' ? '↓' : '→'}
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold">{profile.trends.xpm.label}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {profile.trends.xpm.value > 0 ? '+' : ''}{profile.trends.xpm.value.toFixed(0)} vs partite precedenti
+                    </p>
+                  </div>
+                )}
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">KDA Trend</span>
                     <span className={`text-lg font-bold ${
@@ -245,7 +275,7 @@ export default function ProfilingPage() {
                     {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs partite precedenti
                   </p>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">Winrate Trend</span>
                     <span className={`text-lg font-bold ${
@@ -267,26 +297,30 @@ export default function ProfilingPage() {
 
           {/* Key Metrics */}
           {profile.metrics && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM Medio</p>
-                <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
+                <p className="text-3xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA Medio</p>
-                <p className="text-2xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-orange-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</p>
+                <p className="text-3xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Winrate</p>
-                <p className="text-2xl font-bold text-green-400">{profile.metrics.winrate}%</p>
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-purple-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</p>
+                <p className="text-3xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Morte/Game</p>
-                <p className="text-2xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-green-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Winrate</p>
+                <p className="text-3xl font-bold text-green-400">{profile.metrics.winrate}%</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-blue-500 transition-colors">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Kill Part.</p>
-                <p className="text-2xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Morte/Game</p>
+                <p className="text-3xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
+              </div>
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors">
+                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Kill Part.</p>
+                <p className="text-3xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
               </div>
             </div>
           )}
@@ -309,6 +343,7 @@ export default function ProfilingPage() {
                   />
                   <Legend />
                   <Line type="monotone" dataKey="gpm" stroke="#F59E0B" strokeWidth={2} name="GPM" dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="xpm" stroke="#8B5CF6" strokeWidth={2} name="XPM" dot={{ r: 4 }} />
                   <Line type="monotone" dataKey="kda" stroke="#EF4444" strokeWidth={2} name="KDA" dot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -370,6 +405,211 @@ export default function ProfilingPage() {
                     {pattern}
                   </span>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Advanced Metrics Grid */}
+          {profile.metrics && (
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">📊 Metriche Avanzate</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {profile.metrics.avgHeroDamage && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-red-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Hero Damage</p>
+                    <p className="text-xl font-bold text-red-400">{profile.metrics.avgHeroDamage}</p>
+                  </div>
+                )}
+                {profile.metrics.avgTowerDamage && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-orange-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Tower Damage</p>
+                    <p className="text-xl font-bold text-orange-400">{profile.metrics.avgTowerDamage}</p>
+                  </div>
+                )}
+                {profile.metrics.avgLastHits && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-green-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Last Hits</p>
+                    <p className="text-xl font-bold text-green-400">{profile.metrics.avgLastHits}</p>
+                  </div>
+                )}
+                {profile.metrics.avgDenies && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-blue-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Denies</p>
+                    <p className="text-xl font-bold text-blue-400">{profile.metrics.avgDenies}</p>
+                  </div>
+                )}
+                {profile.metrics.avgNetWorth && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-yellow-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Net Worth</p>
+                    <p className="text-xl font-bold text-yellow-400">{profile.metrics.avgNetWorth}</p>
+                  </div>
+                )}
+                {profile.metrics.visionScore && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-purple-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Vision Score</p>
+                    <p className="text-xl font-bold text-purple-400">{profile.metrics.visionScore}</p>
+                  </div>
+                )}
+                {profile.metrics.goldUtilization && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-emerald-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Gold Util.</p>
+                    <p className="text-xl font-bold text-emerald-400">{profile.metrics.goldUtilization}%</p>
+                  </div>
+                )}
+                {profile.metrics.denyRate && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-cyan-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deny Rate</p>
+                    <p className="text-xl font-bold text-cyan-400">{profile.metrics.denyRate}%</p>
+                  </div>
+                )}
+                {profile.metrics.avgAssists && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-pink-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Assist/Game</p>
+                    <p className="text-xl font-bold text-pink-400">{profile.metrics.avgAssists}</p>
+                  </div>
+                )}
+                {profile.metrics.avgKills && (
+                  <div className="bg-gray-700/50 rounded-lg p-4 border border-amber-700/30">
+                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Kill/Game</p>
+                    <p className="text-xl font-bold text-amber-400">{profile.metrics.avgKills}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Comparative Analysis */}
+          {profile.metrics && profile.role && (
+            <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 backdrop-blur-sm border border-indigo-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4 text-indigo-300">📊 Analisi Comparativa - {profile.role}</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-gray-800/60 rounded-lg p-4 border border-indigo-600/30">
+                  <p className="text-sm text-gray-300 mb-2">GPM vs Benchmark Ruolo</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl font-bold text-indigo-400">{profile.metrics.avgGPM}</span>
+                    <span className="text-sm text-gray-400 mb-1">GPM</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {parseFloat(profile.metrics.avgGPM) > 550 ? 'Sopra la media' : 
+                     parseFloat(profile.metrics.avgGPM) > 450 ? 'Nella media' : 'Sotto la media'}
+                  </p>
+                </div>
+                <div className="bg-gray-800/60 rounded-lg p-4 border border-indigo-600/30">
+                  <p className="text-sm text-gray-300 mb-2">KDA vs Benchmark Ruolo</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl font-bold text-indigo-400">{profile.metrics.avgKDA}</span>
+                    <span className="text-sm text-gray-400 mb-1">KDA</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {parseFloat(profile.metrics.avgKDA) > 2.5 ? 'Eccellente' : 
+                     parseFloat(profile.metrics.avgKDA) > 2.0 ? 'Buono' : 'Da migliorare'}
+                  </p>
+                </div>
+                <div className="bg-gray-800/60 rounded-lg p-4 border border-indigo-600/30">
+                  <p className="text-sm text-gray-300 mb-2">Winrate vs Benchmark</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl font-bold text-indigo-400">{profile.metrics.winrate}%</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {parseFloat(profile.metrics.winrate) > 55 ? 'Sopra la media (50%)' : 
+                     parseFloat(profile.metrics.winrate) > 50 ? 'Nella media' : 'Sotto la media'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Efficiency & Impact Metrics */}
+          {profile.metrics && (
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">⚡ Efficienza & Impatto</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-emerald-900/50 to-emerald-800/30 rounded-lg p-4 border border-emerald-700/50">
+                  <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Gold Efficiency</p>
+                  <p className="text-2xl font-bold text-emerald-400">{profile.metrics.goldUtilization || '0'}%</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {parseFloat(profile.metrics.goldUtilization || '0') > 90 ? 'Eccellente' : 
+                     parseFloat(profile.metrics.goldUtilization || '0') > 80 ? 'Buono' : 'Da migliorare'}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-cyan-900/50 to-cyan-800/30 rounded-lg p-4 border border-cyan-700/50">
+                  <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deny Rate</p>
+                  <p className="text-2xl font-bold text-cyan-400">{profile.metrics.denyRate || '0'}%</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {parseFloat(profile.metrics.denyRate || '0') > 15 ? 'Ottimo' : 
+                     parseFloat(profile.metrics.denyRate || '0') > 8 ? 'Buono' : 'Da migliorare'}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-lg p-4 border border-blue-700/50">
+                  <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Kill Part.</p>
+                  <p className="text-2xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {parseFloat(profile.metrics.killParticipation) > 70 ? 'Alto' : 
+                     parseFloat(profile.metrics.killParticipation) > 50 ? 'Medio' : 'Basso'}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-lg p-4 border border-purple-700/50">
+                  <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Vision Score</p>
+                  <p className="text-2xl font-bold text-purple-400">{profile.metrics.visionScore || '0'}</p>
+                  <p className="text-xs text-gray-500 mt-1">Controllo mappa</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Performance Insights */}
+          {profile.phaseAnalysis && (
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">🎯 Insights Performance per Fase</h3>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-green-900/40 to-green-800/20 rounded-lg p-4 border border-green-700/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-lg font-semibold text-green-400">Early Game</h4>
+                    <span className="text-2xl font-bold text-green-300">
+                      {Math.round(profile.phaseAnalysis.early.score / 2)}/100
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-2">
+                    <strong>Focus:</strong> Last Hits, Denies, First Blood Involvement
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {profile.phaseAnalysis.early.strength === 'Forti' 
+                      ? '✅ Ottime performance nella fase di laning. Mantieni questo livello di attenzione ai dettagli.'
+                      : '⚠️ Concentrati sul miglioramento della fase di laning. Pratica il last hitting e controlla meglio la lane.'}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-blue-900/40 to-blue-800/20 rounded-lg p-4 border border-blue-700/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-lg font-semibold text-blue-400">Mid Game</h4>
+                    <span className="text-2xl font-bold text-blue-300">
+                      {Math.round(profile.phaseAnalysis.mid.score / 2)}/100
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-2">
+                    <strong>Focus:</strong> Teamfight Participation, Farm Continuity, Objective Control
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {profile.phaseAnalysis.mid.strength === 'Forti'
+                      ? '✅ Eccellente presenza nei teamfight e gestione del farm in mid game.'
+                      : '⚠️ Aumenta la partecipazione ai teamfight e mantieni il farm anche durante le rotazioni.'}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/20 rounded-lg p-4 border border-purple-700/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-lg font-semibold text-purple-400">Late Game</h4>
+                    <span className="text-2xl font-bold text-purple-300">
+                      {Math.round(profile.phaseAnalysis.late.score / 2)}/100
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-2">
+                    <strong>Focus:</strong> Decision Making, Item Efficiency, Game Closing
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {profile.phaseAnalysis.late.strength === 'Forti'
+                      ? '✅ Ottime decisioni in late game e gestione efficiente delle risorse.'
+                      : '⚠️ Migliora il decision making in late game e l\'utilizzo del gold per item critici.'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
