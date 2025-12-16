@@ -151,12 +151,6 @@ export default function FarmEconomyPage() {
     win: m.win,
   }))
 
-  const csData = matches.map((m, idx) => ({
-    match: `M${idx + 1}`,
-    'Last Hits': m.last_hits,
-    Denies: m.denies,
-    win: m.win,
-  }))
 
   return (
     <div className="p-8">
@@ -276,44 +270,26 @@ export default function FarmEconomyPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* CS Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Last Hits & Denies</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={csData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="match" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="Last Hits" fill="#10B981" />
-                <Bar dataKey="Denies" fill="#EF4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
           {/* Detailed Stats */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Statistiche Farm</h3>
+              <h3 className="text-lg font-semibold mb-4">Statistiche Farm & Economy</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Last Hits Medio</span>
-                  <span className="font-bold">{stats.lane.avgLastHits.toFixed(1)}</span>
+                  <span className="text-gray-400">GPM Medio</span>
+                  <span className="font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Denies Medio</span>
-                  <span className="font-bold">{stats.lane.avgDenies.toFixed(1)}</span>
+                  <span className="text-gray-400">XPM Medio</span>
+                  <span className="font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Deny Rate</span>
-                  <span className="font-bold">{stats.lane.denyRate.toFixed(1)}%</span>
+                  <span className="text-gray-400">Net Worth Medio</span>
+                  <span className="font-bold">{Math.round(stats.farm.avgNetWorth).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Gold Utilization</span>
+                  <span className="font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Buyback Medio</span>
@@ -340,12 +316,7 @@ export default function FarmEconomyPage() {
                 )}
                 {stats.farm.avgGPM < 400 && (
                   <p className="text-orange-400">
-                    💡 GPM sotto la media. Concentrati sul farm più efficiente e su creeps denies.
-                  </p>
-                )}
-                {stats.lane.denyRate < 10 && (
-                  <p className="text-blue-400">
-                    💡 Deny rate basso. Prova a negare più creeps all'avversario in lane.
+                    💡 GPM sotto la media. Concentrati sul farm più efficiente, ottimizza i percorsi di farm e valuta meglio i timing degli item.
                   </p>
                 )}
                 {stats.farm.avgBuybacks > 1 && (

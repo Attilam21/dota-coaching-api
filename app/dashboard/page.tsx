@@ -420,6 +420,53 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Quick Links to Deep Analysis */}
+          <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6 mb-6">
+            <h3 className="text-xl font-semibold mb-4">🔍 Analisi Approfondite</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="/dashboard/performance"
+                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">⚡</span>
+                  <h4 className="font-semibold">Performance</h4>
+                </div>
+                <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
+              </Link>
+              <Link
+                href="/dashboard/profiling"
+                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🎯</span>
+                  <h4 className="font-semibold">Profilazione FZTH</h4>
+                </div>
+                <p className="text-xs text-gray-400">Profilo completo con IA</p>
+              </Link>
+              <Link
+                href="/dashboard/advanced"
+                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🔬</span>
+                  <h4 className="font-semibold">Analisi Avanzate</h4>
+                </div>
+                <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
+              </Link>
+              <Link
+                href="/dashboard/coaching"
+                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">📚</span>
+                  <h4 className="font-semibold">Coaching</h4>
+                </div>
+                <p className="text-xs text-gray-400">Task e raccomandazioni</p>
+              </Link>
+            </div>
+          </div>
+
           {/* Identità Giocatore */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between">

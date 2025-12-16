@@ -333,6 +333,105 @@ export default function PerformancePage() {
               )}
             </div>
           </div>
+
+          {/* Playstyle-Specific Recommendations */}
+          <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
+            <h3 className="text-xl font-semibold mb-4 text-purple-300">🎯 Suggerimenti per il Tuo Stile di Gioco</h3>
+            <div className="space-y-3">
+              {stats.playstyle.includes('Farm Focus') && (
+                <>
+                  <p className="text-sm text-purple-200">
+                    💰 <strong>Farm Focus:</strong> Il tuo stile è orientato al farm. Per migliorare:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
+                    <li>Ottimizza i percorsi di farm per massimizzare GPM</li>
+                    <li>Valuta meglio i timing degli item per essere efficace nei teamfight</li>
+                    {stats.teamfightParticipation < 60 && (
+                      <li>Partecipa di più ai teamfight quando hai item chiave completati</li>
+                    )}
+                    {stats.advanced && stats.advanced.farm.goldUtilization < 85 && (
+                      <li>Spendi il gold più velocemente in item utili invece di accumularlo</li>
+                    )}
+                  </ul>
+                </>
+              )}
+              {(stats.playstyle.includes('Aggressivo') || stats.playstyle.includes('Teamfight')) && (
+                <>
+                  <p className="text-sm text-purple-200">
+                    ⚔️ <strong>Aggressivo/Teamfight Focus:</strong> Sei un giocatore da teamfight. Per migliorare:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
+                    <li>Continua a partecipare attivamente ai teamfight</li>
+                    {stats.avgGPM < 500 && (
+                      <li>Bilancia la partecipazione ai fight con il farm per non rimanere indietro negli item</li>
+                    )}
+                    {stats.avgDeaths > 6 && (
+                      <li>Migliora il positioning per ridurre le morti mantenendo l'impatto nei fight</li>
+                    )}
+                    {stats.advanced && stats.advanced.fights.killParticipation > 80 && (
+                      <li>Ottima kill participation! Continua così, sei un asset fondamentale per la squadra</li>
+                    )}
+                  </ul>
+                </>
+              )}
+              {stats.playstyle.includes('Support') && (
+                <>
+                  <p className="text-sm text-purple-200">
+                    🛡️ <strong>Support/Utility Focus:</strong> Il tuo ruolo è di supporto. Per migliorare:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
+                    {stats.advanced && stats.advanced.vision.avgObserverPlaced < 5 && (
+                      <li>Aumenta il warding per migliorare la visione della squadra</li>
+                    )}
+                    {stats.teamfightParticipation < 70 && (
+                      <li>Partecipa di più ai teamfight, il tuo supporto è cruciale</li>
+                    )}
+                    {stats.avgGPM < 350 && (
+                      <li>Trova un equilibrio tra supporto e farm per non rimanere troppo indietro</li>
+                    )}
+                    {stats.avgAssists < 10 && (
+                      <li>Migliora il positioning per aumentare gli assist nei teamfight</li>
+                    )}
+                  </ul>
+                </>
+              )}
+              {stats.playstyle === 'Bilanciato' && (
+                <>
+                  <p className="text-sm text-purple-200">
+                    ⚖️ <strong>Bilanciato:</strong> Hai uno stile equilibrato. Per migliorare:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
+                    {stats.avgGPM < 450 && (
+                      <li>Migliora l'efficienza di farm per aumentare il GPM</li>
+                    )}
+                    {stats.teamfightParticipation < 60 && (
+                      <li>Aumenta la partecipazione ai teamfight per avere più impatto</li>
+                    )}
+                    {stats.avgDeaths > 5 && (
+                      <li>Riduci le morti migliorando il positioning e la mappa awareness</li>
+                    )}
+                    <li>Continua a bilanciare farm e teamfight per mantenere un impatto costante</li>
+                  </ul>
+                </>
+              )}
+              {stats.playstyle.includes('Team Player') && (
+                <>
+                  <p className="text-sm text-purple-200">
+                    🤝 <strong>Team Player:</strong> Sei un giocatore di squadra. Per migliorare:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
+                    <li>Ottima kill participation! Continua a supportare la squadra</li>
+                    {stats.avgGPM < 500 && (
+                      <li>Non trascurare il farm personale, anche i team player hanno bisogno di item</li>
+                    )}
+                    {stats.advanced && stats.advanced.fights.avgHeroDamage < 15000 && (
+                      <li>Aumenta il damage output nei teamfight per massimizzare l'impatto</li>
+                    )}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
