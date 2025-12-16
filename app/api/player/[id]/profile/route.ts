@@ -141,6 +141,77 @@ export async function GET(
       recommendations.push('Analizza le tue partite perse per identificare pattern comuni. Focus su decision making e team coordination.')
     }
 
+    // Calculate FZTH Score (0-100 comprehensive score)
+    const farmScore = Math.min((avgGPM / 600) * 100, 100) * 0.20
+    const teamfightScore = Math.min(advanced.fights.killParticipation, 100) * 0.20
+    const survivalScore = Math.max(100 - (avgDeaths * 10), 0) * 0.15
+    const impactScore = Math.min((avgKDA / 4) * 100, 100) * 0.20
+    const visionScore = Math.min((advanced.vision.avgObserverPlaced / 8) * 100, 100) * 0.10
+    const winrateScore = winrate * 0.15
+    const fzthScore = Math.round(farmScore + teamfightScore + survivalScore + impactScore + visionScore + winrateScore)
+
+    // Calculate trend (compare last 5 vs last 10)
+    const recent5 = matches.slice(0, 5)
+    const recent10 = matches.slice(5, 10)
+    const avgGPM5 = recent5.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / recent5.length || 0
+    const avgGPM10 = recent10.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / recent10.length || 0
+    const avgKDA5 = recent5.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent5.length || 0
+    const avgKDA10 = recent10.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent10.length || 0
+    const winrate5 = (recent5.filter((m: { win: boolean }) => m.win).length / recent5.length) * 100 || 0
+    const winrate10 = (recent10.filter((m: { win: boolean }) => m.win).length / recent10.length) * 100 || 0
+
+    const trends = {
+      gpm: { 
+        value: avgGPM5 - avgGPM10, 
+        direction: avgGPM5 > avgGPM10 ? 'up' : avgGPM5 < avgGPM10 ? 'down' : 'stable',
+        label: avgGPM5 > avgGPM10 ? 'Miglioramento' : avgGPM5 < avgGPM10 ? 'Peggioramento' : 'Stabile'
+      },
+      kda: { 
+        value: avgKDA5 - avgKDA10, 
+        direction: avgKDA5 > avgKDA10 ? 'up' : avgKDA5 < avgKDA10 ? 'down' : 'stable',
+        label: avgKDA5 > avgKDA10 ? 'Miglioramento' : avgKDA5 < avgKDA10 ? 'Peggioramento' : 'Stabile'
+      },
+      winrate: { 
+        value: winrate5 - winrate10, 
+        direction: winrate5 > winrate10 ? 'up' : winrate5 < winrate10 ? 'down' : 'stable',
+        label: winrate5 > winrate10 ? 'Miglioramento' : winrate5 < winrate10 ? 'Peggioramento' : 'Stabile'
+      }
+    }
+
+    // Identify patterns
+    const patterns: string[] = []
+    if (avgGPM > 550 && advanced.fights.killParticipation < 50) {
+      patterns.push('Farm Focus - Bassa partecipazione teamfight')
+    }
+    if (advanced.fights.killParticipation > 70 && avgDeaths > 7) {
+      patterns.push('Alta aggressività - Alta mortalità')
+    }
+    if (advanced.lane.firstBloodInvolvement > 30 && winrate > 55) {
+      patterns.push('Early Game Dominator')
+    }
+    if (advanced.farm.goldUtilization > 90 && avgGPM > 500) {
+      patterns.push('Efficiente gestione risorse')
+    }
+    if (avgDeaths < 5 && advanced.fights.avgHeroDamage > 12000) {
+      patterns.push('Alto impatto con buona sopravvivenza')
+    }
+
+    // Phase analysis (simplified - based on overall stats)
+    const phaseAnalysis = {
+      early: {
+        score: (advanced.lane.avgLastHits / 80) * 100 + (advanced.lane.firstBloodInvolvement / 50) * 100,
+        strength: advanced.lane.avgLastHits > 50 ? 'Forti' : 'Da migliorare'
+      },
+      mid: {
+        score: (advanced.fights.killParticipation / 100) * 100 + (avgGPM / 600) * 100,
+        strength: advanced.fights.killParticipation > 60 ? 'Forti' : 'Da migliorare'
+      },
+      late: {
+        score: (winrate / 100) * 100 + (advanced.farm.goldUtilization / 100) * 100,
+        strength: advanced.farm.goldUtilization > 85 ? 'Forti' : 'Da migliorare'
+      }
+    }
+
     // Generate radar chart data
     const radarData = [
       { 
@@ -175,13 +246,21 @@ export async function GET(
       },
     ]
 
+    // Trend data for chart
+    const trendData = matches.slice(0, 10).reverse().map((m: { gpm: number; kda: number; win: boolean }, idx: number) => ({
+      match: `M${10 - idx}`,
+      gpm: m.gpm,
+      kda: m.kda,
+      winrate: m.win ? 100 : 0,
+    }))
+
     return NextResponse.json({
       role,
       roleConfidence,
       playstyle,
-      strengths: strengths.slice(0, 5), // Max 5 strengths
-      weaknesses: weaknesses.slice(0, 5), // Max 5 weaknesses
-      recommendations: recommendations.slice(0, 6), // Max 6 recommendations
+      strengths: strengths.slice(0, 8), // Increased to 8
+      weaknesses: weaknesses.slice(0, 8), // Increased to 8
+      recommendations: recommendations.slice(0, 8), // Increased to 8
       radarData,
       metrics: {
         avgGPM: avgGPM.toFixed(0),
@@ -189,7 +268,12 @@ export async function GET(
         winrate: winrate.toFixed(1),
         avgDeaths: avgDeaths.toFixed(1),
         killParticipation: advanced.fights.killParticipation.toFixed(1),
-      }
+      },
+      fzthScore,
+      trends,
+      patterns: patterns.slice(0, 5),
+      phaseAnalysis,
+      trendData,
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
