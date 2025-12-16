@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 
 const PLAYER_ID_KEY = 'fzth_player_id'
 
@@ -35,7 +35,6 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Sync with localStorage on mount (in case it changed externally)
-  // Note: Removed playerId from dependencies to avoid infinite loop
   useEffect(() => {
     if (!isMounted) return
 
@@ -50,6 +49,25 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]) // Only run on mount, not when playerId changes
+
+  // Listen for storage events (synchronize between tabs/windows)
+  useEffect(() => {
+    if (!isMounted) return
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === PLAYER_ID_KEY) {
+        const newValue = e.newValue
+        if (newValue !== playerId) {
+          setPlayerIdState(newValue)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [isMounted, playerId])
 
   // Save to localStorage whenever playerId changes
   const setPlayerId = useCallback((id: string | null) => {
@@ -67,8 +85,18 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Memoize context value to prevent unnecessary re-renders
+  // This ensures components only re-render when playerId or setPlayerId actually changes
+  const value = useMemo(
+    () => ({
+      playerId,
+      setPlayerId,
+    }),
+    [playerId, setPlayerId]
+  )
+
   return (
-    <PlayerIdContext.Provider value={{ playerId, setPlayerId }}>
+    <PlayerIdContext.Provider value={value}>
       {children}
     </PlayerIdContext.Provider>
   )
