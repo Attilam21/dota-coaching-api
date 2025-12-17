@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface Teammate {
   account_id: number
@@ -151,6 +152,7 @@ export default function TeammatesPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Team & Compagni</h1>
       <p className="text-gray-400 mb-6">Statistiche dei giocatori con cui hai giocato più spesso</p>
 

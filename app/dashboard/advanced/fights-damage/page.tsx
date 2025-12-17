@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line, Legend, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
+import HelpButton from '@/components/HelpButton'
 
 interface AdvancedStats {
   fights: {
@@ -127,6 +128,7 @@ export default function FightsDamagePage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <div className="mb-6">
         <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
           ← Torna alle Analisi Avanzate

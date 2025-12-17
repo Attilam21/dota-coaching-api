@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface HeroStats {
   hero_id: number
@@ -114,6 +115,7 @@ export default function HeroesPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Hero Pool</h1>
 
       {error && (

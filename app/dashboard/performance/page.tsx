@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface PerformanceStats {
   avgKDA: number
@@ -146,6 +147,7 @@ export default function PerformancePage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Performance & Stile di Gioco</h1>
 
       {error && (

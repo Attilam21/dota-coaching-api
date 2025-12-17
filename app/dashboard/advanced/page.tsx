@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import HelpButton from '@/components/HelpButton'
 
 export default function AdvancedPage() {
   const { user, loading: authLoading } = useAuth()
@@ -63,6 +64,7 @@ export default function AdvancedPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Analisi Avanzate</h1>
         <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">

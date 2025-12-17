@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface HeroStat {
   hero_id: number
@@ -122,6 +123,7 @@ export default function HeroAnalysisPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Hero Analysis</h1>
       <p className="text-gray-400 mb-6">Analisi approfondita delle tue performance per hero</p>
 

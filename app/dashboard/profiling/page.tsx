@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface PlayerProfile {
   role: string
@@ -90,8 +91,9 @@ export default function ProfilingPage() {
   }, [playerId, fetchProfile])
 
   if (authLoading) {
-    return (
-      <div className="p-8">
+  return (
+    <div className="p-8">
+      <HelpButton />
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>

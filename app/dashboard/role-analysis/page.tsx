@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface RolePerformance {
   games: number
@@ -121,6 +122,7 @@ export default function RoleAnalysisPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Analisi Ruolo</h1>
       <p className="text-gray-400 mb-6">Analisi delle tue performance per ruolo di gioco</p>
 

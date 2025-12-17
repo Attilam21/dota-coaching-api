@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import HelpButton from '@/components/HelpButton'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -138,6 +139,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Impostazioni Account</h1>
       <p className="text-gray-400 mb-8">Gestisci le tue impostazioni personali</p>
 

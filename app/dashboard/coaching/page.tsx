@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface Task {
   id: string
@@ -110,6 +111,7 @@ export default function CoachingPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Coaching & Task</h1>
       <p className="text-gray-400 mb-6">I tuoi obiettivi e task personalizzati basati sulle tue performance</p>
 

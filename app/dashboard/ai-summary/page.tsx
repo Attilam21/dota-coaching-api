@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface Match {
   match_id: number
@@ -147,6 +148,7 @@ export default function AISummaryPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       <h1 className="text-3xl font-bold mb-6">🤖 Riassunto IA</h1>
       <p className="text-gray-400 mb-6">
         Genera riassunti intelligenti delle tue partite o del tuo profilo completo utilizzando l'intelligenza artificiale.

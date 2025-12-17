@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
+import HelpButton from '@/components/HelpButton'
 
 interface PlayerStats {
   winrate: {
@@ -159,6 +160,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8">
+      <HelpButton />
       {/* Header */}
       <div className="mb-8">
           <div className="flex items-center justify-between">
