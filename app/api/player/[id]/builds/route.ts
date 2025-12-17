@@ -73,7 +73,21 @@ export async function GET(
       // Each item has: id, name, dname (display name), qual, cost, etc.
       Object.entries(items).forEach(([key, item]: [string, any]) => {
         if (item.id !== undefined && item.id !== null && item.id !== 0) {
+          // Debug: log structure of first few items
+          if (Object.keys(itemsMap).length < 3) {
+            console.log(`Item ${item.id} structure:`, {
+              key,
+              id: item.id,
+              dname: item.dname,
+              localized_name: item.localized_name,
+              name: item.name,
+              qual: item.qual,
+              cost: item.cost
+            })
+          }
+          
           // OpenDota uses 'dname' for display name, but also check 'localized_name' and 'name'
+          // Some items might not have dname, so we need to check all fields
           const displayName = item.dname || item.localized_name || item.name || `Item ${item.id}`
           // Internal name is the key (e.g., "item_blink") or fallback to item.name
           const internalName = key || item.name || ''
@@ -93,9 +107,25 @@ export async function GET(
       })
       
       // Log sample items for debugging
-      const sampleItems = Object.values(itemsMap).slice(0, 5)
-      console.log('Sample items mapped:', sampleItems.map(i => ({ id: i.id, name: i.localized_name, internal: i.internal_name })))
+      const sampleItems = Object.values(itemsMap).slice(0, 10)
+      console.log('Sample items mapped:', sampleItems.map(i => ({ 
+        id: i.id, 
+        name: i.localized_name, 
+        internal: i.internal_name,
+        hasName: !!i.localized_name && i.localized_name !== `Item ${i.id}`
+      })))
       console.log(`Items map populated: ${Object.keys(itemsMap).length} items`)
+      
+      // Check for specific problematic items (73, 1, 50, etc.)
+      const problematicIds = [73, 1, 50, 127, 36, 108]
+      problematicIds.forEach(id => {
+        const item = itemsMap[id]
+        if (item) {
+          console.log(`Item ${id}:`, { name: item.localized_name, internal: item.internal_name })
+        } else {
+          console.warn(`Item ${id} NOT FOUND in itemsMap!`)
+        }
+      })
     } else {
       console.error('Failed to fetch items constants:', itemsResponse.status, itemsResponse.statusText)
     }
@@ -169,15 +199,26 @@ export async function GET(
     const missingItems: number[] = []
     const topItems = Object.entries(itemFrequency)
       .map(([itemId, stats]) => {
-        const item = itemsMap[parseInt(itemId)]
+        const itemIdNum = parseInt(itemId)
+        const item = itemsMap[itemIdNum]
         if (!item) {
-          missingItems.push(parseInt(itemId))
-          console.warn(`Item ${itemId} not found in itemsMap`)
+          missingItems.push(itemIdNum)
+          console.warn(`Item ${itemIdNum} not found in itemsMap. Total items in map: ${Object.keys(itemsMap).length}`)
+        } else {
+          // Debug: log if item name is still "Item X"
+          if (item.localized_name === `Item ${itemIdNum}`) {
+            console.warn(`Item ${itemIdNum} has fallback name. Item data:`, {
+              id: item.id,
+              name: item.name,
+              localized_name: item.localized_name,
+              internal_name: item.internal_name
+            })
+          }
         }
         const winrate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0
         const result = {
-          item_id: parseInt(itemId),
-          item_name: item?.localized_name || `Item ${itemId}`,
+          item_id: itemIdNum,
+          item_name: item?.localized_name || `Item ${itemIdNum}`,
           item_internal_name: item?.internal_name || '',
           frequency: stats.count,
           winrate: parseFloat(winrate.toFixed(1)),
@@ -186,7 +227,11 @@ export async function GET(
         }
         // Log if internal_name is missing
         if (!result.item_internal_name && item) {
-          console.warn(`Item ${itemId} (${result.item_name}) missing internal_name`)
+          console.warn(`Item ${itemIdNum} (${result.item_name}) missing internal_name`)
+        }
+        // Log if name is still fallback
+        if (result.item_name === `Item ${itemIdNum}` && item) {
+          console.warn(`Item ${itemIdNum} using fallback name. Available fields:`, Object.keys(item))
         }
         return result
       })
