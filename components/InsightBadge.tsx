@@ -30,8 +30,14 @@ export default function InsightBadge({
   }
 
   const fetchInsight = async () => {
+    // If we already have a valid insight, just open the modal
     if (insight) {
       setIsOpen(true)
+      return
+    }
+    
+    // If modal is already open (showing error or loading), don't refetch
+    if (isOpen) {
       return
     }
 
@@ -57,6 +63,12 @@ export default function InsightBadge({
       }
 
       const data = await response.json()
+      
+      // Check if insight exists and is not empty
+      if (!data.insight || typeof data.insight !== 'string' || data.insight.trim() === '') {
+        throw new Error('Il suggerimento generato è vuoto o non valido')
+      }
+      
       setInsight(data.insight)
       setIsOpen(true)
     } catch (err) {
@@ -118,7 +130,8 @@ export default function InsightBadge({
                   </div>
                 ) : error ? (
                   <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
-                    {error}
+                    <p className="font-semibold mb-2">Errore nel generare il suggerimento</p>
+                    <p>{error}</p>
                   </div>
                 ) : insight ? (
                   <div className="space-y-4">
@@ -126,13 +139,23 @@ export default function InsightBadge({
                       {insight}
                     </p>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="bg-yellow-900/50 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg">
+                    <p>Nessun suggerimento disponibile. Riprova più tardi.</p>
+                  </div>
+                )}
               </div>
 
               {/* Footer */}
               <div className="bg-gray-900/50 border-t border-gray-700 p-4 flex justify-end">
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false)
+                    // Reset error when closing modal to allow retry
+                    if (error) {
+                      setError(null)
+                    }
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                 >
                   Chiudi
