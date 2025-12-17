@@ -8,6 +8,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import WardMap from '@/components/WardMap'
 
 interface AdvancedStats {
   vision: {
@@ -44,6 +45,12 @@ export default function VisionControlPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [wardmapData, setWardmapData] = useState<{
+    observerWards: Array<{ x: number; y: number; match_id: number }>
+    sentryWards: Array<{ x: number; y: number; match_id: number }>
+    totalMatches: number
+  } | null>(null)
+  const [wardmapLoading, setWardmapLoading] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -74,11 +81,30 @@ export default function VisionControlPage() {
     }
   }, [playerId])
 
+  const fetchWardmap = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setWardmapLoading(true)
+      const response = await fetch(`/api/player/${playerId}/wardmap`)
+      if (!response.ok) throw new Error('Failed to fetch wardmap data')
+
+      const data = await response.json()
+      setWardmapData(data)
+    } catch (err) {
+      console.error('Failed to load wardmap:', err)
+      // Non bloccare l'intera pagina se la wardmap fallisce
+    } finally {
+      setWardmapLoading(false)
+    }
+  }, [playerId])
+
   useEffect(() => {
     if (playerId) {
       fetchAdvancedStats()
+      fetchWardmap()
     }
-  }, [playerId, fetchAdvancedStats])
+  }, [playerId, fetchAdvancedStats, fetchWardmap])
 
   if (authLoading) {
     return (
@@ -282,38 +308,53 @@ export default function VisionControlPage() {
           {/* Wardmap Section */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">🗺️ Ward Map - Heatmap Posizioni Wards</h2>
-            <p className="text-gray-400 mb-4 text-sm">
-              Visualizza le heatmap delle posizioni delle Observer e Sentry wards piazzate nelle tue partite recenti. 
-              I dati sono forniti da OpenDota e mostrano le zone più frequenti dove piazzi le wards.
+            <p className="text-gray-400 mb-6 text-sm">
+              Visualizza le heatmap interattive delle posizioni delle Observer e Sentry wards dalle tue partite recenti.
+              I dati sono aggregati dalle ultime {wardmapData?.totalMatches || 0} partite analizzate.
             </p>
-            <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700 relative">
-              <div className="aspect-video w-full" style={{ minHeight: '800px' }}>
-                <iframe
-                  src={`https://www.opendota.com/players/${playerId}/wardmap`}
-                  className="absolute inset-0 w-full h-full border-0"
-                  title="OpenDota Ward Map"
-                  allow="fullscreen"
-                  loading="lazy"
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
+
+            {wardmapLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-400">Caricamento dati wardmap...</p>
               </div>
-            </div>
-            <div className="mt-4 text-xs text-gray-500 space-y-2">
-              <p>
-                💡 <strong>Nota:</strong> La mappa mostra le posizioni aggregate delle wards dalle tue partite recenti. 
-                Usa i filtri su OpenDota per personalizzare la visualizzazione (eroe, risultato, lane, ecc.).
-              </p>
-              <p>
-                🔗 <a 
-                  href={`https://www.opendota.com/players/${playerId}/wardmap`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 underline"
-                >
-                  Apri la Ward Map su OpenDota in una nuova scheda
-                </a>
-              </p>
-            </div>
+            )}
+
+            {!wardmapLoading && wardmapData && (
+              <>
+                {wardmapData.observerWards.length === 0 && wardmapData.sentryWards.length === 0 ? (
+                  <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
+                    <p className="text-yellow-200 mb-2">
+                      ⚠️ Nessun dato wardmap disponibile per le partite analizzate.
+                    </p>
+                    <p className="text-yellow-300 text-sm">
+                      Le partite potrebbero non avere dati wardmap disponibili su OpenDota, o potrebbero essere partite vecchie.
+                    </p>
+                    <a
+                      href={`https://www.opendota.com/players/${playerId}/wardmap`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      Vedi Ward Map su OpenDota ↗
+                    </a>
+                  </div>
+                ) : (
+                  <WardMap
+                    observerWards={wardmapData.observerWards}
+                    sentryWards={wardmapData.sentryWards}
+                    width={800}
+                    height={800}
+                  />
+                )}
+              </>
+            )}
+
+            {!wardmapLoading && !wardmapData && (
+              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6 text-center">
+                <p className="text-gray-400">Impossibile caricare i dati della wardmap.</p>
+              </div>
+            )}
           </div>
 
           {/* Insights */}
