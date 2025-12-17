@@ -279,6 +279,43 @@ export default function VisionControlPage() {
             </div>
           </div>
 
+          {/* Wardmap Section */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4">🗺️ Ward Map - Heatmap Posizioni Wards</h2>
+            <p className="text-gray-400 mb-4 text-sm">
+              Visualizza le heatmap delle posizioni delle Observer e Sentry wards piazzate nelle tue partite recenti. 
+              I dati sono forniti da OpenDota e mostrano le zone più frequenti dove piazzi le wards.
+            </p>
+            <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700 relative">
+              <div className="aspect-video w-full" style={{ minHeight: '800px' }}>
+                <iframe
+                  src={`https://www.opendota.com/players/${playerId}/wardmap`}
+                  className="absolute inset-0 w-full h-full border-0"
+                  title="OpenDota Ward Map"
+                  allow="fullscreen"
+                  loading="lazy"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                />
+              </div>
+            </div>
+            <div className="mt-4 text-xs text-gray-500 space-y-2">
+              <p>
+                💡 <strong>Nota:</strong> La mappa mostra le posizioni aggregate delle wards dalle tue partite recenti. 
+                Usa i filtri su OpenDota per personalizzare la visualizzazione (eroe, risultato, lane, ecc.).
+              </p>
+              <p>
+                🔗 <a 
+                  href={`https://www.opendota.com/players/${playerId}/wardmap`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  Apri la Ward Map su OpenDota in una nuova scheda
+                </a>
+              </p>
+            </div>
+          </div>
+
           {/* Insights */}
           <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
             <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Vision & Map Control</h3>
