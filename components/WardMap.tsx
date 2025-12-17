@@ -22,11 +22,13 @@ interface WardMapProps {
 export default function WardMap({ 
   observerWards, 
   sentryWards, 
-  width = 1000, 
-  height = 1000 
+  width = 800, 
+  height = 800 
 }: WardMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [selectedType, setSelectedType] = useState<'observer' | 'sentry' | 'both'>('both')
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 800 })
 
   // Dota 2 map structure with accurate proportions
   const drawMinimapBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -222,6 +224,22 @@ export default function WardMap({
     return { offsetX, offsetY, mapWidth, mapHeight }
   }
 
+  // Calculate responsive canvas size based on container
+  useEffect(() => {
+    if (!containerRef.current) return
+    
+    const updateCanvasSize = () => {
+      if (!containerRef.current) return
+      const containerWidth = containerRef.current.clientWidth - 48 // Account for padding
+      const maxSize = Math.min(containerWidth, 800) // Max 800px, responsive to container
+      setCanvasSize({ width: maxSize, height: maxSize })
+    }
+    
+    updateCanvasSize()
+    window.addEventListener('resize', updateCanvasSize)
+    return () => window.removeEventListener('resize', updateCanvasSize)
+  }, [])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -229,8 +247,16 @@ export default function WardMap({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // Use responsive canvas size
+    const canvasWidth = canvasSize.width
+    const canvasHeight = canvasSize.height
+    
+    // Set canvas actual size
+    canvas.width = canvasWidth
+    canvas.height = canvasHeight
+
     // Clear canvas
-    ctx.clearRect(0, 0, width, height)
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
     // Dota 2 map coordinates: world coordinates range from approximately -8000 to 8000
     const mapMin = -8000
@@ -238,7 +264,7 @@ export default function WardMap({
     const mapRange = mapMax - mapMin
 
     // Draw minimap background with all landmarks (returns offset values)
-    const mapOffsets = drawMinimapBackground(ctx, width, height)
+    const mapOffsets = drawMinimapBackground(ctx, canvasWidth, canvasHeight)
     
     // Convert Dota 2 world coordinates to minimap coordinates (accounting for padding)
     const worldToMinimap = (x: number, y: number) => {
@@ -419,7 +445,7 @@ export default function WardMap({
       createHeatmap(sentryWards, '#10B981', '#10B981') // Green for sentry
     }
 
-  }, [observerWards, sentryWards, selectedType, width, height])
+  }, [observerWards, sentryWards, selectedType, canvasSize])
 
   return (
     <div className="space-y-4">
@@ -457,14 +483,21 @@ export default function WardMap({
         </button>
       </div>
 
-      {/* Canvas */}
-      <div className="bg-gray-900 rounded-lg border border-gray-700 p-6 flex justify-center overflow-auto">
+      {/* Canvas - Responsive container */}
+      <div 
+        ref={containerRef}
+        className="bg-gray-900 rounded-lg border border-gray-700 p-6 flex justify-center"
+      >
         <canvas
           ref={canvasRef}
-          width={width}
-          height={height}
+          width={canvasSize.width}
+          height={canvasSize.height}
           className="max-w-full h-auto border border-gray-600 rounded shadow-xl"
-          style={{ minWidth: '100%', maxWidth: '100%' }}
+          style={{ 
+            width: '100%', 
+            height: 'auto',
+            maxWidth: '800px'
+          }}
         />
       </div>
 
