@@ -27,20 +27,31 @@ export async function GET(
     const duration = match.duration || 0
     const players = match.players || []
 
-    // Fetch match log for item purchases
+    // Priority 1: Check if purchase_log is available in match object (most accurate)
+    // Priority 2: Fallback to match log extraction if needed
     let matchLog: any[] = []
-    try {
-      const logResponse = await fetch(`https://api.opendota.com/api/matches/${id}/log`, {
-        next: { revalidate: 3600 }
-      })
-      if (logResponse.ok) {
-        const logData = await logResponse.json()
-        if (Array.isArray(logData)) {
-          matchLog = logData
+    let hasPurchaseLog = false
+    
+    // Check if any player has purchase_log
+    if (players.length > 0 && players.some((p: any) => p.purchase_log && Array.isArray(p.purchase_log))) {
+      hasPurchaseLog = true
+      console.log('[Item Timing] Using purchase_log from match object')
+    } else {
+      // Fallback: Fetch match log for item purchases
+      try {
+        const logResponse = await fetch(`https://api.opendota.com/api/matches/${id}/log`, {
+          next: { revalidate: 3600 }
+        })
+        if (logResponse.ok) {
+          const logData = await logResponse.json()
+          if (Array.isArray(logData)) {
+            matchLog = logData
+            console.log('[Item Timing] Using match log as fallback')
+          }
         }
+      } catch (err) {
+        console.log('[Item Timing] Match log not available')
       }
-    } catch (err) {
-      console.log('Match log not available')
     }
 
     // Fetch item constants
@@ -111,28 +122,50 @@ export async function GET(
       // Estimate purchase times progressively
       sortedItems.forEach((item) => {
         const itemCost = getItemCost(item.id)
-        
-        // Try to find purchase event in log (OpenDota may not have this)
         let purchaseTime = 0
-        const itemPurchaseEvents = matchLog.filter((entry: any) => {
-          const entryPlayerSlot = entry.player_slot !== undefined 
-            ? entry.player_slot 
-            : (entry.key ? parseInt(entry.key) : null)
-          return entryPlayerSlot === playerSlot && 
-                 entry.time > 0 &&
-                 (entry.type?.includes('ITEM') || 
-                  entry.key?.toString().includes('item') ||
-                  entry.key?.toString().includes(item.id.toString()))
-        })
         
-        const purchaseEvent = itemPurchaseEvents.find((e: any) => {
-          const key = e.key?.toString() || ''
-          return key.includes(item.id.toString()) || e.item_id === item.id
-        })
+        // Priority 1: Use purchase_log from match object (most accurate)
+        if (hasPurchaseLog && player.purchase_log && Array.isArray(player.purchase_log)) {
+          // Find purchase time from purchase_log
+          const purchaseEntry = player.purchase_log.find((entry: any) => {
+            // purchase_log entries have 'key' field with item name or 'time' and 'key'
+            const entryKey = entry.key || entry.item || ''
+            const itemName = getItemName(item.id)?.toLowerCase() || ''
+            // Match by item ID or name
+            return entryKey.toString().includes(item.id.toString()) ||
+                   (itemName && entryKey.toLowerCase().includes(itemName))
+          })
+          
+          if (purchaseEntry && purchaseEntry.time !== undefined) {
+            purchaseTime = purchaseEntry.time
+          }
+        }
+        
+        // Priority 2: Try to find purchase event in log (if purchase_log not available)
+        if (purchaseTime === 0 && matchLog.length > 0) {
+          const itemPurchaseEvents = matchLog.filter((entry: any) => {
+            const entryPlayerSlot = entry.player_slot !== undefined 
+              ? entry.player_slot 
+              : (entry.key ? parseInt(entry.key) : null)
+            return entryPlayerSlot === playerSlot && 
+                   entry.time > 0 &&
+                   (entry.type?.includes('ITEM') || 
+                    entry.key?.toString().includes('item') ||
+                    entry.key?.toString().includes(item.id.toString()))
+          })
+          
+          const purchaseEvent = itemPurchaseEvents.find((e: any) => {
+            const key = e.key?.toString() || ''
+            return key.includes(item.id.toString()) || e.item_id === item.id
+          })
 
-        if (purchaseEvent && purchaseEvent.time) {
-          purchaseTime = purchaseEvent.time
-        } else {
+          if (purchaseEvent && purchaseEvent.time) {
+            purchaseTime = purchaseEvent.time
+          }
+        }
+        
+        // Priority 3: Estimate if no real data available
+        if (purchaseTime === 0) {
           // Estimate: calculate when player would have enough gold
           // More realistic: consider cumulative spending and item cost
           if (cumulativeGold >= itemCost) {

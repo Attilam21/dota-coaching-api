@@ -33,26 +33,36 @@ export async function GET(
     const duration = match.duration || 0
     const players = match.players || []
 
-    // Try OpenDota dedicated teamfights endpoint first
+    // Priority 1: Check if teamfights are already in match object (most efficient)
     let teamfightsData: any[] = []
     let useDedicatedEndpoint = false
+    let dataSource = 'none'
     
-    try {
-      const teamfightsResponse = await fetch(`https://api.opendota.com/api/matches/${id}/teamfights`, {
-        next: { revalidate: 3600 }
-      })
-      if (teamfightsResponse.ok) {
-        const data = await teamfightsResponse.json()
-        if (Array.isArray(data) && data.length > 0) {
-          teamfightsData = data
-          useDedicatedEndpoint = true
-          console.log(`[Teamfights] Loaded ${teamfightsData.length} teamfights from OpenDota endpoint`)
+    if (match.teamfights && Array.isArray(match.teamfights) && match.teamfights.length > 0) {
+      teamfightsData = match.teamfights
+      useDedicatedEndpoint = true
+      dataSource = 'match_object'
+      console.log(`[Teamfights] Loaded ${teamfightsData.length} teamfights from match object`)
+    } else {
+      // Priority 2: Try OpenDota dedicated teamfights endpoint
+      try {
+        const teamfightsResponse = await fetch(`https://api.opendota.com/api/matches/${id}/teamfights`, {
+          next: { revalidate: 3600 }
+        })
+        if (teamfightsResponse.ok) {
+          const data = await teamfightsResponse.json()
+          if (Array.isArray(data) && data.length > 0) {
+            teamfightsData = data
+            useDedicatedEndpoint = true
+            dataSource = 'dedicated_endpoint'
+            console.log(`[Teamfights] Loaded ${teamfightsData.length} teamfights from OpenDota endpoint`)
+          }
+        } else {
+          console.log(`[Teamfights] Teamfights endpoint not available (${teamfightsResponse.status}), falling back to log extraction`)
         }
-      } else {
-        console.log(`[Teamfights] Teamfights endpoint not available (${teamfightsResponse.status}), falling back to log extraction`)
+      } catch (err) {
+        console.log('[Teamfights] Error fetching teamfights endpoint:', err)
       }
-    } catch (err) {
-      console.log('[Teamfights] Error fetching teamfights endpoint:', err)
     }
 
     let teamfights: Array<{
