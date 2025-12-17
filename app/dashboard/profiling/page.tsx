@@ -117,6 +117,7 @@ export default function ProfilingPage() {
 
   return (
     <div className="p-8 relative min-h-screen">
+      <HelpButton />
       {/* Background with overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20"
