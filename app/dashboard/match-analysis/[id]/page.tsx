@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import WardMap from '@/components/WardMap'
 
 interface MatchData {
   match_id: number
@@ -108,7 +109,7 @@ interface PlayerAverageStats {
   avgTowerDamage: number
 }
 
-type TabType = 'overview' | 'phases' | 'items' | 'teamfights'
+type TabType = 'overview' | 'phases' | 'items' | 'teamfights' | 'vision'
 
 export default function MatchAnalysisDetailPage() {
   const params = useParams()
@@ -127,9 +128,11 @@ export default function MatchAnalysisDetailPage() {
   const [phasesData, setPhasesData] = useState<any>(null)
   const [itemTimingData, setItemTimingData] = useState<any>(null)
   const [teamfightsData, setTeamfightsData] = useState<any>(null)
+  const [wardmapData, setWardmapData] = useState<any>(null)
   const [loadingPhases, setLoadingPhases] = useState(false)
   const [loadingItems, setLoadingItems] = useState(false)
   const [loadingTeamfights, setLoadingTeamfights] = useState(false)
+  const [loadingWardmap, setLoadingWardmap] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -300,6 +303,20 @@ export default function MatchAnalysisDetailPage() {
     }
   }, [activeTab, matchId, teamfightsData, loadingTeamfights])
 
+  // Fetch wardmap data when vision tab is active
+  useEffect(() => {
+    if (activeTab === 'vision' && matchId && !wardmapData && !loadingWardmap) {
+      setLoadingWardmap(true)
+      fetch(`/api/match/${matchId}/wardmap`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          setWardmapData(data)
+        })
+        .catch(err => console.error('Failed to fetch wardmap:', err))
+        .finally(() => setLoadingWardmap(false))
+    }
+  }, [activeTab, matchId, wardmapData, loadingWardmap])
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -367,6 +384,7 @@ export default function MatchAnalysisDetailPage() {
     { id: 'phases', name: 'Fasi di Gioco', icon: '⏱️' },
     { id: 'items', name: 'Item Timing', icon: '🛡️' },
     { id: 'teamfights', name: 'Teamfight', icon: '⚔️' },
+    { id: 'vision', name: 'Vision', icon: '🗺️' },
   ]
 
   // Prepare chart data
@@ -1082,6 +1100,42 @@ export default function MatchAnalysisDetailPage() {
                 {!teamfightsData && !loadingTeamfights && (
                   <div className="text-center py-12">
                     <p className="text-gray-400">Nessun dato disponibile per questa partita</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'vision' && (
+            <div className="space-y-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-4 text-white">🗺️ Ward Map - Posizioni Wards</h2>
+                <p className="text-gray-400 mb-6 text-sm">
+                  Visualizza le heatmap interattive delle posizioni delle Observer e Sentry wards piazzate in questa partita.
+                </p>
+
+                {loadingWardmap && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                    <p className="mt-4 text-gray-400">Caricamento dati wardmap...</p>
+                  </div>
+                )}
+
+                {!loadingWardmap && wardmapData && (
+                  <div className="relative w-full">
+                    <WardMap
+                      observerWards={wardmapData.observerWards || []}
+                      sentryWards={wardmapData.sentryWards || []}
+                    />
+                  </div>
+                )}
+
+                {!loadingWardmap && !wardmapData && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">Nessun dato wardmap disponibile per questa partita</p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      La partita potrebbe non avere replay disponibili o dati wardmap analizzati.
+                    </p>
                   </div>
                 )}
               </div>
