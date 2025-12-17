@@ -142,7 +142,7 @@ export default function BuildsPage() {
         }
 
         // Fetch heroes list
-        const heroesResponse = await fetch('https://api.opendota.com/api/heroes')
+        const heroesResponse = await fetch('/api/opendota/heroes')
         if (heroesResponse.ok) {
           const heroesData = await heroesResponse.json()
           setHeroes(heroesData)

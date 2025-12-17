@@ -54,18 +54,17 @@ export default function HeroesPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/heroes`)
+      const response = await fetch(`/api/player/${playerId}/hero-analysis`)
       if (!response.ok) throw new Error('Failed to fetch hero stats')
 
       const data = await response.json()
-      const stats: HeroStats[] = data
-        .filter((h: { games?: number }) => h.games && h.games > 0)
-        .map((h: { hero_id: number; games: number; win: number }) => ({
+      const stats: HeroStats[] = (data.heroStats || [])
+        .map((h: { hero_id: number; games: number; wins: number; winrate: number; hero_name: string }) => ({
           hero_id: h.hero_id,
-          hero_name: heroes[h.hero_id]?.localized_name || `Hero ${h.hero_id}`,
+          hero_name: h.hero_name,
           games: h.games,
-          wins: h.win,
-          winrate: (h.win / h.games) * 100,
+          wins: h.wins,
+          winrate: h.winrate,
         }))
         .sort((a: HeroStats, b: HeroStats) => b.games - a.games)
         .slice(0, 10)

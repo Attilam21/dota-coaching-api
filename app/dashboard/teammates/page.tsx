@@ -151,7 +151,7 @@ export default function TeammatesPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/peers`)
+      const response = await fetch(`/api/player/${playerId}/peers`)
       if (!response.ok) throw new Error('Failed to fetch teammates')
 
       const data = await response.json()

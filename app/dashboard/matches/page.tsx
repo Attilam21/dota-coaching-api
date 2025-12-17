@@ -59,11 +59,12 @@ export default function MatchesPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=20`)
+      const response = await fetch(`/api/player/${playerId}/stats`)
       if (!response.ok) throw new Error('Failed to fetch matches')
 
       const data = await response.json()
-      setMatches(data || [])
+      // Extract matches from stats response
+      setMatches(data.stats?.matches || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load matches')
     } finally {

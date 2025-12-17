@@ -98,17 +98,17 @@ export default function PlayerAnalysisPage() {
         setPlayerData(profileData)
 
         // Fetch win/loss
-        const wlResponse = await fetch(`https://api.opendota.com/api/players/${accountId}/wl`)
+        const wlResponse = await fetch(`/api/player/${accountId}/wl`)
         if (wlResponse.ok) {
           const wlData = await wlResponse.json()
           setWinLoss(wlData)
         }
 
         // Fetch recent matches (last 20)
-        const matchesResponse = await fetch(`https://api.opendota.com/api/players/${accountId}/matches?limit=20`)
+        const matchesResponse = await fetch(`/api/player/${accountId}/stats`)
         if (matchesResponse.ok) {
           const matchesData = await matchesResponse.json()
-          setRecentMatches(matchesData)
+          setRecentMatches(matchesData.stats?.matches || [])
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
