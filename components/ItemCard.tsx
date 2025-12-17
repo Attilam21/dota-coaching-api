@@ -27,13 +27,27 @@ export default function ItemCard({
 }: ItemCardProps) {
   // Generate image URL from internal name (e.g., "item_blink" -> "blink")
   const getImageUrl = () => {
-    if (!itemInternalName) return null
+    if (!itemInternalName) {
+      // Try to generate from item name if internal name is missing
+      if (itemName && !itemName.startsWith('Item ')) {
+        const fallbackName = itemName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+        if (fallbackName) {
+          return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/items/${fallbackName}_lg.png`
+        }
+      }
+      return null
+    }
     // Remove "item_" prefix and convert to lowercase
     const imageName = itemInternalName.replace(/^item_/, '').toLowerCase()
     return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/items/${imageName}_lg.png`
   }
 
   const imageUrl = getImageUrl()
+  
+  // Log missing internal name for debugging (only in development)
+  if (process.env.NODE_ENV === 'development' && !itemInternalName && itemId) {
+    console.warn(`ItemCard: Missing internal_name for item ${itemId} (${itemName})`)
+  }
   
   const sizeClasses = {
     sm: 'w-12 h-12',
@@ -54,7 +68,7 @@ export default function ItemCard({
     >
       <div className="p-2 flex flex-col items-center gap-1">
         {/* Item Image */}
-        <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gray-800 rounded border border-gray-600`}>
+        <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gray-800 rounded border border-gray-600 overflow-hidden`}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -63,12 +77,28 @@ export default function ItemCard({
               className="object-contain p-1"
               unoptimized
               onError={(e) => {
-                // Fallback: hide image on error
-                e.currentTarget.style.display = 'none'
+                // Fallback: hide image and show placeholder on error
+                const target = e.currentTarget as HTMLImageElement
+                target.style.display = 'none'
+                // Show placeholder text
+                const parent = target.parentElement
+                if (parent && !parent.querySelector('.item-placeholder')) {
+                  const placeholder = document.createElement('div')
+                  placeholder.className = 'item-placeholder text-gray-500 text-xs text-center px-1 absolute inset-0 flex items-center justify-center'
+                  placeholder.textContent = itemName.substring(0, 3).toUpperCase()
+                  parent.appendChild(placeholder)
+                }
+              }}
+              onLoad={() => {
+                // Remove placeholder if image loads successfully
+                const placeholder = document.querySelector('.item-placeholder')
+                if (placeholder) {
+                  placeholder.remove()
+                }
               }}
             />
           ) : (
-            <div className="text-gray-500 text-xs text-center px-1">
+            <div className="text-gray-500 text-xs text-center px-1 absolute inset-0 flex items-center justify-center">
               {itemName.substring(0, 3).toUpperCase()}
             </div>
           )}

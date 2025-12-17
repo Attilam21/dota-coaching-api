@@ -69,12 +69,12 @@ export async function GET(
       // Each item has: id, name, dname (display name), qual, cost, etc.
       Object.entries(items).forEach(([key, item]: [string, any]) => {
         if (item.id !== undefined && item.id !== null && item.id !== 0) {
-          // OpenDota uses 'dname' for display name, not 'localized_name'
-          const displayName = item.dname || item.name || `Item ${item.id}`
+          // OpenDota uses 'dname' for display name, but also check 'localized_name' and 'name'
+          const displayName = item.dname || item.localized_name || item.name || `Item ${item.id}`
           const internalName = key || item.name || ''
           itemsMap[item.id] = {
             id: item.id,
-            name: item.name || item.dname || '',
+            name: item.name || item.dname || item.localized_name || '',
             localized_name: displayName,
             internal_name: internalName,
             cost: item.cost || 0

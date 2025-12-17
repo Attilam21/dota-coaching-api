@@ -1,7 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['cdn.cloudflare.steamstatic.com', 'avatars.steamstatic.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.cloudflare.steamstatic.com',
+        pathname: '/apps/dota2/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.steamstatic.com',
+        pathname: '/**',
+      },
+    ],
   },
   typescript: {
     ignoreBuildErrors: false,

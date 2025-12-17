@@ -73,21 +73,28 @@ export async function GET(
       // Each item has: id, name, dname (display name), qual, cost, etc.
       Object.entries(items).forEach(([key, item]: [string, any]) => {
         if (item.id !== undefined && item.id !== null && item.id !== 0) {
-          // OpenDota uses 'dname' for display name, not 'localized_name'
-          const displayName = item.dname || item.name || `Item ${item.id}`
+          // OpenDota uses 'dname' for display name, but also check 'localized_name' and 'name'
+          const displayName = item.dname || item.localized_name || item.name || `Item ${item.id}`
+          // Internal name is the key (e.g., "item_blink") or fallback to item.name
           const internalName = key || item.name || ''
+          
           itemsMap[item.id] = {
             id: item.id,
-            name: item.name || item.dname || '',
+            name: item.name || item.dname || item.localized_name || '',
             localized_name: displayName,
             internal_name: internalName,
             cost: item.cost || 0
           }
+          
           if (internalName) {
             itemNameToIdMap[internalName] = item.id
           }
         }
       })
+      
+      // Log sample items for debugging
+      const sampleItems = Object.values(itemsMap).slice(0, 5)
+      console.log('Sample items mapped:', sampleItems.map(i => ({ id: i.id, name: i.localized_name, internal: i.internal_name })))
       console.log(`Items map populated: ${Object.keys(itemsMap).length} items`)
     } else {
       console.error('Failed to fetch items constants:', itemsResponse.status, itemsResponse.statusText)
@@ -165,9 +172,10 @@ export async function GET(
         const item = itemsMap[parseInt(itemId)]
         if (!item) {
           missingItems.push(parseInt(itemId))
+          console.warn(`Item ${itemId} not found in itemsMap`)
         }
         const winrate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0
-        return {
+        const result = {
           item_id: parseInt(itemId),
           item_name: item?.localized_name || `Item ${itemId}`,
           item_internal_name: item?.internal_name || '',
@@ -176,12 +184,17 @@ export async function GET(
           avgGold: stats.totalGold / stats.count,
           usageRate: (stats.count / totalMatches) * 100
         }
+        // Log if internal_name is missing
+        if (!result.item_internal_name && item) {
+          console.warn(`Item ${itemId} (${result.item_name}) missing internal_name`)
+        }
+        return result
       })
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 20)
     
     if (missingItems.length > 0) {
-      console.warn(`Missing items in map: ${missingItems.join(', ')}`)
+      console.warn(`Missing items in map (${missingItems.length} total): ${missingItems.slice(0, 10).join(', ')}${missingItems.length > 10 ? '...' : ''}`)
     }
 
     // Process build patterns (top 10 most common)
