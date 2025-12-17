@@ -193,10 +193,52 @@ export default function WardMap({
         ctx.fill()
       })
 
+      // Intelligent jitter system: prevent overlapping while maintaining precision
+      // Group nearby points and distribute them in a circular pattern
+      const MIN_DISTANCE = 16 // Minimum distance between ward points (px)
+      const jitteredPositions: Array<{ x: number; y: number; originalIndex: number }> = []
+      
+      wardPositions.forEach((pos, index) => {
+        // Find nearby points that would overlap
+        const nearbyPoints = jitteredPositions.filter(p => {
+          const dx = p.x - pos.x
+          const dy = p.y - pos.y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+          return distance < MIN_DISTANCE
+        })
+        
+        if (nearbyPoints.length === 0) {
+          // No overlap: use exact position
+          jitteredPositions.push({ ...pos, originalIndex: index })
+        } else {
+          // Overlap detected: distribute in circular pattern
+          // Use the center of nearby points as reference
+          const centerX = nearbyPoints.reduce((sum, p) => sum + p.x, pos.x) / (nearbyPoints.length + 1)
+          const centerY = nearbyPoints.reduce((sum, p) => sum + p.y, pos.y) / (nearbyPoints.length + 1)
+          
+          // Calculate angle and radius for circular distribution
+          const angleStep = (Math.PI * 2) / (nearbyPoints.length + 2) // +2 to include new point
+          const baseAngle = Math.atan2(pos.y - centerY, pos.x - centerX)
+          
+          // Distribute in a spiral pattern around the center
+          const spiralRadius = MIN_DISTANCE * 0.6 * (nearbyPoints.length + 1)
+          const angle = baseAngle + (nearbyPoints.length * angleStep)
+          
+          const jitteredX = centerX + Math.cos(angle) * spiralRadius
+          const jitteredY = centerY + Math.sin(angle) * spiralRadius
+          
+          // Ensure position is within canvas bounds
+          const finalX = Math.max(0, Math.min(width, jitteredX))
+          const finalY = Math.max(0, Math.min(height, jitteredY))
+          
+          jitteredPositions.push({ x: finalX, y: finalY, originalIndex: index })
+        }
+      })
+
       // Draw individual ward points on top (OpenDota style: larger, more visible)
       const isObserver = pointColor === '#3B82F6'
       
-      wardPositions.forEach(({ x, y }) => {
+      jitteredPositions.forEach(({ x, y }) => {
         ctx.save()
         ctx.translate(x, y)
         
