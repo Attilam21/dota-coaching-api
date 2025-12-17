@@ -60,41 +60,44 @@ export async function GET(
     }
 
     // Fetch item constants
-    let itemsMap: Record<number, any> = {}
-    let itemsByNameMap: Record<string, number> = {} // Map from internal name to item ID
+    // IMPORTANT: OpenDota returns items as object where KEYS are internal names (e.g., "item_blink", "branches")
+    // and VALUES are objects with id, dname, localized_name, name, cost, etc.
+    let itemsMap: Record<number, any> = {} // Map by item.id
+    let itemsByNameMap: Record<string, number> = {} // Map from internal name (key) to item ID
     try {
       const itemsResponse = await fetch('https://api.opendota.com/api/constants/items', {
         next: { revalidate: 86400 }
       })
       if (itemsResponse.ok) {
         const itemsData = await itemsResponse.json()
-        itemsMap = itemsData
         
-        // Create reverse map: internal_name -> item ID
-        Object.keys(itemsData).forEach((itemIdStr) => {
-          const itemId = parseInt(itemIdStr)
-          const item = itemsData[itemId]
-          if (item) {
-            // Map by internal name (key in itemsData) or by name field
-            const internalName = itemIdStr // The key itself might be the internal name
-            if (internalName && internalName !== '0') {
-              itemsByNameMap[internalName] = itemId
+        // OpenDota structure: { "item_blink": { id: 1, dname: "Blink Dagger", ... }, "branches": { id: 16, ... }, ... }
+        Object.entries(itemsData).forEach(([key, item]: [string, any]) => {
+          if (item && item.id !== undefined && item.id !== null && item.id !== 0) {
+            // Map by item ID
+            itemsMap[item.id] = item
+            
+            // Map by internal name (the key itself)
+            const internalName = key.toLowerCase().trim()
+            itemsByNameMap[internalName] = item.id
+            
+            // Also map without "item_" prefix if present (e.g., "item_blink" -> "blink")
+            if (internalName.startsWith('item_')) {
+              itemsByNameMap[internalName.substring(5)] = item.id // Remove "item_" prefix
             }
-            // Also map by any name fields
+            
+            // Map by any name fields as fallback
             if (item.name) {
-              itemsByNameMap[item.name] = itemId
-            }
-            // Map by key without "item_" prefix if present
-            if (itemIdStr.startsWith('item_')) {
-              itemsByNameMap[itemIdStr.substring(5)] = itemId // Remove "item_" prefix
+              itemsByNameMap[item.name.toLowerCase()] = item.id
             }
           }
         })
         
         console.log(`[Item Timing] Loaded ${Object.keys(itemsMap).length} items, ${Object.keys(itemsByNameMap).length} name mappings`)
+        console.log(`[Item Timing] Sample mappings: branches -> ${itemsByNameMap['branches']}, item_blink -> ${itemsByNameMap['item_blink']}`)
       }
     } catch (err) {
-      console.log('Failed to fetch items constants')
+      console.log('Failed to fetch items constants:', err)
     }
 
     // Helper to get item name

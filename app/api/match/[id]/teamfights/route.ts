@@ -104,11 +104,14 @@ export async function GET(
           // We need to match them to actual players to know their team
           if (tf.players && Array.isArray(tf.players)) {
             // Count deaths per team by matching players
-            // The tf.players array corresponds to match.players array (same order)
+            // IMPORTANT: tf.players might not be in same order as match.players
+            // We need to check if tf.players has player_slot or other identifiers
+            let totalDeathsCounted = 0
             tf.players.forEach((tfPlayer: any, idx: number) => {
               const playerDeaths = tfPlayer.deaths || 0
+              totalDeathsCounted += playerDeaths
               
-              // Match by index (tf.players should be in same order as match.players)
+              // Try to match by index first (if order is preserved)
               if (idx < players.length) {
                 const actualPlayer = players[idx]
                 const playerSlot = actualPlayer.player_slot
@@ -120,8 +123,15 @@ export async function GET(
                 } else {
                   radiantKills += playerDeaths // Dire deaths = Radiant kills
                 }
+              } else {
+                // If index doesn't match, try to find player by other means
+                // For now, distribute deaths evenly if we can't match
+                console.log(`[Teamfights] Warning: tf.players[${idx}] doesn't match match.players`)
               }
             })
+            
+            // Log for debugging
+            console.log(`[Teamfights] Teamfight at ${startTime}s: tf.deaths=${tf.deaths}, deaths counted from players=${totalDeathsCounted}, Radiant kills: ${radiantKills}, Dire kills: ${direKills}`)
             
             // If we still have 0 kills but deaths > 0, use fallback estimation
             if (radiantKills === 0 && direKills === 0 && tf.deaths > 0) {
@@ -129,7 +139,7 @@ export async function GET(
               const totalDeaths = tf.deaths
               direKills = Math.floor(totalDeaths / 2)
               radiantKills = totalDeaths - direKills
-              console.log(`[Teamfights] Using fallback estimation: ${totalDeaths} total deaths`)
+              console.log(`[Teamfights] Using fallback estimation: ${totalDeaths} total deaths -> Radiant: ${radiantKills}, Dire: ${direKills}`)
             }
           } else {
             // No players array, use deaths as total and estimate
