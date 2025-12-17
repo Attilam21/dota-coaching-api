@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         error: 'Failed to fetch log',
         status: logResponse.status,
         matchId
-      })
+      }, { status: logResponse.status })
     }
     
     const logData = await logResponse.json()
@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
         analysis.entryTypes[type] = (analysis.entryTypes[type] || 0) + 1
         
         // Cerca eventi ward
+        const keyString = entry.key?.toString()
         if (type.includes('WARD') || type.includes('OBSERVER') || type.includes('SENTRY') || 
-            entry.key?.toString().includes('ward') || entry.key?.toString().includes('observer') || 
-            entry.key?.toString().includes('sentry')) {
+            (keyString && (keyString.includes('ward') || keyString.includes('observer') || keyString.includes('sentry')))) {
           analysis.wardEvents.push({
             type: entry.type,
             time: entry.time,
@@ -129,10 +129,12 @@ export async function GET(request: NextRequest) {
       } : null
     })
   } catch (error) {
+    // Log stack trace server-side only, don't expose to client
+    console.error('Error in match-log test endpoint:', error instanceof Error ? error.stack : error)
+    
     return NextResponse.json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
