@@ -98,25 +98,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Build context-specific prompt based on element type
+    // Tono: Coach professionale, diretto, assertivo, senza condizionali
     let prompt = ''
 
     switch (elementType) {
       case 'fzth-score':
-        prompt = `Analizza il FZTH Score di ${contextData.score}/100 per un giocatore di Dota 2 con ruolo ${contextData.role || 'non specificato'}. 
-        Fornisci un suggerimento breve e pratico (max 150 parole) su come migliorare il punteggio, concentrandoti sui punti deboli identificati. 
-        Sii specifico e actionable.`
+        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Il FZTH Score è ${contextData.score}/100 per un giocatore ${contextData.role || 'di ruolo non specificato'}. 
+        Scrivi un feedback diretto e assertivo (max 150 parole) identificando il punto debole principale e dando un'azione concreta per migliorarlo. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che sa esattamente cosa fare.`
         break
 
       case 'role':
-        prompt = `Un giocatore di Dota 2 è stato classificato come ${contextData.role} con confidenza ${contextData.confidence}. 
-        Analizza questo ruolo e fornisci un suggerimento breve (max 120 parole) su come migliorare le performance in questo ruolo specifico. 
-        Sii pratico e specifico.`
+        prompt = `Sei un coach professionale di Dota 2. Un giocatore è classificato come ${contextData.role} (confidenza: ${contextData.confidence}). 
+        Scrivi un feedback diretto (max 120 parole) su cosa deve migliorare in questo ruolo. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce perfettamente il ruolo.`
         break
 
       case 'playstyle':
-        prompt = `Un giocatore di Dota 2 ha uno stile di gioco identificato come "${contextData.playstyle}". 
-        Analizza questo stile di gioco e fornisci un suggerimento breve (max 120 parole) su come ottimizzare o bilanciare questo stile per migliorare le performance. 
-        Sii pratico e specifico.`
+        prompt = `Sei un coach professionale di Dota 2. Il giocatore ha uno stile "${contextData.playstyle}". 
+        Scrivi un feedback diretto (max 120 parole) su come ottimizzare questo stile. Identifica un punto specifico da migliorare e dai un'azione concreta. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto.`
         break
 
       case 'trend-gpm':
@@ -128,9 +129,9 @@ export async function POST(request: NextRequest) {
         const value = contextData.value
         const label = contextData.label
         
-        prompt = `Il ${metric} di un giocatore di Dota 2 mostra un trend ${direction === 'up' ? 'in aumento' : direction === 'down' ? 'in calo' : 'stabile'} (${label}). 
-        Valore: ${value}. Fornisci un suggerimento breve e pratico (max 120 parole) su come interpretare e agire su questo trend. 
-        Sii specifico e actionable.`
+        prompt = `Sei un coach professionale di Dota 2. Il ${metric} mostra un trend ${direction === 'up' ? 'in aumento' : direction === 'down' ? 'in calo' : 'stabile'} (${label}, valore: ${value}). 
+        Scrivi un feedback diretto (max 120 parole) spiegando cosa significa questo trend e cosa fare. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che interpreta i dati con precisione.`
         break
 
       case 'metric-card':
@@ -138,16 +139,15 @@ export async function POST(request: NextRequest) {
         const metricValue = contextData.value
         const benchmark = contextData.benchmark
         
-        prompt = `Un giocatore di Dota 2 ha un ${metricName} di ${metricValue}${benchmark ? ` (benchmark: ${benchmark})` : ''}. 
-        Analizza questa metrica e fornisci un suggerimento breve (max 120 parole) su come migliorarla o mantenerla. 
-        Sii pratico e specifico.`
+        prompt = `Sei un coach professionale di Dota 2. Il ${metricName} è ${metricValue}${benchmark ? ` (benchmark ruolo: ${benchmark})` : ''}. 
+        Scrivi un feedback diretto (max 120 parole) valutando questa metrica e dando un'azione concreta. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta le metriche con competenza.`
         break
 
       case 'trend-chart':
-        prompt = `Analizza il trend chart di un giocatore di Dota 2 che mostra GPM, XPM e KDA nelle ultime partite. 
-        Pattern identificati: ${JSON.stringify(contextData.trends || {})}. 
-        Fornisci un suggerimento breve (max 150 parole) su come interpretare questi trend e quali azioni intraprendere. 
-        Sii specifico e actionable.`
+        prompt = `Sei un coach professionale di Dota 2. Il trend chart mostra GPM, XPM e KDA nelle ultime partite. Pattern: ${JSON.stringify(contextData.trends || {})}. 
+        Scrivi un feedback diretto (max 150 parole) interpretando questi trend e dando azioni concrete. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che legge i grafici con esperienza.`
         break
 
       case 'phase-analysis':
@@ -155,28 +155,27 @@ export async function POST(request: NextRequest) {
         const phaseScore = contextData.score
         const phaseStrength = contextData.strength
         
-        prompt = `Un giocatore di Dota 2 ha performance ${phaseStrength} nella fase ${phase} (score: ${phaseScore}/100). 
-        Analizza questa fase di gioco e fornisci un suggerimento breve (max 120 parole) su come migliorare le performance in questa fase specifica. 
-        Sii pratico e specifico.`
+        prompt = `Sei un coach professionale di Dota 2. Nella fase ${phase} le performance sono ${phaseStrength} (score: ${phaseScore}/100). 
+        Scrivi un feedback diretto (max 120 parole) identificando il problema specifico di questa fase e dando un'azione concreta. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce ogni fase di gioco.`
         break
 
       case 'comparative-analysis':
-        prompt = `Analizza l'analisi comparativa di un giocatore di Dota 2 nel ruolo ${contextData.role}. 
-        Metriche: ${JSON.stringify(contextData.metrics || {})}. 
-        Fornisci un suggerimento breve (max 150 parole) su come migliorare le performance rispetto ai benchmark del ruolo. 
-        Sii specifico e actionable.`
+        prompt = `Sei un coach professionale di Dota 2. L'analisi comparativa per il ruolo ${contextData.role} mostra: ${JSON.stringify(contextData.metrics || {})}. 
+        Scrivi un feedback diretto (max 150 parole) confrontando con i benchmark del ruolo e dando azioni concrete per migliorare. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce i benchmark di ogni ruolo.`
         break
 
       case 'pattern':
-        prompt = `Sono stati identificati questi pattern di gioco per un giocatore di Dota 2: ${contextData.patterns?.join(', ') || 'Nessun pattern specifico'}. 
-        Analizza questi pattern e fornisci un suggerimento breve (max 120 parole) su come sfruttarli o modificarli per migliorare. 
-        Sii pratico e specifico.`
+        prompt = `Sei un coach professionale di Dota 2. Pattern identificati: ${contextData.patterns?.join(', ') || 'Nessun pattern specifico'}. 
+        Scrivi un feedback diretto (max 120 parole) su come sfruttare o modificare questi pattern. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che riconosce i pattern di gioco.`
         break
 
       default:
-        prompt = `Analizza i dati di performance di un giocatore di Dota 2: ${JSON.stringify(contextData)}. 
-        Fornisci un suggerimento breve e pratico (max 150 parole) su come migliorare le performance. 
-        Sii specifico e actionable.`
+        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Dati: ${JSON.stringify(contextData)}. 
+        Scrivi un feedback diretto e assertivo (max 150 parole) identificando il problema principale e dando un'azione concreta. 
+        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto.`
     }
 
     const insight = await generateInsight(prompt)

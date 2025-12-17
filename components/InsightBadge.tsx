@@ -84,7 +84,7 @@ export default function InsightBadge({
       <button
         onClick={fetchInsight}
         disabled={loading}
-        className={`absolute ${positionClasses[position]} z-10 w-7 h-7 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-full flex items-center justify-center text-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`absolute ${positionClasses[position]} z-20 w-7 h-7 bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-full flex items-center justify-center text-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
         title="Ottieni suggerimento AI"
         aria-label="Mostra suggerimento AI"
       >
@@ -99,13 +99,13 @@ export default function InsightBadge({
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/60 z-50"
+            className="fixed inset-0 bg-black/60 z-[9998]"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl pointer-events-auto">
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700 p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
