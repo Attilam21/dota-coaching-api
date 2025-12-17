@@ -97,7 +97,16 @@ export async function GET(
     const wardmapResults = await Promise.all(wardmapPromises)
     const validWardmaps = wardmapResults.filter((w): w is { match_id: number; data: any; source: string } => w !== null)
 
-    console.log(`[Wardmap] Total matches: ${matches.length}, Valid wardmaps: ${validWardmaps.length}`)
+    console.log(`[Wardmap] Total matches fetched: ${matches.length}`)
+    console.log(`[Wardmap] Valid wardmaps found: ${validWardmaps.length}`)
+    if (validWardmaps.length > 0) {
+      console.log(`[Wardmap] Sample wardmap structure:`, JSON.stringify(validWardmaps[0]).substring(0, 300))
+    } else {
+      console.log(`[Wardmap] No valid wardmaps found. This could mean:`)
+      console.log(`[Wardmap] - Matches don't have wardmap data available`)
+      console.log(`[Wardmap] - Matches are too old (no replay parsed)`)
+      console.log(`[Wardmap] - Wardmap endpoint returned 404 for all matches`)
+    }
 
     // Aggregate ward positions
     // OpenDota wardmap structure can vary - check multiple formats

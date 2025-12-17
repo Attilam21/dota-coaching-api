@@ -26,42 +26,113 @@ export default function WardMap({
   height = 800 
 }: WardMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const mapImageRef = useRef<HTMLImageElement | null>(null)
   const [selectedType, setSelectedType] = useState<'observer' | 'sentry' | 'both'>('both')
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(true) // Always ready, we draw directly
 
-  // Load Dota 2 minimap image
-  useEffect(() => {
-    const img = new Image()
-    // Using a public Dota 2 minimap image
-    // OpenDota uses similar approach with minimap background
-    img.crossOrigin = 'anonymous'
-    // Try multiple sources for the minimap image
-    img.src = 'https://raw.githubusercontent.com/odota/web/master/public/images/dota2_minimap.jpg'
+  // Function to draw Dota 2 minimap background
+  const drawMinimapBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    // Base gradient: Radiant (green) to Dire (red) with river in middle
+    const gradient = ctx.createLinearGradient(0, 0, width, height)
+    gradient.addColorStop(0, '#0d2818') // Dark green (Radiant top-left)
+    gradient.addColorStop(0.25, '#1a3a1a') // Medium green
+    gradient.addColorStop(0.5, '#1e3a2e') // River area
+    gradient.addColorStop(0.75, '#3a1a1a') // Medium red
+    gradient.addColorStop(1, '#2a0d0d') // Dark red (Dire bottom-right)
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, width, height)
+
+    // Draw river (diagonal from top-left to bottom-right)
+    ctx.strokeStyle = '#2d5a87'
+    ctx.lineWidth = 4
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.lineTo(width, height)
+    ctx.stroke()
+
+    // Draw secondary river lines
+    ctx.strokeStyle = '#3a6a9a'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(width * 0.1, 0)
+    ctx.lineTo(width * 0.9, height)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(width * 0.9, 0)
+    ctx.lineTo(width * 0.1, height)
+    ctx.stroke()
+
+    // Draw Roshan pit area (center of map)
+    const roshanX = width / 2
+    const roshanY = height / 2
+    ctx.fillStyle = '#4a1a1a'
+    ctx.beginPath()
+    ctx.arc(roshanX, roshanY, 30, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = '#6a2a2a'
+    ctx.lineWidth = 2
+    ctx.stroke()
+
+    // Draw lane lines (approximate)
+    ctx.strokeStyle = '#2a4a3a'
+    ctx.lineWidth = 1.5
+    ctx.setLineDash([5, 5])
     
-    img.onload = () => {
-      mapImageRef.current = img
-      setImageLoaded(true)
-    }
+    // Top lane (Radiant)
+    ctx.beginPath()
+    ctx.moveTo(width * 0.15, height * 0.1)
+    ctx.lineTo(width * 0.85, height * 0.3)
+    ctx.stroke()
     
-    img.onerror = () => {
-      // Fallback: try alternative source or use gradient
-      const fallbackImg = new Image()
-      fallbackImg.crossOrigin = 'anonymous'
-      fallbackImg.src = 'https://cdn.opendota.com/app/images/dota2/minimap.jpg'
-      
-      fallbackImg.onload = () => {
-        mapImageRef.current = fallbackImg
-        setImageLoaded(true)
-      }
-      
-      fallbackImg.onerror = () => {
-        // Final fallback: use gradient background
-        console.warn('Failed to load minimap image, using fallback gradient')
-        setImageLoaded(true)
-      }
+    // Mid lane
+    ctx.beginPath()
+    ctx.moveTo(width * 0.1, height * 0.2)
+    ctx.lineTo(width * 0.9, height * 0.8)
+    ctx.stroke()
+    
+    // Bottom lane (Dire)
+    ctx.beginPath()
+    ctx.moveTo(width * 0.15, height * 0.7)
+    ctx.lineTo(width * 0.85, height * 0.9)
+    ctx.stroke()
+    
+    ctx.setLineDash([])
+
+    // Draw base areas (approximate)
+    // Radiant base (top-left area)
+    ctx.fillStyle = 'rgba(26, 58, 26, 0.3)'
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.lineTo(width * 0.3, 0)
+    ctx.lineTo(width * 0.2, height * 0.2)
+    ctx.lineTo(0, height * 0.3)
+    ctx.closePath()
+    ctx.fill()
+
+    // Dire base (bottom-right area)
+    ctx.fillStyle = 'rgba(58, 26, 26, 0.3)'
+    ctx.beginPath()
+    ctx.moveTo(width, height)
+    ctx.lineTo(width * 0.7, height)
+    ctx.lineTo(width * 0.8, height * 0.8)
+    ctx.lineTo(width, height * 0.7)
+    ctx.closePath()
+    ctx.fill()
+
+    // Draw grid lines for better orientation (subtle)
+    ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)'
+    ctx.lineWidth = 1
+    for (let i = 0; i <= 10; i++) {
+      const pos = (width / 10) * i
+      ctx.beginPath()
+      ctx.moveTo(pos, 0)
+      ctx.lineTo(pos, height)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(0, pos)
+      ctx.lineTo(width, pos)
+      ctx.stroke()
     }
-  }, [])
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -88,30 +159,9 @@ export default function WardMap({
       return { x: minimapX, y: minimapY }
     }
 
-    // Draw minimap background image
-    if (mapImageRef.current) {
-      ctx.drawImage(mapImageRef.current, 0, 0, width, height)
-    } else {
-      // Fallback: draw gradient background similar to Dota 2 map
-      const gradient = ctx.createLinearGradient(0, 0, width, height)
-      gradient.addColorStop(0, '#1a3a1a') // Dark green (Radiant side)
-      gradient.addColorStop(0.5, '#2a4a3a') // River/middle
-      gradient.addColorStop(1, '#3a1a1a') // Dark red (Dire side)
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, width, height)
-      
-      // Draw river lines
-      ctx.strokeStyle = '#4a90e2'
-      ctx.lineWidth = 3
-      ctx.beginPath()
-      ctx.moveTo(width / 2, 0)
-      ctx.lineTo(width / 2, height)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(0, height / 2)
-      ctx.lineTo(width, height / 2)
-      ctx.stroke()
-    }
+    // Draw Dota 2 minimap background directly on canvas
+    // This avoids dependency on external image URLs
+    drawMinimapBackground(ctx, width, height)
 
     // Create heatmap with better visualization
     const createHeatmap = (wards: WardPosition[], color: string, alpha: number = 0.6) => {
@@ -229,19 +279,11 @@ export default function WardMap({
 
       {/* Canvas */}
       <div className="bg-gray-900 rounded-lg border border-gray-700 p-4 flex justify-center overflow-auto">
-        {!imageLoaded && (
-          <div className="flex items-center justify-center h-[800px]">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-              <p className="text-gray-400">Caricamento mappa...</p>
-            </div>
-          </div>
-        )}
         <canvas
           ref={canvasRef}
           width={width}
           height={height}
-          className={`max-w-full h-auto border border-gray-600 rounded shadow-xl ${!imageLoaded ? 'hidden' : ''}`}
+          className="max-w-full h-auto border border-gray-600 rounded shadow-xl"
         />
       </div>
 
