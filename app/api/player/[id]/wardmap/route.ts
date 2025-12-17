@@ -33,9 +33,33 @@ export async function GET(
       })
     }
 
-    // Fetch ward data from match log (more reliable than wardmap endpoint)
+    // Fetch ward data - try multiple sources
     const wardmapPromises = matches.map(async (match) => {
       try {
+        // Priority 0: Check if match object has ward data (fetch full match)
+        let matchData: any = null
+        try {
+          const matchResponse = await fetch(
+            `https://api.opendota.com/api/matches/${match.match_id}`,
+            { next: { revalidate: 3600 } }
+          )
+          if (matchResponse.ok) {
+            matchData = await matchResponse.json()
+            // Check if match has players with ward data
+            const hasWardData = matchData.players?.some((p: any) => 
+              (p.observer_placed !== undefined && p.observer_placed > 0) ||
+              (p.sentry_placed !== undefined && p.sentry_placed > 0) ||
+              (p.observer_uses !== undefined && p.observer_uses > 0) ||
+              (p.sentry_uses !== undefined && p.sentry_uses > 0)
+            )
+            if (hasWardData) {
+              console.log(`[Wardmap] Match ${match.match_id} has ward data in match object (but no coordinates)`)
+            }
+          }
+        } catch (err) {
+          console.log(`[Wardmap] Match ${match.match_id} error fetching match object:`, err)
+        }
+        
         // Priority 1: Try wardmap endpoint first
         const wardmapResponse = await fetch(
           `https://api.opendota.com/api/matches/${match.match_id}/wardmap`,
@@ -62,29 +86,74 @@ export async function GET(
         if (logResponse.ok) {
           const logData = await logResponse.json()
           if (Array.isArray(logData)) {
-            // Extract ward events from log
+            console.log(`[Wardmap] Match ${match.match_id} log has ${logData.length} entries`)
+            
+            // Log sample entries to understand structure
+            const sampleEntries = logData.slice(0, 10)
+            console.log(`[Wardmap] Match ${match.match_id} sample log entries:`, JSON.stringify(sampleEntries).substring(0, 500))
+            
+            // Extract ward events from log - try multiple patterns
             const wardEvents = logData.filter((entry: any) => {
               const type = entry.type?.toString() || ''
               const key = entry.key?.toString() || ''
-              return (
+              const slot = entry.slot
+              
+              // Check for ward-related entries with coordinates
+              const hasCoordinates = entry.x !== undefined && entry.y !== undefined && 
+                                    typeof entry.x === 'number' && typeof entry.y === 'number'
+              
+              if (!hasCoordinates) return false
+              
+              // Pattern 1: Direct ward type/key matches
+              const isWardType = (
                 type.includes('WARD') || 
                 type.includes('OBSERVER') || 
                 type.includes('SENTRY') ||
                 key.includes('ward') ||
                 key.includes('observer') ||
-                key.includes('sentry')
-              ) && entry.x !== undefined && entry.y !== undefined
+                key.includes('sentry') ||
+                key === 'item_ward_observer' ||
+                key === 'item_ward_sentry' ||
+                key === 'item_ward_dispenser'
+              )
+              
+              // Pattern 2: Check for item purchases that are wards
+              const isWardItem = (
+                (type === 'purchase' || type === 'buy') &&
+                (key === 'item_ward_observer' || key === 'item_ward_sentry' || 
+                 key === 'item_ward_dispenser' || key.includes('ward'))
+              )
+              
+              // Pattern 3: Check for ability/item uses that place wards
+              const isWardPlacement = (
+                (type === 'use' || type === 'ability') &&
+                (key.includes('ward') || key.includes('observer') || key.includes('sentry'))
+              )
+              
+              return isWardType || isWardItem || isWardPlacement
             })
             
+            console.log(`[Wardmap] Match ${match.match_id} found ${wardEvents.length} potential ward events`)
+            
             if (wardEvents.length > 0) {
-              console.log(`[Wardmap] Match ${match.match_id} found ${wardEvents.length} ward events in log`)
+              // Log first ward event structure
+              console.log(`[Wardmap] Match ${match.match_id} first ward event:`, JSON.stringify(wardEvents[0]).substring(0, 300))
+              
               return {
                 match_id: match.match_id,
                 data: { logEvents: wardEvents },
                 source: 'match_log'
               }
+            } else {
+              // Log why no wards found - check what types of events exist
+              const eventTypes = new Set(logData.map((e: any) => e.type).filter(Boolean))
+              const eventKeys = new Set(logData.map((e: any) => e.key).filter(Boolean))
+              console.log(`[Wardmap] Match ${match.match_id} no ward events found. Event types:`, Array.from(eventTypes).slice(0, 20))
+              console.log(`[Wardmap] Match ${match.match_id} sample event keys:`, Array.from(eventKeys).slice(0, 20))
             }
           }
+        } else {
+          console.log(`[Wardmap] Match ${match.match_id} log endpoint returned ${logResponse.status}`)
         }
         
         return null
