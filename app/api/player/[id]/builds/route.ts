@@ -68,17 +68,21 @@ export async function GET(
     const itemsMap: Record<number, { id: number; name: string; localized_name: string; cost?: number }> = {}
     if (itemsResponse.ok) {
       const items = await itemsResponse.json()
-      // OpenDota returns items as an object where keys are item names and values are item data
+      // OpenDota returns items as an object where keys are item names (e.g., "item_blink") and values are item data
+      // Each item has: id, name, dname (display name), qual, cost, etc.
       Object.values(items).forEach((item: any) => {
-        if (item.id !== undefined && item.id !== null) {
+        if (item.id !== undefined && item.id !== null && item.id !== 0) {
+          // OpenDota uses 'dname' for display name, not 'localized_name'
+          const displayName = item.dname || item.name || `Item ${item.id}`
           itemsMap[item.id] = {
             id: item.id,
             name: item.name || item.dname || '',
-            localized_name: item.localized_name || item.dname || item.name || `Item ${item.id}`,
+            localized_name: displayName,
             cost: item.cost || 0
           }
         }
       })
+      console.log(`Items map populated: ${Object.keys(itemsMap).length} items`)
     } else {
       console.error('Failed to fetch items constants:', itemsResponse.status, itemsResponse.statusText)
     }

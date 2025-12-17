@@ -108,6 +108,7 @@ export default function BuildsPage() {
   const [heroes, setHeroes] = useState<Hero[]>([])
   const [selectedHero, setSelectedHero] = useState<number | null>(null)
   const [heroBuildData, setHeroBuildData] = useState<HeroBuildData | null>(null)
+  const [heroLoading, setHeroLoading] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -161,16 +162,25 @@ export default function BuildsPage() {
     if (selectedHero && playerId) {
       const fetchHeroBuilds = async () => {
         try {
+          setHeroLoading(true)
+          setHeroBuildData(null) // Reset previous data
           const response = await fetch(`/api/player/${playerId}/builds/hero/${selectedHero}`)
           if (response.ok) {
             const data = await response.json()
+            console.log('Hero build data received:', data)
             setHeroBuildData(data)
+          } else {
+            console.error('Failed to fetch hero builds:', response.status, response.statusText)
           }
         } catch (error) {
           console.error('Error fetching hero builds:', error)
+        } finally {
+          setHeroLoading(false)
         }
       }
       fetchHeroBuilds()
+    } else {
+      setHeroBuildData(null)
     }
   }, [selectedHero, playerId])
 
@@ -338,7 +348,27 @@ export default function BuildsPage() {
             </div>
 
             {/* Hero Build Data */}
-            {heroBuildData && (
+            {heroLoading && (
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                  <p className="mt-4 text-gray-400">Caricamento analisi eroe...</p>
+                </div>
+              </div>
+            )}
+            {!heroLoading && heroBuildData && heroBuildData.totalMatches === 0 && (
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-lg">
+                    Nessuna partita trovata per questo eroe nelle ultime 20 partite.
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Prova a selezionare un altro eroe o gioca più partite con questo eroe.
+                  </p>
+                </div>
+              </div>
+            )}
+            {!heroLoading && heroBuildData && heroBuildData.totalMatches > 0 && (
               <div className="space-y-6">
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                   <h2 className="text-xl font-semibold mb-4">
