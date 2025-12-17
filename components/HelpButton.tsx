@@ -37,11 +37,12 @@ export default function HelpButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 right-4 z-40 w-10 h-10 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center text-gray-300 hover:text-white transition-colors shadow-lg"
+        className="fixed top-4 right-4 z-40 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:text-white transition-colors shadow-lg"
         title="Guida"
         aria-label="Mostra guida"
       >
         <span className="text-lg">ℹ️</span>
+        <span className="text-sm font-semibold">Help</span>
       </button>
 
       {isOpen && (
