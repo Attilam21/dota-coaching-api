@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
  * API endpoint per analisi teamfight di una partita
  * Identifica teamfight e analizza partecipazione, damage, outcome
  */
+type KillEvent = {
+  time: number
+  playerSlot: number
+  team: 'radiant' | 'dire'
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,12 +52,6 @@ export async function GET(
     // Identify teamfights (clusters of kills within short time windows)
     // A teamfight is defined as 3+ kills within 30 seconds
     // Bug fix: Filter out kills without valid player_slot and add proper type annotations
-    type KillEvent = {
-      time: number
-      playerSlot: number
-      team: 'radiant' | 'dire'
-    }
-    
     const killEvents: KillEvent[] = matchLog
       .filter((entry: any) => {
         return (entry.type?.includes('KILL') || entry.type === 'CHAT_MESSAGE_KILL') && 
@@ -83,12 +83,15 @@ export async function GET(
 
     let currentTeamfight: {
       startTime: number
-      kills: Array<{ time: number; team: 'radiant' | 'dire'; playerSlot: number }>
+      kills: KillEvent[]
     } | null = null
 
     const TEAMFIGHT_WINDOW = 30 // seconds
 
-    killEvents.forEach((kill) => {
+    // Use traditional for loop instead of forEach to allow proper type narrowing
+    for (let i = 0; i < killEvents.length; i++) {
+      const kill = killEvents[i]
+      
       if (!currentTeamfight) {
         currentTeamfight = {
           startTime: kill.time,
@@ -130,10 +133,10 @@ export async function GET(
           }
         }
       }
-    })
+    }
 
     // Finalize last teamfight
-    if (currentTeamfight && currentTeamfight.kills.length >= 3) {
+    if (currentTeamfight !== null && currentTeamfight.kills.length >= 3) {
       const radiantKills = currentTeamfight.kills.filter(k => k.team === 'radiant').length
       const direKills = currentTeamfight.kills.filter(k => k.team === 'dire').length
       
