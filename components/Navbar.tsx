@@ -35,40 +35,33 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b bg-white shadow-sm">
+    <nav className="border-b border-gray-700 bg-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-red-600">
+            <Link href="/" className="text-2xl font-bold text-red-500">
               Dota 2 Coach
             </Link>
           </div>
           
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/" className="text-gray-700 hover:text-red-600 px-3 py-2">
+            <Link href="/" className="text-gray-300 hover:text-red-500 px-3 py-2 transition-colors">
               Home
             </Link>
-            <Link href="/analysis" className="text-gray-700 hover:text-red-600 px-3 py-2">
-              Analysis
-            </Link>
-            <Link href="/learning" className="text-gray-700 hover:text-red-600 px-3 py-2">
-              Learning
-            </Link>
-            
             {loading ? (
-              <div className="px-3 py-2 text-gray-500">Loading...</div>
+              <div className="px-3 py-2 text-gray-500">Caricamento...</div>
             ) : user ? (
               <>
                 <Link 
                   href="/dashboard" 
-                  className="text-gray-700 hover:text-red-600 px-3 py-2"
+                  className="text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                 >
                   Dashboard
                 </Link>
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="flex items-center text-gray-700 hover:text-red-600 px-3 py-2"
+                    className="flex items-center text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                   >
                     {user.email}
                     <svg
@@ -84,12 +77,12 @@ export default function Navbar() {
                     </svg>
                   </button>
                   {isMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-700">
                       <button
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                       >
-                        Sign out
+                        Esci
                       </button>
                     </div>
                   )}
@@ -99,15 +92,15 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="text-gray-700 hover:text-red-600 px-3 py-2"
+                  className="text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                 >
-                  Sign in
+                  Accedi
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  Sign up
+                  Registrati
                 </Link>
               </>
             )}
@@ -117,7 +110,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-red-600"
+              className="text-gray-300 hover:text-red-500"
             >
               <svg
                 className="h-6 w-6"
@@ -140,33 +133,19 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-2">
+          <div className="md:hidden py-4 space-y-2 border-t border-gray-700">
             <Link
               href="/"
-              className="block text-gray-700 hover:text-red-600 px-3 py-2"
+              className="block text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Home
-            </Link>
-            <Link
-              href="/analysis"
-              className="block text-gray-700 hover:text-red-600 px-3 py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Analysis
-            </Link>
-            <Link
-              href="/learning"
-              className="block text-gray-700 hover:text-red-600 px-3 py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Learning
             </Link>
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="block text-gray-700 hover:text-red-600 px-3 py-2"
+                  className="block text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
@@ -176,26 +155,26 @@ export default function Navbar() {
                     handleSignOut()
                     setIsMenuOpen(false)
                   }}
-                  className="block w-full text-left text-gray-700 hover:text-red-600 px-3 py-2"
+                  className="block w-full text-left text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                 >
-                  Sign out
+                  Esci
                 </button>
               </>
             ) : (
               <>
                 <Link
                   href="/auth/login"
-                  className="block text-gray-700 hover:text-red-600 px-3 py-2"
+                  className="block text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Sign in
+                  Accedi
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="block bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-center"
+                  className="block bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-center"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Sign up
+                  Registrati
                 </Link>
               </>
             )}

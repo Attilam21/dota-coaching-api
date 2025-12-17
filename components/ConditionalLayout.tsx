@@ -25,10 +25,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-gray-50">{children}</main>
-        <footer className="bg-white border-t mt-12">
+        <main className="min-h-screen bg-gray-900">{children}</main>
+        <footer className="bg-gray-800 border-t border-gray-700 mt-12">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-gray-500 text-sm">
+            <p className="text-center text-gray-400 text-sm">
               © 2025 Dota 2 Coaching Platform. Powered by OpenDota API.
             </p>
           </div>
@@ -44,10 +44,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gray-50">{children}</main>
-      <footer className="bg-white border-t mt-12">
+      <main className="min-h-screen bg-gray-900">{children}</main>
+      <footer className="bg-gray-800 border-t border-gray-700 mt-12">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 text-sm">
+          <p className="text-center text-gray-400 text-sm">
             © 2025 Dota 2 Coaching Platform. Powered by OpenDota API.
           </p>
         </div>
