@@ -91,15 +91,25 @@ export async function GET(
       ].filter(item => item.id && item.id > 0)
 
       // OpenDota log doesn't reliably contain item purchase events
-      // Instead, estimate purchase times based on item cost and player's gold progression
+      // Estimate purchase times based on item cost, order, and player's gold progression
       // This is an approximation - real data would come from replay parsing
       const gpm = player.gold_per_min || 400
       const goldPerSecond = gpm / 60
       const startingGold = 600
       
-      // Map items to purchase times
-      const itemTimings = items.map((item) => {
-        const itemName = getItemName(item.id)
+      // Sort items by cost (cheaper items first, as they're typically bought earlier)
+      const sortedItems = [...items].sort((a, b) => {
+        const costA = getItemCost(a.id)
+        const costB = getItemCost(b.id)
+        return costA - costB
+      })
+      
+      // Track cumulative gold spent to estimate purchase order
+      let cumulativeGold = startingGold
+      const purchaseTimes = new Map<number, number>()
+      
+      // Estimate purchase times progressively
+      sortedItems.forEach((item) => {
         const itemCost = getItemCost(item.id)
         
         // Try to find purchase event in log (OpenDota may not have this)
@@ -124,10 +134,36 @@ export async function GET(
           purchaseTime = purchaseEvent.time
         } else {
           // Estimate: calculate when player would have enough gold
-          // Starting gold + (time * goldPerSecond) >= itemCost
-          // time >= (itemCost - startingGold) / goldPerSecond
-          purchaseTime = Math.max(0, Math.min(duration, (itemCost - startingGold) / Math.max(1, goldPerSecond)))
+          // More realistic: consider cumulative spending and item cost
+          if (cumulativeGold >= itemCost) {
+            // Can afford immediately (early game items)
+            purchaseTime = Math.max(0, (itemCost - startingGold) / Math.max(1, goldPerSecond))
+          } else {
+            // Need to farm more gold
+            const goldNeeded = itemCost - cumulativeGold
+            const timeToFarm = goldNeeded / Math.max(1, goldPerSecond)
+            // Base time on previous item + time to farm
+            const previousTime = purchaseTimes.size > 0 
+              ? Math.max(...Array.from(purchaseTimes.values()))
+              : 0
+            purchaseTime = previousTime + timeToFarm
+          }
+          
+          // Cap at match duration
+          purchaseTime = Math.min(duration, Math.max(0, purchaseTime))
+          
+          // Update cumulative gold (assume player spends gold as they earn it)
+          cumulativeGold = Math.max(cumulativeGold, itemCost)
         }
+        
+        purchaseTimes.set(item.id, purchaseTime)
+      })
+      
+      // Map items to purchase times (preserve original order)
+      const itemTimings = items.map((item) => {
+        const itemName = getItemName(item.id)
+        const itemCost = getItemCost(item.id)
+        const purchaseTime = purchaseTimes.get(item.id) || 0
 
         // Define optimal timings for common items (in seconds)
         const optimalTimings: Record<string, number> = {
