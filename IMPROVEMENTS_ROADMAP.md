@@ -1,227 +1,240 @@
-# 🚀 Roadmap Miglioramenti - Dota 2 Coaching Platform
+# 🚀 Roadmap Miglioramenti - Basato su Analisi OpenDota
 
-## 📊 Analisi Stato Attuale
-
-✅ **Cosa Funziona Perfettamente:**
-- Analisi match completa (Overview, Fasi, Item Timing, Teamfights)
-- Dashboard con tutte le sezioni popolate
-- Analisi avanzate (Lane, Farm, Fights, Vision)
-- Profilazione AI e Coaching
-- Build & Items analysis
-- Hero Analysis e Role Analysis
-- AI Summary (Gemini/OpenAI)
+**Data:** Dicembre 2025  
+**Base di riferimento:** Repository OpenDota Core + Analisi progetto attuale
 
 ---
 
-## 🎯 PRIORITÀ ALTA - Impatto Immediato
+## 📊 PRIORITÀ ALTA - Quick Wins (Alto impatto, Bassa complessità)
 
-### 1. **Skeleton Loaders** (UX) ⭐⭐⭐
-**Problema**: Loading spinner generico, UX poco professionale  
-**Soluzione**: Skeleton loaders specifici per ogni sezione
-- Skeleton per tabelle match
-- Skeleton per grafici
-- Skeleton per cards statistiche
-**Impatto**: Percezione di velocità e professionalità ⬆️⬆️⬆️  
-**Tempo**: 2-3 ore
+### 1. **Benchmarks & Percentili** ⭐⭐⭐
+**Endpoint OpenDota disponibili:**
+- `/players/{id}/ratings` - Ratings percentile per ruolo
+- `/players/{id}/rankings` - Ranking globale/per ruolo
 
-### 2. **Error Boundaries & Retry Logic** (Stabilità) ⭐⭐⭐
-**Problema**: Errori API possono rompere l'intera pagina  
-**Soluzione**:
-- React Error Boundaries per sezioni isolate
-- Retry automatico per API calls fallite (max 3 tentativi)
-- Fallback graceful quando OpenDota è down
-**Impatto**: Stabilità e affidabilità ⬆️⬆️⬆️  
-**Tempo**: 4-5 ore
+**Cosa implementare:**
+- Confronto percentile (es. "Sei nel top 25% per GPM come Carry")
+- Visualizzazione ranking per ruolo
+- Badge "Top 10% Support" nella dashboard
 
-### 3. **Filtri e Ricerca Avanzati** (UX) ⭐⭐
-**Problema**: Difficile trovare match specifici o filtrare dati  
-**Soluzione**:
-- Filtri per data, eroe, win/loss nelle liste match
-- Ricerca per Match ID o Player ID
-- Sorting avanzato (per GPM, KDA, data, ecc.)
-**Impatto**: Usabilità ⬆️⬆️  
-**Tempo**: 3-4 ore
+**Beneficio:** Feedback immediato su performance vs comunità  
+**Tempo stimato:** 4-6 ore  
+**File da creare:**
+- `app/api/player/[id]/benchmarks/route.ts`
+- `app/dashboard/benchmarks/page.tsx` (nuova sezione o integrazione in Performance)
 
 ---
 
-## 🎯 PRIORITÀ MEDIA - Valore Aggiunto
+### 2. **Scenarios Analysis** ⭐⭐⭐
+**Endpoint OpenDota:**
+- `/scenarios/lane_roles` - Analisi lane roles per scenario
 
-### 5. **Confronto Match Multipli** (Feature) ⭐⭐
-**Problema**: Non si possono confrontare performance tra match  
-**Soluzione**: Sezione "Confronta Match"
-- Selezione 2-3 match da confrontare
-- Grafici comparativi (GPM, KDA, Winrate)
-- Tabella side-by-side
-**Impatto**: Analisi più approfondita ⬆️⬆️  
-**Tempo**: 5-6 ore
+**Cosa implementare:**
+- Analisi quando hai First Blood vs quando lo perdi
+- Performance quando giochi da dietro (comback scenarios)
+- Winrate in base a durata partita (early/mid/late game preference)
 
-### 6. **Trend Analysis Dettagliato** (Analisi) ⭐⭐
-**Problema**: Trend attuali sono basici  
-**Soluzione**: 
-- Trend per metrica specifica (GPM, KDA, Winrate) su 30/60/90 giorni
-- Identificazione pattern (miglioramento/peggioramento)
-- Alert quando trend negativo
-**Impatto**: Insights più utili ⬆️⬆️  
-**Tempo**: 4-5 ore
-
-### 7. **Tooltips Informativi** (UX) ⭐⭐
-**Problema**: Metriche tecniche non sempre chiare  
-**Soluzione**: Tooltip su hover per:
-- Metriche avanzate (GPM, XPM, CS/min, ecc.)
-- Spiegazione rating e suggerimenti
-- Definizioni termini tecnici
-**Impatto**: Educazione utente ⬆️⬆️  
-**Tempo**: 2-3 ore
-
-### 8. **Caching Client-Side** (Performance) ⭐⭐
-**Problema**: Richieste API ripetute per stessi dati  
-**Soluzione**: Implementare SWR o React Query
-- Cache automatica per 5 minuti
-- Background refresh
-- Optimistic updates
-**Impatto**: Performance e UX ⬆️⬆️  
-**Tempo**: 3-4 ore
-
-### 9. **Notifiche Toast** (UX) ⭐
-**Problema**: Feedback utente poco visibile  
-**Soluzione**: Toast notifications per:
-- Salvataggio riuscito/fallito
-- Copia link/clipboard
-- Errori con retry option
-**Impatto**: Feedback migliore ⬆️  
-**Tempo**: 2 ore
+**Beneficio:** Insights concreti su quando performi meglio/peggio  
+**Tempo stimato:** 6-8 ore  
+**File da creare:**
+- `app/api/player/[id]/scenarios/route.ts`
+- Sezione in Performance o nuova pagina `app/dashboard/scenarios/page.tsx`
 
 ---
 
-## 🎯 PRIORITÀ BASSA - Nice to Have
+### 3. **Histograms / Distribuzioni Statistiche** ⭐⭐
+**Endpoint OpenDota:**
+- `/players/{id}/histograms/{field}` - Distribuzioni per GPM, XPM, KDA, etc.
 
-### 10. **Dark/Light Mode Toggle** (UX) ⭐
-**Soluzione**: Toggle per cambiare tema  
-**Tempo**: 2-3 ore
+**Cosa implementare:**
+- Grafico distribuzione GPM (quante volte sei sopra 600, quante sotto 400)
+- Heatmap performance nel tempo (giorno della settimana, ora)
+- Visualizzazione consistenza vs picchi
 
-### 11. **Keyboard Shortcuts** (Power Users) ⭐
-**Soluzione**: Shortcuts per navigazione rapida  
-**Tempo**: 2-3 ore
-
-### 12. **Condivisione Match Analysis** (Social) ⭐
-**Soluzione**: Link condivisibile per analisi match  
-**Tempo**: 3-4 ore
-
-### 13. **Analytics Tracking** (Business) ⭐
-**Soluzione**: Google Analytics o Plausible per tracking usage  
-**Tempo**: 1-2 ore
-
-### 14. **SEO Improvements** (Marketing) ⭐
-**Soluzione**: Meta tags, sitemap, structured data  
-**Tempo**: 2-3 ore
+**Beneficio:** Capire consistenza e variabilità performance  
+**Tempo stimato:** 5-7 ore  
+**File da creare:**
+- `app/api/player/[id]/histograms/route.ts`
+- Componente `components/PerformanceHistogram.tsx`
 
 ---
 
-## 📈 Raccomandazione Strategica
+### 4. **Matchup Analysis (Hero vs Hero)** ⭐⭐⭐
+**Endpoint OpenDota:**
+- `/heroes/{hero_id}/matchups` - Winrate contro altri eroi
+- `/heroes/{hero_id}/players` - Top players per eroe
 
-### **Fase 1 (Questa Settimana)**: Priorità Alta
-1. Skeleton Loaders
-2. Export Dati
-3. Error Boundaries
+**Cosa implementare:**
+- "Con questo eroe, hai winrate 75% contro Invoker, 30% contro Pudge"
+- Suggerimenti pick basati su matchup favorevoli
+- Analisi contro-team: "Il loro draft è forte contro il tuo stile"
 
-**Risultato**: Piattaforma più stabile e professionale
-
-### **Fase 2 (Prossima Settimana)**: Priorità Media
-4. Filtri e Ricerca
-5. Confronto Match
-6. Tooltips
-
-**Risultato**: Valore aggiunto significativo
-
-### **Fase 3 (Futuro)**: Priorità Bassa
-7-14. Features nice-to-have
+**Beneficio:** Miglioramento decisioni draft e strategia  
+**Tempo stimato:** 8-10 ore  
+**File da creare:**
+- `app/api/player/[id]/matchups/route.ts`
+- `app/dashboard/matchups/page.tsx` o integrazione in Hero Analysis
 
 ---
 
-## 💡 Suggerimenti Specifici per Ogni Sezione
+## 📈 PRIORITÀ MEDIA - Feature Avanzate
 
-### Dashboard
-- [ ] Aggiungere "Ultimo aggiornamento" timestamp
-- [ ] Quick actions (refresh, export, share)
-- [ ] Widget personalizzabili
+### 5. **Item Popularity & Meta Analysis** ⭐⭐
+**Endpoint OpenDota:**
+- `/heroes/{hero_id}/itemPopularity` - Item più popolari per eroe
+- `/matches/{id}/purchase_log` (già presente) - Timing item
 
-### Match Analysis
-- [ ] Timeline interattiva (click per vedere dettagli momento)
-- [ ] Highlight momenti chiave nel timeline
-- [ ] Confronto con match precedenti dello stesso player
+**Cosa implementare:**
+- Confronto: "I top player giocano questo item, tu non lo compri mai"
+- Meta tracking: item popularity trends
+- Item recommendations basati su matchup
 
-### Profiling
-- [ ] Progress tracking (miglioramento nel tempo)
-- [ ] Goal setting (target GPM, KDA, ecc.)
-- [ ] Achievement badges
-
-### Coaching
-- [ ] Task completion tracking persistente
-- [ ] Notifiche per task completati
-- [ ] Progress bar per obiettivi
+**Beneficio:** Ottimizzazione build items  
+**Tempo stimato:** 6-8 ore  
+**File da creare:**
+- `app/api/player/[id]/item-meta/route.ts`
+- Sezione in Builds page
 
 ---
 
-## 🎨 Miglioramenti UX Specifici
+### 6. **Duration Analysis** ⭐
+**Endpoint OpenDota:**
+- `/heroes/{hero_id}/durations` - Performance vs durata partita
 
-### Loading States
-- Skeleton per ogni tipo di componente
-- Progress indicators per operazioni lunghe
-- Optimistic UI updates
+**Cosa implementare:**
+- "Winrate 80% in partite <30min, 40% in partite >50min"
+- Analisi scaling: sei più forte early o late game?
+- Timing ottimale per push/rosh basato su durata media
 
-### Error States
-- Messaggi errori user-friendly
-- Suggerimenti per risolvere problemi
-- Retry buttons prominenti
-
-### Empty States
-- Messaggi informativi quando non ci sono dati
-- Call-to-action per iniziare
-- Illustrazioni/icone appropriate
+**Beneficio:** Strategia basata su durata partita  
+**Tempo stimato:** 4-5 ore  
+**File da creare:**
+- `app/api/player/[id]/duration-analysis/route.ts`
 
 ---
 
-## 🔧 Miglioramenti Tecnici
+### 7. **Word Cloud & Chat Analysis** ⭐
+**Endpoint OpenDota:**
+- `/players/{id}/wordcloud` - Parole più usate in chat
 
-### Performance
-- [ ] Code splitting per route pesanti
-- [ ] Lazy loading immagini
-- [ ] Memoization componenti pesanti
-- [ ] Virtual scrolling per liste lunghe
+**Cosa implementare:**
+- Visualizzazione word cloud chat (tossicità, comunicazione)
+- Analisi tilt detection (parole negative correlate a sconfitte)
+- Metriche comunicazione (silenzio vs chiacchiere)
 
-### Accessibility
-- [ ] ARIA labels completi
-- [ ] Keyboard navigation
-- [ ] Screen reader support
-- [ ] Contrast ratios WCAG AA
-
-### Testing
-- [ ] Unit tests per utility functions
-- [ ] Integration tests per API routes
-- [ ] E2E tests per flow critici
+**Beneficio:** Self-awareness comunicazione (se implementato)  
+**Tempo stimato:** 3-4 ore  
+**Nota:** Feature divertente ma valore limitato per coaching
 
 ---
 
-## 📊 Metriche di Successo
+### 8. **Totals & Counts Aggregati** ⭐⭐
+**Endpoint OpenDota:**
+- `/players/{id}/totals` - Statistiche totali aggregate
+- `/players/{id}/counts` - Conteggi per categoria
 
-Dopo implementazione miglioramenti:
-- **Lighthouse Score**: 90+ (attualmente ~75)
-- **Time to Interactive**: < 3s
-- **Error Rate**: < 1%
-- **User Satisfaction**: Feedback positivo su UX
+**Cosa implementare:**
+- Statistiche lifetime vs recenti (evoluzione)
+- "In totale hai giocato 5000 partite, 2500 come Carry"
+- Milestone tracking (es. "1000 kill totali")
 
----
-
-## 🚀 Quick Wins (Implementabili Oggi)
-
-1. **Skeleton Loaders** - 2 ore, impatto alto
-2. **Toast Notifications** - 2 ore, impatto medio
-3. **Tooltips Base** - 2 ore, impatto medio
-4. **Error Boundaries Base** - 3 ore, impatto alto
-
-**Totale: 9 ore per 4 quick wins significativi**
+**Beneficio:** Panoramica completa carriera  
+**Tempo stimato:** 4-5 ore  
+**File da creare:**
+- `app/api/player/[id]/totals/route.ts`
+- Sezione in Dashboard principale
 
 ---
 
-Quale priorità vuoi affrontare per prima? 🎯
+## 🔥 PRIORITÀ BASSA - Nice to Have
 
+### 9. **Pro Player Comparison** ⭐
+**Endpoint OpenDota:**
+- `/players/{id}/rankings` già presente
+- `/leagues/{id}` - Dati professionali
+
+**Cosa implementare:**
+- "Il tuo GPM è 450, i pro Carry hanno 550"
+- Confronto diretto con pro player specifico
+- Learning paths basati su stile di pro player
+
+**Beneficio:** Inspirazione e obiettivi chiari  
+**Tempo stimato:** 10-12 ore (richiede UI complessa)  
+**Nota:** Feature premium potenziale
+
+---
+
+### 10. **Team Analysis (5-stack)** ⭐⭐
+**Endpoint OpenDota:**
+- `/teams/{team_id}` - Dati team professionali
+- Peer analysis già presente
+
+**Cosa implementare:**
+- Analisi sinergia con compagni frequenti
+- "Con X hai winrate 70%, con Y 30%"
+- Team composition analysis (ruoli bilanciati?)
+
+**Beneficio:** Ottimizzazione squadra  
+**Tempo stimato:** 8-10 ore  
+**File da creare:**
+- `app/api/team/[id]/analysis/route.ts`
+- Estensione pagina Teammates
+
+---
+
+## 🎯 RACCOMANDAZIONI IMMEDIATE
+
+### Top 3 Quick Wins (15-20 ore totali)
+
+1. **Benchmarks & Percentili** (4-6h) - Alto valore percepito
+   - "Sei nel top 25%" è molto più chiaro di "GPM 450"
+   - Integrazione semplice in Performance page
+
+2. **Matchup Analysis** (8-10h) - Dati già disponibili
+   - Winrate vs eroi specifici è insight concreto
+   - Aggiunge valore reale alle decisioni draft
+
+3. **Scenarios Analysis** (6-8h) - Context-aware
+   - Performance in diverse situazioni (comback, ahead, etc.)
+   - Aiuta a identificare punti deboli specifici
+
+---
+
+## 🚫 COSA NON IMPLEMENTARE (per ora)
+
+- **Word Cloud**: Valore limitato, più "fun" che utile
+- **Pro Comparison**: Complesso, meglio dopo aver consolidato base
+- **Real-time Analysis**: Fuori scope per MVP
+
+---
+
+## 📝 NOTE TECNICHE
+
+### Pattern da seguire (già presente nel progetto):
+
+1. **Multi-priority fetching**: Già implementato per teamfights, items, wards
+   - Priority 1: Match object
+   - Priority 2: Dedicated endpoint
+   - Priority 3: Fallback parsing
+
+2. **Caching strategy**: 
+   - Match data: 1 ora (`revalidate: 3600`)
+   - Constants: 24 ore (`revalidate: 86400`)
+   - Player stats: 30 minuti (`revalidate: 1800`)
+
+3. **Error handling**: Sempre gestire 404, 500, network errors
+4. **TypeScript types**: Definire interface per tutte le risposte API
+5. **Loading states**: Skeleton loaders già implementati
+
+---
+
+## 🎨 UI/UX CONSIDERATIONS
+
+- **Integrazione vs nuove pagine**: Preferire integrazione in pagine esistenti quando possibile
+- **Visualizzazioni**: Usare Recharts (già presente) per consistency
+- **Mobile-first**: Tutte le nuove feature devono essere responsive
+- **Progressive disclosure**: Mostrare summary, espandere per dettagli
+
+---
+
+**Ultimo aggiornamento:** 17 Dicembre 2025

@@ -34,11 +34,27 @@ interface PerformanceStats {
   }
 }
 
+interface Benchmarks {
+  percentiles?: {
+    gpm?: { percentile: number; label: string }
+    xpm?: { percentile: number; label: string }
+    kda?: { percentile: number; label: string }
+  }
+  calculatedPercentiles?: {
+    gpm: { value: number; percentile: number; label: string }
+    xpm: { value: number; percentile: number; label: string }
+    kda: { value: number; percentile: number; label: string }
+  }
+  rankings?: any
+  source: string
+}
+
 export default function PerformancePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const [stats, setStats] = useState<PerformanceStats | null>(null)
+  const [benchmarks, setBenchmarks] = useState<Benchmarks | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -56,17 +72,24 @@ export default function PerformancePage() {
       setLoading(true)
       setError(null)
 
-      const [statsResponse, advancedResponse] = await Promise.all([
+      const [statsResponse, advancedResponse, benchmarksResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
-        fetch(`/api/player/${playerId}/advanced-stats`)
+        fetch(`/api/player/${playerId}/advanced-stats`),
+        fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
       ])
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
 
       const statsData = await statsResponse.json()
       const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
+      const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
 
       if (!statsData.stats) throw new Error('No stats available')
+      
+      // Set benchmarks if available
+      if (benchmarksData) {
+        setBenchmarks(benchmarksData)
+      }
 
       // Calculate performance metrics from basic stats
       const matches = statsData.stats.matches || []
@@ -166,6 +189,100 @@ export default function PerformancePage() {
 
       {stats && !loading && (
         <div className="space-y-6">
+          {/* Benchmarks Section - NEW */}
+          {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
+            <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4 text-blue-300">📊 Benchmarks & Percentili</h2>
+              <p className="text-gray-400 text-sm mb-4">
+                Confronto delle tue performance con la comunità Dota 2. I percentili mostrano come ti posizioni rispetto agli altri giocatori.
+              </p>
+              <div className="grid md:grid-cols-3 gap-4">
+                {benchmarks.percentiles?.gpm && (
+                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                    <div className="text-sm text-gray-400 mb-1">GPM (Gold per Minuto)</div>
+                    <div className="text-2xl font-bold text-yellow-400 mb-2">{stats.avgGPM.toFixed(0)}</div>
+                    <div className={`text-sm font-semibold ${
+                      benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                      benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                      'text-gray-400'
+                    }`}>
+                      {benchmarks.percentiles.gpm.label}
+                    </div>
+                  </div>
+                )}
+                {benchmarks.percentiles?.xpm && (
+                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                    <div className="text-sm text-gray-400 mb-1">XPM (XP per Minuto)</div>
+                    <div className="text-2xl font-bold text-blue-400 mb-2">{stats.avgXPM.toFixed(0)}</div>
+                    <div className={`text-sm font-semibold ${
+                      benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                      benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                      'text-gray-400'
+                    }`}>
+                      {benchmarks.percentiles.xpm.label}
+                    </div>
+                  </div>
+                )}
+                {benchmarks.percentiles?.kda && (
+                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                    <div className="text-sm text-gray-400 mb-1">KDA Ratio</div>
+                    <div className="text-2xl font-bold text-red-400 mb-2">{stats.avgKDA.toFixed(2)}</div>
+                    <div className={`text-sm font-semibold ${
+                      benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
+                      benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                      'text-gray-400'
+                    }`}>
+                      {benchmarks.percentiles.kda.label}
+                    </div>
+                  </div>
+                )}
+                {/* Fallback to calculated percentiles if OpenDota ratings not available */}
+                {!benchmarks.percentiles && benchmarks.calculatedPercentiles && (
+                  <>
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="text-sm text-gray-400 mb-1">GPM (Gold per Minuto)</div>
+                      <div className="text-2xl font-bold text-yellow-400 mb-2">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
+                      <div className={`text-sm font-semibold ${
+                        benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
+                      }`}>
+                        {benchmarks.calculatedPercentiles.gpm.label}
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="text-sm text-gray-400 mb-1">XPM (XP per Minuto)</div>
+                      <div className="text-2xl font-bold text-blue-400 mb-2">{benchmarks.calculatedPercentiles.xpm.value.toFixed(0)}</div>
+                      <div className={`text-sm font-semibold ${
+                        benchmarks.calculatedPercentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.calculatedPercentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
+                      }`}>
+                        {benchmarks.calculatedPercentiles.xpm.label}
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="text-sm text-gray-400 mb-1">KDA Ratio</div>
+                      <div className="text-2xl font-bold text-red-400 mb-2">{benchmarks.calculatedPercentiles.kda.value.toFixed(2)}</div>
+                      <div className={`text-sm font-semibold ${
+                        benchmarks.calculatedPercentiles.kda.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.calculatedPercentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
+                      }`}>
+                        {benchmarks.calculatedPercentiles.kda.label}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {benchmarks.source === 'calculated' && (
+                <p className="text-xs text-gray-500 mt-4">
+                  ℹ️ Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Playstyle Banner - Compact */}
           <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4 relative">
             {playerId && (
