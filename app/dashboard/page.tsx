@@ -185,9 +185,35 @@ export default function DashboardPage() {
       )}
 
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento statistiche...</p>
+        <div className="space-y-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <div className="h-8 bg-gray-700 rounded w-1/3 mb-2 animate-pulse" />
+            <div className="h-4 bg-gray-700 rounded w-1/4 animate-pulse" />
+          </div>
+
+          {/* Snapshot Cards Skeleton */}
+          <div className="mb-8">
+            <div className="h-6 bg-gray-700 rounded w-1/4 mb-4 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <StatsCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+
+          {/* Chart Skeleton */}
+          <ChartSkeleton />
+
+          {/* Recent Matches Skeleton */}
+          <div className="mb-8">
+            <div className="h-6 bg-gray-700 rounded w-1/3 mb-4 animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <MatchCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
