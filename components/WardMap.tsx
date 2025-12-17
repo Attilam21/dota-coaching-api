@@ -17,7 +17,7 @@ interface WardMapProps {
 
 /**
  * Componente per visualizzare la wardmap su una mappa di Dota 2
- * Usa Canvas con disegno diretto della mappa (no dipendenze esterne)
+ * Stile ispirato a OpenDota con heatmap visibile e punti wards chiari
  */
 export default function WardMap({ 
   observerWards, 
@@ -28,29 +28,29 @@ export default function WardMap({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [selectedType, setSelectedType] = useState<'observer' | 'sentry' | 'both'>('both')
 
-  // Function to draw Dota 2 minimap background
+  // Function to draw Dota 2 minimap background (improved for better contrast)
   const drawMinimapBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    // Base gradient: Radiant (green) to Dire (red) with river in middle
+    // Darker, more contrasted background for better ward visibility
     const gradient = ctx.createLinearGradient(0, 0, width, height)
-    gradient.addColorStop(0, '#0d2818') // Dark green (Radiant top-left)
-    gradient.addColorStop(0.25, '#1a3a1a') // Medium green
-    gradient.addColorStop(0.5, '#1e3a2e') // River area
-    gradient.addColorStop(0.75, '#3a1a1a') // Medium red
-    gradient.addColorStop(1, '#2a0d0d') // Dark red (Dire bottom-right)
+    gradient.addColorStop(0, '#0a1f0f') // Darker green (Radiant top-left)
+    gradient.addColorStop(0.25, '#15301a') // Medium green
+    gradient.addColorStop(0.5, '#1a2e23') // River area
+    gradient.addColorStop(0.75, '#301515') // Medium red
+    gradient.addColorStop(1, '#1f0a0a') // Darker red (Dire bottom-right)
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, width, height)
 
-    // Draw river (diagonal from top-left to bottom-right)
-    ctx.strokeStyle = '#2d5a87'
-    ctx.lineWidth = 4
+    // Draw river with better visibility
+    ctx.strokeStyle = '#1e4a6b'
+    ctx.lineWidth = 5
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(width, height)
     ctx.stroke()
 
-    // Draw secondary river lines
-    ctx.strokeStyle = '#3a6a9a'
-    ctx.lineWidth = 2
+    // Secondary river lines (more visible)
+    ctx.strokeStyle = '#2a5a7a'
+    ctx.lineWidth = 3
     ctx.beginPath()
     ctx.moveTo(width * 0.1, 0)
     ctx.lineTo(width * 0.9, height)
@@ -60,21 +60,21 @@ export default function WardMap({
     ctx.lineTo(width * 0.1, height)
     ctx.stroke()
 
-    // Draw Roshan pit area (center of map)
+    // Draw Roshan pit (more visible)
     const roshanX = width / 2
     const roshanY = height / 2
-    ctx.fillStyle = '#4a1a1a'
+    ctx.fillStyle = '#3a1a1a'
     ctx.beginPath()
-    ctx.arc(roshanX, roshanY, 30, 0, Math.PI * 2)
+    ctx.arc(roshanX, roshanY, 35, 0, Math.PI * 2)
     ctx.fill()
     ctx.strokeStyle = '#6a2a2a'
-    ctx.lineWidth = 2
+    ctx.lineWidth = 3
     ctx.stroke()
 
-    // Draw lane lines (approximate)
-    ctx.strokeStyle = '#2a4a3a'
-    ctx.lineWidth = 1.5
-    ctx.setLineDash([5, 5])
+    // Draw lane lines (more visible)
+    ctx.strokeStyle = 'rgba(42, 74, 58, 0.6)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([8, 4])
     
     // Top lane (Radiant)
     ctx.beginPath()
@@ -96,9 +96,8 @@ export default function WardMap({
     
     ctx.setLineDash([])
 
-    // Draw base areas (approximate)
-    // Radiant base (top-left area)
-    ctx.fillStyle = 'rgba(26, 58, 26, 0.3)'
+    // Draw base areas (more visible)
+    ctx.fillStyle = 'rgba(20, 50, 20, 0.4)'
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(width * 0.3, 0)
@@ -107,8 +106,7 @@ export default function WardMap({
     ctx.closePath()
     ctx.fill()
 
-    // Dire base (bottom-right area)
-    ctx.fillStyle = 'rgba(58, 26, 26, 0.3)'
+    ctx.fillStyle = 'rgba(50, 20, 20, 0.4)'
     ctx.beginPath()
     ctx.moveTo(width, height)
     ctx.lineTo(width * 0.7, height)
@@ -116,21 +114,6 @@ export default function WardMap({
     ctx.lineTo(width, height * 0.7)
     ctx.closePath()
     ctx.fill()
-
-    // Draw grid lines for better orientation (subtle)
-    ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)'
-    ctx.lineWidth = 1
-    for (let i = 0; i <= 10; i++) {
-      const pos = (width / 10) * i
-      ctx.beginPath()
-      ctx.moveTo(pos, 0)
-      ctx.lineTo(pos, height)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(0, pos)
-      ctx.lineTo(width, pos)
-      ctx.stroke()
-    }
   }
 
   useEffect(() => {
@@ -150,8 +133,6 @@ export default function WardMap({
 
     // Convert Dota 2 world coordinates to minimap coordinates
     const worldToMinimap = (x: number, y: number) => {
-      // X: -8000 (left) to 8000 (right) -> 0 to width
-      // Y: -8000 (bottom) to 8000 (top) -> height to 0 (flipped for canvas)
       const minimapX = ((x - mapMin) / mapRange) * width
       const minimapY = height - ((y - mapMin) / mapRange) * height
       return { x: minimapX, y: minimapY }
@@ -160,42 +141,50 @@ export default function WardMap({
     // Draw minimap background
     drawMinimapBackground(ctx, width, height)
 
-    // Create heatmap with better visualization
-    const createHeatmap = (wards: WardPosition[], color: string, alpha: number = 0.6) => {
+    // OpenDota-style heatmap: more visible and intuitive
+    const createHeatmap = (wards: WardPosition[], color: string, pointColor: string) => {
       if (wards.length === 0) return
 
-      // Create a grid for heatmap
-      const gridSize = 40
+      // Use a grid-based approach for heatmap (like OpenDota)
+      const gridSize = 25 // Finer grid for better resolution
       const grid: { [key: string]: number } = {}
+      const wardPositions: Array<{ x: number; y: number }> = []
 
+      // Build grid and collect positions
       wards.forEach(ward => {
         const { x, y } = worldToMinimap(ward.x, ward.y)
+        wardPositions.push({ x, y })
         const gridX = Math.floor(x / gridSize)
         const gridY = Math.floor(y / gridSize)
         const key = `${gridX},${gridY}`
         grid[key] = (grid[key] || 0) + 1
       })
 
-      // Find max count for normalization
+      // Find max count for intensity normalization
       const maxCount = Math.max(...Object.values(grid), 1)
 
-      // Draw heatmap with smoother gradients
+      // Draw heatmap first (behind wards) - OpenDota style with more saturation
       Object.entries(grid).forEach(([key, count]) => {
+        if (count === 0) return
+        
         const [gridX, gridY] = key.split(',').map(Number)
-        const intensity = count / maxCount
+        const intensity = Math.min(count / maxCount, 1)
         const centerX = gridX * gridSize + gridSize / 2
         const centerY = gridY * gridSize + gridSize / 2
-        const radius = gridSize * (0.6 + intensity * 0.8)
+        const radius = gridSize * (1.0 + intensity * 1.5) // Larger, more visible heatmap
 
-        // Create radial gradient for heat effect
+        // Create radial gradient with higher opacity for better visibility
         const gradient = ctx.createRadialGradient(
           centerX, centerY, 0,
           centerX, centerY, radius
         )
         
-        const alphaHex = Math.floor(alpha * intensity * 255).toString(16).padStart(2, '0')
-        gradient.addColorStop(0, `${color}${alphaHex}`)
-        gradient.addColorStop(0.5, `${color}${Math.floor(alpha * intensity * 180).toString(16).padStart(2, '0')}`)
+        // More saturated colors for better visibility (OpenDota style)
+        const centerAlpha = Math.floor(intensity * 180 + 50).toString(16).padStart(2, '0') // Min 50 alpha
+        const midAlpha = Math.floor(intensity * 100 + 30).toString(16).padStart(2, '0')
+        
+        gradient.addColorStop(0, `${color}${centerAlpha}`)
+        gradient.addColorStop(0.5, `${color}${midAlpha}`)
         gradient.addColorStop(1, `${color}00`)
 
         ctx.fillStyle = gradient
@@ -204,36 +193,84 @@ export default function WardMap({
         ctx.fill()
       })
 
-      // Draw individual ward points with better visibility
-      ctx.fillStyle = color
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2 // Increased from 1.5 for better visibility
-      wards.forEach(ward => {
-        const { x, y } = worldToMinimap(ward.x, ward.y)
-        // Draw outer circle (ward icon) - increased size for better visibility
+      // Draw individual ward points on top (OpenDota style: larger, more visible)
+      const isObserver = pointColor === '#3B82F6'
+      
+      wardPositions.forEach(({ x, y }) => {
+        ctx.save()
+        ctx.translate(x, y)
+        
+        // Draw ward icon: OpenDota uses oval shapes, larger and more visible
+        // Observer: blue oval with eye icon
+        // Sentry: green oval without eye
+        
+        // Outer glow for better visibility
+        if (isObserver) {
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.3)'
+        } else {
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.3)'
+        }
         ctx.beginPath()
-        ctx.arc(x, y, 6, 0, Math.PI * 2) // Increased from 5 to 6
+        ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2)
         ctx.fill()
-        // Draw inner highlight for visibility
+        
+        // Main ward shape - larger oval (OpenDota style)
         ctx.beginPath()
-        ctx.arc(x, y, 6, 0, Math.PI * 2)
+        ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2) // 12px width, 8px height
+        
+        // Fill with ward color
+        ctx.fillStyle = pointColor
+        ctx.fill()
+        
+        // White border for contrast
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 2
         ctx.stroke()
-        // Draw small center dot for better visibility
-        ctx.fillStyle = '#ffffff'
-        ctx.beginPath()
-        ctx.arc(x, y, 2.5, 0, Math.PI * 2) // Increased from 2 to 2.5
-        ctx.fill()
-        ctx.fillStyle = color
+        
+        if (isObserver) {
+          // Observer: Draw eye icon (iris) - OpenDota style
+          // Outer iris ring
+          ctx.beginPath()
+          ctx.arc(0, 0, 4.5, 0, Math.PI * 2)
+          ctx.fillStyle = '#1e40af' // Dark blue iris
+          ctx.fill()
+          
+          // Inner pupil
+          ctx.beginPath()
+          ctx.arc(0, 0, 2.5, 0, Math.PI * 2)
+          ctx.fillStyle = '#000000'
+          ctx.fill()
+          
+          // Highlight on iris (for depth)
+          ctx.beginPath()
+          ctx.arc(-1.5, -1.5, 1.5, 0, Math.PI * 2)
+          ctx.fillStyle = '#60a5fa'
+          ctx.fill()
+        } else {
+          // Sentry: Draw inner shape for distinction
+          ctx.beginPath()
+          ctx.ellipse(0, 0, 6, 4, 0, 0, Math.PI * 2)
+          ctx.fillStyle = '#047857' // Darker green
+          ctx.fill()
+          
+          // Small center dot
+          ctx.beginPath()
+          ctx.arc(0, 0, 2, 0, Math.PI * 2)
+          ctx.fillStyle = '#10b981'
+          ctx.fill()
+        }
+        
+        ctx.restore()
       })
     }
 
-    // Draw wards based on selection
+    // Draw wards based on selection with OpenDota-style colors
     if (selectedType === 'observer' || selectedType === 'both') {
-      createHeatmap(observerWards, '#3B82F6', 0.65) // Blue for observer
+      createHeatmap(observerWards, '#3B82F6', '#3B82F6') // Blue for observer
     }
     
     if (selectedType === 'sentry' || selectedType === 'both') {
-      createHeatmap(sentryWards, '#10B981', 0.65) // Green for sentry
+      createHeatmap(sentryWards, '#10B981', '#10B981') // Green for sentry
     }
 
   }, [observerWards, sentryWards, selectedType, width, height])
@@ -318,4 +355,3 @@ export default function WardMap({
     </div>
   )
 }
-
