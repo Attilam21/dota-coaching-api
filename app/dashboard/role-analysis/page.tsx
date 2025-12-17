@@ -156,7 +156,7 @@ export default function RoleAnalysisPage() {
               )}
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Ruolo Preferito</h2>
+                  <h2 className="text-2xl font-semibold mb-4">Ruolo Preferito</h2>
                   <p className="text-3xl font-bold text-red-400">{analysis.preferredRole.role}</p>
                   <p className="text-sm text-gray-400 mt-2">
                     {analysis.preferredRole.games} partite • Winrate: {analysis.preferredRole.winrate.toFixed(1)}%
@@ -177,7 +177,7 @@ export default function RoleAnalysisPage() {
           )}
 
           {/* Summary Cards */}
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Ruoli Giocati</h3>
               <p className="text-3xl font-bold">{analysis.summary.totalRolesPlayed}</p>
@@ -195,7 +195,7 @@ export default function RoleAnalysisPage() {
           {/* Role Performance Charts */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Winrate per Ruolo</h2>
+              <h2 className="text-2xl font-semibold mb-4">Winrate per Ruolo</h2>
               {roleWinrateData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={roleWinrateData}>
@@ -219,7 +219,7 @@ export default function RoleAnalysisPage() {
             </div>
 
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Distribuzione Partite per Ruolo</h2>
+              <h2 className="text-2xl font-semibold mb-4">Distribuzione Partite per Ruolo</h2>
               {roleGamesData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -247,12 +247,12 @@ export default function RoleAnalysisPage() {
           </div>
 
           {/* Role Details */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Object.entries(analysis.roles)
               .filter(([_, perf]) => perf.games > 0)
               .map(([role, perf]) => (
                 <div key={role} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4">{role}</h3>
+                  <h3 className="text-2xl font-semibold mb-4">{role}</h3>
                   <div className="space-y-3 mb-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Partite</span>
@@ -305,7 +305,7 @@ export default function RoleAnalysisPage() {
           {/* Recommendations */}
           {analysis.recommendations.length > 0 && (
             <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4 text-blue-200">💡 Raccomandazioni</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Raccomandazioni</h3>
               <ul className="space-y-2">
                 {analysis.recommendations.map((rec, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-blue-300">

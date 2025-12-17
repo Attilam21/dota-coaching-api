@@ -131,7 +131,7 @@ export default function LaneEarlyPage() {
       {stats && !loading && (
         <div className="space-y-6">
           {/* Overview Cards */}
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">CS per Minuto</h3>
               <p className="text-3xl font-bold text-green-400">{stats.lane.csPerMinute}</p>
@@ -155,7 +155,7 @@ export default function LaneEarlyPage() {
           </div>
           
           {/* Additional Stats */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Last Hits Medio</h3>
               <p className="text-2xl font-bold text-green-400">{stats.lane.avgLastHits.toFixed(1)}</p>
@@ -170,7 +170,7 @@ export default function LaneEarlyPage() {
 
           {/* CS Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Last Hits & Denies per Partita</h2>
+            <h2 className="text-2xl font-semibold mb-4">Last Hits & Denies per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={csData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -192,7 +192,7 @@ export default function LaneEarlyPage() {
 
           {/* Benchmark Comparison */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Benchmark CS</h2>
+            <h2 className="text-2xl font-semibold mb-4">Benchmark CS</h2>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-2">
@@ -240,7 +240,7 @@ export default function LaneEarlyPage() {
 
           {/* Insights */}
           <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-blue-200">💡 Insights Lane & Early Game</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Lane & Early Game</h3>
             <div className="space-y-2 text-sm text-blue-300">
               {stats.lane.avgLastHits < 50 && (
                 <p>

@@ -274,7 +274,7 @@ export default function BuildsPage() {
             {/* Top Items */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Item Più Utilizzati</h2>
+                <h2 className="text-2xl font-semibold">Item Più Utilizzati</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="top-items"
@@ -302,7 +302,7 @@ export default function BuildsPage() {
             {/* Top Build Patterns */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Build Più Comuni</h2>
+                <h2 className="text-2xl font-semibold">Build Più Comuni</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="build-patterns"
@@ -355,8 +355,8 @@ export default function BuildsPage() {
           <div className="space-y-6">
             {/* Hero Selection */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Seleziona Hero</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <h2 className="text-2xl font-semibold mb-4">Seleziona Hero</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {heroes.slice(0, 50).map((hero) => (
                   <button
                     key={hero.id}
@@ -397,13 +397,13 @@ export default function BuildsPage() {
             {!heroLoading && heroBuildData && heroBuildData.totalMatches > 0 && (
               <div className="space-y-6">
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <h2 className="text-xl font-semibold mb-4">
+                  <h2 className="text-2xl font-semibold mb-4">
                     Build per {heroBuildData.hero_name} ({heroBuildData.totalMatches} partite)
                   </h2>
 
                   {/* Top Items for Hero */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-medium mb-3">Item Più Utilizzati</h3>
+                    <h3 className="text-xl font-semibold mb-3">Item Più Utilizzati</h3>
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                       {heroBuildData.topItems.slice(0, 15).map((item) => (
                         <ItemCard
@@ -422,7 +422,7 @@ export default function BuildsPage() {
 
                   {/* Top Builds by Winrate */}
                   <div>
-                    <h3 className="text-lg font-medium mb-3">Build Più Efficaci (Winrate)</h3>
+                    <h3 className="text-xl font-semibold mb-3">Build Più Efficaci (Winrate)</h3>
                     <div className="space-y-4">
                       {heroBuildData.buildWinrates.slice(0, 5).map((build, idx) => (
                         <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
@@ -472,7 +472,7 @@ export default function BuildsPage() {
             {/* Underutilized Items */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Item Sottoutilizzati</h2>
+                <h2 className="text-2xl font-semibold">Item Sottoutilizzati</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="underutilized"
@@ -502,7 +502,7 @@ export default function BuildsPage() {
             {/* Overpurchased Items */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Item Overpurchased</h2>
+                <h2 className="text-2xl font-semibold">Item Overpurchased</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="overpurchased"
@@ -532,7 +532,7 @@ export default function BuildsPage() {
             {/* Item Efficiency */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Efficienza Item</h2>
+                <h2 className="text-2xl font-semibold">Efficienza Item</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="efficiency"
@@ -562,7 +562,7 @@ export default function BuildsPage() {
           <div className="space-y-6">
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Confronto Build</h2>
+                <h2 className="text-2xl font-semibold">Confronto Build</h2>
                 <InsightBadge
                   elementType="builds"
                   elementId="comparison"

@@ -195,7 +195,7 @@ export default function VisionControlPage() {
 
           {/* Wards Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Observer Wards per Partita</h2>
+            <h2 className="text-2xl font-semibold mb-4">Observer Wards per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={wardData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -216,9 +216,9 @@ export default function VisionControlPage() {
           </div>
 
           {/* Pie Chart */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Distribuzione Wards</h2>
+              <h2 className="text-2xl font-semibold mb-4">Distribuzione Wards</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -241,7 +241,7 @@ export default function VisionControlPage() {
             </div>
 
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Statistiche Dettagliate</h3>
+              <h3 className="text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Sentry Placed</span>
@@ -281,7 +281,7 @@ export default function VisionControlPage() {
 
           {/* Insights */}
           <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-blue-200">💡 Insights Vision & Map Control</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Vision & Map Control</h3>
             <div className="space-y-2 text-sm text-blue-300">
               {stats.vision.avgObserverPlaced < 5 && (
                 <p>

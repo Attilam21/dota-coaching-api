@@ -144,7 +144,7 @@ export default function HeroAnalysisPage() {
       {analysis && !loading && (
         <div className="space-y-6">
           {/* Overall Stats */}
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
               {playerId && (
                 <InsightBadge
@@ -175,9 +175,9 @@ export default function HeroAnalysisPage() {
           </div>
 
           {/* Best & Worst Heroes */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-green-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4 text-green-400">🏆 Heroes Migliori</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-green-400">🏆 Heroes Migliori</h3>
               {analysis.bestHeroes.length > 0 ? (
                 <div className="space-y-3">
                   {analysis.bestHeroes.map((hero) => (
@@ -199,7 +199,7 @@ export default function HeroAnalysisPage() {
             </div>
 
             <div className="bg-gray-800 border border-red-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4 text-red-400">⚠️ Heroes da Migliorare</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-red-400">⚠️ Heroes da Migliorare</h3>
               {analysis.worstHeroes.length > 0 ? (
                 <div className="space-y-3">
                   {analysis.worstHeroes.map((hero) => (
@@ -224,7 +224,7 @@ export default function HeroAnalysisPage() {
           {/* Winrate Chart */}
           {winrateChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Winrate Top 10 Heroes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Winrate Top 10 Heroes</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={winrateChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -247,7 +247,7 @@ export default function HeroAnalysisPage() {
           {/* Role Performance */}
           {roleChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Performance per Ruolo</h2>
+              <h2 className="text-2xl font-semibold mb-4">Performance per Ruolo</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={roleChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -271,7 +271,7 @@ export default function HeroAnalysisPage() {
           {/* Heroes Table */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-gray-700">
-              <h2 className="text-xl font-semibold">Tutti i Heroes</h2>
+              <h2 className="text-2xl font-semibold">Tutti i Heroes</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -321,7 +321,7 @@ export default function HeroAnalysisPage() {
           {/* Insights */}
           {analysis.insights.length > 0 && (
             <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4 text-blue-200">💡 Insights</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights</h3>
               <ul className="space-y-2">
                 {analysis.insights.map((insight, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-blue-300">

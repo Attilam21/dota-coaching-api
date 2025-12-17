@@ -153,7 +153,7 @@ export default function FightsDamagePage() {
       {stats && !loading && (
         <div className="space-y-6">
           {/* Overview Cards */}
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Kill Participation</h3>
               <p className="text-3xl font-bold text-green-400">{stats.fights.killParticipation.toFixed(1)}%</p>
@@ -177,7 +177,7 @@ export default function FightsDamagePage() {
           </div>
           
           {/* Additional Stats */}
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Hero Damage Medio</h3>
               <p className="text-2xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
@@ -197,8 +197,8 @@ export default function FightsDamagePage() {
 
           {/* Radar Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Profilo Fight Contribution</h2>
-            <ResponsiveContainer width="100%" height={400}>
+            <h2 className="text-2xl font-semibold mb-4">Profilo Fight Contribution</h2>
+            <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={radarData}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" />
@@ -210,7 +210,7 @@ export default function FightsDamagePage() {
 
           {/* Damage Breakdown Chart */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Damage Breakdown per Partita</h2>
+            <h2 className="text-2xl font-semibold mb-4">Damage Breakdown per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={damageData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -234,7 +234,7 @@ export default function FightsDamagePage() {
 
           {/* KDA Trend */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">KDA Trend</h2>
+            <h2 className="text-2xl font-semibold mb-4">KDA Trend</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={kdaTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -254,9 +254,9 @@ export default function FightsDamagePage() {
           </div>
 
           {/* Detailed Stats */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Statistiche Fight</h3>
+              <h3 className="text-2xl font-semibold mb-4">Statistiche Fight</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Kills Medio</span>
@@ -278,7 +278,7 @@ export default function FightsDamagePage() {
             </div>
 
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Insights</h3>
+              <h3 className="text-2xl font-semibold mb-4">Insights</h3>
               <div className="space-y-2 text-sm">
                 {stats.fights.killParticipation < 50 && (
                   <p className="text-yellow-400">

@@ -207,7 +207,7 @@ export default function AISummaryPage() {
           ) : (
             <>
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">📊 Riassunto Profilo Completo</h2>
+                <h2 className="text-2xl font-semibold mb-4">📊 Riassunto Profilo Completo</h2>
                 <p className="text-gray-400 mb-4 text-sm">
                   Genera un riassunto intelligente del tuo profilo di gioco basato su tutte le tue performance recenti, 
                   punti di forza, debolezze, trend e raccomandazioni.
@@ -223,7 +223,7 @@ export default function AISummaryPage() {
 
               {summary && (
                 <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-blue-300">📝 Riassunto Generato</h3>
+                  <h3 className="text-2xl font-semibold mb-4 text-blue-300">📝 Riassunto Generato</h3>
                   <div className="prose prose-invert max-w-none">
                     <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
                   </div>
@@ -246,7 +246,7 @@ export default function AISummaryPage() {
           ) : (
             <>
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">🎮 Riassunto Partita</h2>
+                <h2 className="text-2xl font-semibold mb-4">🎮 Riassunto Partita</h2>
                 <p className="text-gray-400 mb-4 text-sm">
                   Seleziona una partita dalle tue ultime 20 partite per generare un riassunto intelligente con analisi dettagliata.
                 </p>
@@ -263,7 +263,7 @@ export default function AISummaryPage() {
 
               {summary && (
                 <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
+                  <h3 className="text-2xl font-semibold mb-4 text-green-300">📝 Riassunto Partita</h3>
                   <div className="prose prose-invert max-w-none">
                     <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
                   </div>

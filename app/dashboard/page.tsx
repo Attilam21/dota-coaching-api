@@ -195,7 +195,7 @@ export default function DashboardPage() {
         <>
           {/* Panoramica Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Panoramica</h2>
+            <h2 className="text-2xl font-semibold mb-4">Panoramica</h2>
             
             {/* Analysis info box */}
             <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
@@ -210,8 +210,8 @@ export default function DashboardPage() {
 
           {/* Snapshot Stato Forma */}
           <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">Snapshot Stato Forma (ultime partite)</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
                 {playerId && (
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                     position="top-right"
                   />
                 )}
-                <h4 className="text-lg font-semibold mb-4">Winrate Trend</h4>
+                <h4 className="text-lg font-semibold mb-2">Winrate Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
                     {winrateTrend.label}
@@ -259,7 +259,7 @@ export default function DashboardPage() {
                     position="top-right"
                   />
                 )}
-                <h4 className="text-lg font-semibold mb-4">KDA Trend</h4>
+                <h4 className="text-lg font-semibold mb-2">KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
                     {kdaTrend.label}
@@ -286,7 +286,7 @@ export default function DashboardPage() {
 
               {/* Farm Trend Card */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-lg font-semibold mb-4">Farm Trend</h4>
+                <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-gray-400">GPM: </span>
@@ -304,7 +304,7 @@ export default function DashboardPage() {
 
               {/* Insight Automatico Card */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-lg font-semibold mb-4">Insight Automatico</h4>
+                <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
                 <p className="text-sm text-gray-300">{getInsight()}</p>
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function DashboardPage() {
                 />
               )}
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Trend Ultime 10 Partite</h3>
+                <h3 className="text-xl font-semibold mb-3">Trend Ultime 10 Partite</h3>
                 <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
               </div>
               <ResponsiveContainer width="100%" height={300}>
@@ -370,7 +370,7 @@ export default function DashboardPage() {
 
           {/* Quick Stats Cards */}
           {stats.advanced && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
@@ -413,7 +413,7 @@ export default function DashboardPage() {
           {stats.matches.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Ultime Partite</h3>
+                <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
                 <Link
                   href="/dashboard/matches"
                   className="text-sm text-red-400 hover:text-red-300"
@@ -453,7 +453,7 @@ export default function DashboardPage() {
           {/* Quick Links to Deep Analysis */}
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">🔍 Analisi Approfondite</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <Link
                 href="/dashboard/performance"
                 className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
@@ -501,7 +501,7 @@ export default function DashboardPage() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-semibold mb-2">Profilo Giocatore</h3>
+                <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
                 <div className="space-y-1">
                   <div>
                     <span className="text-gray-400">Player ID: </span>

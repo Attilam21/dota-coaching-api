@@ -165,7 +165,7 @@ export default function MatchesPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-2">
-                      <h3 className="text-xl font-semibold text-white">
+                      <h3 className="text-2xl font-semibold text-white">
                         {getHeroName(match.hero_id)}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${

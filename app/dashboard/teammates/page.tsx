@@ -300,7 +300,7 @@ export default function TeammatesPage() {
           {/* Compact Insights */}
           {insights && insights.insights.length > 0 && (
             <div className="mb-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-4">
-              <h2 className="text-lg font-semibold mb-3 text-blue-300">💡 Insights & Sinergie</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-blue-300">💡 Insights & Sinergie</h2>
               <div className="flex flex-wrap gap-2">
                 {insights.insights.map((insight, idx) => (
                   <span 
@@ -384,7 +384,7 @@ export default function TeammatesPage() {
                   position="top-right"
                 />
               )}
-              <h3 className="text-lg font-semibold mb-4">Top 10 Winrate</h3>
+              <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -416,7 +416,7 @@ export default function TeammatesPage() {
           {filteredAndSortedTeammates.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700">
-                <h2 className="text-lg font-semibold">Lista Compagni</h2>
+                <h2 className="text-2xl font-semibold">Lista Compagni</h2>
                 <p className="text-xs text-gray-400 mt-1">
                   {filteredAndSortedTeammates.length} {filteredAndSortedTeammates.length === 1 ? 'compagno trovato' : 'compagni trovati'}
                 </p>

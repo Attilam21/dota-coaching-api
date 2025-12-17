@@ -144,8 +144,8 @@ export default function HeroesPage() {
                 position="top-right"
               />
             )}
-            <h2 className="text-xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
-            <ResponsiveContainer width="100%" height={400}>
+            <h2 className="text-2xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
@@ -166,7 +166,7 @@ export default function HeroesPage() {
           {/* Heroes Table */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-gray-700">
-              <h2 className="text-xl font-semibold">Statistiche Heroes</h2>
+              <h2 className="text-2xl font-semibold">Statistiche Heroes</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">

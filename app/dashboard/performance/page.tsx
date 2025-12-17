@@ -179,7 +179,7 @@ export default function PerformancePage() {
             )}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold mb-1">Stile di Gioco Identificato</h2>
+                <h2 className="text-2xl font-semibold mb-4">Stile di Gioco Identificato</h2>
                 <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
                 <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
               </div>
@@ -188,7 +188,7 @@ export default function PerformancePage() {
           </div>
 
           {/* Performance Overview - Smaller Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors relative">
               {playerId && (
                 <InsightBadge
@@ -241,8 +241,8 @@ export default function PerformancePage() {
                   position="top-right"
                 />
               )}
-              <h3 className="text-lg font-semibold mb-3">Trend Performance (Ultime 10 Partite)</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <h3 className="text-xl font-semibold mb-3">Trend Performance (Ultime 10 Partite)</h3>
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={stats.matches.slice(0, 10).map((m, idx) => ({
                   match: `M${idx + 1}`,
                   kda: m.kda,
@@ -273,7 +273,7 @@ export default function PerformancePage() {
             {/* Radar Chart - Compact */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold">Profilo Performance</h3>
+                <h3 className="text-xl font-semibold">Profilo Performance</h3>
                 <span className="text-xs text-gray-400">Multi-dimensionale</span>
               </div>
               {radarData.length > 0 ? (
@@ -309,8 +309,8 @@ export default function PerformancePage() {
             {/* Additional Metrics Bar Chart */}
             {stats.advanced && (
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Metriche Chiave</h3>
-                <ResponsiveContainer width="100%" height={280}>
+                <h3 className="text-xl font-semibold mb-3">Metriche Chiave</h3>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={[
                     { name: 'Last Hits', value: stats.advanced.lane.avgLastHits },
                     { name: 'Hero Damage', value: Math.round(stats.advanced.fights.avgHeroDamage / 1000) },
@@ -375,7 +375,7 @@ export default function PerformancePage() {
 
           {/* Playstyle-Specific Recommendations */}
           <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-purple-300">🎯 Suggerimenti per il Tuo Stile di Gioco</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-purple-300">🎯 Suggerimenti per il Tuo Stile di Gioco</h3>
             <div className="space-y-3">
               {stats.playstyle.includes('Farm Focus') && (
                 <>

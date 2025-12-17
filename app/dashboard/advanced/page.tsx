@@ -77,7 +77,7 @@ export default function AdvancedPage() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {analysisCards.map((card) => (
           <Link
             key={card.href}
@@ -87,7 +87,7 @@ export default function AdvancedPage() {
             <div className="flex items-start gap-4">
               <div className="text-4xl">{card.icon}</div>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">{card.title}</h3>
+                <h3 className="text-2xl font-semibold mb-2">{card.title}</h3>
                 <p className="text-gray-400 text-sm">{card.description}</p>
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function AdvancedPage() {
       </div>
 
       <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Analisi Approfondite</h2>
+        <h2 className="text-2xl font-semibold mb-4">Analisi Approfondite</h2>
         <p className="text-gray-400 mb-4">
           Le analisi avanzate forniscono metriche dettagliate e visualizzazioni approfondite delle tue performance di gioco.
         </p>
