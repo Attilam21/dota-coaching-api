@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import ItemCard from '@/components/ItemCard'
 
 interface BuildData {
   overall: {
@@ -18,6 +19,7 @@ interface BuildData {
   topItems: Array<{
     item_id: number
     item_name: string
+    item_internal_name?: string
     frequency: number
     winrate: number
     avgGold: number
@@ -26,6 +28,7 @@ interface BuildData {
   buildPatterns: Array<{
     items: number[]
     itemNames: string[]
+    itemDetails?: Array<{ id: number; name: string; internal_name: string }>
     frequency: number
     winrate: number
     usageRate: number
@@ -39,6 +42,7 @@ interface HeroBuildData {
   topBuilds: Array<{
     items: number[]
     itemNames: string[]
+    itemDetails?: Array<{ id: number; name: string; internal_name: string }>
     frequency: number
     winrate: number
     usageRate: number
@@ -46,6 +50,7 @@ interface HeroBuildData {
   topItems: Array<{
     item_id: number
     item_name: string
+    item_internal_name?: string
     frequency: number
     winrate: number
     usageRate: number
@@ -53,6 +58,7 @@ interface HeroBuildData {
   buildWinrates: Array<{
     items: number[]
     itemNames: string[]
+    itemDetails?: Array<{ id: number; name: string; internal_name: string }>
     frequency: number
     winrate: number
     usageRate: number
@@ -63,6 +69,7 @@ interface ItemStats {
   topItems: Array<{
     item_id: number
     item_name: string
+    item_internal_name?: string
     frequency: number
     winrate: number
     usageRate: number
@@ -73,6 +80,7 @@ interface ItemStats {
   underutilizedItems: Array<{
     item_id: number
     item_name: string
+    item_internal_name?: string
     frequency: number
     winrate: number
     usageRate: number
@@ -80,6 +88,7 @@ interface ItemStats {
   overpurchasedItems: Array<{
     item_id: number
     item_name: string
+    item_internal_name?: string
     frequency: number
     winrate: number
     usageRate: number
@@ -273,19 +282,21 @@ export default function BuildsPage() {
                   playerId={playerId}
                 />
               </div>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={buildData.topItems.slice(0, 10)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="item_name" angle={-45} textAnchor="end" height={100} stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                {buildData.topItems.slice(0, 20).map((item) => (
+                  <ItemCard
+                    key={item.item_id}
+                    itemId={item.item_id}
+                    itemName={item.item_name}
+                    itemInternalName={item.item_internal_name}
+                    frequency={item.frequency}
+                    winrate={item.winrate}
+                    cost={item.avgGold}
+                    size="md"
+                    showStats={true}
                   />
-                  <Legend />
-                  <Bar dataKey="frequency" fill="#3b82f6" name="Frequenza" />
-                  <Bar dataKey="winrate" fill="#10b981" name="Winrate %" />
-                </BarChart>
-              </ResponsiveContainer>
+                ))}
+              </div>
             </div>
 
             {/* Top Build Patterns */}
@@ -299,23 +310,38 @@ export default function BuildsPage() {
                   playerId={playerId}
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {buildData.buildPatterns.slice(0, 10).map((build, idx) => (
                   <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {build.itemNames.map((name, i) => (
-                          <span key={i} className="bg-gray-600 px-2 py-1 rounded text-sm">
-                            {name}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`font-semibold ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                          {build.winrate}% WR
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold text-lg ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                          {build.winrate.toFixed(1)}% WR
                         </span>
-                        <span className="text-gray-400 text-sm">{build.frequency}x</span>
+                        <span className="text-gray-400 text-sm">({build.frequency}x usato)</span>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                      {build.itemDetails && build.itemDetails.length > 0 ? (
+                        build.itemDetails.map((item, i) => (
+                          <ItemCard
+                            key={`${item.id}-${i}`}
+                            itemId={item.id}
+                            itemName={item.name}
+                            itemInternalName={item.internal_name}
+                            size="sm"
+                          />
+                        ))
+                      ) : (
+                        build.items.map((itemId, i) => (
+                          <ItemCard
+                            key={`${itemId}-${i}`}
+                            itemId={itemId}
+                            itemName={build.itemNames[i] || `Item ${itemId}`}
+                            size="sm"
+                          />
+                        ))
+                      )}
                     </div>
                   </div>
                 ))}
@@ -378,14 +404,18 @@ export default function BuildsPage() {
                   {/* Top Items for Hero */}
                   <div className="mb-6">
                     <h3 className="text-lg font-medium mb-3">Item Più Utilizzati</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {heroBuildData.topItems.slice(0, 8).map((item) => (
-                        <div key={item.item_id} className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
-                          <div className="font-medium text-sm mb-1">{item.item_name}</div>
-                          <div className="text-xs text-gray-400">
-                            {item.frequency}x • {item.winrate}% WR
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                      {heroBuildData.topItems.slice(0, 15).map((item) => (
+                        <ItemCard
+                          key={item.item_id}
+                          itemId={item.item_id}
+                          itemName={item.item_name}
+                          itemInternalName={item.item_internal_name}
+                          frequency={item.frequency}
+                          winrate={item.winrate}
+                          size="md"
+                          showStats={true}
+                        />
                       ))}
                     </div>
                   </div>
@@ -393,23 +423,38 @@ export default function BuildsPage() {
                   {/* Top Builds by Winrate */}
                   <div>
                     <h3 className="text-lg font-medium mb-3">Build Più Efficaci (Winrate)</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {heroBuildData.buildWinrates.slice(0, 5).map((build, idx) => (
                         <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {build.itemNames.map((name, i) => (
-                                <span key={i} className="bg-gray-600 px-2 py-1 rounded text-sm">
-                                  {name}
-                                </span>
-                              ))}
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className={`font-semibold ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                                {build.winrate}% WR
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-semibold text-lg ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                                {build.winrate.toFixed(1)}% WR
                               </span>
-                              <span className="text-gray-400 text-sm">{build.frequency}x</span>
+                              <span className="text-gray-400 text-sm">({build.frequency}x usato)</span>
                             </div>
+                          </div>
+                          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                            {build.itemDetails && build.itemDetails.length > 0 ? (
+                              build.itemDetails.map((item, i) => (
+                                <ItemCard
+                                  key={`${item.id}-${i}`}
+                                  itemId={item.id}
+                                  itemName={item.name}
+                                  itemInternalName={item.internal_name}
+                                  size="sm"
+                                />
+                              ))
+                            ) : (
+                              build.items.map((itemId, i) => (
+                                <ItemCard
+                                  key={`${itemId}-${i}`}
+                                  itemId={itemId}
+                                  itemName={build.itemNames[i] || `Item ${itemId}`}
+                                  size="sm"
+                                />
+                              ))
+                            )}
                           </div>
                         </div>
                       ))}
@@ -438,13 +483,18 @@ export default function BuildsPage() {
               <p className="text-gray-400 text-sm mb-4">
                 Item con winrate alto ma bassa frequenza d'uso - considera di usarli più spesso
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                 {itemStats.underutilizedItems.map((item) => (
-                  <div key={item.item_id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <div className="font-medium mb-1">{item.item_name}</div>
-                    <div className="text-sm text-green-400 font-semibold">{item.winrate}% WR</div>
-                    <div className="text-xs text-gray-400 mt-1">Usato {item.frequency}x ({item.usageRate.toFixed(1)}%)</div>
-                  </div>
+                  <ItemCard
+                    key={item.item_id}
+                    itemId={item.item_id}
+                    itemName={item.item_name}
+                    itemInternalName={item.item_internal_name}
+                    frequency={item.frequency}
+                    winrate={item.winrate}
+                    size="md"
+                    showStats={true}
+                  />
                 ))}
               </div>
             </div>
@@ -463,13 +513,18 @@ export default function BuildsPage() {
               <p className="text-gray-400 text-sm mb-4">
                 Item acquistati spesso ma con winrate basso - valuta alternative
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                 {itemStats.overpurchasedItems.map((item) => (
-                  <div key={item.item_id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <div className="font-medium mb-1">{item.item_name}</div>
-                    <div className="text-sm text-red-400 font-semibold">{item.winrate}% WR</div>
-                    <div className="text-xs text-gray-400 mt-1">Usato {item.frequency}x ({item.usageRate.toFixed(1)}%)</div>
-                  </div>
+                  <ItemCard
+                    key={item.item_id}
+                    itemId={item.item_id}
+                    itemName={item.item_name}
+                    itemInternalName={item.item_internal_name}
+                    frequency={item.frequency}
+                    winrate={item.winrate}
+                    size="md"
+                    showStats={true}
+                  />
                 ))}
               </div>
             </div>
@@ -521,25 +576,35 @@ export default function BuildsPage() {
               <div className="space-y-4">
                 {buildData.buildPatterns.slice(0, 10).map((build, idx) => (
                   <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          {build.itemNames.map((name, i) => (
-                            <span key={i} className="bg-gray-600 px-2 py-1 rounded text-sm">
-                              {name}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          Utilizzata {build.frequency} volte ({build.usageRate.toFixed(1)}% delle partite)
-                        </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold text-lg ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                          {build.winrate.toFixed(1)}% WR
+                        </span>
+                        <span className="text-gray-400 text-sm">({build.frequency}x usato)</span>
                       </div>
-                      <div className="ml-4 text-right">
-                        <div className={`text-2xl font-bold ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                          {build.winrate}%
-                        </div>
-                        <div className="text-xs text-gray-400">Winrate</div>
-                      </div>
+                    </div>
+                    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                      {build.itemDetails && build.itemDetails.length > 0 ? (
+                        build.itemDetails.map((item, i) => (
+                          <ItemCard
+                            key={`${item.id}-${i}`}
+                            itemId={item.id}
+                            itemName={item.name}
+                            itemInternalName={item.internal_name}
+                            size="sm"
+                          />
+                        ))
+                      ) : (
+                        build.items.map((itemId, i) => (
+                          <ItemCard
+                            key={`${itemId}-${i}`}
+                            itemId={itemId}
+                            itemName={build.itemNames[i] || `Item ${itemId}`}
+                            size="sm"
+                          />
+                        ))
+                      )}
                     </div>
                   </div>
                 ))}

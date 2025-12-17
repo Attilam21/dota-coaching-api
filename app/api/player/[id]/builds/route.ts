@@ -65,20 +65,26 @@ export async function GET(
     const itemsResponse = await fetch('https://api.opendota.com/api/constants/items', {
       next: { revalidate: 86400 }
     })
-    const itemsMap: Record<number, { id: number; name: string; localized_name: string; cost?: number }> = {}
+    const itemsMap: Record<number, { id: number; name: string; localized_name: string; internal_name: string; cost?: number }> = {}
+    const itemNameToIdMap: Record<string, number> = {} // Map from internal name to ID
     if (itemsResponse.ok) {
       const items = await itemsResponse.json()
       // OpenDota returns items as an object where keys are item names (e.g., "item_blink") and values are item data
       // Each item has: id, name, dname (display name), qual, cost, etc.
-      Object.values(items).forEach((item: any) => {
+      Object.entries(items).forEach(([key, item]: [string, any]) => {
         if (item.id !== undefined && item.id !== null && item.id !== 0) {
           // OpenDota uses 'dname' for display name, not 'localized_name'
           const displayName = item.dname || item.name || `Item ${item.id}`
+          const internalName = key || item.name || ''
           itemsMap[item.id] = {
             id: item.id,
             name: item.name || item.dname || '',
             localized_name: displayName,
+            internal_name: internalName,
             cost: item.cost || 0
+          }
+          if (internalName) {
+            itemNameToIdMap[internalName] = item.id
           }
         }
       })
@@ -153,13 +159,18 @@ export async function GET(
     })
 
     // Process top items
+    const missingItems: number[] = []
     const topItems = Object.entries(itemFrequency)
       .map(([itemId, stats]) => {
         const item = itemsMap[parseInt(itemId)]
+        if (!item) {
+          missingItems.push(parseInt(itemId))
+        }
         const winrate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0
         return {
           item_id: parseInt(itemId),
           item_name: item?.localized_name || `Item ${itemId}`,
+          item_internal_name: item?.internal_name || '',
           frequency: stats.count,
           winrate: parseFloat(winrate.toFixed(1)),
           avgGold: stats.totalGold / stats.count,
@@ -168,22 +179,27 @@ export async function GET(
       })
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 20)
+    
+    if (missingItems.length > 0) {
+      console.warn(`Missing items in map: ${missingItems.join(', ')}`)
+    }
 
     // Process build patterns (top 10 most common)
     const topBuildPatterns = Object.entries(buildPatterns)
       .map(([key, pattern]) => {
         const winrate = pattern.count > 0 ? (pattern.wins / pattern.count) * 100 : 0
-        const itemNames = pattern.items.map(id => {
+        const itemDetails = pattern.items.map(id => {
           const item = itemsMap[id]
-          if (item && item.localized_name) {
-            return item.localized_name
+          return {
+            id,
+            name: item?.localized_name || `Item ${id}`,
+            internal_name: item?.internal_name || ''
           }
-          // Fallback: try to get name from itemsMap or use ID
-          return item?.name || `Item ${id}`
         })
         return {
           items: pattern.items,
-          itemNames,
+          itemNames: itemDetails.map(i => i.name),
+          itemDetails, // Include full details for frontend
           frequency: pattern.count,
           winrate: parseFloat(winrate.toFixed(1)),
           usageRate: (pattern.count / totalMatches) * 100
