@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star } from 'lucide-react'
 
 interface Teammate {
   account_id: number
@@ -191,7 +192,7 @@ export default function TeammatesPage() {
           const insightsList: string[] = []
           
           if (bestTeammate && bestTeammate.winrate >= 60) {
-            insightsList.push(`🏆 Winrate migliore con ${bestTeammate.name}: ${bestTeammate.winrate.toFixed(1)}% (${bestTeammate.games} partite)`)
+            insightsList.push(`Winrate migliore con ${bestTeammate.name}: ${bestTeammate.winrate.toFixed(1)}% (${bestTeammate.games} partite)`)
           }
           
           if (highWinrateTeammates.length > 0) {
@@ -200,14 +201,14 @@ export default function TeammatesPage() {
           }
           
           if (worstTeammate && worstTeammate.winrate < 40 && worstTeammate.games >= 10) {
-            insightsList.push(`⚠️ Winrate bassa con ${worstTeammate.name}: ${worstTeammate.winrate.toFixed(1)}% (${worstTeammate.games} partite)`)
+            insightsList.push(`Winrate bassa con ${worstTeammate.name}: ${worstTeammate.winrate.toFixed(1)}% (${worstTeammate.games} partite)`)
           }
           
           const avgWinrate = validTeammates.reduce((sum, t) => sum + t.winrate, 0) / validTeammates.length
           if (avgWinrate > 55) {
-            insightsList.push(`📈 Winrate medio con i tuoi compagni: ${avgWinrate.toFixed(1)}% - Ottima sinergia di squadra!`)
+            insightsList.push(`Winrate medio con i tuoi compagni: ${avgWinrate.toFixed(1)}% - Ottima sinergia di squadra!`)
           } else if (avgWinrate < 45) {
-            insightsList.push(`📉 Winrate medio con i tuoi compagni: ${avgWinrate.toFixed(1)}% - Potresti beneficiare di un cambio di compagni`)
+            insightsList.push(`Winrate medio con i tuoi compagni: ${avgWinrate.toFixed(1)}% - Potresti beneficiare di un cambio di compagni`)
           }
           
           setInsights({
@@ -300,7 +301,10 @@ export default function TeammatesPage() {
           {/* Compact Insights */}
           {insights && insights.insights.length > 0 && (
             <div className="mb-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-4">
-              <h2 className="text-2xl font-semibold mb-4 text-blue-300">💡 Insights & Sinergie</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
+                <Lightbulb className="w-6 h-6" />
+                Insights & Sinergie
+              </h2>
               <div className="flex flex-wrap gap-2">
                 {insights.insights.map((insight, idx) => (
                   <span 
@@ -336,7 +340,7 @@ export default function TeammatesPage() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                🏆 Migliori (≥60%)
+                <Trophy className="w-4 h-4 inline mr-1" /> Migliori (≥60%)
               </button>
               <button
                 onClick={() => setFilter('most-played')}
@@ -346,7 +350,7 @@ export default function TeammatesPage() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                ⭐ Più Giocati
+                <Star className="w-4 h-4 inline mr-1" /> Più Giocati
               </button>
               <button
                 onClick={() => setFilter('synergies')}
@@ -356,7 +360,7 @@ export default function TeammatesPage() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                ✨ Sinergie (≥55%)
+                <Star className="w-4 h-4 inline mr-1" /> Sinergie (≥55%)
               </button>
             </div>
 
@@ -459,8 +463,8 @@ export default function TeammatesPage() {
                         >
                           <td className="px-4 py-2 whitespace-nowrap text-white font-medium">
                             <div className="flex items-center gap-2">
-                              {isBest && <span className="text-yellow-400" title="Miglior winrate">🏆</span>}
-                              {isHighWinrate && !isBest && <span className="text-blue-400" title="Alta sinergia">✨</span>}
+                              {isBest && <span title="Miglior winrate"><Trophy className="w-4 h-4 text-yellow-400" /></span>}
+                              {isHighWinrate && !isBest && <span title="Alta sinergia"><Star className="w-4 h-4 text-blue-400" /></span>}
                               <span className="text-sm">{teammate.name}</span>
                             </div>
                           </td>

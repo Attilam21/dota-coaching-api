@@ -8,6 +8,7 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import { AlertTriangle, Lightbulb, CheckCircle2 } from 'lucide-react'
 
 interface AdvancedStats {
   lane: {
@@ -312,28 +313,33 @@ export default function FarmEconomyPage() {
               <h3 className="text-2xl font-semibold mb-4">Insights</h3>
               <div className="space-y-2 text-sm">
                 {stats.farm.goldUtilization < 80 && (
-                  <p className="text-yellow-400">
-                    ⚠️ Gold Utilization bassa ({stats.farm.goldUtilization.toFixed(1)}%). Prova a spendere più gold in item utili.
+                  <p className="text-yellow-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Gold Utilization bassa ({stats.farm.goldUtilization.toFixed(1)}%). Prova a spendere più gold in item utili.
                   </p>
                 )}
                 {stats.farm.avgGPM < 400 && (
-                  <p className="text-orange-400">
-                    💡 GPM sotto la media. Concentrati sul farm più efficiente, ottimizza i percorsi di farm e valuta meglio i timing degli item.
+                  <p className="text-orange-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    GPM sotto la media. Concentrati sul farm più efficiente, ottimizza i percorsi di farm e valuta meglio i timing degli item.
                   </p>
                 )}
                 {stats.farm.avgBuybacks > 1 && (
-                  <p className="text-purple-400">
-                    💡 Buyback frequenti ({stats.farm.avgBuybacks.toFixed(1)}/game). Valuta meglio quando è utile comprare.
+                  <p className="text-purple-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    Buyback frequenti ({stats.farm.avgBuybacks.toFixed(1)}/game). Valuta meglio quando è utile comprare.
                   </p>
                 )}
                 {parseFloat(stats.farm.buybackEfficiency) < 50 && stats.farm.buybackUsageRate > 30 && (
-                  <p className="text-red-400">
-                    ⚠️ Buyback efficiency bassa ({stats.farm.buybackEfficiency}%). I tuoi buyback spesso non portano a vittoria. Usali solo in situazioni critiche.
+                  <p className="text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Buyback efficiency bassa ({stats.farm.buybackEfficiency}%). I tuoi buyback spesso non portano a vittoria. Usali solo in situazioni critiche.
                   </p>
                 )}
                 {parseFloat(stats.farm.buybackEfficiency) > 70 && (
-                  <p className="text-green-400">
-                    ✅ Ottima buyback efficiency ({stats.farm.buybackEfficiency}%). Stai usando i buyback efficacemente.
+                  <p className="text-green-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Ottima buyback efficiency ({stats.farm.buybackEfficiency}%). Stai usando i buyback efficacemente.
                   </p>
                 )}
               </div>

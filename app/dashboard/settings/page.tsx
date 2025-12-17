@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
+import { Info } from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -194,9 +195,10 @@ export default function SettingsPage() {
                   OpenDota
                 </a>
               </p>
-              <p className="text-xs text-blue-400 mt-2">
-                ℹ️ Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.
-              </p>
+              <div className="text-xs text-blue-400 mt-2 flex items-center gap-2">
+                <Info className="w-3 h-3" />
+                <span>Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.</span>
+              </div>
             </div>
 
             <button

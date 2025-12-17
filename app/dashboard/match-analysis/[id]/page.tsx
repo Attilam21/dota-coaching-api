@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import WardMap from '@/components/WardMap'
-import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy } from 'lucide-react'
+import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy, TrendingUp, TrendingDown } from 'lucide-react'
 
 interface MatchData {
   match_id: number
@@ -457,7 +457,10 @@ export default function MatchAnalysisDetailPage() {
               {/* Confronto con Media - NEW FEATURE */}
               {currentPlayer && playerStats && (
                 <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-                  <h3 className="text-2xl font-semibold mb-4 text-blue-300">📈 Confronto con la Tua Media</h3>
+                  <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
+                    <TrendingUp className="w-6 h-6" />
+                    Confronto con la Tua Media
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                       { label: 'GPM', current: currentPlayer.gold_per_min, avg: playerStats.avgGpm },
@@ -475,8 +478,8 @@ export default function MatchAnalysisDetailPage() {
                           <div className="text-sm text-gray-400 mb-1">{metric.label}</div>
                           <div className="text-2xl font-bold text-white mb-1">{metric.current.toFixed(metric.label === 'KDA' ? 2 : 0)}</div>
                           {comparison && (
-                            <div className={`text-sm font-semibold ${comparison.isBetter ? 'text-green-400' : 'text-red-400'}`}>
-                              vs media: {metric.avg.toFixed(metric.label === 'KDA' ? 2 : 0)} ({comparison.isBetter ? '+' : ''}{comparison.percent}% {comparison.isBetter ? '↗️' : '↘️'})
+                            <div className={`text-sm font-semibold flex items-center gap-1 ${comparison.isBetter ? 'text-green-400' : 'text-red-400'}`}>
+                              vs media: {metric.avg.toFixed(metric.label === 'KDA' ? 2 : 0)} ({comparison.isBetter ? '+' : ''}{comparison.percent}% {comparison.isBetter ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />})
                             </div>
                           )}
                         </div>

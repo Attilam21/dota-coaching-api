@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Info } from 'lucide-react'
 
 interface WardPosition {
   x: number
@@ -577,9 +578,10 @@ export default function WardMap({
       {/* Info message when no data */}
       {observerWards.length === 0 && sentryWards.length === 0 && (
         <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center">
-          <p className="text-yellow-200 text-sm">
-            ℹ️ Nessuna ward trovata nelle partite analizzate. Le partite potrebbero non avere replay disponibili o dati wardmap.
-          </p>
+          <div className="text-yellow-200 text-sm flex items-center justify-center gap-2">
+            <Info className="w-4 h-4" />
+            <span>Nessuna ward trovata nelle partite analizzate. Le partite potrebbero non avere replay disponibili o dati wardmap.</span>
+          </div>
         </div>
       )}
     </div>

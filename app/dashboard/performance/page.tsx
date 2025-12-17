@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
-import { BarChart as BarChartIcon, Target, Lightbulb } from 'lucide-react'
+import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info } from 'lucide-react'
 
 interface PerformanceStats {
   avgKDA: number
@@ -310,8 +310,9 @@ export default function PerformancePage() {
                 )}
               </div>
               {benchmarks.source === 'calculated' && (
-                <p className="text-xs text-gray-500 mt-4">
-                  ℹ️ Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
+                <p className="text-xs text-gray-500 mt-4 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
                 </p>
               )}
             </div>
@@ -535,8 +536,9 @@ export default function PerformancePage() {
             <div className="space-y-3">
               {stats.playstyle.includes('Farm Focus') && (
                 <>
-                  <p className="text-sm text-purple-200">
-                    💰 <strong>Farm Focus:</strong> Il tuo stile è orientato al farm. Per migliorare:
+                  <p className="text-sm text-purple-200 flex items-center gap-2">
+                    <Coins className="w-4 h-4" />
+                    <strong>Farm Focus:</strong> Il tuo stile è orientato al farm. Per migliorare:
                   </p>
                   <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
                     <li>Ottimizza i percorsi di farm per massimizzare GPM</li>
@@ -552,8 +554,9 @@ export default function PerformancePage() {
               )}
               {(stats.playstyle.includes('Aggressivo') || stats.playstyle.includes('Teamfight')) && (
                 <>
-                  <p className="text-sm text-purple-200">
-                    ⚔️ <strong>Aggressivo/Teamfight Focus:</strong> Sei un giocatore da teamfight. Per migliorare:
+                  <p className="text-sm text-purple-200 flex items-center gap-2">
+                    <Sword className="w-4 h-4" />
+                    <strong>Aggressivo/Teamfight Focus:</strong> Sei un giocatore da teamfight. Per migliorare:
                   </p>
                   <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
                     <li>Continua a partecipare attivamente ai teamfight</li>
@@ -571,8 +574,9 @@ export default function PerformancePage() {
               )}
               {stats.playstyle.includes('Support') && (
                 <>
-                  <p className="text-sm text-purple-200">
-                    🛡️ <strong>Support/Utility Focus:</strong> Il tuo ruolo è di supporto. Per migliorare:
+                  <p className="text-sm text-purple-200 flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    <strong>Support/Utility Focus:</strong> Il tuo ruolo è di supporto. Per migliorare:
                   </p>
                   <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
                     {stats.advanced && stats.advanced.vision.avgObserverPlaced < 5 && (
@@ -592,8 +596,9 @@ export default function PerformancePage() {
               )}
               {stats.playstyle === 'Bilanciato' && (
                 <>
-                  <p className="text-sm text-purple-200">
-                    ⚖️ <strong>Bilanciato:</strong> Hai uno stile equilibrato. Per migliorare:
+                  <p className="text-sm text-purple-200 flex items-center gap-2">
+                    <Scale className="w-4 h-4" />
+                    <strong>Bilanciato:</strong> Hai uno stile equilibrato. Per migliorare:
                   </p>
                   <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
                     {stats.avgGPM < 450 && (

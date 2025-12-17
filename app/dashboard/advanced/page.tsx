@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import { Target, Coins, Sword, Map } from 'lucide-react'
 
 export default function AdvancedPage() {
   const { user, loading: authLoading } = useAuth()
@@ -34,28 +35,28 @@ export default function AdvancedPage() {
   const analysisCards = [
     {
       title: 'Lane & Early Game',
-      icon: '🎯',
+      icon: Target,
       description: 'Analisi della fase di lane e early game: CS, XP, lane winrate, first blood involvement.',
       href: '/dashboard/advanced/lane-early',
       color: 'border-green-700',
     },
     {
       title: 'Farm & Economy',
-      icon: '💰',
+      icon: Coins,
       description: 'Efficienza di farm e economy: GPM, XPM, dead gold, item timing, gold lead.',
       href: '/dashboard/advanced/farm-economy',
       color: 'border-yellow-700',
     },
     {
       title: 'Fights & Damage',
-      icon: '⚔️',
+      icon: Sword,
       description: 'Contributo ai fight e damage output: kill participation, damage share, teamfight impact.',
       href: '/dashboard/advanced/fights-damage',
       color: 'border-red-700',
     },
     {
       title: 'Vision & Map Control',
-      icon: '🗺️',
+      icon: Map,
       description: 'Controllo mappa e visione: wards piazzate/rimosse, heatmap posizioni, map control.',
       href: '/dashboard/advanced/vision-control',
       color: 'border-blue-700',
@@ -85,7 +86,9 @@ export default function AdvancedPage() {
             className={`bg-gray-800 border ${card.color} rounded-lg p-6 hover:bg-gray-700/50 transition cursor-pointer`}
           >
             <div className="flex items-start gap-4">
-              <div className="text-4xl">{card.icon}</div>
+              <div className="text-red-400">
+                <card.icon className="w-10 h-10" />
+              </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-2">{card.title}</h3>
                 <p className="text-gray-400 text-sm">{card.description}</p>

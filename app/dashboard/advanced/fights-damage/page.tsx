@@ -8,6 +8,7 @@ import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiu
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import { AlertTriangle, Lightbulb } from 'lucide-react'
 
 interface AdvancedStats {
   fights: {
@@ -281,38 +282,45 @@ export default function FightsDamagePage() {
               <h3 className="text-2xl font-semibold mb-4">Insights</h3>
               <div className="space-y-2 text-sm">
                 {stats.fights.killParticipation < 50 && (
-                  <p className="text-yellow-400">
-                    ⚠️ Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
+                  <p className="text-yellow-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
                   </p>
                 )}
                 {parseFloat(stats.fights.damagePerMinute) < 300 && (
-                  <p className="text-orange-400">
-                    💡 Damage per minuto basso ({stats.fights.damagePerMinute}). Aumenta la partecipazione ai fight.
+                  <p className="text-orange-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    Damage per minuto basso ({stats.fights.damagePerMinute}). Aumenta la partecipazione ai fight.
                   </p>
                 )}
                 {parseFloat(stats.fights.deathsPerMinute) > 0.15 && (
-                  <p className="text-red-400">
-                    ⚠️ Troppe morti per minuto ({stats.fights.deathsPerMinute}). Migliora il positioning e la mappa awareness.
+                  <p className="text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Troppe morti per minuto ({stats.fights.deathsPerMinute}). Migliora il positioning e la mappa awareness.
                   </p>
                 )}
                 {parseFloat(stats.fights.teamfightParticipation) < 5 && (
-                  <p className="text-yellow-400">
-                    💡 Teamfight participation bassa ({stats.fights.teamfightParticipation}). Sii più presente nei fight principali.
+                  <p className="text-yellow-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    Teamfight participation bassa ({stats.fights.teamfightParticipation}). Sii più presente nei fight principali.
                   </p>
                 )}
                 {stats.fights.damageEfficiency < 10000 && (
-                  <p className="text-orange-400">
-                    💡 Damage Efficiency migliorabile ({Math.round(stats.fights.damageEfficiency).toLocaleString()}). Prova a fare più damage prima di morire.
+                  <p className="text-orange-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    Damage Efficiency migliorabile ({Math.round(stats.fights.damageEfficiency).toLocaleString()}). Prova a fare più damage prima di morire.
                   </p>
                 )}
                 {stats.fights.avgTowerDamage < 1000 && (
-                  <p className="text-blue-400">
-                    💡 Tower Damage basso. Concentrati di più sul push delle torri.
+                  <p className="text-blue-400 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    Tower Damage basso. Concentrati di più sul push delle torri.
                   </p>
                 )}
                 {stats.fights.avgDeaths > 8 && (
-                  <p className="text-red-400">
-                    ⚠️ Troppe morti in media ({stats.fights.avgDeaths.toFixed(1)}). Migliora il positioning.
+                  <p className="text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Troppe morti in media ({stats.fights.avgDeaths.toFixed(1)}). Migliora il positioning.
                   </p>
                 )}
               </div>

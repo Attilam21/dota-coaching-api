@@ -8,6 +8,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb } from 'lucide-react'
 
 interface PlayerProfile {
   role: string
@@ -248,7 +249,10 @@ export default function ProfilingPage() {
           {/* Trends */}
           {profile.trends && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-              <h3 className="text-xl font-semibold mb-4">📈 Trend Performance</h3>
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Trend Performance
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
                   <InsightBadge
@@ -424,7 +428,10 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h3 className="text-2xl font-semibold mb-4">📊 Trend Performance (Ultime 10 Partite)</h3>
+              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <BarChartIcon className="w-6 h-6" />
+                Trend Performance (Ultime 10 Partite)
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={profile.trendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -449,7 +456,10 @@ export default function ProfilingPage() {
           {/* Phase Analysis */}
           {profile.phaseAnalysis && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">⚔️ Performance per Fase di Gioco</h3>
+              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <Sword className="w-6 h-6" />
+                Performance per Fase di Gioco
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-700/50 rounded-lg p-4 relative">
                   <InsightBadge
@@ -536,7 +546,10 @@ export default function ProfilingPage() {
           {/* Advanced Metrics Grid */}
           {profile.metrics && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">📊 Metriche Avanzate</h3>
+              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <BarChartIcon className="w-6 h-6" />
+                Metriche Avanzate
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {profile.metrics.avgHeroDamage && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-red-700/30">
@@ -612,7 +625,10 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h3 className="text-2xl font-semibold mb-4 text-indigo-300">📊 Analisi Comparativa - {profile.role}</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">
+                <BarChartIcon className="w-6 h-6" />
+                Analisi Comparativa - {profile.role}
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-800/60 rounded-lg p-4 border border-indigo-600/30">
                   <p className="text-sm text-gray-300 mb-2">GPM vs Benchmark Ruolo</p>
@@ -653,7 +669,10 @@ export default function ProfilingPage() {
           {/* Efficiency & Impact Metrics */}
           {profile.metrics && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">⚡ Efficienza & Impatto</h3>
+              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <Zap className="w-6 h-6" />
+                Efficienza & Impatto
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-emerald-900/50 to-emerald-800/30 rounded-lg p-4 border border-emerald-700/50">
                   <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Gold Efficiency</p>
@@ -691,7 +710,10 @@ export default function ProfilingPage() {
           {/* Performance Insights */}
           {profile.phaseAnalysis && (
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">🎯 Insights Performance per Fase</h3>
+              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <Target className="w-6 h-6" />
+                Insights Performance per Fase
+              </h3>
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-green-900/40 to-green-800/20 rounded-lg p-4 border border-green-700/30">
                   <div className="flex items-center justify-between mb-2">
@@ -705,8 +727,8 @@ export default function ProfilingPage() {
                   </p>
                   <p className="text-xs text-gray-400">
                     {profile.phaseAnalysis.early.strength === 'Forti' 
-                      ? '✅ Ottime performance nella fase di laning. Mantieni questo livello di attenzione ai dettagli.'
-                      : '⚠️ Concentrati sul miglioramento della fase di laning. Pratica il last hitting e controlla meglio la lane.'}
+                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime performance nella fase di laning. Mantieni questo livello di attenzione ai dettagli.</span>
+                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Concentrati sul miglioramento della fase di laning. Pratica il last hitting e controlla meglio la lane.</span>}
                   </p>
                 </div>
                 <div className="bg-gradient-to-r from-blue-900/40 to-blue-800/20 rounded-lg p-4 border border-blue-700/30">
@@ -721,8 +743,8 @@ export default function ProfilingPage() {
                   </p>
                   <p className="text-xs text-gray-400">
                     {profile.phaseAnalysis.mid.strength === 'Forti'
-                      ? '✅ Eccellente presenza nei teamfight e gestione del farm in mid game.'
-                      : '⚠️ Aumenta la partecipazione ai teamfight e mantieni il farm anche durante le rotazioni.'}
+                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Eccellente presenza nei teamfight e gestione del farm in mid game.</span>
+                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Aumenta la partecipazione ai teamfight e mantieni il farm anche durante le rotazioni.</span>}
                   </p>
                 </div>
                 <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/20 rounded-lg p-4 border border-purple-700/30">
@@ -737,8 +759,8 @@ export default function ProfilingPage() {
                   </p>
                   <p className="text-xs text-gray-400">
                     {profile.phaseAnalysis.late.strength === 'Forti'
-                      ? '✅ Ottime decisioni in late game e gestione efficiente delle risorse.'
-                      : '⚠️ Migliora il decision making in late game e l\'utilizzo del gold per item critici.'}
+                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime decisioni in late game e gestione efficiente delle risorse.</span>
+                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Migliora il decision making in late game e l\'utilizzo del gold per item critici.</span>}
                   </p>
                 </div>
               </div>
@@ -842,7 +864,8 @@ export default function ProfilingPage() {
           {profile.recommendations && profile.recommendations.length > 0 && (
             <div className="bg-gradient-to-r from-blue-900/80 to-indigo-900/80 backdrop-blur-sm border-2 border-blue-700 rounded-lg p-6">
               <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
-                <span>💡</span> Raccomandazioni Personalizzate
+                <Lightbulb className="w-6 h-6" />
+                Raccomandazioni Personalizzate
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {profile.recommendations.map((rec, idx) => (

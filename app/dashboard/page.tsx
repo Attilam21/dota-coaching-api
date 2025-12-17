@@ -402,7 +402,7 @@ export default function DashboardPage() {
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
-                  <span className="text-2xl">⚔️</span>
+                  <Sword className="w-6 h-6" />
                 </div>
                 <p className="text-3xl font-bold text-white">{stats.advanced.lane.avgLastHits.toFixed(1)}</p>
                 <p className="text-xs text-gray-500 mt-1">Media per partita</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { BarChart, Target, Trophy } from 'lucide-react'
 
 export default function HomeContent() {
   const [matchId, setMatchId] = useState('')
@@ -61,21 +62,21 @@ export default function HomeContent() {
         {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-lg">
-            <div className="text-4xl mb-4">📊</div>
+            <BarChart className="w-12 h-12 mx-auto mb-4 text-blue-400" />
             <h3 className="text-xl font-semibold mb-2 text-white">Analisi Partite</h3>
             <p className="text-gray-400">
               Analisi approfondita delle tue partite con insights basati su IA su efficienza farm, posizionamento e decision-making.
             </p>
           </div>
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-lg">
-            <div className="text-4xl mb-4">🎯</div>
+            <Target className="w-12 h-12 mx-auto mb-4 text-red-400" />
             <h3 className="text-xl font-semibold mb-2 text-white">Percorsi di Apprendimento</h3>
             <p className="text-gray-400">
               Moduli di training personalizzati adattati al tuo livello di skill e preferenze di ruolo.
             </p>
           </div>
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-lg">
-            <div className="text-4xl mb-4">🏆</div>
+            <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-400" />
             <h3 className="text-xl font-semibold mb-2 text-white">Tracking Performance</h3>
             <p className="text-gray-400">
               Traccia il tuo progresso con statistiche dettagliate, analisi avanzate e suggerimenti personalizzati.

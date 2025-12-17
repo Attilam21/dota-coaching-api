@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { Gamepad2 } from 'lucide-react'
 
 export default function AnalysisPage() {
   const { user, loading } = useAuth()
@@ -44,7 +45,7 @@ export default function AnalysisPage() {
             className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-700/50 transition-colors"
           >
             <div className="flex items-center gap-4 mb-4">
-              <div className="text-4xl">🎮</div>
+              <Gamepad2 className="w-12 h-12 mx-auto text-purple-400" />
               <h2 className="text-2xl font-semibold text-white">Analisi Partita</h2>
             </div>
             <p className="text-gray-400">

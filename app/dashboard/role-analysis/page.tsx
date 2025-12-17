@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import { Lightbulb } from 'lucide-react'
 
 interface RolePerformance {
   games: number
@@ -305,7 +306,10 @@ export default function RoleAnalysisPage() {
           {/* Recommendations */}
           {analysis.recommendations.length > 0 && (
             <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Raccomandazioni</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
+                <Lightbulb className="w-6 h-6" />
+                Raccomandazioni
+              </h3>
               <ul className="space-y-2">
                 {analysis.recommendations.map((rec, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-blue-300">

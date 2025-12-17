@@ -8,6 +8,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import { Lightbulb, AlertTriangle, CheckCircle2 } from 'lucide-react'
 
 interface AdvancedStats {
   vision: {
@@ -281,46 +282,57 @@ export default function VisionControlPage() {
 
           {/* Insights */}
           <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Vision & Map Control</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
+              <Lightbulb className="w-6 h-6" />
+              Insights Vision & Map Control
+            </h3>
             <div className="space-y-2 text-sm text-blue-300">
               {stats.vision.avgObserverPlaced < 5 && (
-                <p>
-                  ⚠️ Observer wards piazzate basse ({stats.vision.avgObserverPlaced.toFixed(1)}). Se giochi support, aumenta il numero di wards.
+                <p className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                  Observer wards piazzate basse ({stats.vision.avgObserverPlaced.toFixed(1)}). Se giochi support, aumenta il numero di wards.
                 </p>
               )}
               {stats.vision.wardEfficiency > 40 && (
-                <p>
-                  ✅ Ottima ward efficiency ({stats.vision.wardEfficiency.toFixed(1)}%). Stai uccidendo efficacemente le wards nemiche.
+                <p className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  Ottima ward efficiency ({stats.vision.wardEfficiency.toFixed(1)}%). Stai uccidendo efficacemente le wards nemiche.
                 </p>
               )}
               {stats.vision.avgObserverKilled < 1 && (
-                <p>
-                  💡 Observer killed basse. Cerca attivamente le wards nemiche con sentry o con visione.
+                <p className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-blue-400" />
+                  Observer killed basse. Cerca attivamente le wards nemiche con sentry o con visione.
                 </p>
               )}
               {parseFloat(stats.vision.runesPerMinute) < 0.1 && (
-                <p>
-                  💡 Rune per minuto basse ({stats.vision.runesPerMinute}). Controlla più spesso le rune spawn (ogni 2 minuti).
+                <p className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-blue-400" />
+                  Rune per minuto basse ({stats.vision.runesPerMinute}). Controlla più spesso le rune spawn (ogni 2 minuti).
                 </p>
               )}
               {parseFloat(stats.vision.avgCampsStacked) < 2 && (
-                <p>
-                  💡 Camps stacked bassi ({stats.vision.avgCampsStacked}). Come support, aiuta il farm dei tuoi carry con lo stacking.
+                <p className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-blue-400" />
+                  Camps stacked bassi ({stats.vision.avgCampsStacked}). Come support, aiuta il farm dei tuoi carry con lo stacking.
                 </p>
               )}
               {parseFloat(stats.vision.dewardEfficiency) < 30 && stats.vision.avgSentryPlaced > 0 && (
-                <p>
-                  ⚠️ Deward efficiency bassa ({stats.vision.dewardEfficiency}%). Migliora il posizionamento delle sentry per trovare più wards nemiche.
+                <p className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                  Deward efficiency bassa ({stats.vision.dewardEfficiency}%). Migliora il posizionamento delle sentry per trovare più wards nemiche.
                 </p>
               )}
               {parseFloat(stats.vision.roshanControlRate) < 20 && (
-                <p>
-                  💡 Roshan control basso ({stats.vision.roshanControlRate}%). Partecipa di più al controllo di Roshan nelle partite lunghe.
+                <p className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-blue-400" />
+                  Roshan control basso ({stats.vision.roshanControlRate}%). Partecipa di più al controllo di Roshan nelle partite lunghe.
                 </p>
               )}
               {parseFloat(stats.vision.avgCourierKills) > 0 && (
-                <p>
-                  ✅ Ottimo controllo courier ({stats.vision.avgCourierKills} courier uccisi/game). Stai negando risorse agli avversari.
+                <p className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  Ottimo controllo courier ({stats.vision.avgCourierKills} courier uccisi/game). Stai negando risorse agli avversari.
                 </p>
               )}
             </div>
