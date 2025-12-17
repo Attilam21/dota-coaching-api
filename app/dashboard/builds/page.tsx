@@ -423,42 +423,58 @@ export default function BuildsPage() {
                   {/* Top Builds by Winrate */}
                   <div>
                     <h3 className="text-xl font-semibold mb-3">Build Più Efficaci (Winrate)</h3>
-                    <div className="space-y-4">
-                      {heroBuildData.buildWinrates.slice(0, 5).map((build, idx) => (
-                        <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold text-lg ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                                {build.winrate.toFixed(1)}% WR
-                              </span>
-                              <span className="text-gray-400 text-sm">({build.frequency}x usato)</span>
+                    {heroBuildData.buildWinrates && heroBuildData.buildWinrates.length > 0 ? (
+                      <div className="space-y-4">
+                        {heroBuildData.buildWinrates.slice(0, 5).map((build, idx) => (
+                          <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className={`font-semibold text-lg ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {build.winrate.toFixed(1)}% WR
+                                </span>
+                                <span className="text-gray-400 text-sm">({build.frequency}x usato)</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                              {build.itemDetails && build.itemDetails.length > 0 ? (
+                                build.itemDetails.map((item, i) => (
+                                  <ItemCard
+                                    key={`${item.id}-${i}`}
+                                    itemId={item.id}
+                                    itemName={item.name}
+                                    itemInternalName={item.internal_name}
+                                    size="sm"
+                                  />
+                                ))
+                              ) : (
+                                build.items.map((itemId, i) => (
+                                  <ItemCard
+                                    key={`${itemId}-${i}`}
+                                    itemId={itemId}
+                                    itemName={build.itemNames[i] || `Item ${itemId}`}
+                                    size="sm"
+                                  />
+                                ))
+                              )}
                             </div>
                           </div>
-                          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
-                            {build.itemDetails && build.itemDetails.length > 0 ? (
-                              build.itemDetails.map((item, i) => (
-                                <ItemCard
-                                  key={`${item.id}-${i}`}
-                                  itemId={item.id}
-                                  itemName={item.name}
-                                  itemInternalName={item.internal_name}
-                                  size="sm"
-                                />
-                              ))
-                            ) : (
-                              build.items.map((itemId, i) => (
-                                <ItemCard
-                                  key={`${itemId}-${i}`}
-                                  itemId={itemId}
-                                  itemName={build.itemNames[i] || `Item ${itemId}`}
-                                  size="sm"
-                                />
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-gray-700/30 rounded-lg p-6 border border-gray-600 text-center">
+                        <p className="text-gray-400 mb-2">
+                          📊 Nessuna build con frequenza ≥ 2 disponibile per questo eroe
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          Le build vengono mostrate solo se utilizzate almeno 2 volte per garantire statistiche significative.
+                          {heroBuildData.topBuilds && heroBuildData.topBuilds.length > 0 && (
+                            <span className="block mt-2">
+                              Visualizza la sezione "Build Più Comuni" per vedere tutte le build, incluse quelle usate una sola volta.
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

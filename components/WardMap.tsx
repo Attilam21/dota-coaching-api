@@ -207,21 +207,21 @@ export default function WardMap({
       // Draw individual ward points with better visibility
       ctx.fillStyle = color
       ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 1.5
+      ctx.lineWidth = 2 // Increased from 1.5 for better visibility
       wards.forEach(ward => {
         const { x, y } = worldToMinimap(ward.x, ward.y)
-        // Draw outer circle (ward icon)
+        // Draw outer circle (ward icon) - increased size for better visibility
         ctx.beginPath()
-        ctx.arc(x, y, 5, 0, Math.PI * 2)
+        ctx.arc(x, y, 6, 0, Math.PI * 2) // Increased from 5 to 6
         ctx.fill()
         // Draw inner highlight for visibility
         ctx.beginPath()
-        ctx.arc(x, y, 5, 0, Math.PI * 2)
+        ctx.arc(x, y, 6, 0, Math.PI * 2)
         ctx.stroke()
-        // Draw small center dot
+        // Draw small center dot for better visibility
         ctx.fillStyle = '#ffffff'
         ctx.beginPath()
-        ctx.arc(x, y, 2, 0, Math.PI * 2)
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2) // Increased from 2 to 2.5
         ctx.fill()
         ctx.fillStyle = color
       })
@@ -284,15 +284,26 @@ export default function WardMap({
         />
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-6 justify-center text-sm flex-wrap mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-500 rounded-full shadow-md"></div>
-          <span className="text-gray-300">Observer Wards ({observerWards.length})</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-500 rounded-full shadow-md"></div>
-          <span className="text-gray-300">Sentry Wards ({sentryWards.length})</span>
+      {/* Legend with enhanced visibility */}
+      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+        <div className="flex gap-6 justify-center text-sm flex-wrap items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 bg-blue-500 rounded-full shadow-lg border-2 border-white/30"></div>
+            <span className="text-gray-200 font-medium">
+              Observer Wards: <span className="text-blue-400 font-bold">{observerWards.length}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 bg-green-500 rounded-full shadow-lg border-2 border-white/30"></div>
+            <span className="text-gray-200 font-medium">
+              Sentry Wards: <span className="text-green-400 font-bold">{sentryWards.length}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-400">
+            <span className="text-xs">
+              Totale: <span className="text-white font-semibold">{observerWards.length + sentryWards.length}</span> wards visualizzate
+            </span>
+          </div>
         </div>
       </div>
 
