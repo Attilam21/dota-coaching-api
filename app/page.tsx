@@ -1,19 +1,32 @@
-import dynamic from 'next/dynamic'
+'use client'
 
-const HomeContent = dynamic(() => import('./HomeContent'), {
-  ssr: false,
-  loading: () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center">
-        <div className="animate-pulse">
-          <div className="h-12 bg-gray-200 rounded w-2/3 mx-auto mb-4"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
-        </div>
-      </div>
-    </div>
-  ),
-})
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
 
 export default function Home() {
-  return <HomeContent />
+  const router = useRouter()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        // Se autenticato, vai al dashboard
+        router.push('/dashboard')
+      } else {
+        // Se non autenticato, vai al login
+        router.push('/auth/login')
+      }
+    }
+  }, [user, loading, router])
+
+  // Mostra loading durante il redirect
+  return (
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        <p className="mt-4 text-gray-400">Caricamento...</p>
+      </div>
+    </div>
+  )
 }
