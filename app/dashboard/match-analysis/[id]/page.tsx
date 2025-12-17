@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import WardMap from '@/components/WardMap'
+import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy } from 'lucide-react'
 
 interface MatchData {
   match_id: number
@@ -379,12 +380,12 @@ export default function MatchAnalysisDetailPage() {
     )
   }
 
-  const tabs: Array<{ id: TabType; name: string; icon: string }> = [
-    { id: 'overview', name: 'Overview', icon: '📊' },
-    { id: 'phases', name: 'Fasi di Gioco', icon: '⏱️' },
-    { id: 'items', name: 'Item Timing', icon: '🛡️' },
-    { id: 'teamfights', name: 'Teamfight', icon: '⚔️' },
-    { id: 'vision', name: 'Vision', icon: '🗺️' },
+  const tabs: Array<{ id: TabType; name: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: 'overview', name: 'Overview', icon: BarChartIcon },
+    { id: 'phases', name: 'Fasi di Gioco', icon: Clock },
+    { id: 'items', name: 'Item Timing', icon: Shield },
+    { id: 'teamfights', name: 'Teamfight', icon: Sword },
+    { id: 'vision', name: 'Vision', icon: Map },
   ]
 
   // Prepare chart data
@@ -437,13 +438,13 @@ export default function MatchAnalysisDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                 activeTab === tab.id
                   ? 'bg-gray-700 text-white border-b-2 border-red-500'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
               }`}
             >
-              <span className="mr-2">{tab.icon}</span>
+              <tab.icon className="w-4 h-4" />
               {tab.name}
             </button>
           ))}
@@ -601,7 +602,10 @@ export default function MatchAnalysisDetailPage() {
                   </ResponsiveContainer>
                   {timeline.keyEvents && timeline.keyEvents.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-700">
-                      <h4 className="text-sm font-semibold text-gray-400 mb-3">📅 Eventi Reali della Partita</h4>
+                      <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Eventi Reali della Partita
+                      </h4>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {timeline.keyEvents.map((event: any, idx: number) => {
                           const timeStr = `${event.minute}:${String(event.second || 0).padStart(2, '0')}`
@@ -618,13 +622,13 @@ export default function MatchAnalysisDetailPage() {
                           }
                           const getEventIcon = () => {
                             switch (event.type) {
-                              case 'first_blood': return '🩸'
-                              case 'kill': return '⚔️'
-                              case 'tower': return '🏰'
-                              case 'roshan': return '🐉'
-                              case 'match_start': return '▶️'
-                              case 'match_end': return '🏆'
-                              default: return '•'
+                              case 'first_blood': return <Droplet className="w-4 h-4 text-red-400" />
+                              case 'kill': return <Sword className="w-4 h-4 text-orange-400" />
+                              case 'tower': return <Building2 className="w-4 h-4 text-yellow-400" />
+                              case 'roshan': return <Skull className="w-4 h-4 text-purple-400" />
+                              case 'match_start': return <Play className="w-4 h-4 text-green-400" />
+                              case 'match_end': return <Trophy className="w-4 h-4 text-blue-400" />
+                              default: return <span className="text-gray-400">•</span>
                             }
                           }
                           return (
@@ -633,7 +637,7 @@ export default function MatchAnalysisDetailPage() {
                               className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${getEventColor()}`}
                             >
                               <span className="text-xs font-mono font-semibold min-w-[50px]">{timeStr}</span>
-                              <span className="text-sm">{getEventIcon()}</span>
+                              <span className="flex items-center">{getEventIcon()}</span>
                               <div className="flex-1">
                                 <div className="font-semibold text-sm">{event.event}</div>
                                 {event.description && (
@@ -708,7 +712,10 @@ export default function MatchAnalysisDetailPage() {
 
                   {analysis.keyMoments && analysis.keyMoments.length > 0 && (
                     <div className="mt-4">
-                      <h4 className="font-semibold text-blue-300 mb-2">⏱️ Momenti Chiave:</h4>
+                      <h4 className="font-semibold text-blue-300 mb-2 flex items-center gap-2">
+                        <Timer className="w-5 h-5" />
+                        Momenti Chiave:
+                      </h4>
                       <div className="space-y-2">
                         {analysis.keyMoments.map((moment, idx) => (
                           <div key={idx} className="bg-gray-800/50 rounded p-2 text-sm text-gray-300">
@@ -1109,7 +1116,10 @@ export default function MatchAnalysisDetailPage() {
           {activeTab === 'vision' && (
             <div className="space-y-6">
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-white">🗺️ Ward Map - Posizioni Wards</h2>
+                <h2 className="text-2xl font-semibold mb-4 text-white flex items-center gap-2">
+                  <Map className="w-6 h-6" />
+                  Ward Map - Posizioni Wards
+                </h2>
                 <p className="text-gray-400 mb-6 text-sm">
                   Visualizza le heatmap interattive delle posizioni delle Observer e Sentry wards piazzate in questa partita.
                 </p>

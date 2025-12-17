@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import ItemCard from '@/components/ItemCard'
+import { BarChart as BarChartIcon } from 'lucide-react'
 
 interface BuildData {
   overall: {
@@ -462,8 +463,9 @@ export default function BuildsPage() {
                       </div>
                     ) : (
                       <div className="bg-gray-700/30 rounded-lg p-6 border border-gray-600 text-center">
-                        <p className="text-gray-400 mb-2">
-                          📊 Nessuna build con frequenza ≥ 2 disponibile per questo eroe
+                        <p className="text-gray-400 mb-2 flex items-center justify-center gap-2">
+                          <BarChartIcon className="w-5 h-5" />
+                          Nessuna build con frequenza ≥ 2 disponibile per questo eroe
                         </p>
                         <p className="text-gray-500 text-sm">
                           Le build vengono mostrate solo se utilizzate almeno 2 volte per garantire statistiche significative.

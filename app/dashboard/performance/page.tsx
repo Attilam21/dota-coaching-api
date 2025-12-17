@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import { BarChart as BarChartIcon, Target, Lightbulb } from 'lucide-react'
 
 interface PerformanceStats {
   avgKDA: number
@@ -192,7 +193,10 @@ export default function PerformancePage() {
           {/* Benchmarks Section - NEW */}
           {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
             <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold text-blue-300 mb-4">📊 Benchmarks & Percentili</h2>
+              <h2 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
+                <BarChartIcon className="w-6 h-6" />
+                Benchmarks & Percentili
+              </h2>
               <p className="text-gray-400 text-sm mb-4">
                 Come ti posizioni rispetto alla comunità Dota 2
               </p>
@@ -330,7 +334,9 @@ export default function PerformancePage() {
                 <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
                 <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
               </div>
-              <div className="text-4xl">🎯</div>
+              <div className="text-red-400">
+                <Target className="w-10 h-10" />
+              </div>
             </div>
           </div>
 
@@ -522,7 +528,10 @@ export default function PerformancePage() {
 
           {/* Playstyle-Specific Recommendations */}
           <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold mb-4 text-purple-300">🎯 Suggerimenti per il Tuo Stile di Gioco</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-purple-300 flex items-center gap-2">
+              <Target className="w-6 h-6" />
+              Suggerimenti per il Tuo Stile di Gioco
+            </h3>
             <div className="space-y-3">
               {stats.playstyle.includes('Farm Focus') && (
                 <>

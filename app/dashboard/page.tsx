@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -410,7 +411,7 @@ export default function DashboardPage() {
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm text-gray-400 uppercase tracking-wider">Hero Damage</h4>
-                  <span className="text-2xl">🔥</span>
+                  <Sparkles className="w-8 h-8 text-red-400" />
                 </div>
                 <p className="text-3xl font-bold text-red-400">{Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-1">Danno medio</p>
@@ -419,7 +420,7 @@ export default function DashboardPage() {
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm text-gray-400 uppercase tracking-wider">Kill Participation</h4>
-                  <span className="text-2xl">⚡</span>
+                  <Zap className="w-8 h-8 text-yellow-400" />
                 </div>
                 <p className="text-3xl font-bold text-green-400">{stats.advanced.fights.killParticipation.toFixed(1)}%</p>
                 <p className="text-xs text-gray-500 mt-1">Partecipazione fight</p>
@@ -428,7 +429,7 @@ export default function DashboardPage() {
               <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm text-gray-400 uppercase tracking-wider">Net Worth</h4>
-                  <span className="text-2xl">💰</span>
+                  <DollarSign className="w-8 h-8 text-green-400" />
                 </div>
                 <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.advanced.farm.avgNetWorth).toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-1">Valore medio</p>
@@ -479,14 +480,17 @@ export default function DashboardPage() {
 
           {/* Quick Links to Deep Analysis */}
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">🔍 Analisi Approfondite</h3>
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Search className="w-5 h-5" />
+              Analisi Approfondite
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <Link
                 href="/dashboard/performance"
                 className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">⚡</span>
+                  <Zap className="w-8 h-8 text-yellow-400" />
                   <h4 className="font-semibold">Performance</h4>
                 </div>
                 <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
@@ -496,7 +500,7 @@ export default function DashboardPage() {
                 className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🎯</span>
+                  <Target className="w-8 h-8 text-purple-400" />
                   <h4 className="font-semibold">Profilazione FZTH</h4>
                 </div>
                 <p className="text-xs text-gray-400">Profilo completo con IA</p>
@@ -506,7 +510,7 @@ export default function DashboardPage() {
                 className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🔬</span>
+                  <FlaskConical className="w-8 h-8 text-blue-400" />
                   <h4 className="font-semibold">Analisi Avanzate</h4>
                 </div>
                 <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
@@ -516,7 +520,7 @@ export default function DashboardPage() {
                 className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">📚</span>
+                  <BookOpen className="w-8 h-8 text-indigo-400" />
                   <h4 className="font-semibold">Coaching</h4>
                 </div>
                 <p className="text-xs text-gray-400">Task e raccomandazioni</p>

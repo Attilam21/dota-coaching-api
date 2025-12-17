@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Lightbulb } from 'lucide-react'
 
 interface InsightBadgeProps {
   elementType: string
@@ -91,7 +92,7 @@ export default function InsightBadge({
         {loading ? (
           <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
         ) : (
-          <span className="text-xs font-bold">💡</span>
+          <Lightbulb className="w-3.5 h-3.5" />
         )}
       </button>
 
