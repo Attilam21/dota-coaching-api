@@ -43,7 +43,9 @@ export async function GET(
       useDedicatedEndpoint = true
       dataSource = 'match_object'
       console.log(`[Teamfights] Loaded ${teamfightsData.length} teamfights from match object`)
+      console.log(`[Teamfights] First teamfight structure:`, JSON.stringify(teamfightsData[0]).substring(0, 500))
     } else {
+      console.log(`[Teamfights] No teamfights in match object. Checking dedicated endpoint...`)
       // Priority 2: Try OpenDota dedicated teamfights endpoint
       try {
         const teamfightsResponse = await fetch(`https://api.opendota.com/api/matches/${id}/teamfights`, {
@@ -91,20 +93,30 @@ export async function GET(
         const tfDuration = endTime - startTime
         
         // Count kills per team from deaths array
+        // IMPORTANT: In OpenDota, player_slot < 128 = Radiant, >= 128 = Dire
+        // A death of a Radiant player (slot < 128) means Dire got a kill
+        // A death of a Dire player (slot >= 128) means Radiant got a kill
         let radiantKills = 0
         let direKills = 0
         
         if (tf.deaths && Array.isArray(tf.deaths)) {
           tf.deaths.forEach((death: any) => {
             const playerSlot = death.player_slot !== undefined ? death.player_slot : death.slot
-            if (playerSlot !== undefined) {
+            if (playerSlot !== undefined && typeof playerSlot === 'number') {
+              // Death of Radiant player (slot < 128) = Dire kill
+              // Death of Dire player (slot >= 128) = Radiant kill
               if (playerSlot < 128) {
-                direKills++ // Death of radiant player = dire kill
+                direKills++ // Radiant player died = Dire got the kill
               } else {
-                radiantKills++ // Death of dire player = radiant kill
+                radiantKills++ // Dire player died = Radiant got the kill
               }
             }
           })
+        }
+        
+        // Log for debugging
+        if (tf.deaths && Array.isArray(tf.deaths) && tf.deaths.length > 0) {
+          console.log(`[Teamfights] Teamfight at ${startTime}s: ${tf.deaths.length} deaths, Radiant kills: ${radiantKills}, Dire kills: ${direKills}`)
         }
 
         // Determine winner

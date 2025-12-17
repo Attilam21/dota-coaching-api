@@ -35,7 +35,12 @@ export async function GET(
     // Check if any player has purchase_log
     if (players.length > 0 && players.some((p: any) => p.purchase_log && Array.isArray(p.purchase_log))) {
       hasPurchaseLog = true
-      console.log('[Item Timing] Using purchase_log from match object')
+      const playerWithLog = players.find((p: any) => p.purchase_log && Array.isArray(p.purchase_log) && p.purchase_log.length > 0)
+      if (playerWithLog) {
+        console.log(`[Item Timing] Using purchase_log from match object. Sample entry:`, JSON.stringify(playerWithLog.purchase_log[0]))
+      } else {
+        console.log('[Item Timing] purchase_log exists but is empty')
+      }
     } else {
       // Fallback: Fetch match log for item purchases
       try {
@@ -72,8 +77,15 @@ export async function GET(
     const getItemName = (itemId: number) => {
       if (!itemId || itemId === 0) return null
       const item = itemsMap[itemId]
-      if (!item) return `Item ${itemId}`
-      return item.dname || item.localized_name || item.name || `Item ${itemId}`
+      if (!item) {
+        console.log(`[Item Timing] Item ${itemId} not found in itemsMap. Map size: ${Object.keys(itemsMap).length}`)
+        return `Item ${itemId}`
+      }
+      const name = item.dname || item.localized_name || item.name || `Item ${itemId}`
+      if (name === `Item ${itemId}`) {
+        console.log(`[Item Timing] Item ${itemId} has no name. Item data:`, JSON.stringify(item).substring(0, 200))
+      }
+      return name
     }
 
     // Helper to get item cost
@@ -126,18 +138,36 @@ export async function GET(
         
         // Priority 1: Use purchase_log from match object (most accurate)
         if (hasPurchaseLog && player.purchase_log && Array.isArray(player.purchase_log)) {
-          // Find purchase time from purchase_log
+          // purchase_log structure: [{ time: number, key: string }]
+          // key can be item name (e.g., "item_tango") or item ID
           const purchaseEntry = player.purchase_log.find((entry: any) => {
-            // purchase_log entries have 'key' field with item name or 'time' and 'key'
-            const entryKey = entry.key || entry.item || ''
-            const itemName = getItemName(item.id)?.toLowerCase() || ''
-            // Match by item ID or name
-            return entryKey.toString().includes(item.id.toString()) ||
-                   (itemName && entryKey.toLowerCase().includes(itemName))
+            if (!entry || !entry.key) return false
+            
+            const entryKey = entry.key.toString().toLowerCase()
+            const itemIdStr = item.id.toString()
+            
+            // Try multiple matching strategies:
+            // 1. Direct item ID match (if key contains item ID)
+            if (entryKey.includes(itemIdStr)) return true
+            
+            // 2. Item name match (if we have item name)
+            const itemName = getItemName(item.id)
+            if (itemName) {
+              // Try matching by internal name (e.g., "item_tango")
+              const itemInternalName = itemName.toLowerCase().replace(/\s+/g, '_')
+              if (entryKey.includes(itemInternalName) || entryKey === itemInternalName) return true
+              
+              // Try matching by localized name
+              const itemLocalizedName = itemName.toLowerCase()
+              if (entryKey.includes(itemLocalizedName)) return true
+            }
+            
+            return false
           })
           
-          if (purchaseEntry && purchaseEntry.time !== undefined) {
+          if (purchaseEntry && purchaseEntry.time !== undefined && purchaseEntry.time > 0) {
             purchaseTime = purchaseEntry.time
+            console.log(`[Item Timing] Found purchase_log entry for item ${item.id} at ${purchaseTime}s`)
           }
         }
         
