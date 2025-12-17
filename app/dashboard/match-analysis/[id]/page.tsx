@@ -124,6 +124,12 @@ export default function MatchAnalysisDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [timeline, setTimeline] = useState<any>(null)
+  const [phasesData, setPhasesData] = useState<any>(null)
+  const [itemTimingData, setItemTimingData] = useState<any>(null)
+  const [teamfightsData, setTeamfightsData] = useState<any>(null)
+  const [loadingPhases, setLoadingPhases] = useState(false)
+  const [loadingItems, setLoadingItems] = useState(false)
+  const [loadingTeamfights, setLoadingTeamfights] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -251,6 +257,48 @@ export default function MatchAnalysisDetailPage() {
       fetchMatch()
     }
   }, [matchId, playerId])
+
+  // Fetch phases data when phases tab is active
+  useEffect(() => {
+    if (activeTab === 'phases' && matchId && !phasesData && !loadingPhases) {
+      setLoadingPhases(true)
+      fetch(`/api/match/${matchId}/phases`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          setPhasesData(data)
+        })
+        .catch(err => console.error('Failed to fetch phases:', err))
+        .finally(() => setLoadingPhases(false))
+    }
+  }, [activeTab, matchId, phasesData, loadingPhases])
+
+  // Fetch item timing data when items tab is active
+  useEffect(() => {
+    if (activeTab === 'items' && matchId && !itemTimingData && !loadingItems) {
+      setLoadingItems(true)
+      fetch(`/api/match/${matchId}/item-timing`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          setItemTimingData(data)
+        })
+        .catch(err => console.error('Failed to fetch item timing:', err))
+        .finally(() => setLoadingItems(false))
+    }
+  }, [activeTab, matchId, itemTimingData, loadingItems])
+
+  // Fetch teamfights data when teamfights tab is active
+  useEffect(() => {
+    if (activeTab === 'teamfights' && matchId && !teamfightsData && !loadingTeamfights) {
+      setLoadingTeamfights(true)
+      fetch(`/api/match/${matchId}/teamfights`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          setTeamfightsData(data)
+        })
+        .catch(err => console.error('Failed to fetch teamfights:', err))
+        .finally(() => setLoadingTeamfights(false))
+    }
+  }, [activeTab, matchId, teamfightsData, loadingTeamfights])
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -658,20 +706,385 @@ export default function MatchAnalysisDetailPage() {
           )}
 
           {activeTab === 'phases' && (
-            <div className="text-center py-12">
-              <p className="text-gray-400">Analisi Fase per Fase - In sviluppo</p>
+            <div className="space-y-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-4 text-white">Analisi Fase per Fase</h2>
+                <p className="text-gray-400 mb-6">
+                  Analisi dettagliata delle performance divise in Early Game (0-10min), Mid Game (10-25min), e Late Game (25+min)
+                </p>
+
+                {loadingPhases && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                    <p className="mt-4 text-gray-400">Caricamento dati fasi...</p>
+                  </div>
+                )}
+
+                {phasesData && !loadingPhases && (
+                  <div className="space-y-6">
+                    {/* Phase Overview */}
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-green-400 mb-2">Early Game</h3>
+                        <p className="text-sm text-gray-300">0 - 10 minuti</p>
+                        <p className="text-sm text-gray-400">Durata: {Math.floor(phasesData.phases.early.duration / 60)}:{(phasesData.phases.early.duration % 60).toString().padStart(2, '0')}</p>
+                      </div>
+                      <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-yellow-400 mb-2">Mid Game</h3>
+                        <p className="text-sm text-gray-300">10 - 25 minuti</p>
+                        <p className="text-sm text-gray-400">Durata: {Math.floor(phasesData.phases.mid.duration / 60)}:{(phasesData.phases.mid.duration % 60).toString().padStart(2, '0')}</p>
+                      </div>
+                      <div className="bg-red-900/30 border border-red-700 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-red-400 mb-2">Late Game</h3>
+                        <p className="text-sm text-gray-300">25+ minuti</p>
+                        <p className="text-sm text-gray-400">Durata: {Math.floor(phasesData.phases.late.duration / 60)}:{(phasesData.phases.late.duration % 60).toString().padStart(2, '0')}</p>
+                      </div>
+                    </div>
+
+                    {/* Player Phase Performance */}
+                    {phasesData.playerPhases && phasesData.playerPhases.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-xl font-semibold text-white">Performance per Fase</h3>
+                        {phasesData.playerPhases.map((playerPhase: any, idx: number) => {
+                          const player = match?.players.find(p => p.player_slot === playerPhase.player_slot)
+                          if (!player) return null
+
+                          return (
+                            <div key={idx} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-lg font-semibold text-white">
+                                  {heroes[playerPhase.hero_id]?.localized_name || `Hero ${playerPhase.hero_id}`}
+                                </h4>
+                                <span className={`px-3 py-1 rounded text-sm ${
+                                  playerPhase.player_slot < 128 ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
+                                }`}>
+                                  {playerPhase.player_slot < 128 ? 'Radiant' : 'Dire'}
+                                </span>
+                              </div>
+
+                              <div className="grid md:grid-cols-3 gap-4">
+                                {(['early', 'mid', 'late'] as const).map((phase) => {
+                                  const phaseData = playerPhase.phases[phase]
+                                  return (
+                                    <div key={phase} className={`rounded-lg p-3 ${
+                                      phase === 'early' ? 'bg-green-900/20 border border-green-700' :
+                                      phase === 'mid' ? 'bg-yellow-900/20 border border-yellow-700' :
+                                      'bg-red-900/20 border border-red-700'
+                                    }`}>
+                                      <h5 className="font-semibold text-sm mb-2 capitalize">
+                                        {phase === 'early' ? 'Early' : phase === 'mid' ? 'Mid' : 'Late'} Game
+                                      </h5>
+                                      <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">K/D/A:</span>
+                                          <span className="text-white font-semibold">
+                                            {phaseData.kills}/{phaseData.deaths}/{phaseData.assists}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">LH/D:</span>
+                                          <span className="text-white font-semibold">
+                                            {phaseData.lastHits}/{phaseData.denies}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">Gold:</span>
+                                          <span className="text-yellow-400 font-semibold">
+                                            {Math.round(phaseData.goldEarned).toLocaleString()}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-400">XP:</span>
+                                          <span className="text-blue-400 font-semibold">
+                                            {Math.round(phaseData.xpEarned).toLocaleString()}
+                                          </span>
+                                        </div>
+                                        {phaseData.heroDamage > 0 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Damage:</span>
+                                            <span className="text-red-400 font-semibold">
+                                              {Math.round(phaseData.heroDamage).toLocaleString()}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!phasesData && !loadingPhases && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">Nessun dato disponibile per questa partita</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {activeTab === 'items' && (
-            <div className="text-center py-12">
-              <p className="text-gray-400">Item Timing Analysis - In sviluppo</p>
+            <div className="space-y-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-4 text-white">Item Timing Analysis</h2>
+                <p className="text-gray-400 mb-6">
+                  Analisi dei tempi di acquisto degli item e confronto con timing ottimali
+                </p>
+
+                {loadingItems && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                    <p className="mt-4 text-gray-400">Caricamento item timing...</p>
+                  </div>
+                )}
+
+                {itemTimingData && !loadingItems && (
+                  <div className="space-y-6">
+                    {itemTimingData.playerItemTimings && itemTimingData.playerItemTimings.map((playerTiming: any, idx: number) => {
+                      const player = match?.players.find(p => p.player_slot === playerTiming.player_slot)
+                      if (!player) return null
+
+                      return (
+                        <div key={idx} className="bg-gray-700/50 border border-gray-600 rounded-lg p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-semibold text-white">
+                              {heroes[playerTiming.hero_id]?.localized_name || `Hero ${playerTiming.hero_id}`}
+                            </h3>
+                            <span className={`px-3 py-1 rounded text-sm ${
+                              playerTiming.player_slot < 128 ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
+                            }`}>
+                              {playerTiming.player_slot < 128 ? 'Radiant' : 'Dire'}
+                            </span>
+                          </div>
+
+                          {playerTiming.items && playerTiming.items.length > 0 ? (
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {playerTiming.items.map((item: any, itemIdx: number) => (
+                                <div
+                                  key={itemIdx}
+                                  className={`border rounded-lg p-3 ${
+                                    item.timingRating === 'on_time' ? 'bg-green-900/20 border-green-700' :
+                                    item.timingRating === 'early' ? 'bg-blue-900/20 border-blue-700' :
+                                    item.timingRating === 'late' ? 'bg-red-900/20 border-red-700' :
+                                    'bg-gray-800 border-gray-600'
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-semibold text-white text-sm">{item.itemName}</h4>
+                                    <span className={`px-2 py-0.5 rounded text-xs ${
+                                      item.timingRating === 'on_time' ? 'bg-green-600 text-white' :
+                                      item.timingRating === 'early' ? 'bg-blue-600 text-white' :
+                                      item.timingRating === 'late' ? 'bg-red-600 text-white' :
+                                      'bg-gray-600 text-gray-300'
+                                    }`}>
+                                      {item.timingRating === 'on_time' ? '✓' :
+                                       item.timingRating === 'early' ? '↑' :
+                                       item.timingRating === 'late' ? '↓' : '?'}
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1 text-xs">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">Acquistato:</span>
+                                      <span className="text-white font-semibold">
+                                        {item.purchaseMinute}:{item.purchaseSecond.toString().padStart(2, '0')}
+                                      </span>
+                                    </div>
+                                    {item.optimalMinute !== null && (
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-400">Ottimale:</span>
+                                        <span className="text-gray-300">
+                                          {item.optimalMinute} min
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-400">Costo:</span>
+                                      <span className="text-yellow-400 font-semibold">
+                                        {item.itemCost.toLocaleString()} gold
+                                      </span>
+                                    </div>
+                                    {item.isEarly && (
+                                      <p className="text-blue-400 text-xs mt-1">✓ Acquistato in anticipo</p>
+                                    )}
+                                    {item.isLate && (
+                                      <p className="text-red-400 text-xs mt-1">⚠ Acquistato in ritardo</p>
+                                    )}
+                                    {item.isOnTime && (
+                                      <p className="text-green-400 text-xs mt-1">✓ Timing ottimale</p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 text-center py-4">Nessun item trovato per questo giocatore</p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {!itemTimingData && !loadingItems && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">Nessun dato disponibile per questa partita</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {activeTab === 'teamfights' && (
-            <div className="text-center py-12">
-              <p className="text-gray-400">Teamfight Analysis - In sviluppo</p>
+            <div className="space-y-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-4 text-white">Teamfight Analysis</h2>
+                <p className="text-gray-400 mb-6">
+                  Analisi dettagliata dei teamfight: partecipazione, outcome, e performance individuali
+                </p>
+
+                {loadingTeamfights && (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                    <p className="mt-4 text-gray-400">Caricamento teamfight...</p>
+                  </div>
+                )}
+
+                {teamfightsData && !loadingTeamfights && (
+                  <div className="space-y-6">
+                    {/* Teamfight Overview */}
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-white mb-2">Total Teamfights</h3>
+                        <p className="text-3xl font-bold text-red-400">{teamfightsData.totalTeamfights}</p>
+                      </div>
+                      <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-white mb-2">Durata Media</h3>
+                        <p className="text-3xl font-bold text-blue-400">
+                          {teamfightsData.teamfights && teamfightsData.teamfights.length > 0
+                            ? Math.round(teamfightsData.teamfights.reduce((acc: number, tf: any) => acc + tf.duration, 0) / teamfightsData.teamfights.length)
+                            : 0}s
+                        </p>
+                      </div>
+                      <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-white mb-2">Durata Partita</h3>
+                        <p className="text-3xl font-bold text-green-400">
+                          {Math.floor(teamfightsData.duration / 60)}:{(teamfightsData.duration % 60).toString().padStart(2, '0')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Teamfight List */}
+                    {teamfightsData.teamfights && teamfightsData.teamfights.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-xl font-semibold text-white">Teamfight Dettagliati</h3>
+                        {teamfightsData.teamfights.map((tf: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className={`border rounded-lg p-4 ${
+                              tf.winner === 'radiant' ? 'bg-green-900/20 border-green-700' :
+                              tf.winner === 'dire' ? 'bg-red-900/20 border-red-700' :
+                              'bg-gray-700/50 border-gray-600'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h4 className="text-lg font-semibold text-white">
+                                  Teamfight #{idx + 1}
+                                </h4>
+                                <p className="text-sm text-gray-400">
+                                  {tf.startMinute}:{tf.startSecond.toString().padStart(2, '0')} - {tf.endMinute}:{tf.endSecond.toString().padStart(2, '0')}
+                                  {' '}({tf.duration}s)
+                                </p>
+                              </div>
+                              <span className={`px-3 py-1 rounded text-sm font-semibold ${
+                                tf.winner === 'radiant' ? 'bg-green-600 text-white' :
+                                tf.winner === 'dire' ? 'bg-red-600 text-white' :
+                                'bg-gray-600 text-gray-300'
+                              }`}>
+                                {tf.winner === 'radiant' ? 'Radiant Win' :
+                                 tf.winner === 'dire' ? 'Dire Win' : 'Draw'}
+                              </span>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className="bg-green-900/30 rounded p-3">
+                                <p className="text-sm font-semibold text-green-400 mb-1">Radiant Kills</p>
+                                <p className="text-2xl font-bold text-white">{tf.radiantKills}</p>
+                              </div>
+                              <div className="bg-red-900/30 rounded p-3">
+                                <p className="text-sm font-semibold text-red-400 mb-1">Dire Kills</p>
+                                <p className="text-2xl font-bold text-white">{tf.direKills}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-gray-600">
+                              <p className="text-xs text-gray-400 mb-2">Partecipanti: {tf.participants.filter((p: any) => p.participated).length}/10</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Player Teamfight Stats */}
+                    {teamfightsData.playerStats && teamfightsData.playerStats.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-xl font-semibold text-white">Statistiche Giocatori</h3>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+                            <thead>
+                              <tr className="text-left text-sm text-gray-400 border-b border-gray-600">
+                                <th className="pb-2">Hero</th>
+                                <th className="pb-2">Partecipazione</th>
+                                <th className="pb-2">Vittorie</th>
+                                <th className="pb-2">Sconfitte</th>
+                                <th className="pb-2">Winrate</th>
+                                <th className="pb-2">Avg Damage</th>
+                                <th className="pb-2">Avg Healing</th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-sm">
+                              {teamfightsData.playerStats.map((playerStat: any, idx: number) => {
+                                const player = match?.players.find(p => p.player_slot === playerStat.player_slot)
+                                return (
+                                  <tr key={idx} className="border-b border-gray-700">
+                                    <td className="py-2 font-medium text-white">
+                                      {heroes[playerStat.hero_id]?.localized_name || `Hero ${playerStat.hero_id}`}
+                                    </td>
+                                    <td className="py-2 text-gray-300">
+                                      {playerStat.participated}/{playerStat.totalTeamfights} ({playerStat.participationRate.toFixed(1)}%)
+                                    </td>
+                                    <td className="py-2 text-green-400 font-semibold">{playerStat.won}</td>
+                                    <td className="py-2 text-red-400 font-semibold">{playerStat.lost}</td>
+                                    <td className="py-2 text-gray-300">
+                                      {playerStat.winRate.toFixed(1)}%
+                                    </td>
+                                    <td className="py-2 text-red-400 font-semibold">
+                                      {playerStat.avgDamagePerFight.toLocaleString()}
+                                    </td>
+                                    <td className="py-2 text-green-400 font-semibold">
+                                      {playerStat.avgHealingPerFight.toLocaleString()}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!teamfightsData && !loadingTeamfights && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">Nessun dato disponibile per questa partita</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
