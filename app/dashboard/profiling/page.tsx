@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface PlayerProfile {
   role: string
@@ -149,7 +150,14 @@ export default function ProfilingPage() {
         <div className="space-y-6">
           {/* FZTH Score Banner */}
           {profile.fzthScore !== undefined && (
-            <div className="bg-gradient-to-r from-red-900/80 to-blue-900/80 border-2 border-red-600 rounded-lg p-6 backdrop-blur-sm">
+            <div className="bg-gradient-to-r from-red-900/80 to-blue-900/80 border-2 border-red-600 rounded-lg p-6 backdrop-blur-sm relative">
+              <InsightBadge
+                elementType="fzth-score"
+                elementId="fzth-score"
+                contextData={{ score: profile.fzthScore, role: profile.role }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-2 text-white">FZTH Score</h2>
@@ -204,7 +212,14 @@ export default function ProfilingPage() {
 
           {/* Profile Overview */}
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+              <InsightBadge
+                elementType="role"
+                elementId="role"
+                contextData={{ role: profile.role, confidence: profile.roleConfidence }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <h2 className="text-xl font-semibold mb-4">Ruolo Principale</h2>
               <p className="text-3xl font-bold text-red-400 mb-2">{profile.role}</p>
               <p className="text-sm text-gray-300">
@@ -217,7 +232,14 @@ export default function ProfilingPage() {
                 </span>
               </p>
             </div>
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+              <InsightBadge
+                elementType="playstyle"
+                elementId="playstyle"
+                contextData={{ playstyle: profile.playstyle }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <h2 className="text-xl font-semibold mb-4">Stile di Gioco</h2>
               <p className="text-3xl font-bold text-blue-400">{profile.playstyle}</p>
             </div>
@@ -228,7 +250,14 @@ export default function ProfilingPage() {
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">📈 Trend Performance</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                  <InsightBadge
+                    elementType="trend-gpm"
+                    elementId="trend-gpm"
+                    contextData={profile.trends.gpm}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">GPM Trend</span>
                     <span className={`text-lg font-bold ${
@@ -245,7 +274,14 @@ export default function ProfilingPage() {
                   </p>
                 </div>
                 {profile.trends.xpm && (
-                  <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
+                  <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                    <InsightBadge
+                      elementType="trend-xpm"
+                      elementId="trend-xpm"
+                      contextData={profile.trends.xpm}
+                      playerId={playerId || ''}
+                      position="top-right"
+                    />
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-400">XPM Trend</span>
                       <span className={`text-lg font-bold ${
@@ -262,7 +298,14 @@ export default function ProfilingPage() {
                     </p>
                   </div>
                 )}
-                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                  <InsightBadge
+                    elementType="trend-kda"
+                    elementId="trend-kda"
+                    contextData={profile.trends.kda}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">KDA Trend</span>
                     <span className={`text-lg font-bold ${
@@ -278,7 +321,14 @@ export default function ProfilingPage() {
                     {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs partite precedenti
                   </p>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors">
+                <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                  <InsightBadge
+                    elementType="trend-winrate"
+                    elementId="trend-winrate"
+                    contextData={profile.trends.winrate}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-400">Winrate Trend</span>
                     <span className={`text-lg font-bold ${
@@ -330,7 +380,14 @@ export default function ProfilingPage() {
 
           {/* Trend Chart */}
           {profile.trendData && profile.trendData.length > 0 && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+              <InsightBadge
+                elementType="trend-chart"
+                elementId="trend-chart"
+                contextData={{ trends: profile.trends, data: profile.trendData }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <h3 className="text-xl font-semibold mb-4">📊 Trend Performance (Ultime 10 Partite)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={profile.trendData}>
@@ -358,7 +415,14 @@ export default function ProfilingPage() {
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">⚔️ Performance per Fase di Gioco</h3>
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-gray-700/50 rounded-lg p-4 relative">
+                  <InsightBadge
+                    elementType="phase-analysis"
+                    elementId="phase-early"
+                    contextData={{ phase: 'Early Game', score: profile.phaseAnalysis.early.score, strength: profile.phaseAnalysis.early.strength }}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <h4 className="text-lg font-semibold text-green-400 mb-2">Early Game</h4>
                   <p className="text-sm text-gray-300 mb-2">Last Hits, Denies, First Blood</p>
                   <div className="flex items-center justify-between">
@@ -370,7 +434,14 @@ export default function ProfilingPage() {
                     <span className="text-2xl font-bold">{Math.round(profile.phaseAnalysis.early.score / 2)}/100</span>
                   </div>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-gray-700/50 rounded-lg p-4 relative">
+                  <InsightBadge
+                    elementType="phase-analysis"
+                    elementId="phase-mid"
+                    contextData={{ phase: 'Mid Game', score: profile.phaseAnalysis.mid.score, strength: profile.phaseAnalysis.mid.strength }}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <h4 className="text-lg font-semibold text-blue-400 mb-2">Mid Game</h4>
                   <p className="text-sm text-gray-300 mb-2">Teamfight, Farm, Obiettivi</p>
                   <div className="flex items-center justify-between">
@@ -382,7 +453,14 @@ export default function ProfilingPage() {
                     <span className="text-2xl font-bold">{Math.round(profile.phaseAnalysis.mid.score / 2)}/100</span>
                   </div>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="bg-gray-700/50 rounded-lg p-4 relative">
+                  <InsightBadge
+                    elementType="phase-analysis"
+                    elementId="phase-late"
+                    contextData={{ phase: 'Late Game', score: profile.phaseAnalysis.late.score, strength: profile.phaseAnalysis.late.strength }}
+                    playerId={playerId || ''}
+                    position="top-right"
+                  />
                   <h4 className="text-lg font-semibold text-purple-400 mb-2">Late Game</h4>
                   <p className="text-sm text-gray-300 mb-2">Decisioni, Item, Chiusura</p>
                   <div className="flex items-center justify-between">
@@ -400,7 +478,14 @@ export default function ProfilingPage() {
 
           {/* Patterns */}
           {profile.patterns && profile.patterns.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-900/80 to-purple-900/80 backdrop-blur-sm border border-blue-700 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-blue-900/80 to-purple-900/80 backdrop-blur-sm border border-blue-700 rounded-lg p-6 relative">
+              <InsightBadge
+                elementType="pattern"
+                elementId="patterns"
+                contextData={{ patterns: profile.patterns }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <h3 className="text-xl font-semibold mb-4 text-blue-300">🔍 Pattern di Gioco Identificati</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.patterns.map((pattern, idx) => (
@@ -483,7 +568,14 @@ export default function ProfilingPage() {
 
           {/* Comparative Analysis */}
           {profile.metrics && profile.role && (
-            <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 backdrop-blur-sm border border-indigo-700 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 backdrop-blur-sm border border-indigo-700 rounded-lg p-6 relative">
+              <InsightBadge
+                elementType="comparative-analysis"
+                elementId="comparative-analysis"
+                contextData={{ role: profile.role, metrics: profile.metrics }}
+                playerId={playerId || ''}
+                position="top-right"
+              />
               <h3 className="text-xl font-semibold mb-4 text-indigo-300">📊 Analisi Comparativa - {profile.role}</h3>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-gray-800/60 rounded-lg p-4 border border-indigo-600/30">
