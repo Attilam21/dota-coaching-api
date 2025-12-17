@@ -127,9 +127,11 @@ export async function GET(
       })
 
       // Track build patterns
-      const buildKey = items.sort((a, b) => a - b).join(',')
+      // Create a copy before sorting to preserve original order in buildPatterns
+      const sortedItems = [...items].sort((a, b) => a - b)
+      const buildKey = sortedItems.join(',')
       if (!buildPatterns[buildKey]) {
-        buildPatterns[buildKey] = { count: 0, wins: 0, items: items }
+        buildPatterns[buildKey] = { count: 0, wins: 0, items: items } // Keep original order
       }
       buildPatterns[buildKey].count++
       if (won) buildPatterns[buildKey].wins++
