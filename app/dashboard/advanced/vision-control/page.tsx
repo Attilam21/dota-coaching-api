@@ -86,13 +86,24 @@ export default function VisionControlPage() {
 
     try {
       setWardmapLoading(true)
+      setWardmapData(null) // Reset data
       const response = await fetch(`/api/player/${playerId}/wardmap`)
-      if (!response.ok) throw new Error('Failed to fetch wardmap data')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Failed to fetch wardmap:', response.status, errorData)
+        throw new Error('Failed to fetch wardmap data')
+      }
 
       const data = await response.json()
+      console.log('Wardmap data received:', {
+        totalMatches: data.totalMatches,
+        observerCount: data.observerWards?.length || 0,
+        sentryCount: data.sentryWards?.length || 0
+      })
       setWardmapData(data)
     } catch (err) {
       console.error('Failed to load wardmap:', err)
+      setWardmapData(null)
       // Non bloccare l'intera pagina se la wardmap fallisce
     } finally {
       setWardmapLoading(false)
@@ -321,38 +332,22 @@ export default function VisionControlPage() {
             )}
 
             {!wardmapLoading && wardmapData && (
-              <>
-                {wardmapData.observerWards.length === 0 && wardmapData.sentryWards.length === 0 ? (
-                  <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
-                    <p className="text-yellow-200 mb-2">
-                      ⚠️ Nessun dato wardmap disponibile per le partite analizzate.
-                    </p>
-                    <p className="text-yellow-300 text-sm">
-                      Le partite potrebbero non avere dati wardmap disponibili su OpenDota, o potrebbero essere partite vecchie.
-                    </p>
-                    <a
-                      href={`https://www.opendota.com/players/${playerId}/wardmap`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      Vedi Ward Map su OpenDota ↗
-                    </a>
-                  </div>
-                ) : (
-                  <WardMap
-                    observerWards={wardmapData.observerWards}
-                    sentryWards={wardmapData.sentryWards}
-                    width={800}
-                    height={800}
-                  />
-                )}
-              </>
+              <WardMap
+                observerWards={wardmapData.observerWards || []}
+                sentryWards={wardmapData.sentryWards || []}
+                width={800}
+                height={800}
+              />
             )}
 
             {!wardmapLoading && !wardmapData && (
-              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6 text-center">
-                <p className="text-gray-400">Impossibile caricare i dati della wardmap.</p>
+              <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
+                <p className="text-red-200 mb-2">
+                  ❌ Errore nel caricamento dei dati della wardmap.
+                </p>
+                <p className="text-red-300 text-sm">
+                  Controlla la console del browser per maggiori dettagli.
+                </p>
               </div>
             )}
           </div>

@@ -246,7 +246,7 @@ export default function WardMap({
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 justify-center text-sm flex-wrap">
+      <div className="flex gap-6 justify-center text-sm flex-wrap mb-4">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500 rounded-full shadow-md"></div>
           <span className="text-gray-300">Observer Wards ({observerWards.length})</span>
@@ -256,6 +256,15 @@ export default function WardMap({
           <span className="text-gray-300">Sentry Wards ({sentryWards.length})</span>
         </div>
       </div>
+
+      {/* Info message when no data */}
+      {observerWards.length === 0 && sentryWards.length === 0 && imageLoaded && (
+        <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 text-center">
+          <p className="text-yellow-200 text-sm">
+            ℹ️ Nessuna ward trovata nelle partite analizzate. Le partite potrebbero non avere replay disponibili o dati wardmap.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
