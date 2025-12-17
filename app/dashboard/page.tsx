@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface PlayerStats {
   winrate: {
@@ -212,7 +213,16 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-4">Snapshot Stato Forma (ultime partite)</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="trend-winrate"
+                    elementId="dashboard-winrate-trend"
+                    contextData={{ direction: stats.winrate.delta >= 0 ? 'up' : 'down', value: stats.winrate.delta, label: winrateTrend.label, last5: stats.winrate.last5, last10: stats.winrate.last10 }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <h4 className="text-lg font-semibold mb-4">Winrate Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
@@ -239,7 +249,16 @@ export default function DashboardPage() {
               </div>
 
               {/* KDA Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="trend-kda"
+                    elementId="dashboard-kda-trend"
+                    contextData={{ direction: stats.kda.delta >= 0 ? 'up' : 'down', value: stats.kda.delta, label: kdaTrend.label, last5: stats.kda.last5, last10: stats.kda.last10 }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <h4 className="text-lg font-semibold mb-4">KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
@@ -293,7 +312,16 @@ export default function DashboardPage() {
 
           {/* Trend Ultime 10 Partite */}
           {chartData.length > 0 && (
-            <div className="mb-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="mb-8 bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="trend-chart"
+                  elementId="dashboard-trend-chart"
+                  contextData={{ trends: { winrate: stats.winrate, kda: stats.kda, farm: stats.farm }, data: chartData }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold">Trend Ultime 10 Partite</h3>
                 <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>

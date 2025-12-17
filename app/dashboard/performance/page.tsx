@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface PerformanceStats {
   avgKDA: number
@@ -166,7 +167,16 @@ export default function PerformancePage() {
       {stats && !loading && (
         <div className="space-y-6">
           {/* Playstyle Banner - Compact */}
-          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4 relative">
+            {playerId && (
+              <InsightBadge
+                elementType="playstyle"
+                elementId="performance-playstyle"
+                contextData={{ playstyle: stats.playstyle }}
+                playerId={playerId}
+                position="top-right"
+              />
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold mb-1">Stile di Gioco Identificato</h2>
@@ -179,12 +189,30 @@ export default function PerformancePage() {
 
           {/* Performance Overview - Smaller Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="metric-card"
+                  elementId="performance-kda"
+                  contextData={{ metricName: 'KDA', value: stats.avgKDA.toFixed(2), benchmark: '2.5' }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA</h3>
               <p className="text-2xl font-bold text-white">{stats.avgKDA.toFixed(2)}</p>
               <p className="text-xs text-gray-500 mt-1">KP: {stats.teamfightParticipation.toFixed(0)}%</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="metric-card"
+                  elementId="performance-gpm"
+                  contextData={{ metricName: 'GPM', value: stats.avgGPM.toFixed(0), benchmark: '500' }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM</h3>
               <p className="text-2xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</p>
               <p className="text-xs text-gray-500 mt-1">Eff: {stats.farmEfficiency.toFixed(0)}%</p>
@@ -203,7 +231,16 @@ export default function PerformancePage() {
 
           {/* Trend Chart - New */}
           {stats.matches && stats.matches.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="trend-chart"
+                  elementId="performance-trend-chart"
+                  contextData={{ trends: { kda: stats.avgKDA, gpm: stats.avgGPM, xpm: stats.avgXPM }, data: stats.matches.slice(0, 10) }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <h3 className="text-lg font-semibold mb-3">Trend Performance (Ultime 10 Partite)</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={stats.matches.slice(0, 10).map((m, idx) => ({

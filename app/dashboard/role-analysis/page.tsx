@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface RolePerformance {
   games: number
@@ -143,7 +144,16 @@ export default function RoleAnalysisPage() {
         <div className="space-y-6">
           {/* Preferred Role */}
           {analysis.preferredRole && (
-            <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="role"
+                  elementId="role-analysis-preferred"
+                  contextData={{ role: analysis.preferredRole.role, confidence: analysis.preferredRole.confidence }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">Ruolo Preferito</h2>

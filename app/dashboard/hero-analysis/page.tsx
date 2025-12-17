@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface HeroStat {
   hero_id: number
@@ -144,7 +145,16 @@ export default function HeroAnalysisPage() {
         <div className="space-y-6">
           {/* Overall Stats */}
           <div className="grid md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="metric-card"
+                  elementId="hero-analysis-total-games"
+                  contextData={{ metricName: 'Partite Totali', value: analysis.overall.totalGames }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <h3 className="text-sm text-gray-400 mb-2">Partite Totali</h3>
               <p className="text-3xl font-bold">{analysis.overall.totalGames}</p>
             </div>

@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 
 interface HeroStats {
   hero_id: number
@@ -134,7 +135,16 @@ export default function HeroesPage() {
       {heroStats.length > 0 && !loading && (
         <div className="space-y-6">
           {/* Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+            {playerId && (
+              <InsightBadge
+                elementType="trend-chart"
+                elementId="heroes-chart"
+                contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
+                playerId={playerId}
+                position="top-right"
+              />
+            )}
             <h2 className="text-xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={chartData}>
