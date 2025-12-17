@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       title: 'ANALISI AVANZATE',
       items: [
         { name: 'Analisi avanzate', href: '/dashboard/advanced', icon: '🔬' },
+        { name: 'Build & Items', href: '/dashboard/builds', icon: '🛡️' },
       ],
     },
     {

@@ -172,6 +172,50 @@ export async function POST(request: NextRequest) {
         Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che riconosce i pattern di gioco.`
         break
 
+      case 'builds':
+        if (elementId === 'top-items') {
+          const topItems = contextData.topItems || []
+          const itemsList = topItems.map((item: any) => `${item.item_name} (${item.frequency}x, ${item.winrate}% WR)`).join(', ')
+          prompt = `Sei un coach professionale di Dota 2. I top item utilizzati sono: ${itemsList}. 
+          Scrivi un feedback diretto (max 150 parole) analizzando questi item e dando suggerimenti concreti su come ottimizzare le build. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce le build ottimali.`
+        } else if (elementId === 'build-patterns') {
+          const patterns = contextData.patterns || []
+          const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR, ${p.frequency}x)`).join('; ')
+          prompt = `Sei un coach professionale di Dota 2. Le build più comuni sono: ${patternsList}. 
+          Scrivi un feedback diretto (max 150 parole) analizzando queste build e identificando quale funziona meglio e perché. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta le build con competenza.`
+        } else if (elementId === 'underutilized') {
+          const items = contextData.items || []
+          const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
+          prompt = `Sei un coach professionale di Dota 2. Item sottoutilizzati con alto winrate: ${itemsList}. 
+          Scrivi un feedback diretto (max 150 parole) spiegando perché questi item funzionano bene e come integrarli più spesso nelle build. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che identifica item efficaci.`
+        } else if (elementId === 'overpurchased') {
+          const items = contextData.items || []
+          const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
+          prompt = `Sei un coach professionale di Dota 2. Item overpurchased con basso winrate: ${itemsList}. 
+          Scrivi un feedback diretto (max 150 parole) spiegando perché questi item non funzionano e quali alternative usare. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che identifica item inefficaci.`
+        } else if (elementId === 'efficiency') {
+          const items = contextData.items || []
+          const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, efficienza: ${item.efficiency?.toFixed(2) || 'N/A'})`).join(', ')
+          prompt = `Sei un coach professionale di Dota 2. Efficienza item: ${itemsList}. 
+          Scrivi un feedback diretto (max 150 parole) analizzando l'efficienza degli item e come ottimizzare le scelte. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta l'efficienza degli item.`
+        } else if (elementId === 'comparison') {
+          const patterns = contextData.patterns || []
+          const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR)`).join('; ')
+          prompt = `Sei un coach professionale di Dota 2. Confronto build: ${patternsList}. 
+          Scrivi un feedback diretto (max 150 parole) confrontando queste build e identificando la più efficace e perché. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che confronta le build con precisione.`
+        } else {
+          prompt = `Sei un coach professionale di Dota 2. Analisi build: ${JSON.stringify(contextData)}. 
+          Scrivi un feedback diretto (max 150 parole) analizzando le build e dando suggerimenti concreti. 
+          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto di build.`
+        }
+        break
+
       default:
         prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Dati: ${JSON.stringify(contextData)}. 
         Scrivi un feedback diretto e assertivo (max 150 parole) identificando il problema principale e dando un'azione concreta. 

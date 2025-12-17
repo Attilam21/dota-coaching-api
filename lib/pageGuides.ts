@@ -234,6 +234,28 @@ export const pageGuides: Record<string, PageGuide> = {
       }
     ]
   },
+  '/dashboard/builds': {
+    title: 'Build & Items',
+    description: 'Analisi approfondita delle tue build e degli item utilizzati nelle partite.',
+    sections: [
+      {
+        title: 'Overview',
+        content: 'Panoramica generale degli item più utilizzati, build più comuni e statistiche aggregate su tutte le tue partite.'
+      },
+      {
+        title: 'Per Hero',
+        content: 'Analisi delle build specifiche per ogni eroe. Seleziona un eroe per vedere le build più efficaci e gli item più utilizzati con quel eroe.'
+      },
+      {
+        title: 'Analisi Item',
+        content: 'Identificazione di item sottoutilizzati (alto winrate, bassa frequenza) e overpurchased (alta frequenza, basso winrate). Analisi dell\'efficienza degli item.'
+      },
+      {
+        title: 'Build Comparison',
+        content: 'Confronto tra diverse build per identificare quali combinazioni di item sono più efficaci in termini di winrate.'
+      }
+    ]
+  },
   '/dashboard/settings': {
     title: 'Profilo Utente',
     description: 'Gestione del tuo profilo e configurazione del Dota 2 Account ID.',
