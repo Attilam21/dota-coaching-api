@@ -19,19 +19,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation = [
     {
-      title: 'ANALISI CORE',
+      title: 'ANALISI PLAYER',
       items: [
         { name: 'Panoramica', href: '/dashboard', icon: '📊' },
         { name: 'Performance & Stile di Gioco', href: '/dashboard/performance', icon: '⚡' },
         { name: 'Hero Pool', href: '/dashboard/heroes', icon: '🎭' },
         { name: 'Hero Analysis', href: '/dashboard/hero-analysis', icon: '🔍' },
         { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: '🎯' },
+      ],
+    },
+    {
+      title: 'ANALISI TEAM & MATCH',
+      items: [
         { name: 'Team & Compagni', href: '/dashboard/teammates', icon: '👥' },
         { name: 'Partite', href: '/dashboard/matches', icon: '🎮' },
       ],
     },
     {
-      title: 'COACHING',
+      title: 'COACHING & PROFILAZIONE',
       items: [
         { name: 'Coaching & Task', href: '/dashboard/coaching', icon: '📚' },
         { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: '🎯' },
@@ -39,7 +44,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ],
     },
     {
-      title: 'AVANZATO',
+      title: 'ANALISI AVANZATE',
       items: [
         { name: 'Analisi avanzate', href: '/dashboard/advanced', icon: '🔬' },
       ],
