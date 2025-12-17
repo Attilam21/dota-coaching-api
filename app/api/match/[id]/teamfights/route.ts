@@ -173,17 +173,39 @@ export async function GET(
         }
 
         // Extract participants from players array
-        const participants = players.map((p: { player_slot: number }) => {
+        // IMPORTANT: tf.players might not have player_slot directly
+        // Try to match by index if order is preserved, or check if player has any activity
+        const participants = players.map((p: { player_slot: number }, idx: number) => {
           const playerSlot = p.player_slot
-          const participated = tf.players && tf.players.some((tfPlayer: any) => {
-            const tfSlot = tfPlayer.player_slot !== undefined ? tfPlayer.player_slot : tfPlayer.slot
-            return tfSlot === playerSlot
-          })
+          
+          // Try multiple strategies to determine participation
+          let participated = false
+          
+          if (tf.players && Array.isArray(tf.players)) {
+            // Strategy 1: Match by index (if order is preserved)
+            if (idx < tf.players.length) {
+              const tfPlayer = tf.players[idx]
+              // Player participated if they have any activity (damage, healing, deaths, etc.)
+              participated = (tfPlayer.damage > 0) || 
+                             (tfPlayer.healing > 0) || 
+                             (tfPlayer.deaths > 0) ||
+                             (tfPlayer.killed && Object.keys(tfPlayer.killed).length > 0) ||
+                             (tfPlayer.ability_uses && Object.keys(tfPlayer.ability_uses).length > 0)
+            }
+            
+            // Strategy 2: Try to match by player_slot if available
+            if (!participated) {
+              participated = tf.players.some((tfPlayer: any) => {
+                const tfSlot = tfPlayer.player_slot !== undefined ? tfPlayer.player_slot : tfPlayer.slot
+                return tfSlot === playerSlot
+              })
+            }
+          }
           
           return {
             playerSlot,
             team: playerSlot < 128 ? 'radiant' : 'dire' as 'radiant' | 'dire',
-            participated: participated || false
+            participated: participated
           }
         })
 
