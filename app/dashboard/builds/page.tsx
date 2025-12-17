@@ -143,9 +143,7 @@ export default function BuildsPage() {
         }
 
         // Fetch heroes list
-        const heroesResponse = await fetch('https://api.opendota.com/api/heroes', {
-          next: { revalidate: 86400 }
-        })
+        const heroesResponse = await fetch('https://api.opendota.com/api/heroes')
         if (heroesResponse.ok) {
           const heroesData = await heroesResponse.json()
           setHeroes(heroesData)
