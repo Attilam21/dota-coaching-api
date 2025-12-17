@@ -157,9 +157,10 @@ export async function GET(
 
       // Estimate phase stats from match data
       // Since we don't have exact phase breakdowns, we'll estimate based on duration
-      const earlyRatio = Math.min(1, EARLY_END / duration)
-      const midRatio = Math.min(1, (MID_END - EARLY_END) / Math.max(1, duration - EARLY_END))
-      const lateRatio = 1 - earlyRatio - midRatio
+      // Bug fix: midRatio must use duration as denominator to ensure ratios sum correctly
+      const earlyRatio = Math.min(1, EARLY_END / Math.max(1, duration))
+      const midRatio = Math.min(1, (MID_END - EARLY_END) / Math.max(1, duration))
+      const lateRatio = Math.max(0, 1 - earlyRatio - midRatio)
 
       // Distribute stats proportionally (this is an estimation)
       phases.early.kills = Math.round(player.kills * earlyRatio)
@@ -251,4 +252,3 @@ export async function GET(
     )
   }
 }
-

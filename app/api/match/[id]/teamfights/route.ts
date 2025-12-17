@@ -45,13 +45,26 @@ export async function GET(
 
     // Identify teamfights (clusters of kills within short time windows)
     // A teamfight is defined as 3+ kills within 30 seconds
-    const killEvents = matchLog.filter((entry: any) => {
-      return entry.type?.includes('KILL') || entry.type === 'CHAT_MESSAGE_KILL'
-    }).map((entry: any) => ({
-      time: entry.time || 0,
-      playerSlot: entry.player_slot,
-      team: entry.player_slot !== undefined && entry.player_slot < 128 ? 'radiant' : 'dire'
-    })).filter(e => e.time > 0 && e.time <= duration)
+    // Bug fix: Filter out kills without valid player_slot and add proper type annotations
+    type KillEvent = {
+      time: number
+      playerSlot: number
+      team: 'radiant' | 'dire'
+    }
+    
+    const killEvents: KillEvent[] = matchLog
+      .filter((entry: any) => {
+        return (entry.type?.includes('KILL') || entry.type === 'CHAT_MESSAGE_KILL') && 
+               entry.player_slot !== undefined && 
+               typeof entry.player_slot === 'number' &&
+               entry.time > 0 && 
+               entry.time <= duration
+      })
+      .map((entry: any): KillEvent => ({
+        time: entry.time || 0,
+        playerSlot: entry.player_slot as number,
+        team: (entry.player_slot < 128 ? 'radiant' : 'dire') as 'radiant' | 'dire'
+      }))
 
     // Group kills into teamfights (within 30 seconds of each other)
     const teamfights: Array<{
@@ -211,4 +224,3 @@ export async function GET(
     )
   }
 }
-
