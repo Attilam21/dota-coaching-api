@@ -40,25 +40,15 @@ export async function GET(
       console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
     }
     
-    if (!statsData?.stats) {
+    if (!statsData?.stats || !advancedData?.stats) {
       return NextResponse.json(
-        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
+        { error: 'Failed to fetch or parse player data' },
         { status: 500 }
       )
     }
-    
-    // Advanced stats are optional but preferred
-    if (!advancedData?.stats) {
-      console.warn('Advanced stats not available, using basic stats only')
-    }
 
     const stats = statsData.stats
-    const advanced = advancedData?.stats || {
-      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
-      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
-      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
-      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
-    }
+    const advanced = advancedData.stats
     const matches = stats.matches || []
 
     // Calculate comprehensive metrics - prioritize stats.farm (already calculated averages)
@@ -108,7 +98,10 @@ export async function GET(
     if (avgXPM === 0 && advanced?.farm?.avgXPM && advanced.farm.avgXPM > 0) {
       avgXPM = advanced.farm.avgXPM
     }
-    const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
+    // Prevent division by zero
+    const avgKDA = matches.length > 0 
+      ? matches.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / matches.length 
+      : 0
     const winrate = stats.winrate.last10 || 0
     const avgDeaths = advanced.fights?.avgDeaths || 0
     
