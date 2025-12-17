@@ -192,105 +192,115 @@ export default function PerformancePage() {
           {/* Benchmarks Section - NEW */}
           {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
             <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-2xl font-semibold text-blue-300">📊 Benchmarks & Percentili</h2>
-              </div>
+              <h2 className="text-2xl font-semibold text-blue-300 mb-4">📊 Benchmarks & Percentili</h2>
               <p className="text-gray-400 text-sm mb-4">
-                Confronto delle tue performance con la comunità Dota 2. I percentili mostrano come ti posizioni rispetto agli altri giocatori.
+                Come ti posizioni rispetto alla comunità Dota 2
               </p>
-              <div className="grid md:grid-cols-3 gap-3">
+              <div className="grid md:grid-cols-3 gap-4">
                 {benchmarks.percentiles?.gpm && (
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm text-gray-400">GPM</div>
-                      <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                        benchmarks.percentiles.gpm.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                        benchmarks.percentiles.gpm.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                        'bg-gray-700/50 text-gray-400'
+                    <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <div className="text-3xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Percentile:</span>
+                      <span className={`text-sm font-bold ${
+                        benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
                       }`}>
                         {benchmarks.percentiles.gpm.label}
-                      </div>
+                      </span>
                     </div>
-                    <div className="text-3xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</div>
-                    <div className="text-xs text-gray-500 mt-1">Gold per Minuto</div>
                   </div>
                 )}
                 {benchmarks.percentiles?.xpm && (
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm text-gray-400">XPM</div>
-                      <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                        benchmarks.percentiles.xpm.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                        benchmarks.percentiles.xpm.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                        'bg-gray-700/50 text-gray-400'
+                    <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <div className="text-3xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Percentile:</span>
+                      <span className={`text-sm font-bold ${
+                        benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
                       }`}>
                         {benchmarks.percentiles.xpm.label}
-                      </div>
+                      </span>
                     </div>
-                    <div className="text-3xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</div>
-                    <div className="text-xs text-gray-500 mt-1">XP per Minuto</div>
                   </div>
                 )}
                 {benchmarks.percentiles?.kda && (
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm text-gray-400">KDA</div>
-                      <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                        benchmarks.percentiles.kda.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                        benchmarks.percentiles.kda.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                        'bg-gray-700/50 text-gray-400'
+                    <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <div className="text-3xl font-bold text-red-400">{stats.avgKDA.toFixed(2)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Percentile:</span>
+                      <span className={`text-sm font-bold ${
+                        benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
+                        benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                        'text-gray-400'
                       }`}>
                         {benchmarks.percentiles.kda.label}
-                      </div>
+                      </span>
                     </div>
-                    <div className="text-3xl font-bold text-red-400">{stats.avgKDA.toFixed(2)}</div>
-                    <div className="text-xs text-gray-500 mt-1">Kill/Death/Assist Ratio</div>
                   </div>
                 )}
                 {/* Fallback to calculated percentiles if OpenDota ratings not available */}
                 {!benchmarks.percentiles && benchmarks.calculatedPercentiles && (
                   <>
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm text-gray-400">GPM</div>
-                        <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                          benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                          benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                          'bg-gray-700/50 text-gray-400'
+                      <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <div className="text-3xl font-bold text-yellow-400">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Percentile:</span>
+                        <span className={`text-sm font-bold ${
+                          benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                          benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                          'text-gray-400'
                         }`}>
                           {benchmarks.calculatedPercentiles.gpm.label}
-                        </div>
+                        </span>
                       </div>
-                      <div className="text-3xl font-bold text-yellow-400">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
-                      <div className="text-xs text-gray-500 mt-1">Gold per Minuto</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm text-gray-400">XPM</div>
-                        <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                          benchmarks.calculatedPercentiles.xpm.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                          benchmarks.calculatedPercentiles.xpm.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                          'bg-gray-700/50 text-gray-400'
+                      <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <div className="text-3xl font-bold text-blue-400">{benchmarks.calculatedPercentiles.xpm.value.toFixed(0)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Percentile:</span>
+                        <span className={`text-sm font-bold ${
+                          benchmarks.calculatedPercentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                          benchmarks.calculatedPercentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                          'text-gray-400'
                         }`}>
                           {benchmarks.calculatedPercentiles.xpm.label}
-                        </div>
+                        </span>
                       </div>
-                      <div className="text-3xl font-bold text-blue-400">{benchmarks.calculatedPercentiles.xpm.value.toFixed(0)}</div>
-                      <div className="text-xs text-gray-500 mt-1">XP per Minuto</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm text-gray-400">KDA</div>
-                        <div className={`text-xs font-semibold px-2 py-1 rounded ${
-                          benchmarks.calculatedPercentiles.kda.percentile >= 75 ? 'bg-green-900/50 text-green-300' :
-                          benchmarks.calculatedPercentiles.kda.percentile >= 50 ? 'bg-blue-900/50 text-blue-300' :
-                          'bg-gray-700/50 text-gray-400'
+                      <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <div className="text-3xl font-bold text-red-400">{benchmarks.calculatedPercentiles.kda.value.toFixed(2)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Percentile:</span>
+                        <span className={`text-sm font-bold ${
+                          benchmarks.calculatedPercentiles.kda.percentile >= 75 ? 'text-green-400' :
+                          benchmarks.calculatedPercentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                          'text-gray-400'
                         }`}>
                           {benchmarks.calculatedPercentiles.kda.label}
-                        </div>
+                        </span>
                       </div>
-                      <div className="text-3xl font-bold text-red-400">{benchmarks.calculatedPercentiles.kda.value.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500 mt-1">Kill/Death/Assist Ratio</div>
                     </div>
                   </>
                 )}
