@@ -60,16 +60,19 @@ export async function GET(
     const itemsMap: Record<number, { id: number; name: string; localized_name: string; cost?: number }> = {}
     if (itemsResponse.ok) {
       const items = await itemsResponse.json()
+      // OpenDota returns items as an object where keys are item names and values are item data
       Object.values(items).forEach((item: any) => {
-        if (item.id) {
+        if (item.id !== undefined && item.id !== null) {
           itemsMap[item.id] = {
             id: item.id,
-            name: item.name,
-            localized_name: item.localized_name || item.name,
+            name: item.name || item.dname || '',
+            localized_name: item.localized_name || item.dname || item.name || `Item ${item.id}`,
             cost: item.cost || 0
           }
         }
       })
+    } else {
+      console.error('Failed to fetch items constants:', itemsResponse.status, itemsResponse.statusText)
     }
 
     // Analyze item statistics

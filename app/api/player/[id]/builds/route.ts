@@ -68,16 +68,19 @@ export async function GET(
     const itemsMap: Record<number, { id: number; name: string; localized_name: string; cost?: number }> = {}
     if (itemsResponse.ok) {
       const items = await itemsResponse.json()
+      // OpenDota returns items as an object where keys are item names and values are item data
       Object.values(items).forEach((item: any) => {
-        if (item.id) {
+        if (item.id !== undefined && item.id !== null) {
           itemsMap[item.id] = {
             id: item.id,
-            name: item.name,
-            localized_name: item.localized_name || item.name,
+            name: item.name || item.dname || '',
+            localized_name: item.localized_name || item.dname || item.name || `Item ${item.id}`,
             cost: item.cost || 0
           }
         }
       })
+    } else {
+      console.error('Failed to fetch items constants:', itemsResponse.status, itemsResponse.statusText)
     }
 
     // Analyze builds from matches
@@ -166,7 +169,14 @@ export async function GET(
     const topBuildPatterns = Object.entries(buildPatterns)
       .map(([key, pattern]) => {
         const winrate = pattern.count > 0 ? (pattern.wins / pattern.count) * 100 : 0
-        const itemNames = pattern.items.map(id => itemsMap[id]?.localized_name || `Item ${id}`)
+        const itemNames = pattern.items.map(id => {
+          const item = itemsMap[id]
+          if (item && item.localized_name) {
+            return item.localized_name
+          }
+          // Fallback: try to get name from itemsMap or use ID
+          return item?.name || `Item ${id}`
+        })
         return {
           items: pattern.items,
           itemNames,

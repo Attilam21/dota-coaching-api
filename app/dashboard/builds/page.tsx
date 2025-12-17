@@ -5,7 +5,6 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import DashboardLayout from '@/components/DashboardLayout'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
@@ -177,36 +176,31 @@ export default function BuildsPage() {
 
   if (authLoading || loading) {
     return (
-      <DashboardLayout>
-        <div className="p-8">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-            <p className="mt-4 text-gray-400">Caricamento dati build...</p>
-          </div>
+      <div className="p-8">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          <p className="mt-4 text-gray-400">Caricamento dati build...</p>
         </div>
-      </DashboardLayout>
+      </div>
     )
   }
 
   if (!playerId) {
     return (
-      <DashboardLayout>
-        <div className="p-8">
-          <PlayerIdInput
-            pageTitle="Build & Items"
-            title="Inserisci Player ID"
-            description="Inserisci il tuo Dota 2 Account ID per visualizzare le analisi delle build e degli item"
-          />
-        </div>
-      </DashboardLayout>
+      <div className="p-8">
+        <PlayerIdInput
+          pageTitle="Build & Items"
+          title="Inserisci Player ID"
+          description="Inserisci il tuo Dota 2 Account ID per visualizzare le analisi delle build e degli item"
+        />
+      </div>
     )
   }
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
   return (
-    <DashboardLayout>
-      <div className="p-8">
+    <div className="p-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">Build & Items</h1>
@@ -523,8 +517,7 @@ export default function BuildsPage() {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }
 
