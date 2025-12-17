@@ -159,7 +159,7 @@ export default function MatchesPage() {
               <Link
                 key={match.match_id}
                 href={`/analysis/match/${match.match_id}`}
-                className="block bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-750 transition cursor-pointer"
+                className="block bg-gray-800 border border-gray-700 rounded-lg p-6 hover:bg-gray-700/50 transition cursor-pointer"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">

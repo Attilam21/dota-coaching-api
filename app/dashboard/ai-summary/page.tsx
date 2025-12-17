@@ -302,7 +302,7 @@ export default function AISummaryPage() {
                       <div
                         key={match.match_id}
                         onClick={() => setSelectedMatchId(match.match_id)}
-                        className={`bg-gray-800 border rounded-lg p-3 hover:bg-gray-750 transition cursor-pointer ${
+                        className={`bg-gray-800 border rounded-lg p-3 hover:bg-gray-700/50 transition cursor-pointer ${
                           isSelected ? 'border-red-500 bg-red-900/20' : 'border-gray-700'
                         }`}
                       >

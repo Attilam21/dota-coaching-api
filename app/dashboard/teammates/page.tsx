@@ -455,7 +455,7 @@ export default function TeammatesPage() {
                       return (
                         <tr 
                           key={teammate.account_id} 
-                          className={`hover:bg-gray-750 transition ${isBest ? 'bg-green-900/20' : isHighWinrate ? 'bg-blue-900/20' : ''}`}
+                          className={`hover:bg-gray-700/50 transition ${isBest ? 'bg-green-900/20' : isHighWinrate ? 'bg-blue-900/20' : ''}`}
                         >
                           <td className="px-4 py-2 whitespace-nowrap text-white font-medium">
                             <div className="flex items-center gap-2">

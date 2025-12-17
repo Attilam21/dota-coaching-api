@@ -82,7 +82,7 @@ export default function AdvancedPage() {
           <Link
             key={card.href}
             href={card.href}
-            className={`bg-gray-800 border ${card.color} rounded-lg p-6 hover:bg-gray-750 transition cursor-pointer`}
+            className={`bg-gray-800 border ${card.color} rounded-lg p-6 hover:bg-gray-700/50 transition cursor-pointer`}
           >
             <div className="flex items-start gap-4">
               <div className="text-4xl">{card.icon}</div>

@@ -299,7 +299,7 @@ export default function PlayerAnalysisPage() {
                 {recentMatches.map((match) => {
                   const won = (match.player_slot < 128 && match.radiant_win) || (match.player_slot >= 128 && !match.radiant_win)
                   return (
-                    <tr key={match.match_id} className="hover:bg-gray-750">
+                    <tr key={match.match_id} className="hover:bg-gray-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link
                           href={`/analysis/match/${match.match_id}`}

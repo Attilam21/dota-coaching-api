@@ -288,7 +288,7 @@ export default function HeroAnalysisPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-700">
                   {analysis.heroStats.map((hero) => (
-                    <tr key={hero.hero_id} className="hover:bg-gray-750">
+                    <tr key={hero.hero_id} className="hover:bg-gray-700/50">
                       <td className="px-6 py-4 whitespace-nowrap text-white font-medium">
                         {hero.hero_name}
                       </td>
