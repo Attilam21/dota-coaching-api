@@ -163,35 +163,47 @@ export async function GET(
         // Priority 1: Use purchase_log from match object (most accurate)
         if (hasPurchaseLog && player.purchase_log && Array.isArray(player.purchase_log)) {
           // purchase_log structure: [{ time: number, key: string }]
-          // key can be item name (e.g., "item_tango") or item ID
+          // key is the INTERNAL NAME (e.g., "branches", "item_tango") not the ID
           const purchaseEntry = player.purchase_log.find((entry: any) => {
             if (!entry || !entry.key) return false
             
-            const entryKey = entry.key.toString().toLowerCase()
+            const entryKey = entry.key.toString().toLowerCase().trim()
+            
+            // Strategy 1: Map internal name to item ID using itemsByNameMap
+            // This is the most reliable since purchase_log uses internal names
+            const mappedItemId = itemsByNameMap[entryKey] || itemsByNameMap[`item_${entryKey}`]
+            if (mappedItemId === item.id) {
+              return true
+            }
+            
+            // Strategy 2: Direct item ID match (if key is numeric)
             const itemIdStr = item.id.toString()
+            if (entryKey === itemIdStr || entryKey.includes(itemIdStr)) {
+              return true
+            }
             
-            // Try multiple matching strategies:
-            // 1. Direct item ID match (if key contains item ID)
-            if (entryKey.includes(itemIdStr)) return true
-            
-            // 2. Item name match (if we have item name)
+            // Strategy 3: Match by item name (if we have item name)
             const itemName = getItemName(item.id)
             if (itemName) {
-              // Try matching by internal name (e.g., "item_tango")
-              const itemInternalName = itemName.toLowerCase().replace(/\s+/g, '_')
-              if (entryKey.includes(itemInternalName) || entryKey === itemInternalName) return true
+              // Try matching by internal name format (e.g., "item_tango")
+              const itemInternalName = itemName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+              if (entryKey === itemInternalName || entryKey === `item_${itemInternalName}` || entryKey.includes(itemInternalName)) {
+                return true
+              }
               
               // Try matching by localized name
-              const itemLocalizedName = itemName.toLowerCase()
-              if (entryKey.includes(itemLocalizedName)) return true
+              const itemLocalizedName = itemName.toLowerCase().replace(/[^a-z0-9]/g, '')
+              if (entryKey.includes(itemLocalizedName)) {
+                return true
+              }
             }
             
             return false
           })
           
           if (purchaseEntry && purchaseEntry.time !== undefined && purchaseEntry.time > 0) {
-            purchaseTime = purchaseEntry.time
-            console.log(`[Item Timing] Found purchase_log entry for item ${item.id} at ${purchaseTime}s`)
+            purchaseTime = Math.max(0, purchaseEntry.time) // Ensure non-negative (handle negative times)
+            console.log(`[Item Timing] Found purchase_log entry for item ${item.id} (key: ${purchaseEntry.key}) at ${purchaseTime}s`)
           }
         }
         
