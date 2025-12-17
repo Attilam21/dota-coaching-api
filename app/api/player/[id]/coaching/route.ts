@@ -61,9 +61,13 @@ export async function GET(
     }
     const matches = stats.matches || []
 
-    // Calculate key metrics
-    const avgGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
-    const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
+    // Calculate key metrics - prevent division by zero
+    const avgGPM = matches.length > 0 
+      ? matches.reduce((acc: number, m: { gpm: number }) => acc + (m.gpm || 0), 0) / matches.length 
+      : 0
+    const avgKDA = matches.length > 0 
+      ? matches.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / matches.length 
+      : 0
     const avgDeaths = advanced.fights.avgDeaths || 0
     const winrate = stats.winrate.last10 || 0
     const avgLastHits = advanced.lane.avgLastHits || 0

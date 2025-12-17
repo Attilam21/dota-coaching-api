@@ -217,10 +217,10 @@ export async function GET(
     const avgGPM10 = recent10.length > 0 ? recent10.reduce((acc: number, m: any) => acc + (m.gpm || m.gold_per_min || 0), 0) / recent10.length : 0
     const avgXPM5 = recent5.length > 0 ? recent5.reduce((acc: number, m: any) => acc + (m.xpm || m.xp_per_min || 0), 0) / recent5.length : 0
     const avgXPM10 = recent10.length > 0 ? recent10.reduce((acc: number, m: any) => acc + (m.xpm || m.xp_per_min || 0), 0) / recent10.length : 0
-    const avgKDA5 = recent5.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent5.length || 0
-    const avgKDA10 = recent10.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / recent10.length || 0
-    const winrate5 = (recent5.filter((m: { win: boolean }) => m.win).length / recent5.length) * 100 || 0
-    const winrate10 = (recent10.filter((m: { win: boolean }) => m.win).length / recent10.length) * 100 || 0
+    const avgKDA5 = recent5.length > 0 ? recent5.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / recent5.length : 0
+    const avgKDA10 = recent10.length > 0 ? recent10.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / recent10.length : 0
+    const winrate5 = recent5.length > 0 ? (recent5.filter((m: { win: boolean }) => m.win).length / recent5.length) * 100 : 0
+    const winrate10 = recent10.length > 0 ? (recent10.filter((m: { win: boolean }) => m.win).length / recent10.length) * 100 : 0
 
     const trends = {
       gpm: { 

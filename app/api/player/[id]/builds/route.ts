@@ -239,8 +239,8 @@ export async function GET(
           item_internal_name: item?.internal_name || '',
           frequency: stats.count,
           winrate: parseFloat(winrate.toFixed(1)),
-          avgGold: stats.totalGold / stats.count,
-          usageRate: (stats.count / totalMatches) * 100
+          avgGold: stats.count > 0 ? stats.totalGold / stats.count : 0,
+          usageRate: totalMatches > 0 ? (stats.count / totalMatches) * 100 : 0
         }
         // Log if internal_name is missing
         if (!result.item_internal_name && item) {
@@ -277,7 +277,7 @@ export async function GET(
           itemDetails, // Include full details for frontend
           frequency: pattern.count,
           winrate: parseFloat(winrate.toFixed(1)),
-          usageRate: (pattern.count / totalMatches) * 100
+          usageRate: totalMatches > 0 ? (pattern.count / totalMatches) * 100 : 0
         }
       })
       .sort((a, b) => b.frequency - a.frequency)

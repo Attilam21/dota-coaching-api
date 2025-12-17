@@ -103,7 +103,7 @@ export async function GET(
     const recent5 = matches.slice(0, 5)
     const recent10 = matches.slice(0, 10)
 
-    // Winrate calculations
+    // Winrate calculations - prevent division by zero
     const wins5 = recent5.filter((m) => 
       (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)
     ).length
@@ -111,26 +111,38 @@ export async function GET(
       (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)
     ).length
     
-    const winrate5 = (wins5 / recent5.length) * 100
-    const winrate10 = (wins10 / recent10.length) * 100
+    const winrate5 = recent5.length > 0 ? (wins5 / recent5.length) * 100 : 0
+    const winrate10 = recent10.length > 0 ? (wins10 / recent10.length) * 100 : 0
 
-    // KDA calculations
-    const kda5 = recent5.reduce((acc, m) => {
-      const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
-      return acc + kda
-    }, 0) / recent5.length
+    // KDA calculations - prevent division by zero
+    const kda5 = recent5.length > 0 
+      ? recent5.reduce((acc, m) => {
+          const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
+          return acc + kda
+        }, 0) / recent5.length
+      : 0
 
-    const kda10 = recent10.reduce((acc, m) => {
-      const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
-      return acc + kda
-    }, 0) / recent10.length
+    const kda10 = recent10.length > 0
+      ? recent10.reduce((acc, m) => {
+          const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
+          return acc + kda
+        }, 0) / recent10.length
+      : 0
 
-    // GPM/XPM calculations
-    const gpm5 = recent5.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent5.length
-    const gpm10 = recent10.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent10.length
+    // GPM/XPM calculations - prevent division by zero
+    const gpm5 = recent5.length > 0 
+      ? recent5.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent5.length
+      : 0
+    const gpm10 = recent10.length > 0
+      ? recent10.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / recent10.length
+      : 0
     
-    const xpm5 = recent5.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent5.length
-    const xpm10 = recent10.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent10.length
+    const xpm5 = recent5.length > 0
+      ? recent5.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent5.length
+      : 0
+    const xpm10 = recent10.length > 0
+      ? recent10.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / recent10.length
+      : 0
 
     const stats = {
       winrate: {

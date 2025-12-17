@@ -138,8 +138,13 @@ export async function GET(
     // Calculate REAL metrics per role based on actual match data
     // We need to fetch full match details to get role-specific stats
     // For now, use overall stats but don't multiply by fake factors
-    const overallGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
-    const overallKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
+    // Prevent division by zero
+    const overallGPM = matches.length > 0
+      ? matches.reduce((acc: number, m: { gpm: number }) => acc + (m.gpm || 0), 0) / matches.length
+      : 0
+    const overallKDA = matches.length > 0
+      ? matches.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / matches.length
+      : 0
     const overallDeaths = advanced.fights?.avgDeaths || 0
 
     Object.keys(rolePerformance).forEach(role => {

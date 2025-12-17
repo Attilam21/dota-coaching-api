@@ -171,7 +171,7 @@ export async function GET(
       .map(([itemId, stats]) => {
         const item = itemsMap[parseInt(itemId)]
         const winrate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0
-        const usageRate = (stats.count / totalMatches) * 100
+        const usageRate = totalMatches > 0 ? (stats.count / totalMatches) * 100 : 0
         return {
           item_id: parseInt(itemId),
           item_name: item?.localized_name || `Item ${itemId}`,
