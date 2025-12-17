@@ -103,13 +103,13 @@ export default function AdvancedPage() {
         <div className="flex gap-4">
           <Link
             href="/dashboard/match-analysis"
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition"
           >
             Analisi Partita Singola
           </Link>
           <Link
             href="/dashboard"
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
           >
             Torna alla Panoramica
           </Link>

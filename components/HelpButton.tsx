@@ -37,7 +37,7 @@ export default function HelpButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 right-4 z-40 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:text-white transition-colors shadow-lg"
+        className="fixed top-4 right-4 z-40 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white transition-colors shadow-lg"
         title="Guida"
         aria-label="Mostra guida"
       >
@@ -97,7 +97,7 @@ export default function HelpButton() {
               <div className="bg-gray-900/50 border-t border-gray-700 p-4 flex justify-end">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   Chiudi
                 </button>

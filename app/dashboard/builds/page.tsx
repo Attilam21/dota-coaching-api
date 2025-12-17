@@ -240,7 +240,7 @@ export default function BuildsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 font-medium transition-colors ${
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   activeTab === tab.id
                     ? 'border-b-2 border-red-600 text-red-400'
                     : 'text-gray-400 hover:text-gray-300'

@@ -211,8 +211,8 @@ export default function ProfilingPage() {
           )}
 
           {/* Profile Overview */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
               <InsightBadge
                 elementType="role"
                 elementId="role"
@@ -220,8 +220,8 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h2 className="text-2xl font-semibold mb-4">Ruolo Principale</h2>
-              <p className="text-3xl font-bold text-red-400 mb-2">{profile.role}</p>
+              <h2 className="text-xl font-semibold mb-3">Ruolo Principale</h2>
+              <p className="text-2xl font-bold text-red-400 mb-2">{profile.role}</p>
               <p className="text-sm text-gray-300">
                 Confidenza: <span className={`font-semibold ${
                   profile.roleConfidence === 'high' ? 'text-green-400' : 
@@ -232,7 +232,7 @@ export default function ProfilingPage() {
                 </span>
               </p>
             </div>
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
               <InsightBadge
                 elementType="playstyle"
                 elementId="playstyle"
@@ -240,15 +240,15 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h2 className="text-2xl font-semibold mb-4">Stile di Gioco</h2>
-              <p className="text-3xl font-bold text-blue-400">{profile.playstyle}</p>
+              <h2 className="text-xl font-semibold mb-3">Stile di Gioco</h2>
+              <p className="text-2xl font-bold text-blue-400">{profile.playstyle}</p>
             </div>
           </div>
 
           {/* Trends */}
           {profile.trends && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">📈 Trend Performance</h3>
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
+              <h3 className="text-xl font-semibold mb-4">📈 Trend Performance</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
                   <InsightBadge
@@ -350,8 +350,8 @@ export default function ProfilingPage() {
 
           {/* Key Metrics */}
           {profile.metrics && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors relative">
                 {playerId && (
                   <InsightBadge
                     elementType="metric-card"
@@ -362,9 +362,9 @@ export default function ProfilingPage() {
                   />
                 )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
-                <p className="text-3xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
+                <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-orange-500 transition-colors relative">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-orange-500 transition-colors relative">
                 {playerId && (
                   <InsightBadge
                     elementType="metric-card"
@@ -375,9 +375,9 @@ export default function ProfilingPage() {
                   />
                 )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</p>
-                <p className="text-3xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
+                <p className="text-2xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-purple-500 transition-colors relative">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors relative">
                 {playerId && (
                   <InsightBadge
                     elementType="metric-card"
@@ -388,9 +388,9 @@ export default function ProfilingPage() {
                   />
                 )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</p>
-                <p className="text-3xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
+                <p className="text-2xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-green-500 transition-colors relative">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors relative">
                 {playerId && (
                   <InsightBadge
                     elementType="metric-card"
@@ -401,15 +401,15 @@ export default function ProfilingPage() {
                   />
                 )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Winrate</p>
-                <p className="text-3xl font-bold text-green-400">{profile.metrics.winrate}%</p>
+                <p className="text-2xl font-bold text-green-400">{profile.metrics.winrate}%</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors relative">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors relative">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Morte/Game</p>
-                <p className="text-3xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
+                <p className="text-2xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors relative">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-blue-500 transition-colors relative">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Kill Part.</p>
-                <p className="text-3xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
+                <p className="text-2xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
               </div>
             </div>
           )}

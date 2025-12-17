@@ -419,7 +419,7 @@ export default function MatchAnalysisDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors ${
                 activeTab === tab.id
                   ? 'bg-gray-700 text-white border-b-2 border-red-500'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700/50'

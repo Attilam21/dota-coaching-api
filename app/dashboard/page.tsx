@@ -240,7 +240,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-winrate"
@@ -276,7 +276,7 @@ export default function DashboardPage() {
               </div>
 
               {/* KDA Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-kda"
@@ -312,7 +312,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Farm Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div>
