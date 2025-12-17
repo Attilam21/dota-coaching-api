@@ -4,9 +4,30 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { 
+  BarChart, 
+  Zap, 
+  Theater, 
+  Search, 
+  Target, 
+  Users, 
+  Gamepad2, 
+  BookOpen, 
+  Bot, 
+  Shield, 
+  FlaskConical,
+  Settings,
+  LogOut
+} from 'lucide-react'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
+}
+
+interface NavItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -17,49 +38,49 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return pathname === path || pathname?.startsWith(path + '/')
   }
 
-  const navigation = [
+  const navigation: Array<{ title: string; items: NavItem[] }> = [
     {
       title: 'ANALISI PLAYER',
       items: [
-        { name: 'Panoramica', href: '/dashboard', icon: '📊' },
-        { name: 'Performance & Stile di Gioco', href: '/dashboard/performance', icon: '⚡' },
-        { name: 'Hero Pool', href: '/dashboard/heroes', icon: '🎭' },
-        { name: 'Hero Analysis', href: '/dashboard/hero-analysis', icon: '🔍' },
-        { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: '🎯' },
+        { name: 'Panoramica', href: '/dashboard', icon: BarChart },
+        { name: 'Performance & Stile di Gioco', href: '/dashboard/performance', icon: Zap },
+        { name: 'Hero Pool', href: '/dashboard/heroes', icon: Theater },
+        { name: 'Hero Analysis', href: '/dashboard/hero-analysis', icon: Search },
+        { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: Target },
       ],
     },
     {
       title: 'ANALISI TEAM & MATCH',
       items: [
-        { name: 'Team & Compagni', href: '/dashboard/teammates', icon: '👥' },
-        { name: 'Partite', href: '/dashboard/matches', icon: '🎮' },
+        { name: 'Team & Compagni', href: '/dashboard/teammates', icon: Users },
+        { name: 'Partite', href: '/dashboard/matches', icon: Gamepad2 },
       ],
     },
     {
       title: 'ANALISI PARTITA SINGOLA',
       items: [
-        { name: 'Seleziona Partita', href: '/dashboard/match-analysis', icon: '🔍' },
+        { name: 'Seleziona Partita', href: '/dashboard/match-analysis', icon: Search },
       ],
     },
     {
       title: 'COACHING & PROFILAZIONE',
       items: [
-        { name: 'Coaching & Task', href: '/dashboard/coaching', icon: '📚' },
-        { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: '🎯' },
-        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: '🤖' },
+        { name: 'Coaching & Task', href: '/dashboard/coaching', icon: BookOpen },
+        { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: Target },
+        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
       ],
     },
     {
       title: 'ANALISI AVANZATE',
       items: [
-        { name: 'Analisi avanzate', href: '/dashboard/advanced', icon: '🔬' },
-        { name: 'Build & Items', href: '/dashboard/builds', icon: '🛡️' },
+        { name: 'Analisi avanzate', href: '/dashboard/advanced', icon: FlaskConical },
+        { name: 'Build & Items', href: '/dashboard/builds', icon: Shield },
       ],
     },
     {
       title: 'SISTEMA',
       items: [
-        { name: 'Profilo Utente', href: '/dashboard/settings', icon: '⚙️' },
+        { name: 'Profilo Utente', href: '/dashboard/settings', icon: Settings },
       ],
     },
   ]
@@ -89,7 +110,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
-                      <span>{item.icon}</span>
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
                       <span>{item.name}</span>
                     </Link>
                   </li>
@@ -112,10 +133,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <button
               onClick={() => signOut()}
-              className="text-gray-400 hover:text-white text-sm"
+              className="text-gray-400 hover:text-white text-sm p-1"
               title="Logout"
             >
-              🚪
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
