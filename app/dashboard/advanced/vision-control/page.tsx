@@ -344,8 +344,8 @@ export default function VisionControlPage() {
               <WardMap
                 observerWards={wardmapData.observerWards || []}
                 sentryWards={wardmapData.sentryWards || []}
-                width={800}
-                height={800}
+                width={1000}
+                height={1000}
               />
             )}
 
