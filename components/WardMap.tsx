@@ -17,7 +17,7 @@ interface WardMapProps {
 
 /**
  * Componente per visualizzare la wardmap su una mappa di Dota 2
- * Stile ispirato a OpenDota con heatmap visibile e punti wards chiari
+ * Mappa accurata e riconoscibile con riferimenti geografici reali
  */
 export default function WardMap({ 
   observerWards, 
@@ -28,92 +28,187 @@ export default function WardMap({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [selectedType, setSelectedType] = useState<'observer' | 'sentry' | 'both'>('both')
 
-  // Function to draw Dota 2 minimap background (improved for better contrast)
+  // Dota 2 map structure with accurate proportions
   const drawMinimapBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    // Darker, more contrasted background for better ward visibility
+    // Base gradient: Radiant (green) to Dire (red)
     const gradient = ctx.createLinearGradient(0, 0, width, height)
-    gradient.addColorStop(0, '#0a1f0f') // Darker green (Radiant top-left)
-    gradient.addColorStop(0.25, '#15301a') // Medium green
-    gradient.addColorStop(0.5, '#1a2e23') // River area
-    gradient.addColorStop(0.75, '#301515') // Medium red
-    gradient.addColorStop(1, '#1f0a0a') // Darker red (Dire bottom-right)
+    gradient.addColorStop(0, '#0d2818') // Radiant green
+    gradient.addColorStop(0.3, '#1a3a1a')
+    gradient.addColorStop(0.5, '#1e3a2e') // River
+    gradient.addColorStop(0.7, '#3a1a1a')
+    gradient.addColorStop(1, '#2a0d0d') // Dire red
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, width, height)
 
-    // Draw river with better visibility
-    ctx.strokeStyle = '#1e4a6b'
-    ctx.lineWidth = 5
+    // River (diagonal, more accurate to Dota 2)
+    ctx.strokeStyle = '#2d5a87'
+    ctx.lineWidth = 6
     ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(width, height)
+    ctx.moveTo(width * 0.05, height * 0.05)
+    ctx.lineTo(width * 0.95, height * 0.95)
     ctx.stroke()
-
-    // Secondary river lines (more visible)
-    ctx.strokeStyle = '#2a5a7a'
+    
+    ctx.strokeStyle = '#3a6a9a'
     ctx.lineWidth = 3
     ctx.beginPath()
-    ctx.moveTo(width * 0.1, 0)
-    ctx.lineTo(width * 0.9, height)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(width * 0.9, 0)
-    ctx.lineTo(width * 0.1, height)
+    ctx.moveTo(width * 0.1, height * 0.1)
+    ctx.lineTo(width * 0.9, height * 0.9)
     ctx.stroke()
 
-    // Draw Roshan pit (more visible)
-    const roshanX = width / 2
-    const roshanY = height / 2
-    ctx.fillStyle = '#3a1a1a'
+    // Helper function to draw towers
+    const drawTower = (x: number, y: number, isRadiant: boolean) => {
+      ctx.fillStyle = isRadiant ? '#4ade80' : '#f87171'
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(x, y, 8, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      // Tower center
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath()
+      ctx.arc(x, y, 3, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    // Radiant Towers (Top-Left area)
+    // T1 Top
+    drawTower(width * 0.25, height * 0.15, true)
+    // T2 Top
+    drawTower(width * 0.35, height * 0.25, true)
+    // T3 Top
+    drawTower(width * 0.20, height * 0.10, true)
+    // T1 Mid
+    drawTower(width * 0.20, height * 0.30, true)
+    // T2 Mid
+    drawTower(width * 0.30, height * 0.40, true)
+    // T3 Mid (Ancient)
+    drawTower(width * 0.10, height * 0.15, true)
+
+    // Dire Towers (Bottom-Right area)
+    // T1 Bot
+    drawTower(width * 0.75, height * 0.85, false)
+    // T2 Bot
+    drawTower(width * 0.65, height * 0.75, false)
+    // T3 Bot
+    drawTower(width * 0.80, height * 0.90, false)
+    // T1 Mid
+    drawTower(width * 0.80, height * 0.70, false)
+    // T2 Mid
+    drawTower(width * 0.70, height * 0.60, false)
+    // T3 Mid (Ancient)
+    drawTower(width * 0.90, height * 0.85, false)
+
+    // Roshan Pit (center, more prominent)
+    const roshanX = width * 0.48
+    const roshanY = height * 0.52
+    ctx.fillStyle = '#4a1a1a'
+    ctx.strokeStyle = '#8b0000'
+    ctx.lineWidth = 4
     ctx.beginPath()
-    ctx.arc(roshanX, roshanY, 35, 0, Math.PI * 2)
+    ctx.arc(roshanX, roshanY, 40, 0, Math.PI * 2)
     ctx.fill()
-    ctx.strokeStyle = '#6a2a2a'
-    ctx.lineWidth = 3
     ctx.stroke()
+    // Roshan icon (skull)
+    ctx.fillStyle = '#6a2a2a'
+    ctx.beginPath()
+    ctx.arc(roshanX, roshanY, 25, 0, Math.PI * 2)
+    ctx.fill()
 
-    // Draw lane lines (more visible)
-    ctx.strokeStyle = 'rgba(42, 74, 58, 0.6)'
-    ctx.lineWidth = 2
-    ctx.setLineDash([8, 4])
+    // Rune spots (Powerup runes every 2 minutes)
+    const drawRuneSpot = (x: number, y: number) => {
+      ctx.strokeStyle = '#fbbf24'
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.3)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(x, y, 12, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.stroke()
+      // Rune icon (star)
+      ctx.fillStyle = '#fbbf24'
+      ctx.beginPath()
+      ctx.moveTo(x, y - 6)
+      ctx.lineTo(x + 2, y + 2)
+      ctx.lineTo(x - 2, y + 2)
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    // Top rune spot (Radiant side)
+    drawRuneSpot(width * 0.25, height * 0.45)
+    // Bot rune spot (Dire side)
+    drawRuneSpot(width * 0.75, height * 0.55)
+
+    // Lanes (more accurate paths)
+    ctx.strokeStyle = 'rgba(42, 74, 58, 0.5)'
+    ctx.lineWidth = 3
+    ctx.setLineDash([10, 5])
     
     // Top lane (Radiant)
     ctx.beginPath()
-    ctx.moveTo(width * 0.15, height * 0.1)
-    ctx.lineTo(width * 0.85, height * 0.3)
+    ctx.moveTo(width * 0.15, height * 0.12)
+    ctx.lineTo(width * 0.80, height * 0.30)
     ctx.stroke()
     
     // Mid lane
     ctx.beginPath()
-    ctx.moveTo(width * 0.1, height * 0.2)
-    ctx.lineTo(width * 0.9, height * 0.8)
+    ctx.moveTo(width * 0.12, height * 0.20)
+    ctx.lineTo(width * 0.88, height * 0.80)
     ctx.stroke()
     
-    // Bottom lane (Dire)
+    // Bot lane (Dire)
     ctx.beginPath()
-    ctx.moveTo(width * 0.15, height * 0.7)
-    ctx.lineTo(width * 0.85, height * 0.9)
+    ctx.moveTo(width * 0.20, height * 0.70)
+    ctx.lineTo(width * 0.85, height * 0.88)
     ctx.stroke()
     
     ctx.setLineDash([])
 
-    // Draw base areas (more visible)
-    ctx.fillStyle = 'rgba(20, 50, 20, 0.4)'
+    // Base areas (Ancient locations)
+    // Radiant Ancient (top-left corner area)
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.4)'
+    ctx.strokeStyle = '#22c55e'
+    ctx.lineWidth = 3
     ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(width * 0.3, 0)
-    ctx.lineTo(width * 0.2, height * 0.2)
-    ctx.lineTo(0, height * 0.3)
-    ctx.closePath()
+    ctx.arc(width * 0.08, height * 0.10, 50, 0, Math.PI * 2)
     ctx.fill()
+    ctx.stroke()
+    // Ancient structure
+    ctx.fillStyle = '#22c55e'
+    ctx.fillRect(width * 0.04, height * 0.06, 20, 20)
 
-    ctx.fillStyle = 'rgba(50, 20, 20, 0.4)'
+    // Dire Ancient (bottom-right corner area)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'
+    ctx.strokeStyle = '#ef4444'
+    ctx.lineWidth = 3
     ctx.beginPath()
-    ctx.moveTo(width, height)
-    ctx.lineTo(width * 0.7, height)
-    ctx.lineTo(width * 0.8, height * 0.8)
-    ctx.lineTo(width, height * 0.7)
-    ctx.closePath()
+    ctx.arc(width * 0.92, height * 0.90, 50, 0, Math.PI * 2)
     ctx.fill()
+    ctx.stroke()
+    // Ancient structure
+    ctx.fillStyle = '#ef4444'
+    ctx.fillRect(width * 0.90, height * 0.86, 20, 20)
+
+    // Jungle camp indicators (small dots for key farming spots)
+    const drawCamp = (x: number, y: number) => {
+      ctx.fillStyle = 'rgba(168, 85, 247, 0.4)'
+      ctx.beginPath()
+      ctx.arc(x, y, 8, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = '#a855f7'
+      ctx.lineWidth = 1
+      ctx.stroke()
+    }
+
+    // Key jungle camps (approximate positions)
+    // Radiant jungle
+    drawCamp(width * 0.30, height * 0.25)
+    drawCamp(width * 0.40, height * 0.35)
+    drawCamp(width * 0.35, height * 0.50)
+    // Dire jungle
+    drawCamp(width * 0.70, height * 0.65)
+    drawCamp(width * 0.60, height * 0.55)
+    drawCamp(width * 0.65, height * 0.45)
   }
 
   useEffect(() => {
@@ -138,7 +233,7 @@ export default function WardMap({
       return { x: minimapX, y: minimapY }
     }
 
-    // Draw minimap background
+    // Draw minimap background with all landmarks
     drawMinimapBackground(ctx, width, height)
 
     // OpenDota-style heatmap: more visible and intuitive
@@ -194,7 +289,6 @@ export default function WardMap({
       })
 
       // Intelligent jitter system: prevent overlapping while maintaining precision
-      // Group nearby points and distribute them in a circular pattern
       const MIN_DISTANCE = 16 // Minimum distance between ward points (px)
       const jitteredPositions: Array<{ x: number; y: number; originalIndex: number }> = []
       
@@ -212,12 +306,11 @@ export default function WardMap({
           jitteredPositions.push({ ...pos, originalIndex: index })
         } else {
           // Overlap detected: distribute in circular pattern
-          // Use the center of nearby points as reference
           const centerX = nearbyPoints.reduce((sum, p) => sum + p.x, pos.x) / (nearbyPoints.length + 1)
           const centerY = nearbyPoints.reduce((sum, p) => sum + p.y, pos.y) / (nearbyPoints.length + 1)
           
           // Calculate angle and radius for circular distribution
-          const angleStep = (Math.PI * 2) / (nearbyPoints.length + 2) // +2 to include new point
+          const angleStep = (Math.PI * 2) / (nearbyPoints.length + 2)
           const baseAngle = Math.atan2(pos.y - centerY, pos.x - centerX)
           
           // Distribute in a spiral pattern around the center
@@ -363,25 +456,54 @@ export default function WardMap({
         />
       </div>
 
-      {/* Legend with enhanced visibility */}
+      {/* Legend with map references */}
       <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-        <div className="flex gap-6 justify-center text-sm flex-wrap items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-blue-500 rounded-full shadow-lg border-2 border-white/30"></div>
-            <span className="text-gray-200 font-medium">
-              Observer Wards: <span className="text-blue-400 font-bold">{observerWards.length}</span>
-            </span>
+        <div className="space-y-3">
+          <div className="flex gap-6 justify-center text-sm flex-wrap items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-blue-500 rounded-full shadow-lg border-2 border-white/30"></div>
+              <span className="text-gray-200 font-medium">
+                Observer Wards: <span className="text-blue-400 font-bold">{observerWards.length}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-green-500 rounded-full shadow-lg border-2 border-white/30"></div>
+              <span className="text-gray-200 font-medium">
+                Sentry Wards: <span className="text-green-400 font-bold">{sentryWards.length}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-400">
+              <span className="text-xs">
+                Totale: <span className="text-white font-semibold">{observerWards.length + sentryWards.length}</span> wards
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-green-500 rounded-full shadow-lg border-2 border-white/30"></div>
-            <span className="text-gray-200 font-medium">
-              Sentry Wards: <span className="text-green-400 font-bold">{sentryWards.length}</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="text-xs">
-              Totale: <span className="text-white font-semibold">{observerWards.length + sentryWards.length}</span> wards visualizzate
-            </span>
+          
+          {/* Map legend */}
+          <div className="border-t border-gray-700 pt-3 mt-3">
+            <p className="text-xs text-gray-400 text-center mb-2">Riferimenti Mappa:</p>
+            <div className="flex gap-4 justify-center text-xs text-gray-500 flex-wrap">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                <span>Torri Radiant</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <span>Torri Dire</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <span>Rune Spots</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                <span>Jungle Camps</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-6 rounded bg-red-700"></div>
+                <span>Roshan Pit</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
