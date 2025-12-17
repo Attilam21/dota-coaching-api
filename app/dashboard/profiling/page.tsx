@@ -351,27 +351,63 @@ export default function ProfilingPage() {
           {/* Key Metrics */}
           {profile.metrics && (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="metric-card"
+                    elementId="profiling-gpm"
+                    contextData={{ metricName: 'GPM Medio', value: profile.metrics.avgGPM, benchmark: '550' }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
                 <p className="text-3xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-orange-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-orange-500 transition-colors relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="metric-card"
+                    elementId="profiling-xpm"
+                    contextData={{ metricName: 'XPM Medio', value: profile.metrics.avgXPM, benchmark: '600' }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</p>
                 <p className="text-3xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-purple-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-purple-500 transition-colors relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="metric-card"
+                    elementId="profiling-kda"
+                    contextData={{ metricName: 'KDA Medio', value: profile.metrics.avgKDA, benchmark: '2.5' }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</p>
                 <p className="text-3xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-green-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-green-500 transition-colors relative">
+                {playerId && (
+                  <InsightBadge
+                    elementType="metric-card"
+                    elementId="profiling-winrate"
+                    contextData={{ metricName: 'Winrate', value: `${profile.metrics.winrate}%`, benchmark: '50%' }}
+                    playerId={playerId}
+                    position="top-right"
+                  />
+                )}
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Winrate</p>
                 <p className="text-3xl font-bold text-green-400">{profile.metrics.winrate}%</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors relative">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Morte/Game</p>
                 <p className="text-3xl font-bold text-red-400">{profile.metrics.avgDeaths}</p>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors">
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors relative">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Kill Part.</p>
                 <p className="text-3xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
               </div>
