@@ -8,6 +8,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import WardMap from '@/components/WardMap'
 
 interface AdvancedStats {
   vision: {
@@ -44,6 +45,12 @@ export default function VisionControlPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [wardmapData, setWardmapData] = useState<{
+    observerWards: Array<{ x: number; y: number; match_id: number }>
+    sentryWards: Array<{ x: number; y: number; match_id: number }>
+    totalMatches: number
+  } | null>(null)
+  const [wardmapLoading, setWardmapLoading] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -74,12 +81,48 @@ export default function VisionControlPage() {
     }
   }, [playerId])
 
+  const fetchWardmap = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setWardmapLoading(true)
+      setWardmapData(null)
+      
+      const response = await fetch(`/api/player/${playerId}/wardmap`)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Failed to fetch wardmap:', response.status, errorData)
+        throw new Error('Failed to fetch wardmap data')
+      }
+
+      const data = await response.json()
+      console.log('Wardmap data received:', {
+        totalMatches: data.totalMatches,
+        observerCount: data.observerWards?.length || 0,
+        sentryCount: data.sentryWards?.length || 0,
+        source: data.source
+      })
+      
+      setWardmapData({
+        observerWards: data.observerWards || [],
+        sentryWards: data.sentryWards || [],
+        totalMatches: data.totalMatches || 0
+      })
+    } catch (err) {
+      console.error('Failed to load wardmap:', err)
+      setWardmapData(null)
+      // Non bloccare l'intera pagina se la wardmap fallisce
+    } finally {
+      setWardmapLoading(false)
+    }
+  }, [playerId])
 
   useEffect(() => {
     if (playerId) {
       fetchAdvancedStats()
+      fetchWardmap()
     }
-  }, [playerId, fetchAdvancedStats])
+  }, [playerId, fetchAdvancedStats, fetchWardmap])
 
   if (authLoading) {
     return (
@@ -278,6 +321,39 @@ export default function VisionControlPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Ward Map Section */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4">🗺️ Ward Map - Heatmap Posizioni Wards</h2>
+            <p className="text-gray-400 mb-6 text-sm">
+              Visualizza le heatmap interattive delle posizioni delle Observer e Sentry wards dalle tue partite recenti.
+              {wardmapData && wardmapData.totalMatches > 0 && (
+                <> I dati sono aggregati dalle ultime {wardmapData.totalMatches} partite analizzate.</>
+              )}
+            </p>
+
+            {wardmapLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-400">Caricamento dati wardmap...</p>
+              </div>
+            )}
+
+            {!wardmapLoading && wardmapData && (
+              <WardMap
+                observerWards={wardmapData.observerWards || []}
+                sentryWards={wardmapData.sentryWards || []}
+                width={800}
+                height={800}
+              />
+            )}
+
+            {!wardmapLoading && !wardmapData && (
+              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6 text-center">
+                <p className="text-gray-400">Impossibile caricare i dati della wardmap.</p>
+              </div>
+            )}
           </div>
 
           {/* Insights */}
