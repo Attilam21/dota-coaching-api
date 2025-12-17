@@ -42,11 +42,17 @@ export default function HomeContent() {
           AI-powered match analysis, personalized learning paths, and performance tracking
         </p>
         <div className="flex justify-center gap-4">
-          <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+          <button 
+            onClick={() => router.push('/auth/signup')}
+            className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+          >
             Get Started Free
           </button>
-          <button className="bg-white text-gray-700 px-8 py-3 rounded-lg font-semibold border border-gray-300 hover:bg-gray-50 transition">
-            Watch Demo
+          <button 
+            onClick={() => router.push('/auth/login')}
+            className="bg-white text-gray-700 px-8 py-3 rounded-lg font-semibold border border-gray-300 hover:bg-gray-50 transition"
+          >
+            Sign In
           </button>
         </div>
       </div>
@@ -131,26 +137,18 @@ export default function HomeContent() {
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg p-8">
-        <div className="grid md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div className="text-4xl font-bold mb-2">10K+</div>
-            <div className="text-red-100">Matches Analyzed</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">5K+</div>
-            <div className="text-red-100">Active Users</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">95%</div>
-            <div className="text-red-100">Satisfaction Rate</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">+500</div>
-            <div className="text-red-100">Avg MMR Gain</div>
-          </div>
-        </div>
+      {/* Call to Action Section */}
+      <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg p-8 text-center">
+        <h2 className="text-3xl font-bold mb-4">Ready to Improve Your Game?</h2>
+        <p className="text-xl text-red-100 mb-6">
+          Start analyzing your matches and tracking your performance today
+        </p>
+        <button 
+          onClick={() => router.push('/auth/signup')}
+          className="bg-white text-red-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+        >
+          Create Free Account
+        </button>
       </div>
     </div>
   )
