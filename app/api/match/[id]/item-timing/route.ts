@@ -61,6 +61,7 @@ export async function GET(
 
     // Fetch item constants
     let itemsMap: Record<number, any> = {}
+    let itemsByNameMap: Record<string, number> = {} // Map from internal name to item ID
     try {
       const itemsResponse = await fetch('https://api.opendota.com/api/constants/items', {
         next: { revalidate: 86400 }
@@ -68,6 +69,29 @@ export async function GET(
       if (itemsResponse.ok) {
         const itemsData = await itemsResponse.json()
         itemsMap = itemsData
+        
+        // Create reverse map: internal_name -> item ID
+        Object.keys(itemsData).forEach((itemIdStr) => {
+          const itemId = parseInt(itemIdStr)
+          const item = itemsData[itemId]
+          if (item) {
+            // Map by internal name (key in itemsData) or by name field
+            const internalName = itemIdStr // The key itself might be the internal name
+            if (internalName && internalName !== '0') {
+              itemsByNameMap[internalName] = itemId
+            }
+            // Also map by any name fields
+            if (item.name) {
+              itemsByNameMap[item.name] = itemId
+            }
+            // Map by key without "item_" prefix if present
+            if (itemIdStr.startsWith('item_')) {
+              itemsByNameMap[itemIdStr.substring(5)] = itemId // Remove "item_" prefix
+            }
+          }
+        })
+        
+        console.log(`[Item Timing] Loaded ${Object.keys(itemsMap).length} items, ${Object.keys(itemsByNameMap).length} name mappings`)
       }
     } catch (err) {
       console.log('Failed to fetch items constants')

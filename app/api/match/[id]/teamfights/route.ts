@@ -92,19 +92,56 @@ export async function GET(
         const endTime = tf.end || startTime
         const tfDuration = endTime - startTime
         
-        // Count kills per team from deaths array
-        // IMPORTANT: In OpenDota, player_slot < 128 = Radiant, >= 128 = Dire
-        // A death of a Radiant player (slot < 128) means Dire got a kill
-        // A death of a Dire player (slot >= 128) means Radiant got a kill
+        // Count kills per team
+        // IMPORTANT: In match object, tf.deaths is a NUMBER (total deaths), not an array
+        // We need to count kills from players array by looking at their deaths
         let radiantKills = 0
         let direKills = 0
         
-        if (tf.deaths && Array.isArray(tf.deaths)) {
+        if (typeof tf.deaths === 'number') {
+          // deaths is a number - count from players array
+          // Each player in tf.players represents a player in the teamfight
+          // We need to match them to actual players to know their team
+          if (tf.players && Array.isArray(tf.players)) {
+            // Count deaths per team by matching players
+            // The tf.players array corresponds to match.players array (same order)
+            tf.players.forEach((tfPlayer: any, idx: number) => {
+              const playerDeaths = tfPlayer.deaths || 0
+              
+              // Match by index (tf.players should be in same order as match.players)
+              if (idx < players.length) {
+                const actualPlayer = players[idx]
+                const playerSlot = actualPlayer.player_slot
+                
+                // Death of Radiant player (slot < 128) = Dire kill
+                // Death of Dire player (slot >= 128) = Radiant kill
+                if (playerSlot < 128) {
+                  direKills += playerDeaths // Radiant deaths = Dire kills
+                } else {
+                  radiantKills += playerDeaths // Dire deaths = Radiant kills
+                }
+              }
+            })
+            
+            // If we still have 0 kills but deaths > 0, use fallback estimation
+            if (radiantKills === 0 && direKills === 0 && tf.deaths > 0) {
+              // Fallback: estimate based on total deaths
+              const totalDeaths = tf.deaths
+              direKills = Math.floor(totalDeaths / 2)
+              radiantKills = totalDeaths - direKills
+              console.log(`[Teamfights] Using fallback estimation: ${totalDeaths} total deaths`)
+            }
+          } else {
+            // No players array, use deaths as total and estimate
+            const totalDeaths = tf.deaths
+            direKills = Math.floor(totalDeaths / 2)
+            radiantKills = totalDeaths - direKills
+          }
+        } else if (tf.deaths && Array.isArray(tf.deaths)) {
+          // Fallback: if deaths is an array (from dedicated endpoint)
           tf.deaths.forEach((death: any) => {
             const playerSlot = death.player_slot !== undefined ? death.player_slot : death.slot
             if (playerSlot !== undefined && typeof playerSlot === 'number') {
-              // Death of Radiant player (slot < 128) = Dire kill
-              // Death of Dire player (slot >= 128) = Radiant kill
               if (playerSlot < 128) {
                 direKills++ // Radiant player died = Dire got the kill
               } else {
@@ -115,9 +152,7 @@ export async function GET(
         }
         
         // Log for debugging
-        if (tf.deaths && Array.isArray(tf.deaths) && tf.deaths.length > 0) {
-          console.log(`[Teamfights] Teamfight at ${startTime}s: ${tf.deaths.length} deaths, Radiant kills: ${radiantKills}, Dire kills: ${direKills}`)
-        }
+        console.log(`[Teamfights] Teamfight at ${startTime}s: deaths=${tf.deaths} (${typeof tf.deaths}), Radiant kills: ${radiantKills}, Dire kills: ${direKills}`)
 
         // Determine winner
         let winner: 'radiant' | 'dire' | 'draw' = 'draw'
