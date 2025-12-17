@@ -105,7 +105,12 @@ export default function ItemCard({
         </div>
 
         {/* Item Name */}
-        <div className={`${textSizeClasses[size]} text-center text-gray-300 font-medium truncate w-full px-1`}>
+        <div className={`${textSizeClasses[size]} text-center text-gray-300 font-medium w-full px-1`} style={{ 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap',
+          maxWidth: '100%'
+        }} title={itemName}>
           {itemName}
         </div>
 

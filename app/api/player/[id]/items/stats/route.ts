@@ -65,11 +65,28 @@ export async function GET(
       Object.entries(items).forEach(([key, item]: [string, any]) => {
         if (item.id !== undefined && item.id !== null && item.id !== 0) {
           // OpenDota uses 'dname' for display name, but also check 'localized_name' and 'name'
-          const displayName = item.dname || item.localized_name || item.name || `Item ${item.id}`
+          // Also try to generate name from key if all else fails
+          let displayName = item.dname || item.localized_name || item.name
+          
+          // If no display name, try to generate from key (e.g., "item_blink_dagger" -> "Blink Dagger")
+          if (!displayName && key) {
+            displayName = key
+              .replace(/^item_/, '')
+              .replace(/_/g, ' ')
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+          }
+          
+          // Final fallback
+          if (!displayName) {
+            displayName = `Item ${item.id}`
+          }
+          
           const internalName = key || item.name || ''
           itemsMap[item.id] = {
             id: item.id,
-            name: item.name || item.dname || item.localized_name || '',
+            name: item.name || item.dname || item.localized_name || displayName,
             localized_name: displayName,
             internal_name: internalName,
             cost: item.cost || 0
