@@ -112,12 +112,33 @@ export async function GET(
           }
           
           if (observerWards.length > 0 || sentryWards.length > 0) {
-            console.log(`[Wardmap] Found ${observerWards.length} observer, ${sentryWards.length} sentry from dedicated endpoint`)
+            // Calculate actual number of unique matches from match_id in wards
+            const uniqueMatchIds = new Set<number>()
+            observerWards.forEach(ward => {
+              if (ward.match_id && ward.match_id > 0) {
+                uniqueMatchIds.add(ward.match_id)
+              }
+            })
+            sentryWards.forEach(ward => {
+              if (ward.match_id && ward.match_id > 0) {
+                uniqueMatchIds.add(ward.match_id)
+              }
+            })
+            
+            // If we have match_ids, use count of unique matches
+            // Otherwise, fallback to limit parameter (20) since endpoint aggregates from multiple matches
+            const totalMatches = uniqueMatchIds.size > 0 
+              ? uniqueMatchIds.size 
+              : 20 // Default to limit parameter since endpoint aggregates from multiple matches
+            
+            console.log(`[Wardmap] Found ${observerWards.length} observer, ${sentryWards.length} sentry from dedicated endpoint (${totalMatches} unique matches)`)
+            
             return NextResponse.json({
               observerWards,
               sentryWards,
-              totalMatches: 1, // Dedicated endpoint aggregates all matches
-              source: 'dedicated_endpoint'
+              totalMatches,
+              source: 'dedicated_endpoint',
+              matchesAnalyzed: uniqueMatchIds.size > 0 ? Array.from(uniqueMatchIds) : undefined
             }, {
               headers: {
                 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
