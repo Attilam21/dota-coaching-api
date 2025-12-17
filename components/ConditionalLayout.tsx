@@ -12,7 +12,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   useEffect(() => {
     // Only determine dashboard status after client-side mount to avoid hydration mismatch
     setIsMounted(true)
-    setIsDashboard(pathname?.startsWith('/dashboard') ?? false)
+    // Exclude navbar for dashboard routes and analysis routes (they use DashboardLayout)
+    const isDashboard = pathname?.startsWith('/dashboard') ?? false
+    const isAnalysis = pathname?.startsWith('/analysis') ?? false
+    setIsDashboard(isDashboard || isAnalysis)
   }, [pathname])
 
   // During SSR and initial render, always show the standard layout
