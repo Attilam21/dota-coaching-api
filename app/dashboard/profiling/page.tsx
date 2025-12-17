@@ -8,7 +8,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
-import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb } from 'lucide-react'
+import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2 } from 'lucide-react'
 
 interface PlayerProfile {
   role: string
