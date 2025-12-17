@@ -10,6 +10,8 @@ interface OpenDotaMatch {
   gold_per_min?: number
   xp_per_min?: number
   start_time: number
+  hero_id?: number
+  duration?: number
 }
 
 export async function GET(
@@ -49,17 +51,25 @@ export async function GET(
     )
     const fullMatches = await Promise.all(fullMatchesPromises)
     
-    // Enrich matches with accurate GPM/XPM from full match details
+    // Enrich matches with accurate GPM/XPM, hero_id, and duration from full match details
     matches.forEach((match, idx) => {
       if (idx < fullMatches.length) {
         const fullMatch = fullMatches[idx]
         if (fullMatch?.players && fullMatch.duration > 0) {
+          // Add duration to match
+          match.duration = fullMatch.duration
+          
           // Find the player in the full match data by player_slot (most reliable)
           const playerInMatch = fullMatch.players.find((p: any) => 
             p.player_slot === match.player_slot
           )
           
           if (playerInMatch) {
+            // Add hero_id if available
+            if (playerInMatch.hero_id) {
+              match.hero_id = playerInMatch.hero_id
+            }
+            
             // Prioritize gold_per_min/xp_per_min from full match data
             if (playerInMatch.gold_per_min && playerInMatch.gold_per_min > 0) {
               match.gold_per_min = playerInMatch.gold_per_min
