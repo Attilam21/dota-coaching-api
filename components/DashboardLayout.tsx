@@ -36,6 +36,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ],
     },
     {
+      title: 'ANALISI PARTITA SINGOLA',
+      items: [
+        { name: 'Seleziona Partita', href: '/dashboard/match-analysis', icon: '🔍' },
+      ],
+    },
+    {
       title: 'COACHING & PROFILAZIONE',
       items: [
         { name: 'Coaching & Task', href: '/dashboard/coaching', icon: '📚' },

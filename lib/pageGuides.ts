@@ -102,6 +102,50 @@ export const pageGuides: Record<string, PageGuide> = {
       }
     ]
   },
+  '/dashboard/match-analysis': {
+    title: 'Seleziona Partita',
+    description: 'Hub centrale per selezionare una partita e visualizzare l\'analisi dettagliata completa.',
+    sections: [
+      {
+        title: 'Cerca per Match ID',
+        content: 'Puoi cercare una partita specifica inserendo il Match ID nella barra di ricerca.'
+      },
+      {
+        title: 'Lista partite',
+        content: 'Visualizza le tue ultime 20 partite. Clicca su una partita per aprire l\'analisi dettagliata con tabs: Overview, Fasi, Item Timing, Teamfight.'
+      },
+      {
+        title: 'Analisi disponibili',
+        content: 'Ogni partita può essere analizzata in dettaglio con confronto con la tua media, analisi fase per fase, item timing e analisi teamfight.'
+      }
+    ]
+  },
+  '/dashboard/match-analysis/[id]': {
+    title: 'Analisi Dettagliata Partita',
+    description: 'Analisi completa di una singola partita con tabs per Overview, Fasi di Gioco, Item Timing e Teamfight.',
+    sections: [
+      {
+        title: 'Tab Overview',
+        content: 'Panoramica completa: confronto con la tua media, performance giocatori, timeline Gold/XP, grafici e analisi AI.'
+      },
+      {
+        title: 'Tab Fasi di Gioco',
+        content: 'Analisi dettagliata per fase: Early Game (0-10min), Mid Game (10-25min), Late Game (25+min) con metriche specifiche per ogni fase.'
+      },
+      {
+        title: 'Tab Item Timing',
+        content: 'Timeline degli item acquistati, confronto con timing ottimali e analisi dell\'efficienza dell\'itemization.'
+      },
+      {
+        title: 'Tab Teamfight',
+        content: 'Analisi dettagliata di ogni teamfight: partecipazione, damage/healing, outcome e impatto sul risultato della partita.'
+      },
+      {
+        title: 'Confronto con Media',
+        content: 'Ogni metrica viene confrontata con la tua media delle ultime partite, mostrando se hai performato meglio o peggio del solito.'
+      }
+    ]
+  },
   '/dashboard/coaching': {
     title: 'Coaching & Task',
     description: 'Task personalizzati e raccomandazioni per migliorare le tue performance.',
