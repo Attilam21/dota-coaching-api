@@ -318,6 +318,46 @@ export default function TeammatesPage() {
             </div>
           )}
 
+          {/* Winrate Chart */}
+          {chartData.length > 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="trend-chart"
+                  elementId="teammates-chart"
+                  contextData={{ teammates: chartData, totalTeammates: teammates.length }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
+              <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={100}
+                    stroke="#9CA3AF"
+                    fontSize={12}
+                  />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#F3F4F6'
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           {/* Filters and Search */}
           <div className="mb-6 space-y-4">
             {/* Filter Tabs */}
@@ -375,46 +415,6 @@ export default function TeammatesPage() {
               />
             </div>
           </div>
-
-          {/* Winrate Chart */}
-          {chartData.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6 relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="trend-chart"
-                  elementId="teammates-chart"
-                  contextData={{ teammates: chartData, totalTeammates: teammates.length }}
-                  playerId={playerId}
-                  position="top-right"
-                />
-              )}
-              <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    height={100}
-                    stroke="#9CA3AF"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: '#F3F4F6'
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
 
           {/* Compact Table */}
           {filteredAndSortedTeammates.length > 0 && (
