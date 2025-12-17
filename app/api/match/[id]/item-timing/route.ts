@@ -90,38 +90,43 @@ export async function GET(
         { id: player.backpack_2, slot: 8 },
       ].filter(item => item.id && item.id > 0)
 
-      // Filter log events for this player's item purchases
-      const itemPurchaseEvents = matchLog.filter((entry: any) => {
-        if (entry.player_slot !== undefined && entry.player_slot === playerSlot) {
-          return entry.type?.includes('ITEM') || entry.key?.toString().includes('item')
-        }
-        return false
-      })
-
-      // Map items to purchase times (estimate based on cost and gold earned)
-      // Since exact purchase times aren't always available, we'll estimate
+      // OpenDota log doesn't reliably contain item purchase events
+      // Instead, estimate purchase times based on item cost and player's gold progression
+      // This is an approximation - real data would come from replay parsing
+      const gpm = player.gold_per_min || 400
+      const goldPerSecond = gpm / 60
+      const startingGold = 600
+      
+      // Map items to purchase times
       const itemTimings = items.map((item) => {
         const itemName = getItemName(item.id)
         const itemCost = getItemCost(item.id)
         
-        // Find purchase event in log
+        // Try to find purchase event in log (OpenDota may not have this)
+        let purchaseTime = 0
+        const itemPurchaseEvents = matchLog.filter((entry: any) => {
+          const entryPlayerSlot = entry.player_slot !== undefined 
+            ? entry.player_slot 
+            : (entry.key ? parseInt(entry.key) : null)
+          return entryPlayerSlot === playerSlot && 
+                 entry.time > 0 &&
+                 (entry.type?.includes('ITEM') || 
+                  entry.key?.toString().includes('item') ||
+                  entry.key?.toString().includes(item.id.toString()))
+        })
+        
         const purchaseEvent = itemPurchaseEvents.find((e: any) => {
           const key = e.key?.toString() || ''
           return key.includes(item.id.toString()) || e.item_id === item.id
         })
 
-        // Estimate purchase time based on item cost and player's GPM
-        // This is an approximation - real data would come from replay parsing
-        let estimatedTime = 0
         if (purchaseEvent && purchaseEvent.time) {
-          estimatedTime = purchaseEvent.time
+          purchaseTime = purchaseEvent.time
         } else {
-          // Estimate: assume items are bought when player has enough gold
-          // Rough estimate: item cost / (GPM / 60) = seconds needed
-          const gpm = player.gold_per_min || 400
-          const goldPerSecond = gpm / 60
-          // Assume starting gold ~600, so time = (cost - 600) / goldPerSecond
-          estimatedTime = Math.max(0, (itemCost - 600) / Math.max(1, goldPerSecond))
+          // Estimate: calculate when player would have enough gold
+          // Starting gold + (time * goldPerSecond) >= itemCost
+          // time >= (itemCost - startingGold) / goldPerSecond
+          purchaseTime = Math.max(0, Math.min(duration, (itemCost - startingGold) / Math.max(1, goldPerSecond)))
         }
 
         // Define optimal timings for common items (in seconds)
@@ -143,18 +148,18 @@ export async function GET(
         }
 
         const optimalTime = optimalTimings[itemName || ''] || null
-        const isOnTime = optimalTime ? Math.abs(estimatedTime - optimalTime) <= (optimalTime * 0.3) : null // Within 30% of optimal
-        const isEarly = optimalTime ? estimatedTime < optimalTime * 0.7 : null
-        const isLate = optimalTime ? estimatedTime > optimalTime * 1.3 : null
+        const isOnTime = optimalTime ? Math.abs(purchaseTime - optimalTime) <= (optimalTime * 0.3) : null // Within 30% of optimal
+        const isEarly = optimalTime ? purchaseTime < optimalTime * 0.7 : null
+        const isLate = optimalTime ? purchaseTime > optimalTime * 1.3 : null
 
         return {
           itemId: item.id,
           itemName,
           itemCost,
           slot: item.slot,
-          purchaseTime: estimatedTime,
-          purchaseMinute: Math.floor(estimatedTime / 60),
-          purchaseSecond: Math.floor(estimatedTime % 60),
+          purchaseTime,
+          purchaseMinute: Math.floor(purchaseTime / 60),
+          purchaseSecond: Math.floor(purchaseTime % 60),
           optimalTime,
           optimalMinute: optimalTime ? Math.floor(optimalTime / 60) : null,
           isOnTime,

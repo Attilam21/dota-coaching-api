@@ -43,28 +43,47 @@ export async function GET(
         const logData = await logResponse.json()
         if (Array.isArray(logData)) {
           matchLog = logData
+          console.log(`[Teamfights] Match log loaded: ${matchLog.length} entries`)
         }
+      } else {
+        console.log(`[Teamfights] Match log not available: ${logResponse.status}`)
       }
     } catch (err) {
-      console.log('Match log not available')
+      console.log('[Teamfights] Match log fetch error:', err)
     }
 
     // Identify teamfights (clusters of kills within short time windows)
     // A teamfight is defined as 3+ kills within 30 seconds
-    // Bug fix: Filter out kills without valid player_slot and add proper type annotations
+    // Use same approach as timeline route: exact type check with fallback to key
     const killEvents: KillEvent[] = matchLog
       .filter((entry: any) => {
-        return (entry.type?.includes('KILL') || entry.type === 'CHAT_MESSAGE_KILL') && 
-               entry.player_slot !== undefined && 
-               typeof entry.player_slot === 'number' &&
+        const isKillEvent = entry.type === 'CHAT_MESSAGE_KILL' || 
+                           entry.type === 'CHAT_MESSAGE_KILLSTREAK' ||
+                           entry.type?.includes('KILL')
+        if (!isKillEvent) return false
+        
+        // Extract player_slot (same logic as timeline route)
+        const playerSlot = entry.player_slot !== undefined 
+          ? entry.player_slot 
+          : (entry.key ? parseInt(entry.key) : null)
+        
+        return playerSlot !== null && 
+               typeof playerSlot === 'number' &&
                entry.time > 0 && 
                entry.time <= duration
       })
-      .map((entry: any): KillEvent => ({
-        time: entry.time || 0,
-        playerSlot: entry.player_slot as number,
-        team: (entry.player_slot < 128 ? 'radiant' : 'dire') as 'radiant' | 'dire'
-      }))
+      .map((entry: any): KillEvent => {
+        // Extract player_slot (same logic as timeline route)
+        const playerSlot = entry.player_slot !== undefined 
+          ? entry.player_slot 
+          : (entry.key ? parseInt(entry.key) : null)
+        
+        return {
+          time: entry.time || 0,
+          playerSlot: playerSlot as number,
+          team: (playerSlot < 128 ? 'radiant' : 'dire') as 'radiant' | 'dire'
+        }
+      })
 
     // Group kills into teamfights (within 30 seconds of each other)
     const teamfights: Array<{
@@ -85,6 +104,8 @@ export async function GET(
       startTime: number
       kills: KillEvent[]
     } | null = null
+
+    console.log(`[Teamfights] Found ${killEvents.length} kill events from ${matchLog.length} log entries`)
 
     const TEAMFIGHT_WINDOW = 30 // seconds
 
