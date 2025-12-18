@@ -17,8 +17,7 @@ import {
   Shield, 
   FlaskConical,
   Settings,
-  LogOut,
-  Trophy
+  LogOut
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -69,7 +68,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { name: 'Coaching & Task', href: '/dashboard/coaching', icon: BookOpen },
         { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: Target },
         { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
-        { name: 'Achievements', href: '/dashboard/achievements', icon: Trophy },
       ],
     },
     {

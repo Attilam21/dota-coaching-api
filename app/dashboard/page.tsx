@@ -11,9 +11,6 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
-import UserLevelBadge from '@/components/gamification/UserLevelBadge'
-import XPProgressBar from '@/components/gamification/XPProgressBar'
-import ProgressionWidget from '@/components/gamification/ProgressionWidget'
 
 interface PlayerStats {
   winrate: {
@@ -53,9 +50,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [userStats, setUserStats] = useState<any>(null)
-  const [progression, setProgression] = useState<any>(null)
-  const [loadingGamification, setLoadingGamification] = useState(true)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -103,34 +97,6 @@ export default function DashboardPage() {
     }
   }, [playerId, fetchStats])
 
-  // Fetch gamification data
-  useEffect(() => {
-    const fetchGamification = async () => {
-      if (!user) return
-      try {
-        setLoadingGamification(true)
-        const statsResponse = await fetch('/api/user/stats', {
-          credentials: 'include'
-        })
-        
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json()
-          setUserStats(statsData)
-        } else if (statsResponse.status === 401) {
-          // User not authenticated, skip gamification
-          console.log('User not authenticated, skipping gamification')
-        }
-      } catch (err) {
-        console.error('Error fetching gamification data:', err)
-      } finally {
-        setLoadingGamification(false)
-      }
-    }
-
-    if (user) {
-      fetchGamification()
-    }
-  }, [user])
 
   if (authLoading) {
     return (
@@ -203,23 +169,8 @@ export default function DashboardPage() {
       <div className="mb-8">
           <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-3xl font-bold">FZTH Dota 2 Dashboard</h1>
-              {!loadingGamification && userStats && (
-                <UserLevelBadge level={userStats.level} />
-              )}
-            </div>
+            <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
             <p className="text-gray-400">Player #{playerId}</p>
-            {!loadingGamification && userStats && (
-              <div className="mt-3 max-w-md">
-                <XPProgressBar 
-                  currentXP={userStats.xpProgress || 0}
-                  xpNeeded={userStats.xpNeeded || 1000}
-                  level={userStats.level}
-                  nextLevel={userStats.nextLevel || userStats.level + 1}
-                />
-              </div>
-            )}
           </div>
           <Link
             href="/dashboard/settings"
@@ -229,25 +180,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Gamification Progression Widget */}
-      {!loadingGamification && progression?.current && (
-        <div className="mb-8">
-          <ProgressionWidget
-            gpm={progression.current.gpm ? { percentile: progression.current.gpm.percentile } : undefined}
-            xpm={progression.current.xpm ? { percentile: progression.current.xpm.percentile } : undefined}
-            kda={progression.current.kda ? { percentile: progression.current.kda.percentile } : undefined}
-            globalRank={progression.current.globalRank}
-            countryRank={progression.current.countryRank}
-            winrate={progression.current.winrate}
-            previousGpm={progression.previous?.gpmPercentile}
-            previousXpm={progression.previous?.xpmPercentile}
-            previousKda={progression.previous?.kdaPercentile}
-            previousGlobalRank={progression.previous?.globalRank}
-            previousWinrate={progression.previous?.winrate}
-          />
-        </div>
-      )}
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">

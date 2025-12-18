@@ -211,34 +211,6 @@ export default function MatchAnalysisPage() {
         throw new Error(saveError.message || 'Failed to save analysis')
       }
 
-      // Update user stats: XP + matches_analyzed counter
-      try {
-        // Add XP for saving analysis
-        const { error: xpError } = await supabase.rpc('add_user_xp', {
-          p_user_id: user.id,
-          p_xp: 50
-        } as any)
-        
-        if (xpError) {
-          console.error('Failed to update XP:', xpError)
-        }
-
-        // Increment matches_analyzed counter using RPC function
-        const { error: statsError } = await supabase.rpc('increment_matches_analyzed', {
-          p_user_id: user.id
-        } as any)
-
-        if (statsError) {
-          console.error('Failed to update matches_analyzed:', statsError)
-        }
-
-        // Check and unlock achievements automatically
-        await checkAndUnlockAchievements(user.id, 'match_saved')
-      } catch (rpcError) {
-        console.error('Error updating stats:', rpcError)
-        // Don't fail the save if stats update fails
-      }
-
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
@@ -247,25 +219,6 @@ export default function MatchAnalysisPage() {
       alert(`Failed to save analysis: ${errorMessage}`)
     } finally {
       setSaving(false)
-    }
-  }
-
-  // Auto-unlock achievements based on user actions
-  const checkAndUnlockAchievements = async (userId: string, actionType: string) => {
-    try {
-      const response = await fetch('/api/user/achievements/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ actionType })
-      })
-      
-      if (!response.ok) {
-        console.error('Failed to check achievements')
-      }
-    } catch (err) {
-      console.error('Error checking achievements:', err)
-      // Silent fail - achievements are nice to have, not critical
     }
   }
 

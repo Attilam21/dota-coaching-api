@@ -54,16 +54,11 @@ export async function GET(
       console.error('Heroes fetch failed:', heroesResponse.status)
     }
     
-    if (!statsData?.stats) {
+    if (!statsData?.stats || !advancedData?.stats) {
       return NextResponse.json(
-        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
+        { error: 'Failed to fetch or parse player data' },
         { status: 500 }
       )
-    }
-
-    // Advanced stats are optional but preferred
-    if (!advancedData?.stats) {
-      console.warn('Advanced stats not available, using basic stats only')
     }
 
     // Fetch heroes data to get role info
@@ -97,7 +92,7 @@ export async function GET(
     }
 
     // Process player heroes and assign to roles
-    (playerHeroes || [])
+    playerHeroes
       .filter((h: any) => h.games && h.games > 0)
       .forEach((h: any) => {
         const hero = heroesMap[h.hero_id]
