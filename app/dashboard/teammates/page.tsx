@@ -10,7 +10,7 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star } from 'lucide-react'
+import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star, BarChart as BarChartIcon, List } from 'lucide-react'
 
 interface Teammate {
   account_id: number
@@ -30,6 +30,7 @@ interface TeammateInsights {
 type FilterType = 'all' | 'best' | 'most-played' | 'synergies'
 type SortField = 'games' | 'winrate' | 'name' | null
 type SortDirection = 'asc' | 'desc'
+type TabType = 'overview' | 'chart' | 'list'
 
 export default function TeammatesPage() {
   const { user, loading: authLoading } = useAuth()
@@ -43,6 +44,7 @@ export default function TeammatesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortField, setSortField] = useState<SortField>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -272,154 +274,192 @@ export default function TeammatesPage() {
 
       {!loading && aggregateStats && (
         <>
-          {/* Aggregate Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Totale Compagni</div>
-              <div className="text-2xl font-bold text-white">{aggregateStats.totalTeammates}</div>
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'chart' as TabType, name: 'Grafico', icon: TrendingUp },
+                { id: 'list' as TabType, name: 'Lista', icon: List },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Winrate Medio</div>
-              <div className={`text-2xl font-bold ${aggregateStats.avgWinrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                {aggregateStats.avgWinrate.toFixed(1)}%
-              </div>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Partite Totali</div>
-              <div className="text-2xl font-bold text-white">{aggregateStats.totalGames}</div>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Compagno Più Frequente</div>
-              <div className="text-lg font-bold text-blue-400 truncate" title={aggregateStats.mostFrequent.name}>
-                {aggregateStats.mostFrequent.name.length > 20 
-                  ? aggregateStats.mostFrequent.name.substring(0, 20) + '...' 
-                  : aggregateStats.mostFrequent.name}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">{aggregateStats.mostFrequent.games} partite</div>
-            </div>
-          </div>
 
-          {/* Compact Insights */}
-          {insights && insights.insights.length > 0 && (
-            <div className="mb-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-4">
-              <h2 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
-                <Lightbulb className="w-6 h-6" />
-                Insights & Sinergie
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {insights.insights.map((insight, idx) => (
-                  <span 
-                    key={idx} 
-                    className="inline-block bg-blue-800/50 text-blue-200 text-xs px-3 py-1 rounded-full border border-blue-600"
-                  >
-                    {insight}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Aggregate Statistics Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">Totale Compagni</div>
+                      <div className="text-2xl font-bold text-white">{aggregateStats.totalTeammates}</div>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">Winrate Medio</div>
+                      <div className={`text-2xl font-bold ${aggregateStats.avgWinrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                        {aggregateStats.avgWinrate.toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">Partite Totali</div>
+                      <div className="text-2xl font-bold text-white">{aggregateStats.totalGames}</div>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">Compagno Più Frequente</div>
+                      <div className="text-lg font-bold text-blue-400 truncate" title={aggregateStats.mostFrequent.name}>
+                        {aggregateStats.mostFrequent.name.length > 20 
+                          ? aggregateStats.mostFrequent.name.substring(0, 20) + '...' 
+                          : aggregateStats.mostFrequent.name}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{aggregateStats.mostFrequent.games} partite</div>
+                    </div>
+                  </div>
 
-          {/* Winrate Chart */}
-          {chartData.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6 relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="trend-chart"
-                  elementId="teammates-chart"
-                  contextData={{ teammates: chartData, totalTeammates: teammates.length }}
-                  playerId={playerId}
-                  position="top-right"
-                />
+                  {/* Compact Insights */}
+                  {insights && insights.insights.length > 0 && (
+                    <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-4">
+                      <h2 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
+                        <Lightbulb className="w-6 h-6" />
+                        Insights & Sinergie
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {insights.insights.map((insight, idx) => (
+                          <span 
+                            key={idx} 
+                            className="inline-block bg-blue-800/50 text-blue-200 text-xs px-3 py-1 rounded-full border border-blue-600"
+                          >
+                            {insight}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-              <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    height={100}
-                    stroke="#9CA3AF"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: '#F3F4F6'
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
 
-          {/* Filters and Search */}
-          <div className="mb-6 space-y-4">
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  filter === 'all'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                Tutti
-              </button>
-              <button
-                onClick={() => setFilter('best')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  filter === 'best'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                <Trophy className="w-4 h-4 inline mr-1" /> Migliori (≥60%)
-              </button>
-              <button
-                onClick={() => setFilter('most-played')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  filter === 'most-played'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                <Star className="w-4 h-4 inline mr-1" /> Più Giocati
-              </button>
-              <button
-                onClick={() => setFilter('synergies')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  filter === 'synergies'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                <Star className="w-4 h-4 inline mr-1" /> Sinergie (≥55%)
-              </button>
-            </div>
+              {/* Chart Tab */}
+              {activeTab === 'chart' && (
+                <div className="space-y-6">
+                  {/* Winrate Chart */}
+                  {chartData.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="trend-chart"
+                          elementId="teammates-chart"
+                          contextData={{ teammates: chartData, totalTeammates: teammates.length }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis 
+                            dataKey="name" 
+                            angle={-45} 
+                            textAnchor="end" 
+                            height={100}
+                            stroke="#9CA3AF"
+                            fontSize={12}
+                          />
+                          <YAxis stroke="#9CA3AF" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1F2937', 
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#F3F4F6'
+                            }}
+                          />
+                          <Legend />
+                          <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* Search */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Cerca compagno per nome..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:w-96 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
+              {/* List Tab */}
+              {activeTab === 'list' && (
+                <div className="space-y-6">
+                  {/* Filters and Search */}
+                  <div className="space-y-4">
+                    {/* Filter Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setFilter('all')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                          filter === 'all'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        Tutti
+                      </button>
+                      <button
+                        onClick={() => setFilter('best')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                          filter === 'best'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <Trophy className="w-4 h-4 inline mr-1" /> Migliori (≥60%)
+                      </button>
+                      <button
+                        onClick={() => setFilter('most-played')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                          filter === 'most-played'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <Star className="w-4 h-4 inline mr-1" /> Più Giocati
+                      </button>
+                      <button
+                        onClick={() => setFilter('synergies')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                          filter === 'synergies'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <Star className="w-4 h-4 inline mr-1" /> Sinergie (≥55%)
+                      </button>
+                    </div>
 
-          {/* Compact Table */}
-          {filteredAndSortedTeammates.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                    {/* Search */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Cerca compagno per nome..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full md:w-96 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Compact Table */}
+                  {filteredAndSortedTeammates.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700">
                 <h2 className="text-2xl font-semibold">Lista Compagni</h2>
                 <p className="text-xs text-gray-400 mt-1">
@@ -495,16 +535,20 @@ export default function TeammatesPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
+                    </div>
+                  )}
 
-          {filteredAndSortedTeammates.length === 0 && !loading && (
-            <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
-              <p className="text-gray-400">
-                {searchQuery ? 'Nessun compagno trovato con questo nome' : 'Nessun compagno trovato con questi filtri'}
-              </p>
+                  {filteredAndSortedTeammates.length === 0 && !loading && (
+                    <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
+                      <p className="text-gray-400">
+                        {searchQuery ? 'Nessun compagno trovato con questo nome' : 'Nessun compagno trovato con questi filtri'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </>
       )}
 
