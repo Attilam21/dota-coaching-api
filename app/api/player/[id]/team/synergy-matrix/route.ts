@@ -103,15 +103,16 @@ export async function GET(
     )
     const fullMatches = await Promise.all(fullMatchesPromises)
 
-    // Build synergy pairs
+    // Build synergy pairs - DON'T filter by validPeers first, find all pairs then filter
     const synergyMap = new Map<string, { games: number; wins: number }>()
+    const allPeerIdsInMatches = new Set<number>() // Track all peer IDs we find in matches
     
     fullMatches.forEach((match: any) => {
       if (!match?.players) return
       
-      // Find player in match
+      // Find player in match - try both string and number comparison
       const playerInMatch = match.players.find((p: any) => 
-        p.account_id?.toString() === id
+        p.account_id && (p.account_id.toString() === id || p.account_id === parseInt(id))
       )
       if (!playerInMatch) return
       
@@ -119,24 +120,29 @@ export async function GET(
       const teamWon = (playerTeam === 'radiant' && match.radiant_win) || 
                      (playerTeam === 'dire' && !match.radiant_win)
       
-      // Find teammates in same team
-      // Create a Set for faster lookup
-      const validPeerIds = new Set(validPeers.map(p => p.account_id))
+      // Find ALL teammates in same team (not just validPeers)
+      // We'll filter later based on whether they're in validPeers
       const teammates = match.players.filter((p: any) => {
-        if (!p.account_id) return false
+        if (!p.account_id) return false // Skip anonymous players
         const pTeam = p.player_slot < 128 ? 'radiant' : 'dire'
         const isSameTeam = pTeam === playerTeam
-        const isNotPlayer = p.account_id.toString() !== id
-        const isValidPeer = validPeerIds.has(p.account_id)
-        return isSameTeam && isNotPlayer && isValidPeer
+        const isNotPlayer = p.account_id.toString() !== id && p.account_id !== parseInt(id)
+        return isSameTeam && isNotPlayer
       })
       
-      // Create pairs
+      // Track peer IDs found in matches
+      teammates.forEach((t: any) => {
+        if (t.account_id) allPeerIdsInMatches.add(t.account_id)
+      })
+      
+      // Create pairs from ALL teammates (we'll filter by validPeers later)
       for (let i = 0; i < teammates.length; i++) {
         for (let j = i + 1; j < teammates.length; j++) {
           const id1 = teammates[i].account_id
           const id2 = teammates[j].account_id
-          const pairKey = [id1, id2].sort().join('-')
+          if (!id1 || !id2) continue
+          
+          const pairKey = [id1, id2].sort((a, b) => a - b).join('-')
           
           const current = synergyMap.get(pairKey) || { games: 0, wins: 0 }
           current.games++
@@ -145,11 +151,23 @@ export async function GET(
         }
       }
     })
+    
+    // Now filter to only include pairs where BOTH players are in validPeers
+    const validPeerIds = new Set(validPeers.map(p => p.account_id))
+    const filteredSynergyMap = new Map<string, { games: number; wins: number }>()
+    
+    synergyMap.forEach((stats, pairKey) => {
+      const [id1, id2] = pairKey.split('-').map(Number)
+      // Only include if both players are in validPeers
+      if (validPeerIds.has(id1) && validPeerIds.has(id2)) {
+        filteredSynergyMap.set(pairKey, stats)
+      }
+    })
 
     // Convert to array and calculate winrates
     const synergyPairs: SynergyPair[] = []
     
-    synergyMap.forEach((stats, pairKey) => {
+    filteredSynergyMap.forEach((stats, pairKey) => {
       if (stats.games < minGamesTogether) return
       
       const [id1, id2] = pairKey.split('-').map(Number)
@@ -186,7 +204,15 @@ export async function GET(
     // Generate insights
     const insights: string[] = []
     if (synergyPairs.length === 0) {
+      const totalPairsFound = synergyMap.size
+      const validPairsFound = filteredSynergyMap.size
       insights.push(`Nessuna coppia trovata con almeno ${minGamesTogether} partite insieme nelle ultime ${matchesToAnalyze.length} partite analizzate.`)
+      if (totalPairsFound > 0) {
+        insights.push(`Trovate ${totalPairsFound} coppie totali, ${validPairsFound} con compagni validi.`)
+      }
+      if (allPeerIdsInMatches.size > 0) {
+        insights.push(`Trovati ${allPeerIdsInMatches.size} compagni diversi nelle partite analizzate.`)
+      }
       insights.push(`Suggerimento: Gioca più partite con gli stessi compagni per vedere le sinergie.`)
     } else {
       if (topSynergies.length > 0) {
