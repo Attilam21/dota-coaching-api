@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -108,11 +108,13 @@ interface Hero {
   localized_name: string
 }
 
+type TabType = 'overview' | 'hero' | 'items' | 'comparison'
+
 export default function BuildsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
-  const [activeTab, setActiveTab] = useState<'overview' | 'hero' | 'items' | 'comparison'>('overview')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [buildData, setBuildData] = useState<BuildData | null>(null)
   const [itemStats, setItemStats] = useState<ItemStats | null>(null)
   const [heroes, setHeroes] = useState<Hero[]>([])
@@ -120,6 +122,7 @@ export default function BuildsPage() {
   const [heroBuildData, setHeroBuildData] = useState<HeroBuildData | null>(null)
   const [heroLoading, setHeroLoading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (authLoading) return
@@ -137,29 +140,43 @@ export default function BuildsPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
+        setError(null)
         
         // Fetch builds overview
         const buildsResponse = await fetch(`/api/player/${playerId}/builds`)
-        if (buildsResponse.ok) {
-          const data = await buildsResponse.json()
-          setBuildData(data)
+        if (!buildsResponse.ok) {
+          throw new Error('Errore nel caricamento dei dati delle build')
         }
+        const buildsData = await buildsResponse.json()
+        if (buildsData.error) {
+          throw new Error(buildsData.error)
+        }
+        setBuildData(buildsData)
 
         // Fetch item stats
         const itemsResponse = await fetch(`/api/player/${playerId}/items/stats`)
-        if (itemsResponse.ok) {
-          const data = await itemsResponse.json()
-          setItemStats(data)
+        if (!itemsResponse.ok) {
+          throw new Error('Errore nel caricamento delle statistiche degli item')
         }
+        const itemsData = await itemsResponse.json()
+        if (itemsData.error) {
+          throw new Error(itemsData.error)
+        }
+        setItemStats(itemsData)
 
         // Fetch heroes list
         const heroesResponse = await fetch('/api/opendota/heroes')
-        if (heroesResponse.ok) {
-          const heroesData = await heroesResponse.json()
-          setHeroes(heroesData)
+        if (!heroesResponse.ok) {
+          throw new Error('Errore nel caricamento della lista degli eroi')
         }
+        const heroesData = await heroesResponse.json()
+        if (heroesData.error) {
+          throw new Error(heroesData.error)
+        }
+        setHeroes(heroesData)
       } catch (error) {
         console.error('Error fetching build data:', error)
+        setError(error instanceof Error ? error.message : 'Errore sconosciuto nel caricamento dei dati')
       } finally {
         setLoading(false)
       }
@@ -174,16 +191,20 @@ export default function BuildsPage() {
         try {
           setHeroLoading(true)
           setHeroBuildData(null) // Reset previous data
+          setError(null)
           const response = await fetch(`/api/player/${playerId}/builds/hero/${selectedHero}`)
-          if (response.ok) {
-            const data = await response.json()
-            console.log('Hero build data received:', data)
-            setHeroBuildData(data)
-          } else {
-            console.error('Failed to fetch hero builds:', response.status, response.statusText)
+          if (!response.ok) {
+            throw new Error('Errore nel caricamento delle build per questo eroe')
           }
+          const data = await response.json()
+          if (data.error) {
+            throw new Error(data.error)
+          }
+          console.log('Hero build data received:', data)
+          setHeroBuildData(data)
         } catch (error) {
           console.error('Error fetching hero builds:', error)
+          setError(error instanceof Error ? error.message : 'Errore sconosciuto nel caricamento delle build dell\'eroe')
         } finally {
           setHeroLoading(false)
         }
@@ -217,7 +238,7 @@ export default function BuildsPage() {
     )
   }
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+  const COLORS = useMemo(() => ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'], [])
 
   return (
     <div className="p-4 md:p-6">
@@ -229,23 +250,35 @@ export default function BuildsPage() {
           <HelpButton />
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+            <p className="font-semibold">Errore</p>
+            <p>{error}</p>
+          </div>
+        )}
+
         {/* Tabs */}
-        <div className="mb-6 border-b border-gray-700">
+        <div className="mb-6 border-b border-gray-700" role="tablist" aria-label="Sezioni analisi build">
           <div className="flex space-x-4">
             {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'hero', label: 'Per Hero' },
-              { id: 'items', label: 'Analisi Item' },
-              { id: 'comparison', label: 'Build Comparison' }
+              { id: 'overview' as TabType, label: 'Overview' },
+              { id: 'hero' as TabType, label: 'Per Hero' },
+              { id: 'items' as TabType, label: 'Analisi Item' },
+              { id: 'comparison' as TabType, label: 'Build Comparison' }
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   activeTab === tab.id
                     ? 'border-b-2 border-red-600 text-red-400'
                     : 'text-gray-400 hover:text-gray-300'
                 }`}
+                aria-selected={activeTab === tab.id}
+                role="tab"
+                aria-controls={`tabpanel-${tab.id}`}
+                id={`tab-${tab.id}`}
               >
                 {tab.label}
               </button>
@@ -254,8 +287,14 @@ export default function BuildsPage() {
         </div>
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && buildData && (
-          <div className="space-y-6">
+        {activeTab === 'overview' && (
+          <div className="space-y-6" role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview">
+            {!buildData ? (
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center">
+                <p className="text-gray-400">Nessun dato disponibile. Carica i dati per visualizzare le statistiche.</p>
+              </div>
+            ) : (
+              <>
             {/* Overall Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -348,12 +387,14 @@ export default function BuildsPage() {
                 ))}
               </div>
             </div>
+              </>
+            )}
           </div>
         )}
 
         {/* Hero Tab */}
         {activeTab === 'hero' && (
-          <div className="space-y-6">
+          <div className="space-y-6" role="tabpanel" id="tabpanel-hero" aria-labelledby="tab-hero">
             {/* Hero Selection */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h2 className="text-2xl font-semibold mb-4">Seleziona Hero</h2>
@@ -486,7 +527,7 @@ export default function BuildsPage() {
 
         {/* Items Tab */}
         {activeTab === 'items' && itemStats && (
-          <div className="space-y-6">
+          <div className="space-y-6" role="tabpanel" id="tabpanel-items" aria-labelledby="tab-items">
             {/* Underutilized Items */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
@@ -577,7 +618,7 @@ export default function BuildsPage() {
 
         {/* Comparison Tab */}
         {activeTab === 'comparison' && buildData && (
-          <div className="space-y-6">
+          <div className="space-y-6" role="tabpanel" id="tabpanel-comparison" aria-labelledby="tab-comparison">
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Confronto Build</h2>
