@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -43,6 +43,8 @@ interface PlayerStats {
   }
 }
 
+type TabType = 'overview' | 'trends' | 'matches'
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -50,6 +52,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -222,8 +225,8 @@ export default function DashboardPage() {
 
       {stats && !loading && (
         <>
-          {/* Panoramica Section */}
-          <div className="mb-8">
+          {/* Panoramica Section - Always visible */}
+          <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">Panoramica</h2>
             
             {/* Analysis info box */}
@@ -237,8 +240,36 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Snapshot Stato Forma */}
-          <div className="mb-8">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'trends' as TabType, name: 'Trend & Statistiche', icon: Activity },
+                { id: 'matches' as TabType, name: 'Partite', icon: Gamepad2 },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Snapshot Stato Forma */}
+                  <div>
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
@@ -336,221 +367,235 @@ export default function DashboardPage() {
                 <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
                 <p className="text-sm text-gray-300">{getInsight()}</p>
               </div>
-            </div>
-          </div>
+                  </div>
+                  </div>
 
-          {/* Trend Ultime 10 Partite */}
-          {chartData.length > 0 && (
-            <div className="mb-8 bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="trend-chart"
-                  elementId="dashboard-trend-chart"
-                  contextData={{ trends: { winrate: stats.winrate, kda: stats.kda, farm: stats.farm }, data: chartData }}
-                  playerId={playerId}
-                  position="top-right"
-                />
+                  {/* Profilo Giocatore */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
+                        <div className="space-y-1">
+                          <div>
+                            <span className="text-gray-400">Player ID: </span>
+                            <span className="font-semibold text-red-400">{playerId}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Partite analizzate: </span>
+                            <span className="font-semibold">{stats.matches.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Link
+                        href="/dashboard/profiling"
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        Profilo Completo →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               )}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold mb-3">Trend Ultime 10 Partite</h3>
-                <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="match" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="kda"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    name="KDA"
-                    dot={{ fill: '#F59E0B' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="gpm"
-                    stroke="#10B981"
-                    strokeWidth={2}
-                    name="GPM"
-                    dot={{ fill: '#10B981' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="winrate"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    name="Winrate %"
-                    dot={{ fill: '#3B82F6' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
 
-          {/* Quick Stats Cards */}
-          {stats.advanced && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
-                  <Sword className="w-6 h-6" />
-                </div>
-                <p className="text-3xl font-bold text-white">{stats.advanced.lane.avgLastHits.toFixed(1)}</p>
-                <p className="text-xs text-gray-500 mt-1">Media per partita</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Hero Damage</h4>
-                  <Sparkles className="w-8 h-8 text-red-400" />
-                </div>
-                <p className="text-3xl font-bold text-red-400">{Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">Danno medio</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Kill Participation</h4>
-                  <Zap className="w-8 h-8 text-yellow-400" />
-                </div>
-                <p className="text-3xl font-bold text-green-400">{stats.advanced.fights.killParticipation.toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Partecipazione fight</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm text-gray-400 uppercase tracking-wider">Net Worth</h4>
-                  <DollarSign className="w-8 h-8 text-green-400" />
-                </div>
-                <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.advanced.farm.avgNetWorth).toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">Valore medio</p>
-              </div>
-            </div>
-          )}
-
-          {/* Recent Matches Grid */}
-          {stats.matches.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
-                <Link
-                  href="/dashboard/matches"
-                  className="text-sm text-red-400 hover:text-red-300"
-                >
-                  Vedi tutte →
-                </Link>
-              </div>
-              <div className="grid md:grid-cols-5 gap-4">
-                {stats.matches.slice(0, 5).map((match, idx) => (
-                  <Link
-                    key={match.match_id}
-                    href={`/analysis/match/${match.match_id}`}
-                    className="bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">Match {idx + 1}</span>
-                      <span className={`text-xs px-2 py-1 rounded ${match.win ? 'bg-green-600' : 'bg-red-600'} text-white`}>
-                        {match.win ? 'V' : 'S'}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">KDA:</span>
-                        <span className="font-bold">{match.kda.toFixed(2)}</span>
+              {/* Trends & Stats Tab */}
+              {activeTab === 'trends' && (
+                <div className="space-y-6">
+                  {/* Trend Ultime 10 Partite */}
+                  {chartData.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="trend-chart"
+                          elementId="dashboard-trend-chart"
+                          contextData={{ trends: { winrate: stats.winrate, kda: stats.kda, farm: stats.farm }, data: chartData }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold mb-3">Trend Ultime 10 Partite</h3>
+                        <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">GPM:</span>
-                        <span className="font-bold">{match.gpm}</span>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis dataKey="match" stroke="#9CA3AF" />
+                          <YAxis stroke="#9CA3AF" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="kda"
+                            stroke="#F59E0B"
+                            strokeWidth={2}
+                            name="KDA"
+                            dot={{ fill: '#F59E0B' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="gpm"
+                            stroke="#10B981"
+                            strokeWidth={2}
+                            name="GPM"
+                            dot={{ fill: '#10B981' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="winrate"
+                            stroke="#3B82F6"
+                            strokeWidth={2}
+                            name="Winrate %"
+                            dot={{ fill: '#3B82F6' }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Quick Stats Cards */}
+                  {stats.advanced && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
+                          <Sword className="w-6 h-6" />
+                        </div>
+                        <p className="text-3xl font-bold text-white">{stats.advanced.lane.avgLastHits.toFixed(1)}</p>
+                        <p className="text-xs text-gray-500 mt-1">Media per partita</p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm text-gray-400 uppercase tracking-wider">Hero Damage</h4>
+                          <Sparkles className="w-8 h-8 text-red-400" />
+                        </div>
+                        <p className="text-3xl font-bold text-red-400">{Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}</p>
+                        <p className="text-xs text-gray-500 mt-1">Danno medio</p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm text-gray-400 uppercase tracking-wider">Kill Participation</h4>
+                          <Zap className="w-8 h-8 text-yellow-400" />
+                        </div>
+                        <p className="text-3xl font-bold text-green-400">{stats.advanced.fights.killParticipation.toFixed(1)}%</p>
+                        <p className="text-xs text-gray-500 mt-1">Partecipazione fight</p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-sm text-gray-400 uppercase tracking-wider">Net Worth</h4>
+                          <DollarSign className="w-8 h-8 text-green-400" />
+                        </div>
+                        <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.advanced.farm.avgNetWorth).toLocaleString()}</p>
+                        <p className="text-xs text-gray-500 mt-1">Valore medio</p>
                       </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
+                </div>
+              )}
 
-          {/* Quick Links to Deep Analysis */}
-          <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Analisi Approfondite
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <Link
-                href="/dashboard/performance"
-                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-8 h-8 text-yellow-400" />
-                  <h4 className="font-semibold">Performance</h4>
-                </div>
-                <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
-              </Link>
-              <Link
-                href="/dashboard/profiling"
-                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="w-8 h-8 text-purple-400" />
-                  <h4 className="font-semibold">Profilazione FZTH</h4>
-                </div>
-                <p className="text-xs text-gray-400">Profilo completo con IA</p>
-              </Link>
-              <Link
-                href="/dashboard/advanced"
-                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <FlaskConical className="w-8 h-8 text-blue-400" />
-                  <h4 className="font-semibold">Analisi Avanzate</h4>
-                </div>
-                <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
-              </Link>
-              <Link
-                href="/dashboard/coaching"
-                className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <BookOpen className="w-8 h-8 text-indigo-400" />
-                  <h4 className="font-semibold">Coaching</h4>
-                </div>
-                <p className="text-xs text-gray-400">Task e raccomandazioni</p>
-              </Link>
-            </div>
-          </div>
+              {/* Matches Tab */}
+              {activeTab === 'matches' && (
+                <div className="space-y-6">
+                  {/* Recent Matches Grid */}
+                  {stats.matches.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
+                        <Link
+                          href="/dashboard/matches"
+                          className="text-sm text-red-400 hover:text-red-300"
+                        >
+                          Vedi tutte →
+                        </Link>
+                      </div>
+                      <div className="grid md:grid-cols-5 gap-4">
+                        {stats.matches.slice(0, 5).map((match, idx) => (
+                          <Link
+                            key={match.match_id}
+                            href={`/analysis/match/${match.match_id}`}
+                            className="bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-gray-400">Match {idx + 1}</span>
+                              <span className={`text-xs px-2 py-1 rounded ${match.win ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+                                {match.win ? 'V' : 'S'}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">KDA:</span>
+                                <span className="font-bold">{match.kda.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">GPM:</span>
+                                <span className="font-bold">{match.gpm}</span>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-          {/* Identità Giocatore */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
-                <div className="space-y-1">
-                  <div>
-                    <span className="text-gray-400">Player ID: </span>
-                    <span className="font-semibold text-red-400">{playerId}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Partite analizzate: </span>
-                    <span className="font-semibold">{stats.matches.length}</span>
+                  {/* Quick Links to Deep Analysis */}
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                      <Search className="w-5 h-5" />
+                      Analisi Approfondite
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      <Link
+                        href="/dashboard/performance"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap className="w-8 h-8 text-yellow-400" />
+                          <h4 className="font-semibold">Performance</h4>
+                        </div>
+                        <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/profiling"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="w-8 h-8 text-purple-400" />
+                          <h4 className="font-semibold">Profilazione FZTH</h4>
+                        </div>
+                        <p className="text-xs text-gray-400">Profilo completo con IA</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/advanced"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <FlaskConical className="w-8 h-8 text-blue-400" />
+                          <h4 className="font-semibold">Analisi Avanzate</h4>
+                        </div>
+                        <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/coaching"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="w-8 h-8 text-indigo-400" />
+                          <h4 className="font-semibold">Coaching</h4>
+                        </div>
+                        <p className="text-xs text-gray-400">Task e raccomandazioni</p>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <Link
-                href="/dashboard/profiling"
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
-              >
-                Profilo Completo →
-              </Link>
+              )}
             </div>
           </div>
         </>
