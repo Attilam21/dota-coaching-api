@@ -38,9 +38,10 @@ export async function GET(
       }
     })
 
-    // Fetch recent matches to calculate GPM/XPM per hero (OpenDota heroes endpoint doesn't provide these)
+    // Fetch recent matches to calculate GPM/XPM/KDA per hero (OpenDota heroes endpoint doesn't provide these reliably)
     // We'll fetch matches and calculate averages per hero
     let heroGPMXPM: Record<number, { gpm: number; xpm: number; count: number }> = {}
+    let heroKDA: Record<number, { kills: number; assists: number; deaths: number; count: number }> = {}
     try {
       const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=100`, {
         next: { revalidate: 3600 }
@@ -70,24 +71,46 @@ export async function GET(
             const heroId = playerInMatch.hero_id
             const gpm = playerInMatch.gold_per_min || 0
             const xpm = playerInMatch.xp_per_min || 0
+            const kills = playerInMatch.kills ?? 0
+            const assists = playerInMatch.assists ?? 0
+            const deaths = playerInMatch.deaths ?? 0
             
             if (!heroGPMXPM[heroId]) {
               heroGPMXPM[heroId] = { gpm: 0, xpm: 0, count: 0 }
             }
-            if (gpm > 0 || xpm > 0) {
-              heroGPMXPM[heroId].gpm += gpm
-              heroGPMXPM[heroId].xpm += xpm
-              heroGPMXPM[heroId].count++
+            if (!heroKDA[heroId]) {
+              heroKDA[heroId] = { kills: 0, assists: 0, deaths: 0, count: 0 }
             }
+            // Include ALL valid matches, even if GPM/XPM are 0 (e.g., early game leaves)
+            // This ensures count is accurate and zero values are properly averaged
+            heroGPMXPM[heroId].gpm += gpm
+            heroGPMXPM[heroId].xpm += xpm
+            heroGPMXPM[heroId].count++
+            
+            // Accumulate KDA stats
+            heroKDA[heroId].kills += kills
+            heroKDA[heroId].assists += assists
+            heroKDA[heroId].deaths += deaths
+            heroKDA[heroId].count++
           }
         })
         
-        // Calculate averages
+        // Calculate averages for GPM/XPM
         Object.keys(heroGPMXPM).forEach(heroId => {
           const stats = heroGPMXPM[parseInt(heroId)]
           if (stats.count > 0) {
             stats.gpm = stats.gpm / stats.count
             stats.xpm = stats.xpm / stats.count
+          }
+        })
+        
+        // Calculate KDA averages per hero
+        Object.keys(heroKDA).forEach(heroId => {
+          const stats = heroKDA[parseInt(heroId)]
+          if (stats.count > 0) {
+            stats.kills = stats.kills / stats.count
+            stats.assists = stats.assists / stats.count
+            stats.deaths = stats.deaths / stats.count
           }
         })
       }
@@ -106,11 +129,26 @@ export async function GET(
         const games = h.games || 0
         const winrate = games > 0 ? (wins / games) * 100 : 0
         
-        // KDA calculation - prevent division by zero
-        const kills = h.avg_kills || 0
-        const assists = h.avg_assists || 0
-        const deaths = h.avg_deaths || 0
-        const kda = games > 0 ? (kills + assists) / Math.max(deaths, 1) : 0
+        // KDA calculation - use calculated from matches if available, otherwise fallback to OpenDota
+        let kda = 0
+        let kills = 0
+        let assists = 0
+        let deaths = 0
+        
+        if (heroKDA[h.hero_id] && heroKDA[h.hero_id].count > 0) {
+          // Use calculated KDA from matches (more accurate)
+          const kdaStats = heroKDA[h.hero_id]
+          kills = kdaStats.kills
+          assists = kdaStats.assists
+          deaths = kdaStats.deaths
+          kda = (kills + assists) / Math.max(deaths, 1)
+        } else {
+          // Fallback to OpenDota endpoint data
+          kills = h.avg_kills || 0
+          assists = h.avg_assists || 0
+          deaths = h.avg_deaths || 0
+          kda = games > 0 ? (kills + assists) / Math.max(deaths, 1) : 0
+        }
         
         // Determine rating
         let rating = 'Migliorabile'

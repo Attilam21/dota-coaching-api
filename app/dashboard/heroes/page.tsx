@@ -122,7 +122,8 @@ export default function HeroesPage() {
     name: hero.hero_name.length > 10 ? hero.hero_name.substring(0, 10) + '...' : hero.hero_name,
     winrate: hero.winrate,
     games: hero.games,
-    kda: hero.kda && hero.kda !== 'N/A' && hero.kda !== '0.00' ? parseFloat(hero.kda) : 0,
+    // Include KDA even if 0 - it's valid data (e.g., support heroes with many assists but few kills)
+    kda: hero.kda && hero.kda !== 'N/A' ? parseFloat(hero.kda) : 0,
     gpm: hero.avg_gpm && hero.avg_gpm !== 'N/A' && hero.avg_gpm !== '0' ? parseFloat(hero.avg_gpm) : 0,
     xpm: hero.avg_xpm && hero.avg_xpm !== 'N/A' && hero.avg_xpm !== '0' ? parseFloat(hero.avg_xpm) : 0,
   }))
