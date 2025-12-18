@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     )
 
     // Combine achievements with unlock status
-    const achievementsWithStatus = (achievements || []).map(achievement => ({
+    const achievementsWithStatus = (achievements || []).map((achievement: any) => ({
       id: achievement.id,
       name: achievement.name,
       description: achievement.description,
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }))
 
     // Group by category
-    const groupedByCategory = achievementsWithStatus.reduce((acc, achievement) => {
+    const groupedByCategory = achievementsWithStatus.reduce((acc: Record<string, typeof achievementsWithStatus>, achievement: typeof achievementsWithStatus[0]) => {
       const category = achievement.category || 'other'
       if (!acc[category]) {
         acc[category] = []
