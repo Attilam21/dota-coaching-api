@@ -45,6 +45,10 @@ ON public.user_performance_snapshots(dota_account_id, snapshot_date DESC);
 -- 4. RLS Policies for user_performance_snapshots
 ALTER TABLE public.user_performance_snapshots ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "Users can view own snapshots" ON public.user_performance_snapshots;
+DROP POLICY IF EXISTS "Users can insert own snapshots" ON public.user_performance_snapshots;
+
 CREATE POLICY "Users can view own snapshots" ON public.user_performance_snapshots
   FOR SELECT USING (auth.uid() = user_id);
 
