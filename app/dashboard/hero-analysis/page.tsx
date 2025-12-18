@@ -43,13 +43,39 @@ interface HeroAnalysis {
   insights: string[]
 }
 
+interface Matchup {
+  playerHeroId: number
+  playerHeroName: string
+  matchups: Array<{
+    enemyHeroId: number
+    enemyHeroName: string
+    games: number
+    wins: number
+    winrate: number
+  }>
+  totalMatchups: number
+}
+
+interface MatchupData {
+  matchups: Matchup[]
+  summary: {
+    totalMatches: number
+    totalHeroes: number
+    totalMatchups: number
+  }
+  insights: string[]
+}
+
 export default function HeroAnalysisPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const [analysis, setAnalysis] = useState<HeroAnalysis | null>(null)
+  const [matchupData, setMatchupData] = useState<MatchupData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [matchupLoading, setMatchupLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedHeroForMatchup, setSelectedHeroForMatchup] = useState<number | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -77,11 +103,30 @@ export default function HeroAnalysisPage() {
     }
   }, [playerId])
 
+  const fetchMatchups = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setMatchupLoading(true)
+      const response = await fetch(`/api/player/${playerId}/matchups`)
+      if (!response.ok) throw new Error('Failed to fetch matchups')
+
+      const data = await response.json()
+      setMatchupData(data)
+    } catch (err) {
+      console.error('Error fetching matchups:', err)
+      // Don't show error for matchups, it's optional data
+    } finally {
+      setMatchupLoading(false)
+    }
+  }, [playerId])
+
   useEffect(() => {
     if (playerId) {
       fetchAnalysis()
+      fetchMatchups()
     }
-  }, [playerId, fetchAnalysis])
+  }, [playerId, fetchAnalysis, fetchMatchups])
 
   if (authLoading) {
     return (
@@ -332,6 +377,146 @@ export default function HeroAnalysisPage() {
               </ul>
             </div>
           )}
+
+          {/* Matchup Analysis */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold">Matchup Analysis (Hero vs Hero)</h2>
+              {matchupLoading && (
+                <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+              )}
+            </div>
+            <p className="text-gray-400 mb-4 text-sm">
+              Analisi delle tue performance con ogni eroe contro eroi specifici. Solo matchup con 2+ partite.
+            </p>
+
+            {matchupData && matchupData.matchups.length > 0 ? (
+              <div className="space-y-6">
+                {/* Matchup Summary */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <h3 className="text-sm text-gray-400 mb-1">Partite Analizzate</h3>
+                    <p className="text-2xl font-bold">{matchupData.summary.totalMatches}</p>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <h3 className="text-sm text-gray-400 mb-1">Heroes con Matchup</h3>
+                    <p className="text-2xl font-bold">{matchupData.summary.totalHeroes}</p>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-4">
+                    <h3 className="text-sm text-gray-400 mb-1">Matchup Totali</h3>
+                    <p className="text-2xl font-bold">{matchupData.summary.totalMatchups}</p>
+                  </div>
+                </div>
+
+                {/* Matchup Insights */}
+                {matchupData.insights.length > 0 && (
+                  <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-2 text-purple-200">Matchup Insights</h3>
+                    <ul className="space-y-1">
+                      {matchupData.insights.map((insight, idx) => (
+                        <li key={idx} className="text-purple-300 text-sm">• {insight}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Hero Selector */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Seleziona Hero per vedere i Matchup</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {matchupData.matchups.map((matchup) => (
+                      <button
+                        key={matchup.playerHeroId}
+                        onClick={() => setSelectedHeroForMatchup(
+                          selectedHeroForMatchup === matchup.playerHeroId ? null : matchup.playerHeroId
+                        )}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          selectedHeroForMatchup === matchup.playerHeroId
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        {matchup.playerHeroName} ({matchup.totalMatchups} matchup)
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Selected Hero Matchups */}
+                {selectedHeroForMatchup && (
+                  <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-6">
+                    {(() => {
+                      const selectedMatchup = matchupData.matchups.find(
+                        m => m.playerHeroId === selectedHeroForMatchup
+                      )
+                      if (!selectedMatchup) return null
+
+                      // Sort matchups by winrate (best first)
+                      const sortedMatchups = [...selectedMatchup.matchups].sort(
+                        (a, b) => b.winrate - a.winrate
+                      )
+
+                      return (
+                        <>
+                          <h3 className="text-xl font-semibold mb-4">
+                            Matchup per {selectedMatchup.playerHeroName}
+                          </h3>
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead className="bg-gray-600">
+                                <tr>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                    Eroe Nemico
+                                  </th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                    Partite
+                                  </th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                    Vittorie
+                                  </th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                    Winrate
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-600">
+                                {sortedMatchups.map((matchup) => (
+                                  <tr key={matchup.enemyHeroId} className="hover:bg-gray-600/50">
+                                    <td className="px-4 py-3 text-white font-medium">
+                                      {matchup.enemyHeroName}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-300">{matchup.games}</td>
+                                    <td className="px-4 py-3 text-gray-300">{matchup.wins}</td>
+                                    <td className="px-4 py-3">
+                                      <span
+                                        className={`font-semibold ${
+                                          matchup.winrate >= 60
+                                            ? 'text-green-400'
+                                            : matchup.winrate >= 40
+                                            ? 'text-yellow-400'
+                                            : 'text-red-400'
+                                        }`}
+                                      >
+                                        {matchup.winrate.toFixed(1)}%
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      )
+                    })()}
+                  </div>
+                )}
+              </div>
+            ) : matchupData && !matchupLoading ? (
+              <div className="text-center py-8 text-gray-400">
+                <p>Nessun dato matchup disponibile. Gioca più partite per vedere le analisi.</p>
+              </div>
+            ) : null}
+          </div>
         </div>
       )}
     </div>
