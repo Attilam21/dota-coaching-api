@@ -355,57 +355,69 @@ export default function ProfilingPage() {
           {/* Key Metrics */}
           {profile.metrics && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="metric-card"
-                    elementId="profiling-gpm"
-                    contextData={{ metricName: 'GPM Medio', value: profile.metrics.avgGPM, benchmark: '550' }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
-                <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
+                <p className="text-2xl font-bold text-yellow-400 mb-3">{profile.metrics.avgGPM}</p>
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    <strong className="text-yellow-400">GPM (Gold Per Minute)</strong> indica quanto oro guadagni al minuto. 
+                    {parseFloat(profile.metrics.avgGPM) >= 600 ? (
+                      <> Ottimo risultato! Continua a farmare efficacemente e a partecipare ai teamfight per mantenere questo livello.</>
+                    ) : parseFloat(profile.metrics.avgGPM) >= 500 ? (
+                      <> Buon livello. Migliora il farming nelle fasi di gioco e partecipa ai teamfight per aumentare il GPM.</>
+                    ) : (
+                      <> Focus su last hit, farming patterns e partecipazione ai teamfight per aumentare il tuo GPM.</>
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-orange-500 transition-colors relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="metric-card"
-                    elementId="profiling-xpm"
-                    contextData={{ metricName: 'XPM Medio', value: profile.metrics.avgXPM, benchmark: '600' }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-orange-500 transition-colors">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</p>
-                <p className="text-2xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
+                <p className="text-2xl font-bold text-orange-400 mb-3">{profile.metrics.avgXPM}</p>
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    <strong className="text-orange-400">XPM (Experience Per Minute)</strong> mostra quanto velocemente sali di livello. 
+                    {parseFloat(profile.metrics.avgXPM) >= 700 ? (
+                      <> Eccellente! Stai guadagnando esperienza molto velocemente, ottimo per avere un vantaggio di livello.</>
+                    ) : parseFloat(profile.metrics.avgXPM) >= 600 ? (
+                      <> Buon livello. Partecipa ai teamfight e non perdere wave di lane per aumentare l'XPM.</>
+                    ) : (
+                      <> Focus su partecipazione ai teamfight, farming e non perdere esperienza dalle lane per migliorare.</>
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="metric-card"
-                    elementId="profiling-kda"
-                    contextData={{ metricName: 'KDA Medio', value: profile.metrics.avgKDA, benchmark: '2.5' }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</p>
-                <p className="text-2xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
+                <p className="text-2xl font-bold text-purple-400 mb-3">{profile.metrics.avgKDA}</p>
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    <strong className="text-purple-400">KDA (Kill/Death/Assist Ratio)</strong> misura l'efficacia in combattimento. 
+                    {parseFloat(profile.metrics.avgKDA) >= 3.0 ? (
+                      <> Ottimo KDA! Stai contribuendo molto ai teamfight e muori raramente. Continua così!</>
+                    ) : parseFloat(profile.metrics.avgKDA) >= 2.0 ? (
+                      <> Buon KDA. Migliora il positioning e la scelta dei momenti per entrare nei teamfight per aumentarlo.</>
+                    ) : (
+                      <> Focus su positioning, timing nei teamfight e riduzione delle morti per migliorare il KDA.</>
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="metric-card"
-                    elementId="profiling-winrate"
-                    contextData={{ metricName: 'Winrate', value: `${profile.metrics.winrate}%`, benchmark: '50%' }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
+              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Winrate</p>
-                <p className="text-2xl font-bold text-green-400">{profile.metrics.winrate}%</p>
+                <p className="text-2xl font-bold text-green-400 mb-3">{profile.metrics.winrate}%</p>
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    <strong className="text-green-400">Winrate</strong> è la percentuale di partite vinte. 
+                    {parseFloat(profile.metrics.winrate) >= 55 ? (
+                      <> Eccellente winrate! Stai giocando molto bene e contribuendo alle vittorie del team.</>
+                    ) : parseFloat(profile.metrics.winrate) >= 50 ? (
+                      <> Winrate nella media. Analizza le tue partite perse per identificare aree di miglioramento.</>
+                    ) : (
+                      <> Focus su decision making, comunicazione con il team e analisi degli errori per migliorare il winrate.</>
+                    )}
+                  </p>
+                </div>
               </div>
               <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors relative">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Morte/Game</p>
