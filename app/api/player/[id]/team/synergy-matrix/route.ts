@@ -45,7 +45,10 @@ export async function GET(
       return NextResponse.json({
         matrix: [],
         topSynergies: [],
-        insights: ['Nessun compagno trovato. Gioca più partite con altri giocatori per vedere le sinergie.']
+        totalPairs: 0,
+        insights: ['Nessun compagno trovato. Gioca più partite con altri giocatori per vedere le sinergie.'],
+        analyzedMatches: 0,
+        validPeers: 0
       })
     }
 
@@ -59,7 +62,10 @@ export async function GET(
       return NextResponse.json({
         matrix: [],
         topSynergies: [],
-        insights: [`Servono almeno 2 compagni con ${minPeerGames}+ partite per la Synergy Matrix. Attualmente: ${peers.length} compagni trovati.`]
+        totalPairs: 0,
+        insights: [`Servono almeno 2 compagni con ${minPeerGames}+ partite per la Synergy Matrix. Attualmente: ${peers.length} compagni trovati.`],
+        analyzedMatches: 0,
+        validPeers: validPeers.length
       })
     }
 
@@ -81,7 +87,10 @@ export async function GET(
       return NextResponse.json({
         matrix: [],
         topSynergies: [],
-        insights: ['Nessuna partita trovata. Gioca più partite per vedere le sinergie.']
+        totalPairs: 0,
+        insights: ['Nessuna partita trovata. Gioca più partite per vedere le sinergie.'],
+        analyzedMatches: 0,
+        validPeers: validPeers.length
       })
     }
     
