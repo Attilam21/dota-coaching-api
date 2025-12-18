@@ -143,7 +143,8 @@ export async function GET(
     const validMatches = enrichedMatches.filter((m: any) => m.duration > 0)
 
     // Guard against empty validMatches to prevent division by zero
-    if (validMatches.length === 0) {
+    const matchCount = validMatches.length
+    if (matchCount === 0) {
       return NextResponse.json({
         matches: [],
         stats: null
@@ -153,10 +154,11 @@ export async function GET(
     // ============================================
     // 1. LANE & EARLY GAME STATS
     // ============================================
-    const avgLastHits = validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / validMatches.length
-    const avgDenies = validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / validMatches.length
-    const avgCS = validMatches.reduce((acc, m) => acc + (m.last_hits || 0) + (m.denies || 0), 0) / validMatches.length
-    const avgDuration = validMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / validMatches.length
+    
+    const avgLastHits = validMatches.reduce((acc, m) => acc + (m.last_hits || 0), 0) / matchCount
+    const avgDenies = validMatches.reduce((acc, m) => acc + (m.denies || 0), 0) / matchCount
+    const avgCS = validMatches.reduce((acc, m) => acc + (m.last_hits || 0) + (m.denies || 0), 0) / matchCount
+    const avgDuration = validMatches.reduce((acc, m) => acc + (m.duration || 0), 0) / matchCount
     
     // CS per minute (real calculation based on actual match duration)
     const csPerMinute = avgDuration > 0 ? (avgCS / (avgDuration / 60)) : 0
@@ -172,7 +174,7 @@ export async function GET(
       csPerMinute: csPerMinute.toFixed(2),
       estimatedCSAt10Min: estimatedCSAt10Min.toFixed(1),
       denyRate: avgCS > 0 ? (avgDenies / avgCS) * 100 : 0,
-      firstBloodInvolvement: validMatches.filter(m => (m.firstblood_claimed || 0) > 0 || (m.firstblood_killed || 0) > 0).length / validMatches.length * 100,
+      firstBloodInvolvement: matchCount > 0 ? (validMatches.filter(m => (m.firstblood_claimed || 0) > 0 || (m.firstblood_killed || 0) > 0).length / matchCount) * 100 : 0,
     }
 
     // ============================================
@@ -180,10 +182,10 @@ export async function GET(
     // ============================================
     const totalGoldEarned = validMatches.reduce((acc, m) => acc + (m.gold || 0), 0)
     const totalGoldSpent = validMatches.reduce((acc, m) => acc + (m.gold_spent || 0), 0)
-    const avgGPM = validMatches.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / validMatches.length
-    const avgXPM = validMatches.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / validMatches.length
-    const avgNetWorth = validMatches.reduce((acc, m) => acc + (m.net_worth || 0), 0) / validMatches.length
-    const avgBuybacks = validMatches.reduce((acc, m) => acc + (m.buyback_count || 0), 0) / validMatches.length
+    const avgGPM = validMatches.reduce((acc, m) => acc + (m.gold_per_min || 0), 0) / matchCount
+    const avgXPM = validMatches.reduce((acc, m) => acc + (m.xp_per_min || 0), 0) / matchCount
+    const avgNetWorth = validMatches.reduce((acc, m) => acc + (m.net_worth || 0), 0) / matchCount
+    const avgBuybacks = validMatches.reduce((acc, m) => acc + (m.buyback_count || 0), 0) / matchCount
 
     // Buyback efficiency: calculate win rate when buyback is used
     const matchesWithBuyback = validMatches.filter(m => (m.buyback_count || 0) > 0)
@@ -207,7 +209,7 @@ export async function GET(
       goldUtilization: totalGoldEarned > 0 ? (totalGoldSpent / totalGoldEarned) * 100 : 0,
       avgBuybacks,
       buybackEfficiency: buybackEfficiency.toFixed(1),
-      buybackUsageRate: (matchesWithBuyback.length / validMatches.length) * 100,
+      buybackUsageRate: matchCount > 0 ? (matchesWithBuyback.length / matchCount) * 100 : 0,
       // Farm Efficiency: (avg last hits + denies) per minute of average match duration
       farmEfficiency: avgDuration > 0 ? ((avgLastHits + avgDenies) / (avgDuration / 60)) : 0,
       // Phase analysis
@@ -235,10 +237,10 @@ export async function GET(
     // ============================================
     const totalKills = validMatches.reduce((acc, m) => acc + m.kills, 0)
     const totalAssists = validMatches.reduce((acc, m) => acc + m.assists, 0)
-    const avgHeroDamage = validMatches.reduce((acc, m) => acc + (m.hero_damage || 0), 0) / validMatches.length
-    const avgTowerDamage = validMatches.reduce((acc, m) => acc + (m.tower_damage || 0), 0) / validMatches.length
-    const avgHealing = validMatches.reduce((acc, m) => acc + (m.hero_healing || 0), 0) / validMatches.length
-    const avgDeaths = validMatches.reduce((acc, m) => acc + m.deaths, 0) / validMatches.length
+    const avgHeroDamage = validMatches.reduce((acc, m) => acc + (m.hero_damage || 0), 0) / matchCount
+    const avgTowerDamage = validMatches.reduce((acc, m) => acc + (m.tower_damage || 0), 0) / matchCount
+    const avgHealing = validMatches.reduce((acc, m) => acc + (m.hero_healing || 0), 0) / matchCount
+    const avgDeaths = validMatches.reduce((acc, m) => acc + m.deaths, 0) / matchCount
 
     // Kill participation (semplicificato: (kills + assists) / (kills + assists + deaths) * 100)
     const totalKA = totalKills + totalAssists
@@ -251,14 +253,14 @@ export async function GET(
     
     // Teamfight participation (more accurate using teamfight_participations if available)
     const totalTeamfightParticipations = validMatches.reduce((acc, m) => acc + (m.teamfight_participations || 0), 0)
-    const avgTeamfightParticipations = totalTeamfightParticipations / validMatches.length
+    const avgTeamfightParticipations = matchCount > 0 ? totalTeamfightParticipations / matchCount : 0
     
     // Damage per minute
     const damagePerMinute = avgDurationMinutes > 0 ? avgHeroDamage / avgDurationMinutes : 0
     
     const fightStats = {
-      avgKills: totalKills / validMatches.length,
-      avgAssists: totalAssists / validMatches.length,
+      avgKills: matchCount > 0 ? totalKills / matchCount : 0,
+      avgAssists: matchCount > 0 ? totalAssists / matchCount : 0,
       avgDeaths,
       deathsPerMinute: deathsPerMinute.toFixed(2),
       killParticipation,
@@ -277,32 +279,32 @@ export async function GET(
     const totalObserverKilled = validMatches.reduce((acc, m) => acc + (m.observer_killed || 0), 0)
     const totalSentryPlaced = validMatches.reduce((acc, m) => acc + (m.sentry_uses || 0), 0)
     const totalSentryKilled = validMatches.reduce((acc, m) => acc + (m.sentry_killed || 0), 0)
-    const avgRunes = validMatches.reduce((acc, m) => acc + (m.runes || 0), 0) / validMatches.length
+    const avgRunes = validMatches.reduce((acc, m) => acc + (m.runes || 0), 0) / matchCount
 
     // Rune control: runes per minute
     const runesPerMinute = avgDurationMinutes > 0 ? avgRunes / avgDurationMinutes : 0
     
     // Stacking efficiency: camps stacked per match
     const totalCampsStacked = validMatches.reduce((acc, m) => acc + (m.camps_stacked || 0), 0)
-    const avgCampsStacked = totalCampsStacked / validMatches.length
+    const avgCampsStacked = matchCount > 0 ? totalCampsStacked / matchCount : 0
     
     // Courier control
     const totalCourierKills = validMatches.reduce((acc, m) => acc + (m.courier_kills || 0), 0)
-    const avgCourierKills = totalCourierKills / validMatches.length
+    const avgCourierKills = matchCount > 0 ? totalCourierKills / matchCount : 0
     
     // Roshan control
     const totalRoshanKills = validMatches.reduce((acc, m) => acc + (m.roshans_killed || 0), 0)
-    const avgRoshanKills = totalRoshanKills / validMatches.length
-    const roshanControlRate = (validMatches.filter(m => (m.roshans_killed || 0) > 0).length / validMatches.length) * 100
+    const avgRoshanKills = matchCount > 0 ? totalRoshanKills / matchCount : 0
+    const roshanControlRate = matchCount > 0 ? (validMatches.filter(m => (m.roshans_killed || 0) > 0).length / matchCount) * 100 : 0
     
     // Deward efficiency: sentry killed / sentry placed (higher is better)
     const dewardEfficiency = totalSentryPlaced > 0 ? (totalSentryKilled / totalSentryPlaced) * 100 : 0
     
     const visionStats = {
-      avgObserverPlaced: totalObserverPlaced / validMatches.length,
-      avgObserverKilled: totalObserverKilled / validMatches.length,
-      avgSentryPlaced: totalSentryPlaced / validMatches.length,
-      avgSentryKilled: totalSentryKilled / validMatches.length,
+      avgObserverPlaced: matchCount > 0 ? totalObserverPlaced / matchCount : 0,
+      avgObserverKilled: matchCount > 0 ? totalObserverKilled / matchCount : 0,
+      avgSentryPlaced: matchCount > 0 ? totalSentryPlaced / matchCount : 0,
+      avgSentryKilled: matchCount > 0 ? totalSentryKilled / matchCount : 0,
       wardEfficiency: totalObserverPlaced > 0 ? (totalObserverKilled / totalObserverPlaced) * 100 : 0,
       dewardEfficiency: dewardEfficiency.toFixed(1),
       avgRunes,

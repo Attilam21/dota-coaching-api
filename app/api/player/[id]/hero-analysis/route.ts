@@ -43,8 +43,16 @@ export async function GET(
       .filter((h: any) => h.games && h.games > 0)
       .map((h: any) => {
         const hero = heroesMap[h.hero_id]
-        const winrate = (h.win / h.games) * 100
-        const kda = h.games > 0 ? (h.avg_kills + h.avg_assists) / Math.max(h.avg_deaths, 1) : 0
+        // Winrate calculation - ensure games > 0 and handle undefined wins
+        const wins = h.win || 0
+        const games = h.games || 0
+        const winrate = games > 0 ? (wins / games) * 100 : 0
+        
+        // KDA calculation - prevent division by zero
+        const kills = h.avg_kills || 0
+        const assists = h.avg_assists || 0
+        const deaths = h.avg_deaths || 0
+        const kda = games > 0 ? (kills + assists) / Math.max(deaths, 1) : 0
         
         // Determine rating
         let rating = 'Migliorabile'
@@ -55,16 +63,16 @@ export async function GET(
         return {
           hero_id: h.hero_id,
           hero_name: hero?.localized_name || `Hero ${h.hero_id}`,
-          games: h.games,
-          wins: h.win,
-          losses: h.games - h.win,
+          games: games,
+          wins: wins,
+          losses: games - wins,
           winrate,
           kda: kda.toFixed(2),
-          avg_kills: h.avg_kills?.toFixed(1) || '0',
-          avg_deaths: h.avg_deaths?.toFixed(1) || '0',
-          avg_assists: h.avg_assists?.toFixed(1) || '0',
-          avg_gpm: h.avg_gold_per_min?.toFixed(0) || '0',
-          avg_xpm: h.avg_xp_per_min?.toFixed(0) || '0',
+          avg_kills: kills.toFixed(1),
+          avg_deaths: deaths.toFixed(1),
+          avg_assists: assists.toFixed(1),
+          avg_gpm: (h.avg_gold_per_min || 0).toFixed(0),
+          avg_xpm: (h.avg_xp_per_min || 0).toFixed(0),
           rating,
           primary_attr: hero?.primary_attr || 'unknown',
           roles: hero?.roles || [],
@@ -109,8 +117,9 @@ export async function GET(
       insights.push(`Hai un hero pool limitato (${diverseHeroes} heroes con 5+ partite). Espandere il pool può migliorare l'adattabilità.`)
     }
     
-    if (mostPlayed && mostPlayed.games > totalGames * 0.3) {
-      insights.push(`Stai giocando ${mostPlayed.hero_name} troppo spesso (${((mostPlayed.games / totalGames) * 100).toFixed(0)}% delle partite). Diversifica di più.`)
+    if (mostPlayed && totalGames > 0 && mostPlayed.games > totalGames * 0.3) {
+      const percentage = (mostPlayed.games / totalGames) * 100
+      insights.push(`Stai giocando ${mostPlayed.hero_name} troppo spesso (${percentage.toFixed(0)}% delle partite). Diversifica di più.`)
     }
 
     // Role distribution

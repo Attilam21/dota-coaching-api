@@ -160,7 +160,9 @@ export default function HeroesPage() {
                 {(() => {
                   const validKDA = heroStats.filter(h => h.kda && h.kda !== '0' && h.kda !== 'N/A' && !isNaN(parseFloat(h.kda)))
                   if (validKDA.length === 0) return '0.00'
-                  const avg = validKDA.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / validKDA.length
+                  // Prevent division by zero (defensive check)
+                  const count = validKDA.length
+                  const avg = count > 0 ? validKDA.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / count : 0
                   return isNaN(avg) ? '0.00' : avg.toFixed(2)
                 })()}
               </p>
@@ -172,7 +174,9 @@ export default function HeroesPage() {
                 {(() => {
                   const validGPM = heroStats.filter(h => h.avg_gpm && h.avg_gpm !== '0' && h.avg_gpm !== 'N/A' && !isNaN(parseFloat(h.avg_gpm)))
                   if (validGPM.length === 0) return '0'
-                  const avg = validGPM.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / validGPM.length
+                  // Prevent division by zero (defensive check)
+                  const count = validGPM.length
+                  const avg = count > 0 ? validGPM.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / count : 0
                   return isNaN(avg) ? '0' : Math.round(avg).toString()
                 })()}
               </p>
@@ -184,7 +188,9 @@ export default function HeroesPage() {
                 {(() => {
                   const validXPM = heroStats.filter(h => h.avg_xpm && h.avg_xpm !== '0' && h.avg_xpm !== 'N/A' && !isNaN(parseFloat(h.avg_xpm)))
                   if (validXPM.length === 0) return '0'
-                  const avg = validXPM.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / validXPM.length
+                  // Prevent division by zero (defensive check)
+                  const count = validXPM.length
+                  const avg = count > 0 ? validXPM.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / count : 0
                   return isNaN(avg) ? '0' : Math.round(avg).toString()
                 })()}
               </p>

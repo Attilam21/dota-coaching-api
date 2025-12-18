@@ -97,9 +97,11 @@ export default function PerformancePage() {
 
       // Calculate performance metrics from basic stats
       const matches = statsData.stats.matches || []
-      const avgKDA = matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matches.length || 0
-      const avgGPM = matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matches.length || 0
-      const avgXPM = matches.reduce((acc: number, m: { xpm: number }) => acc + m.xpm, 0) / matches.length || 0
+      // Prevent division by zero - always check array length before dividing
+      const matchCount = matches.length
+      const avgKDA = matchCount > 0 ? matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matchCount : 0
+      const avgGPM = matchCount > 0 ? matches.reduce((acc: number, m: { gpm: number }) => acc + m.gpm, 0) / matchCount : 0
+      const avgXPM = matchCount > 0 ? matches.reduce((acc: number, m: { xpm: number }) => acc + m.xpm, 0) / matchCount : 0
       
       // Use advanced stats if available
       const advanced = advancedData?.stats
