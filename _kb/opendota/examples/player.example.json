@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "account_id": 1903287666,
+    "personaname": "PlayerName",
+    "avatarfull": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/...",
+    "steamid": "765611980593295794",
+    "loccountrycode": "IT"
+  },
+  "win": 450,
+  "lose": 380,
+  "solo_competitive_rank": 4500,
+  "competitive_rank": 4200,
+  "rank_tier": 45,
+  "leaderboard_rank": null,
+  "mmr_estimate": {
+    "estimate": 4450
+  },
+  "plus": false,
+  "is_contributor": false,
+  "is_subscriber": false
+}
+

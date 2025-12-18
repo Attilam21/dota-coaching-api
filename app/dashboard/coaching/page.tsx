@@ -136,7 +136,10 @@ export default function CoachingPage() {
     return icons[metric] || <BarChart3 className="w-5 h-5" />
   }
 
-  const formatValue = (metric: string, value: number) => {
+  const formatValue = (metric: string, value: number | null | undefined) => {
+    if (value == null || isNaN(value)) {
+      return 'N/A'
+    }
     if (metric === 'winrate' || metric === 'killParticipation' || metric === 'denyRate' || metric === 'goldUtilization' || metric === 'visionScore' || metric === 'teamfightParticipation' || metric === 'teamfight_participation') {
       return `${value.toFixed(1)}%`
     }
@@ -274,7 +277,7 @@ export default function CoachingPage() {
                     <div className="flex items-center justify-between pt-2 border-t border-gray-600">
                       <span className="text-xs text-gray-400">Gap</span>
                       <span className={`text-sm font-semibold ${getGapColor(comp.gapPercent)}`}>
-                        {comp.gapPercent >= 0 ? '+' : ''}{comp.gapPercent.toFixed(1)}%
+                        {comp.gapPercent != null ? (comp.gapPercent >= 0 ? '+' : '') + comp.gapPercent.toFixed(1) : '0.0'}%
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -333,7 +336,7 @@ export default function CoachingPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-semibold ${getGapColor(area.gapPercent)}`}>
-                        {area.gapPercent.toFixed(1)}%
+                        {area.gapPercent != null ? area.gapPercent.toFixed(1) : '0.0'}%
                       </span>
                       <span className={`text-xs ${getPercentileColor(area.percentile)}`}>
                         ({area.percentile}° percentile)
@@ -361,7 +364,7 @@ export default function CoachingPage() {
                     <span className="text-sm text-gray-400">Vittorie</span>
                   </div>
                   <p className="text-2xl font-bold text-green-400">{winConditions.summary.wins}</p>
-                  <p className="text-xs text-gray-500 mt-1">Winrate: {winConditions.summary.winrate.toFixed(1)}%</p>
+                  <p className="text-xs text-gray-500 mt-1">Winrate: {winConditions.summary.winrate ? winConditions.summary.winrate.toFixed(1) : '0.0'}%</p>
                 </div>
                 <div className="bg-gray-800/50 rounded-lg p-4 border border-red-700/30">
                   <div className="flex items-center gap-2 mb-2">
@@ -376,7 +379,7 @@ export default function CoachingPage() {
                     <Target className="w-5 h-5 text-blue-400" />
                     <span className="text-sm text-gray-400">Replicabilità</span>
                   </div>
-                  <p className="text-2xl font-bold text-blue-400">{winConditions.winConditionScore.overallScore.toFixed(0)}%</p>
+                  <p className="text-2xl font-bold text-blue-400">{winConditions.winConditionScore?.overallScore ? winConditions.winConditionScore.overallScore.toFixed(0) : '0'}%</p>
                   <p className="text-xs text-gray-500 mt-1">Quanto replichi i pattern vincenti</p>
                 </div>
               </div>
@@ -404,7 +407,7 @@ export default function CoachingPage() {
                           <div className="pt-2 border-t border-gray-700 flex justify-between items-center">
                             <span className="text-xs text-gray-400">Differenza</span>
                             <span className="text-sm font-bold text-green-400">
-                              +{diff.differencePercent.toFixed(1)}%
+                              {diff.differencePercent != null ? (diff.differencePercent > 0 ? '+' : '') + diff.differencePercent.toFixed(1) : '0.0'}%
                             </span>
                           </div>
                         </div>
@@ -450,7 +453,7 @@ export default function CoachingPage() {
                           </td>
                           <td className="text-right py-2">
                             <span className={`font-semibold ${data.diffPercent > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {data.diffPercent > 0 ? '+' : ''}{data.diffPercent.toFixed(1)}%
+                              {data.diffPercent != null ? (data.diffPercent > 0 ? '+' : '') + data.diffPercent.toFixed(1) : '0.0'}%
                             </span>
                           </td>
                         </tr>

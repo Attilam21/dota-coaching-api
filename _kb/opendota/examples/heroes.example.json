@@ -1,0 +1,48 @@
+[
+  {
+    "id": 1,
+    "name": "npc_dota_hero_antimage",
+    "localized_name": "Anti-Mage",
+    "primary_attr": "agi",
+    "attack_type": "Melee",
+    "roles": ["Carry", "Escape", "Nuker"],
+    "legs": 2
+  },
+  {
+    "id": 2,
+    "name": "npc_dota_hero_axe",
+    "localized_name": "Axe",
+    "primary_attr": "str",
+    "attack_type": "Melee",
+    "roles": ["Initiator", "Durable", "Disabler", "Carry"],
+    "legs": 2
+  },
+  {
+    "id": 3,
+    "name": "npc_dota_hero_bane",
+    "localized_name": "Bane",
+    "primary_attr": "all",
+    "attack_type": "Ranged",
+    "roles": ["Support", "Disabler", "Nuker", "Durable"],
+    "legs": 4
+  },
+  {
+    "id": 10,
+    "name": "npc_dota_hero_morphling",
+    "localized_name": "Morphling",
+    "primary_attr": "agi",
+    "attack_type": "Ranged",
+    "roles": ["Carry", "Escape", "Durable", "Nuker", "Disabler"],
+    "legs": 0
+  },
+  {
+    "id": 16,
+    "name": "npc_dota_hero_sand_king",
+    "localized_name": "Sand King",
+    "primary_attr": "all",
+    "attack_type": "Melee",
+    "roles": ["Initiator", "Disabler", "Support", "Nuker", "Escape"],
+    "legs": 6
+  }
+]
+

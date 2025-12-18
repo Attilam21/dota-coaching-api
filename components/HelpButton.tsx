@@ -60,12 +60,12 @@ export default function HelpButton() {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/60 z-50"
+            className="fixed inset-0 bg-black/60 z-[99998]"
             onClick={() => setOpenModalId(null)}
           />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
             <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl pointer-events-auto">
               {/* Header */}
               <div className="bg-gradient-to-r from-red-900/50 to-purple-900/50 border-b border-gray-700 p-4 flex items-center justify-between">

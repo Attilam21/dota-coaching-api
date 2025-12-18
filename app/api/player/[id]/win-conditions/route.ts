@@ -206,55 +206,61 @@ export async function GET(
       avgDuration: calculateAvg(losses, 'duration'),
     }
 
+    // Helper to safely calculate percentage difference
+    const safePercentDiff = (win: number, loss: number) => {
+      if (loss === 0) return win > 0 ? 100 : 0
+      return ((win - loss) / loss) * 100
+    }
+
     // Calculate differences and gaps
     const differences = {
       gpm: {
         win: winStats.avgGPM,
         loss: lossStats.avgGPM,
         diff: winStats.avgGPM - lossStats.avgGPM,
-        diffPercent: ((winStats.avgGPM - lossStats.avgGPM) / lossStats.avgGPM) * 100,
+        diffPercent: safePercentDiff(winStats.avgGPM, lossStats.avgGPM),
       },
       xpm: {
         win: winStats.avgXPM,
         loss: lossStats.avgXPM,
         diff: winStats.avgXPM - lossStats.avgXPM,
-        diffPercent: ((winStats.avgXPM - lossStats.avgXPM) / lossStats.avgXPM) * 100,
+        diffPercent: safePercentDiff(winStats.avgXPM, lossStats.avgXPM),
       },
       kda: {
         win: winStats.avgKDA,
         loss: lossStats.avgKDA,
         diff: winStats.avgKDA - lossStats.avgKDA,
-        diffPercent: ((winStats.avgKDA - lossStats.avgKDA) / lossStats.avgKDA) * 100,
+        diffPercent: safePercentDiff(winStats.avgKDA, lossStats.avgKDA),
       },
       heroDamage: {
         win: winStats.avgHeroDamage,
         loss: lossStats.avgHeroDamage,
         diff: winStats.avgHeroDamage - lossStats.avgHeroDamage,
-        diffPercent: ((winStats.avgHeroDamage - lossStats.avgHeroDamage) / lossStats.avgHeroDamage) * 100,
+        diffPercent: safePercentDiff(winStats.avgHeroDamage, lossStats.avgHeroDamage),
       },
       towerDamage: {
         win: winStats.avgTowerDamage,
         loss: lossStats.avgTowerDamage,
         diff: winStats.avgTowerDamage - lossStats.avgTowerDamage,
-        diffPercent: ((winStats.avgTowerDamage - lossStats.avgTowerDamage) / lossStats.avgTowerDamage) * 100,
+        diffPercent: safePercentDiff(winStats.avgTowerDamage, lossStats.avgTowerDamage),
       },
       deaths: {
         win: winStats.avgDeaths,
         loss: lossStats.avgDeaths,
         diff: winStats.avgDeaths - lossStats.avgDeaths,
-        diffPercent: ((winStats.avgDeaths - lossStats.avgDeaths) / lossStats.avgDeaths) * 100,
+        diffPercent: safePercentDiff(winStats.avgDeaths, lossStats.avgDeaths),
       },
       lastHits: {
         win: winStats.avgLastHits,
         loss: lossStats.avgLastHits,
         diff: winStats.avgLastHits - lossStats.avgLastHits,
-        diffPercent: ((winStats.avgLastHits - lossStats.avgLastHits) / lossStats.avgLastHits) * 100,
+        diffPercent: safePercentDiff(winStats.avgLastHits, lossStats.avgLastHits),
       },
       teamfightParticipation: {
         win: winStats.avgTeamfightParticipation,
         loss: lossStats.avgTeamfightParticipation,
         diff: winStats.avgTeamfightParticipation - lossStats.avgTeamfightParticipation,
-        diffPercent: ((winStats.avgTeamfightParticipation - lossStats.avgTeamfightParticipation) / lossStats.avgTeamfightParticipation) * 100,
+        diffPercent: safePercentDiff(winStats.avgTeamfightParticipation, lossStats.avgTeamfightParticipation),
       },
     }
 
@@ -271,21 +277,27 @@ export async function GET(
       .sort((a, b) => b.impact - a.impact)
       .slice(0, 3)
 
+    // Helper to safely format numbers for AI prompt
+    const safeFormat = (value: number, decimals: number = 0) => {
+      if (value == null || isNaN(value)) return '0'
+      return value.toFixed(decimals)
+    }
+
     // Generate AI insight
     const prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Analizza questi pattern di vittoria:
 
 STATISTICHE VITTORIE (${winStats.count} partite):
-- GPM: ${winStats.avgGPM.toFixed(0)} (vs ${lossStats.avgGPM.toFixed(0)} nelle sconfitte, +${differences.gpm.diffPercent.toFixed(1)}%)
-- XPM: ${winStats.avgXPM.toFixed(0)} (vs ${lossStats.avgXPM.toFixed(0)}, +${differences.xpm.diffPercent.toFixed(1)}%)
-- KDA: ${winStats.avgKDA.toFixed(2)} (vs ${lossStats.avgKDA.toFixed(2)}, +${differences.kda.diffPercent.toFixed(1)}%)
-- Hero Damage: ${winStats.avgHeroDamage.toFixed(0)} (vs ${lossStats.avgHeroDamage.toFixed(0)}, +${differences.heroDamage.diffPercent.toFixed(1)}%)
-- Tower Damage: ${winStats.avgTowerDamage.toFixed(0)} (vs ${lossStats.avgTowerDamage.toFixed(0)}, +${differences.towerDamage.diffPercent.toFixed(1)}%)
-- Morti: ${winStats.avgDeaths.toFixed(1)} (vs ${lossStats.avgDeaths.toFixed(1)}, ${differences.deaths.diffPercent.toFixed(1)}%)
-- Last Hits: ${winStats.avgLastHits.toFixed(0)} (vs ${lossStats.avgLastHits.toFixed(0)}, +${differences.lastHits.diffPercent.toFixed(1)}%)
-- Teamfight Participation: ${winStats.avgTeamfightParticipation.toFixed(1)} (vs ${lossStats.avgTeamfightParticipation.toFixed(1)}, +${differences.teamfightParticipation.diffPercent.toFixed(1)}%)
+- GPM: ${safeFormat(winStats.avgGPM, 0)} (vs ${safeFormat(lossStats.avgGPM, 0)} nelle sconfitte, ${differences.gpm.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.gpm.diffPercent, 1)}%)
+- XPM: ${safeFormat(winStats.avgXPM, 0)} (vs ${safeFormat(lossStats.avgXPM, 0)}, ${differences.xpm.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.xpm.diffPercent, 1)}%)
+- KDA: ${safeFormat(winStats.avgKDA, 2)} (vs ${safeFormat(lossStats.avgKDA, 2)}, ${differences.kda.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.kda.diffPercent, 1)}%)
+- Hero Damage: ${safeFormat(winStats.avgHeroDamage, 0)} (vs ${safeFormat(lossStats.avgHeroDamage, 0)}, ${differences.heroDamage.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.heroDamage.diffPercent, 1)}%)
+- Tower Damage: ${safeFormat(winStats.avgTowerDamage, 0)} (vs ${safeFormat(lossStats.avgTowerDamage, 0)}, ${differences.towerDamage.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.towerDamage.diffPercent, 1)}%)
+- Morti: ${safeFormat(winStats.avgDeaths, 1)} (vs ${safeFormat(lossStats.avgDeaths, 1)}, ${safeFormat(differences.deaths.diffPercent, 1)}%)
+- Last Hits: ${safeFormat(winStats.avgLastHits, 0)} (vs ${safeFormat(lossStats.avgLastHits, 0)}, ${differences.lastHits.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.lastHits.diffPercent, 1)}%)
+- Teamfight Participation: ${safeFormat(winStats.avgTeamfightParticipation, 1)} (vs ${safeFormat(lossStats.avgTeamfightParticipation, 1)}, ${differences.teamfightParticipation.diffPercent >= 0 ? '+' : ''}${safeFormat(differences.teamfightParticipation.diffPercent, 1)}%)
 
 DIFFERENZIATORI CHIAVE (cosa fai di diverso quando vinci):
-${keyDifferentiators.map((d, i) => `${i + 1}. ${d.metric}: ${d.differencePercent > 0 ? '+' : ''}${d.differencePercent.toFixed(1)}%`).join('\n')}
+${keyDifferentiators.map((d, i) => `${i + 1}. ${d.metric}: ${d.differencePercent >= 0 ? '+' : ''}${safeFormat(d.differencePercent, 1)}%`).join('\n')}
 
 Genera un'analisi enterprise (max 250 parole) che:
 1. Identifica il pattern principale che distingue le tue vittorie dalle sconfitte
@@ -298,14 +310,17 @@ Tono: professionale, diretto, assertivo. NON usare "potresti", "dovresti", "cons
     const aiInsight = await generateWinConditionInsight(prompt)
 
     // Calculate win condition score (how well you replicate win patterns)
+    // Prevent division by zero
     const winConditionScore = {
-      gpmReplication: (lossStats.avgGPM / winStats.avgGPM) * 100, // % di quanto replichi il GPM delle vittorie
-      xpmReplication: (lossStats.avgXPM / winStats.avgXPM) * 100,
-      kdaReplication: (lossStats.avgKDA / winStats.avgKDA) * 100,
-      overallScore: ((lossStats.avgGPM / winStats.avgGPM) * 0.3 +
-                     (lossStats.avgXPM / winStats.avgXPM) * 0.2 +
-                     (lossStats.avgKDA / winStats.avgKDA) * 0.3 +
-                     (1 - (lossStats.avgDeaths / winStats.avgDeaths)) * 0.2) * 100,
+      gpmReplication: winStats.avgGPM > 0 ? (lossStats.avgGPM / winStats.avgGPM) * 100 : 0,
+      xpmReplication: winStats.avgXPM > 0 ? (lossStats.avgXPM / winStats.avgXPM) * 100 : 0,
+      kdaReplication: winStats.avgKDA > 0 ? (lossStats.avgKDA / winStats.avgKDA) * 100 : 0,
+      overallScore: winStats.avgGPM > 0 && winStats.avgXPM > 0 && winStats.avgKDA > 0 && winStats.avgDeaths > 0
+        ? ((lossStats.avgGPM / winStats.avgGPM) * 0.3 +
+           (lossStats.avgXPM / winStats.avgXPM) * 0.2 +
+           (lossStats.avgKDA / winStats.avgKDA) * 0.3 +
+           (1 - (lossStats.avgDeaths / winStats.avgDeaths)) * 0.2) * 100
+        : 0,
     }
 
     return NextResponse.json({
