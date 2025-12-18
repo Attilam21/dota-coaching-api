@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
+import { BarChart as BarChartIcon, Target } from 'lucide-react'
 
 interface AdvancedStats {
   lane: {
@@ -28,6 +29,8 @@ interface Match {
   denies: number
 }
 
+type TabType = 'overview' | 'charts'
+
 export default function LaneEarlyPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -36,6 +39,7 @@ export default function LaneEarlyPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -130,8 +134,35 @@ export default function LaneEarlyPage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: Target },
+                { id: 'charts' as TabType, name: 'Grafici', icon: BarChartIcon },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Overview Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">CS per Minuto</h3>
               <p className="text-3xl font-bold text-green-400">{stats.lane.csPerMinute}</p>
@@ -151,11 +182,11 @@ export default function LaneEarlyPage() {
               <h3 className="text-sm text-gray-400 mb-2">First Blood</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.lane.firstBloodInvolvement.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-2">% partite con FB</p>
-            </div>
-          </div>
-          
-          {/* Additional Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  </div>
+                </div>
+                  
+                  {/* Additional Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Last Hits Medio</h3>
               <p className="text-2xl font-bold text-green-400">{stats.lane.avgLastHits.toFixed(1)}</p>
@@ -165,102 +196,111 @@ export default function LaneEarlyPage() {
               <h3 className="text-sm text-gray-400 mb-2">Denies Medio</h3>
               <p className="text-2xl font-bold text-red-400">{stats.lane.avgDenies.toFixed(1)}</p>
               <p className="text-xs text-gray-500 mt-2">Denies medio per partita</p>
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* CS Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Last Hits & Denies per Partita</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={csData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="match" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="Last Hits" fill="#10B981" />
-                <Bar dataKey="Denies" fill="#EF4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                  {/* Insights */}
+                  <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
+                    <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Lane & Early Game</h3>
+                    <div className="space-y-2 text-sm text-blue-300">
+                      {stats.lane.avgLastHits < 50 && (
+                        <p>
+                          ⚠️ Last Hits sotto la media. Migliora il timing di attacco e la gestione delle lane creeps.
+                        </p>
+                      )}
+                      {stats.lane.denyRate < 10 && (
+                        <p>
+                          💡 Deny Rate basso ({stats.lane.denyRate.toFixed(1)}%). Prova a negare più creeps all'avversario per limitare il suo XP.
+                        </p>
+                      )}
+                      {stats.lane.firstBloodInvolvement > 30 && (
+                        <p>
+                          ✅ Ottima partecipazione a First Blood ({stats.lane.firstBloodInvolvement.toFixed(1)}%). Aggressività in early game efficace.
+                        </p>
+                      )}
+                      {stats.lane.avgCS < 80 && (
+                        <p>
+                          💡 CS totale migliorabile. Concentrati sul farm più efficiente e sulla gestione delle lane.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
-          {/* Benchmark Comparison */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Benchmark CS</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">CS per Minuto</span>
-                  <span className="font-bold">{stats.lane.csPerMinute}</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-4">
-                  <div
-                    className="bg-green-600 h-4 rounded-full"
-                    style={{ width: `${Math.min((parseFloat(stats.lane.csPerMinute) / 8) * 100, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Obiettivo: 6-8 per carry, 4-6 per mid, 3-5 per offlane</p>
-              </div>
-              
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">CS Stimato a 10min</span>
-                  <span className="font-bold">{stats.lane.estimatedCSAt10Min}</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-4">
-                  <div
-                    className="bg-blue-600 h-4 rounded-full"
-                    style={{ width: `${Math.min((parseFloat(stats.lane.estimatedCSAt10Min) / 80) * 100, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Obiettivo: 60-80 per carry, 40-60 per mid</p>
-              </div>
-              
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">Il tuo Deny Rate</span>
-                  <span className="font-bold">{stats.lane.denyRate.toFixed(1)}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-4">
-                  <div
-                    className="bg-red-600 h-4 rounded-full"
-                    style={{ width: `${Math.min(stats.lane.denyRate, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Obiettivo: 15-25% per core, 5-10% per support</p>
-              </div>
-            </div>
-          </div>
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* CS Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-4">Last Hits & Denies per Partita</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={csData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="match" stroke="#9CA3AF" />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="Last Hits" fill="#10B981" />
+                        <Bar dataKey="Denies" fill="#EF4444" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
 
-          {/* Insights */}
-          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights Lane & Early Game</h3>
-            <div className="space-y-2 text-sm text-blue-300">
-              {stats.lane.avgLastHits < 50 && (
-                <p>
-                  ⚠️ Last Hits sotto la media. Migliora il timing di attacco e la gestione delle lane creeps.
-                </p>
-              )}
-              {stats.lane.denyRate < 10 && (
-                <p>
-                  💡 Deny Rate basso ({stats.lane.denyRate.toFixed(1)}%). Prova a negare più creeps all'avversario per limitare il suo XP.
-                </p>
-              )}
-              {stats.lane.firstBloodInvolvement > 30 && (
-                <p>
-                  ✅ Ottima partecipazione a First Blood ({stats.lane.firstBloodInvolvement.toFixed(1)}%). Aggressività in early game efficace.
-                </p>
-              )}
-              {stats.lane.avgCS < 80 && (
-                <p>
-                  💡 CS totale migliorabile. Concentrati sul farm più efficiente e sulla gestione delle lane.
-                </p>
+                  {/* Benchmark Comparison */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-4">Benchmark CS</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-gray-300">CS per Minuto</span>
+                          <span className="font-bold">{stats.lane.csPerMinute}</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-4">
+                          <div
+                            className="bg-green-600 h-4 rounded-full"
+                            style={{ width: `${Math.min((parseFloat(stats.lane.csPerMinute) / 8) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Obiettivo: 6-8 per carry, 4-6 per mid, 3-5 per offlane</p>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-gray-300">CS Stimato a 10min</span>
+                          <span className="font-bold">{stats.lane.estimatedCSAt10Min}</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-4">
+                          <div
+                            className="bg-blue-600 h-4 rounded-full"
+                            style={{ width: `${Math.min((parseFloat(stats.lane.estimatedCSAt10Min) / 80) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Obiettivo: 60-80 per carry, 40-60 per mid</p>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-gray-300">Il tuo Deny Rate</span>
+                          <span className="font-bold">{stats.lane.denyRate.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-4">
+                          <div
+                            className="bg-red-600 h-4 rounded-full"
+                            style={{ width: `${Math.min(stats.lane.denyRate, 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Obiettivo: 15-25% per core, 5-10% per support</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
