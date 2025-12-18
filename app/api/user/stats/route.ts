@@ -9,10 +9,28 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    // Get user from session (cookie-based)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Get user from session - try getSession first (works with cookies)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (authError || !user) {
+    let userId: string | null = null
+    
+    if (session?.user) {
+      userId = session.user.id
+    } else {
+      // Fallback: try getUser (works with Authorization header)
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized', details: sessionError?.message || authError?.message },
+          { status: 401 }
+        )
+      }
+      
+      userId = user.id
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -23,7 +41,7 @@ export async function GET(request: NextRequest) {
     const { data: userStats, error: statsError } = await supabase
       .from('user_stats')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
 
     if (statsError && statsError.code !== 'PGRST116') {
@@ -39,7 +57,7 @@ export async function GET(request: NextRequest) {
       const { data: newStats, error: insertError } = await supabase
         .from('user_stats')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           total_xp: 0,
           level: 1,
           matches_analyzed: 0,
@@ -91,4 +109,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const { data: userAchievements, error: userAchievementsError } = await supabase
       .from('user_achievements')
       .select('achievement_id, unlocked_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
 
     if (userAchievementsError) {
       console.error('Error fetching user achievements:', userAchievementsError)
@@ -100,9 +100,28 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Try getSession first (works with cookies)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (authError || !user) {
+    let userId: string | null = null
+    
+    if (session?.user) {
+      userId = session.user.id
+    } else {
+      // Fallback: try getUser
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
+      
+      userId = user.id
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -137,7 +156,7 @@ export async function POST(request: NextRequest) {
     const { data: userAchievement, error: insertError } = await supabase
       .from('user_achievements')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         achievement_id: achievementId
       })
       .select()
@@ -148,7 +167,7 @@ export async function POST(request: NextRequest) {
       const { data: existing } = await supabase
         .from('user_achievements')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('achievement_id', achievementId)
         .single()
 
@@ -172,7 +191,7 @@ export async function POST(request: NextRequest) {
     // Award XP
     if (achievement.xp_reward > 0) {
       const { error: xpError } = await supabase.rpc('add_user_xp', {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_xp: achievement.xp_reward
       })
 

@@ -9,18 +9,19 @@ export function createServerSupabaseClient(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   
+  // Get cookie header from request
   const cookieHeader = request.headers.get('cookie') || ''
   
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
     global: {
       headers: {
-        cookie: cookieHeader,
+        ...(cookieHeader && { cookie: cookieHeader }),
       },
     },
   })
 }
-
