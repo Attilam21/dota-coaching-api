@@ -10,6 +10,7 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
 import AttributeIcon from '@/components/AttributeIcon'
+import { BarChart as BarChartIcon, Target, Table, Swords } from 'lucide-react'
 
 interface HeroStat {
   hero_id: number
@@ -70,6 +71,8 @@ interface MatchupData {
   insights: string[]
 }
 
+type TabType = 'overview' | 'charts' | 'stats' | 'matchup'
+
 export default function HeroAnalysisPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -81,6 +84,7 @@ export default function HeroAnalysisPage() {
   const [matchupLoading, setMatchupLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedHeroForMatchup, setSelectedHeroForMatchup] = useState<number | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -207,8 +211,37 @@ export default function HeroAnalysisPage() {
 
       {analysis && !loading && (
         <div className="space-y-6">
-          {/* Overall Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'charts' as TabType, name: 'Grafici', icon: Target },
+                { id: 'stats' as TabType, name: 'Statistiche', icon: Table },
+                { id: 'matchup' as TabType, name: 'Matchup', icon: Swords },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Overall Stats */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
               {playerId && (
                 <InsightBadge
@@ -235,11 +268,11 @@ export default function HeroAnalysisPage() {
               <h3 className="text-sm text-gray-400 mb-2">Hero Più Giocato</h3>
               <p className="text-lg font-bold">{analysis.mostPlayed?.hero_name || 'N/A'}</p>
               <p className="text-sm text-gray-500 mt-1">{analysis.mostPlayed?.games || 0} partite</p>
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* Best & Worst Heroes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Best & Worst Heroes */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-green-700 rounded-lg p-6">
               <h3 className="text-2xl font-semibold mb-4 text-green-400">🏆 Heroes Migliori</h3>
               {analysis.bestHeroes.length > 0 ? (
@@ -282,11 +315,31 @@ export default function HeroAnalysisPage() {
               ) : (
                 <p className="text-gray-500">Nessun hero con winrate {'<'} 45% e almeno 5 partite</p>
               )}
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* Winrate Chart */}
-          {winrateChartData.length > 0 && (
+                  {/* Insights */}
+                  {analysis.insights.length > 0 && (
+                    <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights</h3>
+                      <ul className="space-y-2">
+                        {analysis.insights.map((insight, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-blue-300">
+                            <span className="text-blue-400 mt-1">→</span>
+                            {insight}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* Winrate Chart */}
+                  {winrateChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-2xl font-semibold mb-4">Winrate Top 10 Heroes</h2>
               <ResponsiveContainer width="100%" height={300}>
@@ -305,11 +358,11 @@ export default function HeroAnalysisPage() {
                   <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+                  </div>
+                  )}
 
-          {/* Role Performance */}
-          {roleChartData.length > 0 && (
+                  {/* Role Performance */}
+                  {roleChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h2 className="text-2xl font-semibold mb-4">Performance per Ruolo</h2>
               <ResponsiveContainer width="100%" height={300}>
@@ -329,11 +382,14 @@ export default function HeroAnalysisPage() {
                   <Bar dataKey="games" fill="#3B82F6" name="Partite" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          )}
+                  </div>
+                  )}
+                </div>
+              )}
 
-          {/* Heroes Table */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+              {/* Stats Tab */}
+              {activeTab === 'stats' && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-gray-700">
               <h2 className="text-2xl font-semibold">Tutti i Heroes</h2>
             </div>
@@ -396,26 +452,13 @@ export default function HeroAnalysisPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
+                </div>
+              </div>
+              )}
 
-          {/* Insights */}
-          {analysis.insights.length > 0 && (
-            <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights</h3>
-              <ul className="space-y-2">
-                {analysis.insights.map((insight, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-blue-300">
-                    <span className="text-blue-400 mt-1">→</span>
-                    {insight}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Matchup Analysis */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              {/* Matchup Tab */}
+              {activeTab === 'matchup' && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">Matchup Analysis (Hero vs Hero)</h2>
               {matchupLoading && (
@@ -566,6 +609,9 @@ export default function HeroAnalysisPage() {
                 <p>Nessun dato matchup disponibile. Gioca più partite per vedere le analisi.</p>
               </div>
             ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
