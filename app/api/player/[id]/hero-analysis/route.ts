@@ -60,6 +60,15 @@ export async function GET(
         else if (winrate >= 50 && h.games >= 5) rating = 'Buona'
         else if (winrate >= 45) rating = 'Media'
         
+        // Handle GPM/XPM - only include if actually available from API
+        // OpenDota may not always return these fields, so we check for actual values
+        const avgGPM = h.avg_gold_per_min != null && h.avg_gold_per_min > 0 
+          ? h.avg_gold_per_min.toFixed(0) 
+          : null
+        const avgXPM = h.avg_xp_per_min != null && h.avg_xp_per_min > 0 
+          ? h.avg_xp_per_min.toFixed(0) 
+          : null
+        
         return {
           hero_id: h.hero_id,
           hero_name: hero?.localized_name || `Hero ${h.hero_id}`,
@@ -67,12 +76,12 @@ export async function GET(
           wins: wins,
           losses: games - wins,
           winrate,
-          kda: kda.toFixed(2),
+          kda: kda > 0 ? kda.toFixed(2) : '0.00',
           avg_kills: kills.toFixed(1),
           avg_deaths: deaths.toFixed(1),
           avg_assists: assists.toFixed(1),
-          avg_gpm: (h.avg_gold_per_min || 0).toFixed(0),
-          avg_xpm: (h.avg_xp_per_min || 0).toFixed(0),
+          avg_gpm: avgGPM,
+          avg_xpm: avgXPM,
           rating,
           primary_attr: hero?.primary_attr || 'unknown',
           roles: hero?.roles || [],
