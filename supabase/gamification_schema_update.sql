@@ -76,6 +76,19 @@ CREATE TABLE IF NOT EXISTS public.achievements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add icon column if it doesn't exist (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+    AND table_name = 'achievements' 
+    AND column_name = 'icon'
+  ) THEN
+    ALTER TABLE public.achievements ADD COLUMN icon TEXT;
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.user_achievements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
