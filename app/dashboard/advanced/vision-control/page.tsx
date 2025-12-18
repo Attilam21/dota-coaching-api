@@ -8,7 +8,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
-import { Lightbulb, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Lightbulb, AlertTriangle, CheckCircle2, BarChart as BarChartIcon, Target } from 'lucide-react'
 
 interface AdvancedStats {
   vision: {
@@ -37,6 +37,8 @@ interface Match {
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B']
 
+type TabType = 'overview' | 'charts'
+
 export default function VisionControlPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -45,6 +47,7 @@ export default function VisionControlPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -146,8 +149,35 @@ export default function VisionControlPage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: Target },
+                { id: 'charts' as TabType, name: 'Grafici', icon: BarChartIcon },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Overview Cards */}
+                  <div className="grid md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Observer Placed</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.vision.avgObserverPlaced.toFixed(1)}</p>
@@ -167,11 +197,11 @@ export default function VisionControlPage() {
               <h3 className="text-sm text-gray-400 mb-2">Roshan Control</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.vision.roshanControlRate}%</p>
               <p className="text-xs text-gray-500 mt-2">% partite con Roshan</p>
-            </div>
-          </div>
-          
-          {/* Support Stats */}
-          <div className="grid md:grid-cols-4 gap-4">
+                  </div>
+                </div>
+                  
+                  {/* Support Stats */}
+                  <div className="grid md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Camps Stacked</h3>
               <p className="text-2xl font-bold text-cyan-400">{stats.vision.avgCampsStacked}</p>
@@ -191,11 +221,114 @@ export default function VisionControlPage() {
               <h3 className="text-sm text-gray-400 mb-2">Vision Score</h3>
               <p className="text-2xl font-bold text-purple-400">{Math.round(stats.vision.visionScore)}</p>
               <p className="text-xs text-gray-500 mt-2">Score totale vision</p>
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* Wards Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Detailed Stats & Insights */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Sentry Placed</span>
+                          <span className="font-bold">{stats.vision.avgSentryPlaced.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Sentry Killed</span>
+                          <span className="font-bold">{stats.vision.avgSentryKilled.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Rune Raccolte</span>
+                          <span className="font-bold">{stats.vision.avgRunes.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Rune per Minuto</span>
+                          <span className="font-bold text-yellow-400">{stats.vision.runesPerMinute}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Camps Stacked</span>
+                          <span className="font-bold text-cyan-400">{stats.vision.avgCampsStacked}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Courier Kills</span>
+                          <span className="font-bold text-orange-400">{stats.vision.avgCourierKills}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Roshan Kills</span>
+                          <span className="font-bold text-red-400">{stats.vision.avgRoshanKills}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Deward Efficiency</span>
+                          <span className="font-bold text-green-400">{stats.vision.dewardEfficiency}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
+                        <Lightbulb className="w-6 h-6" />
+                        Insights Vision & Map Control
+                      </h3>
+                      <div className="space-y-2 text-sm text-blue-300">
+                        {stats.vision.avgObserverPlaced < 5 && (
+                          <p className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                            Observer wards piazzate basse ({stats.vision.avgObserverPlaced.toFixed(1)}). Se giochi support, aumenta il numero di wards.
+                          </p>
+                        )}
+                        {stats.vision.wardEfficiency > 40 && (
+                          <p className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            Ottima ward efficiency ({stats.vision.wardEfficiency.toFixed(1)}%). Stai uccidendo efficacemente le wards nemiche.
+                          </p>
+                        )}
+                        {stats.vision.avgObserverKilled < 1 && (
+                          <p className="flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4 text-blue-400" />
+                            Observer killed basse. Cerca attivamente le wards nemiche con sentry o con visione.
+                          </p>
+                        )}
+                        {parseFloat(stats.vision.runesPerMinute) < 0.1 && (
+                          <p className="flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4 text-blue-400" />
+                            Rune per minuto basse ({stats.vision.runesPerMinute}). Controlla più spesso le rune spawn (ogni 2 minuti).
+                          </p>
+                        )}
+                        {parseFloat(stats.vision.avgCampsStacked) < 2 && (
+                          <p className="flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4 text-blue-400" />
+                            Camps stacked bassi ({stats.vision.avgCampsStacked}). Come support, aiuta il farm dei tuoi carry con lo stacking.
+                          </p>
+                        )}
+                        {parseFloat(stats.vision.dewardEfficiency) < 30 && stats.vision.avgSentryPlaced > 0 && (
+                          <p className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                            Deward efficiency bassa ({stats.vision.dewardEfficiency}%). Migliora il posizionamento delle sentry per trovare più wards nemiche.
+                          </p>
+                        )}
+                        {parseFloat(stats.vision.roshanControlRate) < 20 && (
+                          <p className="flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4 text-blue-400" />
+                            Roshan control basso ({stats.vision.roshanControlRate}%). Partecipa di più al controllo di Roshan nelle partite lunghe.
+                          </p>
+                        )}
+                        {parseFloat(stats.vision.avgCourierKills) > 0 && (
+                          <p className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            Ottimo controllo courier ({stats.vision.avgCourierKills} courier uccisi/game). Stai negando risorse agli avversari.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* Wards Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Observer Wards per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={wardData}>
@@ -213,13 +346,12 @@ export default function VisionControlPage() {
                 <Bar dataKey="Observer Placed" fill="#3B82F6" />
                 <Bar dataKey="Observer Killed" fill="#10B981" />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+                  </ResponsiveContainer>
+                </div>
 
-          {/* Pie Chart */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Distribuzione Wards</h2>
+                  {/* Pie Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-4">Distribuzione Wards</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -237,103 +369,10 @@ export default function VisionControlPage() {
                     ))}
                   </Pie>
                   <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Sentry Placed</span>
-                  <span className="font-bold">{stats.vision.avgSentryPlaced.toFixed(1)}</span>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Sentry Killed</span>
-                  <span className="font-bold">{stats.vision.avgSentryKilled.toFixed(1)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Rune Raccolte</span>
-                  <span className="font-bold">{stats.vision.avgRunes.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Rune per Minuto</span>
-                  <span className="font-bold text-yellow-400">{stats.vision.runesPerMinute}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Camps Stacked</span>
-                  <span className="font-bold text-cyan-400">{stats.vision.avgCampsStacked}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Courier Kills</span>
-                  <span className="font-bold text-orange-400">{stats.vision.avgCourierKills}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Roshan Kills</span>
-                  <span className="font-bold text-red-400">{stats.vision.avgRoshanKills}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Deward Efficiency</span>
-                  <span className="font-bold text-green-400">{stats.vision.dewardEfficiency}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Insights */}
-          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
-              <Lightbulb className="w-6 h-6" />
-              Insights Vision & Map Control
-            </h3>
-            <div className="space-y-2 text-sm text-blue-300">
-              {stats.vision.avgObserverPlaced < 5 && (
-                <p className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                  Observer wards piazzate basse ({stats.vision.avgObserverPlaced.toFixed(1)}). Se giochi support, aumenta il numero di wards.
-                </p>
-              )}
-              {stats.vision.wardEfficiency > 40 && (
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  Ottima ward efficiency ({stats.vision.wardEfficiency.toFixed(1)}%). Stai uccidendo efficacemente le wards nemiche.
-                </p>
-              )}
-              {stats.vision.avgObserverKilled < 1 && (
-                <p className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-400" />
-                  Observer killed basse. Cerca attivamente le wards nemiche con sentry o con visione.
-                </p>
-              )}
-              {parseFloat(stats.vision.runesPerMinute) < 0.1 && (
-                <p className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-400" />
-                  Rune per minuto basse ({stats.vision.runesPerMinute}). Controlla più spesso le rune spawn (ogni 2 minuti).
-                </p>
-              )}
-              {parseFloat(stats.vision.avgCampsStacked) < 2 && (
-                <p className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-400" />
-                  Camps stacked bassi ({stats.vision.avgCampsStacked}). Come support, aiuta il farm dei tuoi carry con lo stacking.
-                </p>
-              )}
-              {parseFloat(stats.vision.dewardEfficiency) < 30 && stats.vision.avgSentryPlaced > 0 && (
-                <p className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                  Deward efficiency bassa ({stats.vision.dewardEfficiency}%). Migliora il posizionamento delle sentry per trovare più wards nemiche.
-                </p>
-              )}
-              {parseFloat(stats.vision.roshanControlRate) < 20 && (
-                <p className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-blue-400" />
-                  Roshan control basso ({stats.vision.roshanControlRate}%). Partecipa di più al controllo di Roshan nelle partite lunghe.
-                </p>
-              )}
-              {parseFloat(stats.vision.avgCourierKills) > 0 && (
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  Ottimo controllo courier ({stats.vision.avgCourierKills} courier uccisi/game). Stai negando risorse agli avversari.
-                </p>
               )}
             </div>
           </div>

@@ -8,7 +8,7 @@ import { BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiu
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
-import { AlertTriangle, Lightbulb } from 'lucide-react'
+import { AlertTriangle, Lightbulb, BarChart as BarChartIcon, Target } from 'lucide-react'
 
 interface AdvancedStats {
   fights: {
@@ -35,6 +35,8 @@ interface Match {
   kda: number
 }
 
+type TabType = 'overview' | 'charts'
+
 export default function FightsDamagePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -43,6 +45,7 @@ export default function FightsDamagePage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -153,8 +156,35 @@ export default function FightsDamagePage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: Target },
+                { id: 'charts' as TabType, name: 'Grafici', icon: BarChartIcon },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Overview Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Kill Participation</h3>
               <p className="text-3xl font-bold text-green-400">{stats.fights.killParticipation.toFixed(1)}%</p>
@@ -174,11 +204,11 @@ export default function FightsDamagePage() {
               <h3 className="text-sm text-gray-400 mb-2">Teamfight Participation</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.fights.teamfightParticipation}</p>
               <p className="text-xs text-gray-500 mt-2">Partecipazione ai teamfight</p>
-            </div>
-          </div>
-          
-          {/* Additional Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  </div>
+                </div>
+                  
+                  {/* Additional Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Hero Damage Medio</h3>
               <p className="text-2xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
@@ -193,11 +223,89 @@ export default function FightsDamagePage() {
               <h3 className="text-sm text-gray-400 mb-2">Damage Efficiency</h3>
               <p className="text-2xl font-bold text-purple-400">{Math.round(stats.fights.damageEfficiency).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Dmg / Death</p>
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* Radar Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Detailed Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4">Statistiche Fight</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Kills Medio</span>
+                          <span className="font-bold">{stats.fights.avgKills.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Assists Medio</span>
+                          <span className="font-bold">{stats.fights.avgAssists.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Deaths Medio</span>
+                          <span className="font-bold">{stats.fights.avgDeaths.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Healing Medio</span>
+                          <span className="font-bold">{Math.round(stats.fights.avgHealing).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4">Insights</h3>
+                      <div className="space-y-2 text-sm">
+                        {stats.fights.killParticipation < 50 && (
+                          <p className="text-yellow-400 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
+                          </p>
+                        )}
+                        {parseFloat(stats.fights.damagePerMinute) < 300 && (
+                          <p className="text-orange-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            Damage per minuto basso ({stats.fights.damagePerMinute}). Aumenta la partecipazione ai fight.
+                          </p>
+                        )}
+                        {parseFloat(stats.fights.deathsPerMinute) > 0.15 && (
+                          <p className="text-red-400 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Troppe morti per minuto ({stats.fights.deathsPerMinute}). Migliora il positioning e la mappa awareness.
+                          </p>
+                        )}
+                        {parseFloat(stats.fights.teamfightParticipation) < 5 && (
+                          <p className="text-yellow-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            Teamfight participation bassa ({stats.fights.teamfightParticipation}). Sii più presente nei fight principali.
+                          </p>
+                        )}
+                        {stats.fights.damageEfficiency < 10000 && (
+                          <p className="text-orange-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            Damage Efficiency migliorabile ({Math.round(stats.fights.damageEfficiency).toLocaleString()}). Prova a fare più damage prima di morire.
+                          </p>
+                        )}
+                        {stats.fights.avgTowerDamage < 1000 && (
+                          <p className="text-blue-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            Tower Damage basso. Concentrati di più sul push delle torri.
+                          </p>
+                        )}
+                        {stats.fights.avgDeaths > 8 && (
+                          <p className="text-red-400 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Troppe morti in media ({stats.fights.avgDeaths.toFixed(1)}). Migliora il positioning.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* Radar Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Profilo Fight Contribution</h2>
             <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={radarData}>
@@ -206,11 +314,11 @@ export default function FightsDamagePage() {
                 <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9CA3AF" />
                 <Radar name="Performance" dataKey="value" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} />
               </RadarChart>
-            </ResponsiveContainer>
-          </div>
+                  </ResponsiveContainer>
+                </div>
 
-          {/* Damage Breakdown Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Damage Breakdown Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Damage Breakdown per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={damageData}>
@@ -230,11 +338,11 @@ export default function FightsDamagePage() {
                 <Bar dataKey="Tower Damage" fill="#F59E0B" />
                 <Bar dataKey="Healing" fill="#10B981" />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
+                  </ResponsiveContainer>
+                </div>
 
-          {/* KDA Trend */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* KDA Trend */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">KDA Trend</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={kdaTrend}>
@@ -251,79 +359,10 @@ export default function FightsDamagePage() {
                 <Legend />
                 <Line type="monotone" dataKey="KDA" stroke="#8B5CF6" strokeWidth={2} dot={{ fill: '#8B5CF6' }} />
               </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Statistiche Fight</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Kills Medio</span>
-                  <span className="font-bold">{stats.fights.avgKills.toFixed(1)}</span>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Assists Medio</span>
-                  <span className="font-bold">{stats.fights.avgAssists.toFixed(1)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Deaths Medio</span>
-                  <span className="font-bold">{stats.fights.avgDeaths.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Healing Medio</span>
-                  <span className="font-bold">{Math.round(stats.fights.avgHealing).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Insights</h3>
-              <div className="space-y-2 text-sm">
-                {stats.fights.killParticipation < 50 && (
-                  <p className="text-yellow-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Kill Participation bassa ({stats.fights.killParticipation.toFixed(1)}%). Partecipa di più ai teamfight.
-                  </p>
-                )}
-                {parseFloat(stats.fights.damagePerMinute) < 300 && (
-                  <p className="text-orange-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    Damage per minuto basso ({stats.fights.damagePerMinute}). Aumenta la partecipazione ai fight.
-                  </p>
-                )}
-                {parseFloat(stats.fights.deathsPerMinute) > 0.15 && (
-                  <p className="text-red-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Troppe morti per minuto ({stats.fights.deathsPerMinute}). Migliora il positioning e la mappa awareness.
-                  </p>
-                )}
-                {parseFloat(stats.fights.teamfightParticipation) < 5 && (
-                  <p className="text-yellow-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    Teamfight participation bassa ({stats.fights.teamfightParticipation}). Sii più presente nei fight principali.
-                  </p>
-                )}
-                {stats.fights.damageEfficiency < 10000 && (
-                  <p className="text-orange-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    Damage Efficiency migliorabile ({Math.round(stats.fights.damageEfficiency).toLocaleString()}). Prova a fare più damage prima di morire.
-                  </p>
-                )}
-                {stats.fights.avgTowerDamage < 1000 && (
-                  <p className="text-blue-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    Tower Damage basso. Concentrati di più sul push delle torri.
-                  </p>
-                )}
-                {stats.fights.avgDeaths > 8 && (
-                  <p className="text-red-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Troppe morti in media ({stats.fights.avgDeaths.toFixed(1)}). Migliora il positioning.
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
