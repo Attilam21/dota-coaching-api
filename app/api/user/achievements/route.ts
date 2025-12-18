@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Create a map of unlocked achievement IDs
     const unlockedMap = new Map(
-      (userAchievements || []).map(ua => [ua.achievement_id, ua.unlocked_at])
+      (userAchievements || []).map((ua: { achievement_id: string; unlocked_at: string }) => [ua.achievement_id, ua.unlocked_at])
     )
 
     // Combine achievements with unlock status
