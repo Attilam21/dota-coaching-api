@@ -24,7 +24,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const minGames = 3 // Minimum games together to show in matrix
+    const minGamesTogether = 2 // Minimum games together to show a pair (lowered from 3)
+    const minPeerGames = 2 // Minimum total games with peer to consider them
     
     // Fetch peers
     const peersResponse = await fetch(`https://api.opendota.com/api/players/${id}/peers`, {
@@ -44,18 +45,21 @@ export async function GET(
       return NextResponse.json({
         matrix: [],
         topSynergies: [],
-        insights: ['Nessun compagno trovato']
+        insights: ['Nessun compagno trovato. Gioca più partite con altri giocatori per vedere le sinergie.']
       })
     }
 
-    // Filter valid peers (min games)
-    const validPeers = peers.filter(p => p.games >= minGames).slice(0, 20) // Limit to top 20 for performance
+    // Filter valid peers (lower threshold to include more)
+    const validPeers = peers
+      .filter(p => p.games >= minPeerGames)
+      .sort((a, b) => b.games - a.games) // Sort by games played
+      .slice(0, 25) // Increased from 20 to 25 for more combinations
     
     if (validPeers.length < 2) {
       return NextResponse.json({
         matrix: [],
         topSynergies: [],
-        insights: ['Servono almeno 2 compagni con 3+ partite per la Synergy Matrix']
+        insights: [`Servono almeno 2 compagni con ${minPeerGames}+ partite per la Synergy Matrix. Attualmente: ${peers.length} compagni trovati.`]
       })
     }
 
@@ -73,8 +77,16 @@ export async function GET(
 
     const matches = await matchesResponse.json()
     
-    // Fetch full match details for first 50 matches (for performance)
-    const matchesToAnalyze = matches.slice(0, 50)
+    if (!matches || matches.length === 0) {
+      return NextResponse.json({
+        matrix: [],
+        topSynergies: [],
+        insights: ['Nessuna partita trovata. Gioca più partite per vedere le sinergie.']
+      })
+    }
+    
+    // Fetch full match details for more matches (increased from 50 to 100 for better coverage)
+    const matchesToAnalyze = matches.slice(0, 100)
     const fullMatchesPromises = matchesToAnalyze.map((m: any) =>
       fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
         next: { revalidate: 3600 }
@@ -99,12 +111,15 @@ export async function GET(
                      (playerTeam === 'dire' && !match.radiant_win)
       
       // Find teammates in same team
+      // Create a Set for faster lookup
+      const validPeerIds = new Set(validPeers.map(p => p.account_id))
       const teammates = match.players.filter((p: any) => {
+        if (!p.account_id) return false
         const pTeam = p.player_slot < 128 ? 'radiant' : 'dire'
-        return pTeam === playerTeam && 
-               p.account_id && 
-               p.account_id.toString() !== id &&
-               validPeers.some(peer => peer.account_id === p.account_id)
+        const isSameTeam = pTeam === playerTeam
+        const isNotPlayer = p.account_id.toString() !== id
+        const isValidPeer = validPeerIds.has(p.account_id)
+        return isSameTeam && isNotPlayer && isValidPeer
       })
       
       // Create pairs
@@ -126,7 +141,7 @@ export async function GET(
     const synergyPairs: SynergyPair[] = []
     
     synergyMap.forEach((stats, pairKey) => {
-      if (stats.games < minGames) return
+      if (stats.games < minGamesTogether) return
       
       const [id1, id2] = pairKey.split('-').map(Number)
       const player1 = validPeers.find(p => p.account_id === id1)
@@ -161,21 +176,30 @@ export async function GET(
     
     // Generate insights
     const insights: string[] = []
-    if (topSynergies.length > 0) {
-      const best = topSynergies[0]
-      insights.push(`Miglior sinergia: ${best.player1_name} + ${best.player2_name} (${best.winrate.toFixed(1)}% in ${best.games} partite)`)
-    }
-    
-    const excellentSynergies = synergyPairs.filter(p => p.synergy === 'excellent')
-    if (excellentSynergies.length > 0) {
-      insights.push(`Hai ${excellentSynergies.length} coppie con sinergia eccellente (≥65% winrate)`)
+    if (synergyPairs.length === 0) {
+      insights.push(`Nessuna coppia trovata con almeno ${minGamesTogether} partite insieme nelle ultime ${matchesToAnalyze.length} partite analizzate.`)
+      insights.push(`Suggerimento: Gioca più partite con gli stessi compagni per vedere le sinergie.`)
+    } else {
+      if (topSynergies.length > 0) {
+        const best = topSynergies[0]
+        insights.push(`Miglior sinergia: ${best.player1_name} + ${best.player2_name} (${best.winrate.toFixed(1)}% in ${best.games} partite)`)
+      }
+      
+      const excellentSynergies = synergyPairs.filter(p => p.synergy === 'excellent')
+      if (excellentSynergies.length > 0) {
+        insights.push(`Hai ${excellentSynergies.length} coppie con sinergia eccellente (≥65% winrate)`)
+      }
+      
+      insights.push(`Analizzate ${matchesToAnalyze.length} partite, trovate ${synergyPairs.length} coppie valide.`)
     }
 
     return NextResponse.json({
       matrix: synergyPairs,
       topSynergies,
       totalPairs: synergyPairs.length,
-      insights
+      insights,
+      analyzedMatches: matchesToAnalyze.length,
+      validPeers: validPeers.length
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
