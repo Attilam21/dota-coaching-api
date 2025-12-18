@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
-import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info } from 'lucide-react'
+import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info, Activity, Eye } from 'lucide-react'
 
 interface PerformanceStats {
   avgKDA: number
@@ -50,6 +50,8 @@ interface Benchmarks {
   source: string
 }
 
+type TabType = 'overview' | 'charts' | 'analysis'
+
 export default function PerformancePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -58,6 +60,7 @@ export default function PerformancePage() {
   const [benchmarks, setBenchmarks] = useState<Benchmarks | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -190,9 +193,37 @@ export default function PerformancePage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Benchmarks Section - NEW */}
-          {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
-            <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'charts' as TabType, name: 'Grafici', icon: Activity },
+                { id: 'analysis' as TabType, name: 'Analisi', icon: Eye },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Benchmarks Section */}
+                  {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
+                    <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
               <h2 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
                 <BarChartIcon className="w-6 h-6" />
                 Benchmarks & Percentili
@@ -314,78 +345,83 @@ export default function PerformancePage() {
                   <Info className="w-3 h-3" />
                   Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
                 </p>
-              )}
-            </div>
-          )}
+                    )}
+                  </div>
+                  )}
 
-          {/* Playstyle Banner - Compact */}
-          <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4 relative">
-            {playerId && (
-              <InsightBadge
-                elementType="playstyle"
-                elementId="performance-playstyle"
-                contextData={{ playstyle: stats.playstyle }}
-                playerId={playerId}
-                position="top-right"
-              />
-            )}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">Stile di Gioco Identificato</h2>
-                <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
-                <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
-              </div>
-              <div className="text-red-400">
-                <Target className="w-10 h-10" />
-              </div>
-            </div>
-          </div>
+                  {/* Playstyle Banner - Compact */}
+                  <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4 relative">
+                    {playerId && (
+                      <InsightBadge
+                        elementType="playstyle"
+                        elementId="performance-playstyle"
+                        contextData={{ playstyle: stats.playstyle }}
+                        playerId={playerId}
+                        position="top-right"
+                      />
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-semibold mb-4">Stile di Gioco Identificato</h2>
+                        <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
+                        <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
+                      </div>
+                      <div className="text-red-400">
+                        <Target className="w-10 h-10" />
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Performance Overview - Smaller Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="metric-card"
-                  elementId="performance-kda"
-                  contextData={{ metricName: 'KDA', value: stats.avgKDA.toFixed(2), benchmark: '2.5' }}
-                  playerId={playerId}
-                  position="top-right"
-                />
+                  {/* Performance Overview - Smaller Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="metric-card"
+                          elementId="performance-kda"
+                          contextData={{ metricName: 'KDA', value: stats.avgKDA.toFixed(2), benchmark: '2.5' }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA</h3>
+                      <p className="text-2xl font-bold text-white">{stats.avgKDA.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500 mt-1">KP: {stats.teamfightParticipation.toFixed(0)}%</p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="metric-card"
+                          elementId="performance-gpm"
+                          contextData={{ metricName: 'GPM', value: stats.avgGPM.toFixed(0), benchmark: '500' }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM</h3>
+                      <p className="text-2xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</p>
+                      <p className="text-xs text-gray-500 mt-1">Eff: {stats.farmEfficiency.toFixed(0)}%</p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors">
+                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">XPM</h3>
+                      <p className="text-2xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</p>
+                      <p className="text-xs text-gray-500 mt-1">Exp acquisita</p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
+                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deaths</h3>
+                      <p className="text-2xl font-bold text-red-400">{stats.avgDeaths.toFixed(1)}</p>
+                      <p className="text-xs text-gray-500 mt-1">Assist: {stats.avgAssists.toFixed(1)}</p>
+                    </div>
+                  </div>
+                </div>
               )}
-              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA</h3>
-              <p className="text-2xl font-bold text-white">{stats.avgKDA.toFixed(2)}</p>
-              <p className="text-xs text-gray-500 mt-1">KP: {stats.teamfightParticipation.toFixed(0)}%</p>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="metric-card"
-                  elementId="performance-gpm"
-                  contextData={{ metricName: 'GPM', value: stats.avgGPM.toFixed(0), benchmark: '500' }}
-                  playerId={playerId}
-                  position="top-right"
-                />
-              )}
-              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM</h3>
-              <p className="text-2xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</p>
-              <p className="text-xs text-gray-500 mt-1">Eff: {stats.farmEfficiency.toFixed(0)}%</p>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors">
-              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">XPM</h3>
-              <p className="text-2xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</p>
-              <p className="text-xs text-gray-500 mt-1">Exp acquisita</p>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
-              <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deaths</h3>
-              <p className="text-2xl font-bold text-red-400">{stats.avgDeaths.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-1">Assist: {stats.avgAssists.toFixed(1)}</p>
-            </div>
-          </div>
 
-          {/* Trend Chart - New */}
-          {stats.matches && stats.matches.length > 0 && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* Trend Chart */}
+                  {stats.matches && stats.matches.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
               {playerId && (
                 <InsightBadge
                   elementType="trend-chart"
@@ -419,13 +455,13 @@ export default function PerformancePage() {
                   <Line type="monotone" dataKey="xpm" stroke="#3B82F6" strokeWidth={2} name="XPM" dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-          )}
+                  </div>
+                  )}
 
-          {/* Charts Grid */}
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Radar Chart - Compact */}
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  {/* Charts Grid */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Radar Chart - Compact */}
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xl font-semibold">Profilo Performance</h3>
                 <span className="text-xs text-gray-400">Multi-dimensionale</span>
@@ -460,10 +496,10 @@ export default function PerformancePage() {
               )}
             </div>
 
-            {/* Additional Metrics Bar Chart */}
-            {stats.advanced && (
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <h3 className="text-xl font-semibold mb-3">Metriche Chiave</h3>
+                {/* Additional Metrics Bar Chart */}
+                {stats.advanced && (
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <h3 className="text-xl font-semibold mb-3">Metriche Chiave</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={[
                     { name: 'Last Hits', value: stats.advanced.lane.avgLastHits },
@@ -487,53 +523,58 @@ export default function PerformancePage() {
               </div>
             )}
           </div>
-
-          {/* Performance Metrics - Compact */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-semibold">Efficienza Farm</h3>
-                <span className="text-sm font-bold text-red-400">{stats.farmEfficiency.toFixed(1)}%</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-3">
-                <div
-                  className="bg-red-600 h-3 rounded-full transition-all"
-                  style={{ width: `${stats.farmEfficiency}%` }}
-                ></div>
-              </div>
-              {stats.advanced && (
-                <div className="mt-2 text-xs text-gray-400">
-                  Gold Utilization: {stats.advanced.farm.goldUtilization.toFixed(1)}%
                 </div>
               )}
-            </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-semibold">Partecipazione Teamfight</h3>
-                <span className="text-sm font-bold text-blue-400">{stats.teamfightParticipation.toFixed(1)}%</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-3">
-                <div
-                  className="bg-blue-600 h-3 rounded-full transition-all"
-                  style={{ width: `${stats.teamfightParticipation}%` }}
-                ></div>
-              </div>
-              {stats.advanced && (
-                <div className="mt-2 text-xs text-gray-400">
-                  Hero Damage medio: {Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}
-                </div>
-              )}
-            </div>
-          </div>
+              {/* Analysis Tab */}
+              {activeTab === 'analysis' && (
+                <div className="space-y-6">
+                  {/* Performance Metrics - Compact */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-base font-semibold">Efficienza Farm</h3>
+                        <span className="text-sm font-bold text-red-400">{stats.farmEfficiency.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-3">
+                        <div
+                          className="bg-red-600 h-3 rounded-full transition-all"
+                          style={{ width: `${stats.farmEfficiency}%` }}
+                        ></div>
+                      </div>
+                      {stats.advanced && (
+                        <div className="mt-2 text-xs text-gray-400">
+                          Gold Utilization: {stats.advanced.farm.goldUtilization.toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
 
-          {/* Playstyle-Specific Recommendations */}
-          <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
-            <h3 className="text-2xl font-semibold mb-4 text-purple-300 flex items-center gap-2">
-              <Target className="w-6 h-6" />
-              Suggerimenti per il Tuo Stile di Gioco
-            </h3>
-            <div className="space-y-3">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-base font-semibold">Partecipazione Teamfight</h3>
+                        <span className="text-sm font-bold text-blue-400">{stats.teamfightParticipation.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-3">
+                        <div
+                          className="bg-blue-600 h-3 rounded-full transition-all"
+                          style={{ width: `${stats.teamfightParticipation}%` }}
+                        ></div>
+                      </div>
+                      {stats.advanced && (
+                        <div className="mt-2 text-xs text-gray-400">
+                          Hero Damage medio: {Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Playstyle-Specific Recommendations */}
+                  <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
+                    <h3 className="text-2xl font-semibold mb-4 text-purple-300 flex items-center gap-2">
+                      <Target className="w-6 h-6" />
+                      Suggerimenti per il Tuo Stile di Gioco
+                    </h3>
+                    <div className="space-y-3">
               {stats.playstyle.includes('Farm Focus') && (
                 <>
                   <p className="text-sm text-purple-200 flex items-center gap-2">
@@ -629,6 +670,10 @@ export default function PerformancePage() {
                     )}
                   </ul>
                 </>
+              )}
+            </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
