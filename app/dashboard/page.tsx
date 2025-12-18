@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
   if (authLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>
@@ -162,7 +162,7 @@ export default function DashboardPage() {
   const kdaTrend = getKDATrend()
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
       {/* Header */}
       <div className="mb-8">

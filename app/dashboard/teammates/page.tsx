@@ -228,7 +228,7 @@ export default function TeammatesPage() {
 
   if (authLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>
@@ -251,7 +251,7 @@ export default function TeammatesPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
       <h1 className="text-3xl font-bold mb-2">Team & Compagni</h1>
       <p className="text-gray-400 mb-6">Statistiche dei giocatori con cui hai giocato più spesso</p>

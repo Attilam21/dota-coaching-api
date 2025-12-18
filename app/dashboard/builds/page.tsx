@@ -196,7 +196,7 @@ export default function BuildsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
           <p className="mt-4 text-gray-400">Caricamento dati build...</p>
@@ -207,7 +207,7 @@ export default function BuildsPage() {
 
   if (!playerId) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <PlayerIdInput
           pageTitle="Build & Items"
           title="Inserisci Player ID"
@@ -220,7 +220,7 @@ export default function BuildsPage() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">Build & Items</h1>

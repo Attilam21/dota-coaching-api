@@ -94,7 +94,7 @@ export default function ProfilingPage() {
 
   if (authLoading) {
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -118,7 +118,7 @@ export default function ProfilingPage() {
   }
 
   return (
-    <div className="p-8 relative min-h-screen">
+    <div className="p-4 md:p-6 relative">
       <HelpButton />
       {/* Background with overlay */}
       <div 

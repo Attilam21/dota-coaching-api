@@ -357,7 +357,7 @@ export default function MatchAnalysisDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
           <p className="mt-4 text-gray-400">Caricamento analisi partita...</p>
@@ -368,7 +368,7 @@ export default function MatchAnalysisDetailPage() {
 
   if (error || !match) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="bg-red-900/50 border border-red-700 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-red-200 mb-2">Errore nel caricamento</h2>
           <p className="text-red-300 mb-4">{error || 'Partita non trovata'}</p>
@@ -403,7 +403,7 @@ export default function MatchAnalysisDetailPage() {
   }))
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
       <div className="mb-6">
         <Link href="/dashboard/match-analysis" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">

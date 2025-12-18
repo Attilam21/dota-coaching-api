@@ -136,7 +136,7 @@ export default function AISummaryPage() {
 
   if (authLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>
@@ -149,7 +149,7 @@ export default function AISummaryPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
       <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
         <Bot className="w-8 h-8" />

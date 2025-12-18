@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Lightbulb } from 'lucide-react'
+import { Lightbulb, X } from 'lucide-react'
 
 interface InsightBadgeProps {
   elementType: string
@@ -100,30 +100,30 @@ export default function InsightBadge({
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/60 z-[9998]"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Modal */}
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl pointer-events-auto">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-xl w-full max-h-[70vh] overflow-hidden flex flex-col shadow-2xl pointer-events-auto">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700 p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">💡</span>
-                  <h2 className="text-xl font-bold text-white">Suggerimento AI</h2>
+              <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-gray-700 p-3 flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-blue-400" />
+                  <h2 className="text-lg font-bold text-white">Suggerimento AI</h2>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors text-2xl leading-none"
+                  className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700"
                   aria-label="Chiudi"
                 >
-                  ×
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Content */}
-              <div className="overflow-y-auto p-6">
+              <div className="overflow-y-auto p-4 flex-1">
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -132,23 +132,23 @@ export default function InsightBadge({
                 ) : error ? (
                   <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
                     <p className="font-semibold mb-2">Errore nel generare il suggerimento</p>
-                    <p>{error}</p>
+                    <p className="text-sm">{error}</p>
                   </div>
                 ) : insight ? (
                   <div className="space-y-4">
-                    <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
+                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                       {insight}
                     </p>
                   </div>
                 ) : (
                   <div className="bg-yellow-900/50 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg">
-                    <p>Nessun suggerimento disponibile. Riprova più tardi.</p>
+                    <p className="text-sm">Nessun suggerimento disponibile. Riprova più tardi.</p>
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="bg-gray-900/50 border-t border-gray-700 p-4 flex justify-end">
+              <div className="bg-gray-900/50 border-t border-gray-700 p-3 flex justify-end flex-shrink-0">
                 <button
                   onClick={() => {
                     setIsOpen(false)
@@ -157,7 +157,7 @@ export default function InsightBadge({
                       setError(null)
                     }
                   }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   Chiudi
                 </button>

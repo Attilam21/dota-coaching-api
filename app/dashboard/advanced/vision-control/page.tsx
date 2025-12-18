@@ -83,7 +83,7 @@ export default function VisionControlPage() {
 
   if (authLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>
@@ -121,7 +121,7 @@ export default function VisionControlPage() {
   ] : []
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6">
       <HelpButton />
       <div className="mb-6">
         <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
