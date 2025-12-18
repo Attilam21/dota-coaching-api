@@ -9,6 +9,7 @@ import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import WardMap from '@/components/WardMap'
 import HeroCard from '@/components/HeroCard'
+import RuneIcon from '@/components/RuneIcon'
 import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy, TrendingUp, TrendingDown } from 'lucide-react'
 
 interface MatchData {
