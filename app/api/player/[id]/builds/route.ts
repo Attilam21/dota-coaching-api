@@ -168,10 +168,11 @@ export async function GET(
       const matchData = matches[idx]
       if (!matchData) return
 
-      // Find player in match
+      // Find player in match - try by account_id first, then by player_slot (like advanced-stats)
       const player = match.players.find((p: MatchPlayer) => 
-        p.account_id?.toString() === id || 
-        (p.player_slot === matchData.player_slot && p.hero_id)
+        p.account_id?.toString() === id
+      ) || match.players.find((p: MatchPlayer) => 
+        p.player_slot === matchData.player_slot
       )
 
       if (!player) return

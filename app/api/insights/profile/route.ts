@@ -34,12 +34,14 @@ async function generateInsight(
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text
         
         if (text && typeof text === 'string' && text.trim().length > 0) {
+          console.log('Insight generated with Gemini')
           return text.trim()
         } else {
           console.warn('Gemini API returned empty or invalid response, trying OpenAI fallback:', {
             hasCandidates: !!data.candidates,
             candidatesLength: data.candidates?.length || 0,
           })
+          // Continue to OpenAI fallback - don't return here
         }
       } else {
         const errorText = await response.text().catch(() => 'Unknown error')
@@ -48,6 +50,7 @@ async function generateInsight(
           statusText: response.statusText,
           error: errorText.substring(0, 200)
         })
+        // Continue to OpenAI fallback - don't return here
       }
     } catch (error) {
       console.warn('Gemini API error, trying OpenAI fallback:', error)
@@ -83,12 +86,14 @@ async function generateInsight(
         const text = data.choices?.[0]?.message?.content
         
         if (text && typeof text === 'string' && text.trim().length > 0) {
+          console.log('Insight generated with OpenAI')
           return text.trim()
         } else {
           console.warn('OpenAI API returned empty or invalid response:', {
             hasChoices: !!data.choices,
             choicesLength: data.choices?.length || 0,
           })
+          // Will throw error below if both fail
         }
       } else {
         const errorText = await response.text().catch(() => 'Unknown error')

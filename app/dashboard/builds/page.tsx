@@ -261,6 +261,8 @@ export default function BuildsPage() {
     }
   }, [])
 
+  const COLORS = useMemo(() => ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'], [])
+
   useEffect(() => {
     if (selectedHero && playerId) {
       const fetchHeroBuilds = async () => {
@@ -313,8 +315,6 @@ export default function BuildsPage() {
       </div>
     )
   }
-
-  const COLORS = useMemo(() => ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'], [])
 
   return (
     <div className="p-4 md:p-6">

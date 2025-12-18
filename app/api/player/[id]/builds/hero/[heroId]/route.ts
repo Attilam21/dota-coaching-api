@@ -126,10 +126,11 @@ export async function GET(
       const matchData = matches[idx]
       if (!matchData) return
 
-      // Find player in match
+      // Find player in match - try by account_id first, then by player_slot, must match hero_id
       const player = match.players.find((p: MatchPlayer) => 
-        (p.account_id?.toString() === id || p.player_slot === matchData.player_slot) && 
-        p.hero_id === parseInt(heroId)
+        p.account_id?.toString() === id && p.hero_id === parseInt(heroId)
+      ) || match.players.find((p: MatchPlayer) => 
+        p.player_slot === matchData.player_slot && p.hero_id === parseInt(heroId)
       )
 
       if (!player) return
