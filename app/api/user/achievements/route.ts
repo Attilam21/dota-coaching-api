@@ -9,9 +9,28 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Try getSession first (works with cookies)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (authError || !user) {
+    let userId: string | null = null
+    
+    if (session?.user) {
+      userId = session.user.id
+    } else {
+      // Fallback: try getUser
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
+      
+      userId = user.id
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
