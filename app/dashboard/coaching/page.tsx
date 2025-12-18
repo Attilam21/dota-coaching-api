@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon } from 'lucide-react'
 
 interface MetaComparison {
   role: string
@@ -44,6 +44,8 @@ interface MetaComparison {
   strategicInsight: string | null
 }
 
+type TabType = 'meta' | 'win-conditions'
+
 export default function CoachingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -53,6 +55,7 @@ export default function CoachingPage() {
   const [loading, setLoading] = useState(false)
   const [loadingWinConditions, setLoadingWinConditions] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('meta')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -100,9 +103,19 @@ export default function CoachingPage() {
   useEffect(() => {
     if (playerId) {
       fetchMetaComparison()
+      // Fetch win conditions when tab is active or when playerId changes
+      if (activeTab === 'win-conditions') {
+        fetchWinConditions()
+      }
+    }
+  }, [playerId, fetchMetaComparison, activeTab])
+
+  // Fetch win conditions when switching to win-conditions tab
+  useEffect(() => {
+    if (playerId && activeTab === 'win-conditions' && !winConditions && !loadingWinConditions) {
       fetchWinConditions()
     }
-  }, [playerId, fetchMetaComparison, fetchWinConditions])
+  }, [playerId, activeTab, winConditions, loadingWinConditions, fetchWinConditions])
 
   const getMetricLabel = (metric: string) => {
     const labels: Record<string, string> = {
@@ -224,140 +237,171 @@ export default function CoachingPage() {
 
       {metaData && !loading && (
         <div className="space-y-6">
-          {/* Strategic Insight */}
-          {metaData.strategicInsight && (
-            <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Target className="w-6 h-6 text-blue-400" />
-                <h2 className="text-2xl font-semibold text-blue-200">Raccomandazione Strategica</h2>
-              </div>
-              <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{metaData.strategicInsight}</p>
-            </div>
-          )}
-
-          {/* Role Badge */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">Ruolo Analizzato:</span>
-              <span className="px-3 py-1 bg-red-600/20 border border-red-600 rounded-full text-red-400 font-semibold">
-                {metaData.role}
-              </span>
-            </div>
-          </div>
-
-          {/* Key Metrics Comparison */}
-          <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-              <BarChart3 className="w-6 h-6" />
-              Confronto Performance vs Meta
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(metaData.comparisons).map(([metric, comp]) => (
-                <div
-                  key={metric}
-                  className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg">
+            <div className="flex border-b border-gray-700">
+              {[
+                { id: 'meta' as TabType, name: 'Confronto Meta', icon: BarChartIcon },
+                { id: 'win-conditions' as TabType, name: 'Win Conditions', icon: Trophy },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {getMetricIcon(metric)}
-                      <span className="font-semibold text-gray-300">{getMetricLabel(metric)}</span>
-                    </div>
-                    {getTrendIcon(comp.gapPercent)}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-gray-400">Tuo</span>
-                      <span className="text-lg font-bold text-white">{formatValue(metric, comp.player)}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-gray-400">Meta (p50)</span>
-                      <span className="text-sm font-semibold text-gray-300">{formatValue(metric, comp.meta.p50)}</span>
-                    </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-600">
-                      <span className="text-xs text-gray-400">Gap</span>
-                      <span className={`text-sm font-semibold ${getGapColor(comp.gapPercent)}`}>
-                        {comp.gapPercent != null ? (comp.gapPercent >= 0 ? '+' : '') + comp.gapPercent.toFixed(1) : '0.0'}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">Percentile</span>
-                      <span className={`text-sm font-semibold ${getPercentileColor(comp.percentile)}`}>
-                        Top {100 - comp.percentile}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
               ))}
             </div>
-          </div>
 
-          {/* AI Insights for Improvement Areas */}
-          {metaData.aiInsights && metaData.aiInsights.length > 0 && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <AlertCircle className="w-6 h-6 text-orange-400" />
-                <h2 className="text-2xl font-semibold">Aree di Miglioramento Prioritario</h2>
-              </div>
-              <div className="space-y-4">
-                {metaData.aiInsights.map((insight, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-700/50 rounded-lg p-5"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      {getMetricIcon(insight.metric)}
-                      <h3 className="text-lg font-semibold text-orange-300">
-                        {getMetricLabel(insight.metric)}
-                      </h3>
-                      <span className="text-xs px-2 py-1 bg-orange-600/20 border border-orange-600 rounded text-orange-400">
-                        Priorità {idx + 1}
-                      </span>
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Meta Comparison Tab */}
+              {activeTab === 'meta' && (
+                <div className="space-y-6">
+                  {/* Strategic Insight */}
+                  {metaData.strategicInsight && (
+                    <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Target className="w-6 h-6 text-blue-400" />
+                        <h2 className="text-2xl font-semibold text-blue-200">Raccomandazione Strategica</h2>
+                      </div>
+                      <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{metaData.strategicInsight}</p>
                     </div>
-                    <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{insight.insight}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
 
-          {/* Improvement Areas Summary */}
-          {metaData.improvementAreas && metaData.improvementAreas.length > 0 && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Riepilogo Gap vs Meta</h2>
-              <div className="space-y-3">
-                {metaData.improvementAreas.map((area, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+                  {/* Role Badge */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-300">{getMetricLabel(area.metric)}</span>
-                      <span className="text-xs text-gray-500">
-                        {formatValue(area.metric, area.player)} vs {formatValue(area.metric, area.meta)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-semibold ${getGapColor(area.gapPercent)}`}>
-                        {area.gapPercent != null ? area.gapPercent.toFixed(1) : '0.0'}%
-                      </span>
-                      <span className={`text-xs ${getPercentileColor(area.percentile)}`}>
-                        ({area.percentile}° percentile)
+                      <span className="text-sm text-gray-400">Ruolo Analizzato:</span>
+                      <span className="px-3 py-1 bg-red-600/20 border border-red-600 rounded-full text-red-400 font-semibold">
+                        {metaData.role}
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Win Condition Analysis */}
-          {winConditions && !loadingWinConditions && (
-            <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-700/50 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Trophy className="w-6 h-6 text-green-400" />
-                <h2 className="text-2xl font-semibold">Analisi Pattern di Vittoria</h2>
-              </div>
+                  {/* Key Metrics Comparison */}
+                  <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                      <BarChart3 className="w-6 h-6" />
+                      Confronto Performance vs Meta
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {Object.entries(metaData.comparisons).map(([metric, comp]) => (
+                        <div
+                          key={metric}
+                          className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {getMetricIcon(metric)}
+                              <span className="font-semibold text-gray-300">{getMetricLabel(metric)}</span>
+                            </div>
+                            {getTrendIcon(comp.gapPercent)}
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-xs text-gray-400">Tuo</span>
+                              <span className="text-lg font-bold text-white">{formatValue(metric, comp.player)}</span>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-xs text-gray-400">Meta (p50)</span>
+                              <span className="text-sm font-semibold text-gray-300">{formatValue(metric, comp.meta.p50)}</span>
+                            </div>
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-600">
+                              <span className="text-xs text-gray-400">Gap</span>
+                              <span className={`text-sm font-semibold ${getGapColor(comp.gapPercent)}`}>
+                                {comp.gapPercent != null ? (comp.gapPercent >= 0 ? '+' : '') + comp.gapPercent.toFixed(1) : '0.0'}%
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-400">Percentile</span>
+                              <span className={`text-sm font-semibold ${getPercentileColor(comp.percentile)}`}>
+                                Top {100 - comp.percentile}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* AI Insights for Improvement Areas */}
+                  {metaData.aiInsights && metaData.aiInsights.length > 0 && (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <AlertCircle className="w-6 h-6 text-orange-400" />
+                        <h2 className="text-2xl font-semibold">Aree di Miglioramento Prioritario</h2>
+                      </div>
+                      <div className="space-y-4">
+                        {metaData.aiInsights.map((insight, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-700/50 rounded-lg p-5"
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              {getMetricIcon(insight.metric)}
+                              <h3 className="text-lg font-semibold text-orange-300">
+                                {getMetricLabel(insight.metric)}
+                              </h3>
+                              <span className="text-xs px-2 py-1 bg-orange-600/20 border border-orange-600 rounded text-orange-400">
+                                Priorità {idx + 1}
+                              </span>
+                            </div>
+                            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{insight.insight}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Improvement Areas Summary */}
+                  {metaData.improvementAreas && metaData.improvementAreas.length > 0 && (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <h2 className="text-xl font-semibold mb-4">Riepilogo Gap vs Meta</h2>
+                      <div className="space-y-3">
+                        {metaData.improvementAreas.map((area, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-semibold text-gray-300">{getMetricLabel(area.metric)}</span>
+                              <span className="text-xs text-gray-500">
+                                {formatValue(area.metric, area.player)} vs {formatValue(area.metric, area.meta)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-semibold ${getGapColor(area.gapPercent)}`}>
+                                {area.gapPercent != null ? area.gapPercent.toFixed(1) : '0.0'}%
+                              </span>
+                              <span className={`text-xs ${getPercentileColor(area.percentile)}`}>
+                                ({area.percentile}° percentile)
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Win Conditions Tab */}
+              {activeTab === 'win-conditions' && (
+                <div className="space-y-6">
+                  {winConditions && !loadingWinConditions ? (
+                    <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-700/50 rounded-lg p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <Trophy className="w-6 h-6 text-green-400" />
+                        <h2 className="text-2xl font-semibold">Analisi Pattern di Vittoria</h2>
+                      </div>
+
+                      {/* Summary */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-gray-800/50 rounded-lg p-4 border border-green-700/30">
                   <div className="flex items-center gap-2 mb-2">
                     <Trophy className="w-5 h-5 text-green-400" />
@@ -461,18 +505,26 @@ export default function CoachingPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+                      </div>
+                    </div>
+                  ) : loadingWinConditions ? (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                        <p className="mt-4 text-gray-400">Analisi pattern di vittoria in corso...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <div className="text-center py-8">
+                        <p className="text-gray-400">Carica i dati per visualizzare l'analisi Win Conditions</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-
-          {loadingWinConditions && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                <p className="mt-4 text-gray-400">Analisi pattern di vittoria in corso...</p>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
 

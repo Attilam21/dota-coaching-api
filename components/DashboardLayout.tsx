@@ -63,9 +63,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ],
     },
     {
-      title: 'COACHING & PROFILAZIONE',
+      title: 'COACHING & ANALISI AVANZATE',
       items: [
-        { name: 'Coaching & Task', href: '/dashboard/coaching', icon: BookOpen },
+        { name: 'Coaching & Confronto Meta', href: '/dashboard/coaching', icon: BookOpen },
         { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: Target },
         { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
       ],
