@@ -8,6 +8,7 @@ import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import PlayerAvatar from '@/components/PlayerAvatar'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star } from 'lucide-react'
 
@@ -465,6 +466,11 @@ export default function TeammatesPage() {
                             <div className="flex items-center gap-2">
                               {isBest && <span title="Miglior winrate"><Trophy className="w-4 h-4 text-yellow-400" /></span>}
                               {isHighWinrate && !isBest && <span title="Alta sinergia"><Star className="w-4 h-4 text-blue-400" /></span>}
+                              <PlayerAvatar
+                                accountId={teammate.account_id}
+                                playerName={teammate.name}
+                                size="sm"
+                              />
                               <span className="text-sm">{teammate.name}</span>
                             </div>
                           </td>
