@@ -199,7 +199,7 @@ export default function MatchAnalysisPage() {
             analysis: analysis,
             saved_at: new Date().toISOString()
           }
-        }, {
+        } as any, {
           onConflict: 'user_id,match_id'
         })
 
@@ -210,7 +210,7 @@ export default function MatchAnalysisPage() {
         const { error: statsError } = await supabase.rpc('add_user_xp', {
           p_user_id: user.id,
           p_xp: 50 // XP for saving an analysis
-        })
+        } as any)
         if (statsError) console.error('Failed to update XP:', statsError)
       } catch (rpcError) {
         // RPC might not exist yet, ignore

@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         xpReward: achievementData.xp_reward,
         category: achievementData.category,
         unlocked: true,
-        unlockedAt: (userAchievement as any).unlocked_at,
+        unlockedAt: (userAchievement as any)?.unlocked_at || new Date().toISOString(),
       },
     })
   } catch (error) {

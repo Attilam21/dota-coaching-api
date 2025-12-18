@@ -28,8 +28,9 @@ export function usePlayerId() {
           throw fetchError
         }
 
-        if (data?.dota_account_id) {
-          setPlayerId(data.dota_account_id.toString())
+        const userData = data as any
+        if (userData?.dota_account_id) {
+          setPlayerId(userData.dota_account_id.toString())
         } else {
           setPlayerId(null)
         }
