@@ -162,6 +162,64 @@ export default function DashboardPage() {
     gpm: m.gpm,
   })) || []
 
+  // Calculate heatmap data (day of week x hour of day)
+  const calculateHeatmap = () => {
+    if (!stats?.matches || stats.matches.length === 0) return null
+
+    // Initialize 7x24 grid (days x hours)
+    const heatmapData: Record<number, Record<number, { total: number; wins: number }>> = {}
+    const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+
+    // Initialize all cells
+    for (let day = 0; day < 7; day++) {
+      heatmapData[day] = {}
+      for (let hour = 0; hour < 24; hour++) {
+        heatmapData[day][hour] = { total: 0, wins: 0 }
+      }
+    }
+
+    // Process each match
+    stats.matches.forEach((match) => {
+      const matchDate = new Date(match.start_time * 1000)
+      const dayOfWeek = matchDate.getDay() // 0 = Sunday, 6 = Saturday
+      const hourOfDay = matchDate.getHours()
+
+      if (heatmapData[dayOfWeek] && heatmapData[dayOfWeek][hourOfDay]) {
+        heatmapData[dayOfWeek][hourOfDay].total++
+        if (match.win) {
+          heatmapData[dayOfWeek][hourOfDay].wins++
+        }
+      }
+    })
+
+    // Calculate winrates and find best times
+    const heatmapWinrates: Array<{ day: number; hour: number; winrate: number; total: number }> = []
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        const cell = heatmapData[day][hour]
+        if (cell.total > 0) {
+          const winrate = (cell.wins / cell.total) * 100
+          heatmapWinrates.push({ day, hour, winrate, total: cell.total })
+        }
+      }
+    }
+
+    // Find top 3 best times
+    const bestTimes = heatmapWinrates
+      .sort((a, b) => b.winrate - a.winrate)
+      .slice(0, 3)
+      .map((item) => ({
+        day: days[item.day],
+        hour: `${item.hour.toString().padStart(2, '0')}:00`,
+        winrate: item.winrate,
+        total: item.total,
+      }))
+
+    return { heatmapData, heatmapWinrates, bestTimes, days }
+  }
+
+  const heatmap = calculateHeatmap()
+
   const winrateTrend = getWinrateTrend()
   const kdaTrend = getKDATrend()
 
@@ -400,6 +458,128 @@ export default function DashboardPage() {
               {/* Trends & Stats Tab */}
               {activeTab === 'trends' && (
                 <div className="space-y-6">
+                  {/* Heatmap Partite */}
+                  {heatmap && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-xl font-semibold mb-4">Heatmap Partite - Quando Giochi Meglio</h3>
+                      <p className="text-sm text-gray-400 mb-4">
+                        Visualizza il tuo winrate per giorno della settimana e ora del giorno
+                      </p>
+                      
+                      {/* Heatmap Grid */}
+                      <div className="overflow-x-auto mb-6">
+                        <div className="inline-block min-w-full">
+                          {/* Header - Hours */}
+                          <div className="flex mb-2">
+                            <div className="w-16 flex-shrink-0"></div>
+                            {Array.from({ length: 24 }, (_, i) => (
+                              <div key={i} className="flex-1 text-xs text-gray-500 text-center min-w-[30px]">
+                                {i % 4 === 0 ? i : ''}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Rows - Days */}
+                          {heatmap.days.map((dayName, dayIdx) => (
+                            <div key={dayIdx} className="flex mb-1">
+                              <div className="w-16 flex-shrink-0 text-sm text-gray-400 font-medium py-2">
+                                {dayName}
+                              </div>
+                              {Array.from({ length: 24 }, (_, hourIdx) => {
+                                const cell = heatmap.heatmapData[dayIdx]?.[hourIdx]
+                                const winrate = cell && cell.total > 0 ? (cell.wins / cell.total) * 100 : 0
+                                const intensity = cell && cell.total > 0 ? Math.min(winrate / 100, 1) : 0
+                                
+                                // Color based on winrate: red (low) to green (high)
+                                const red = Math.round(255 * (1 - intensity))
+                                const green = Math.round(255 * intensity)
+                                const bgColor = cell && cell.total > 0 
+                                  ? `rgb(${red}, ${green}, 0)` 
+                                  : '#1F2937'
+                                
+                                return (
+                                  <div
+                                    key={hourIdx}
+                                    className="flex-1 min-w-[30px] h-8 border border-gray-700 rounded cursor-pointer hover:border-red-500 transition-colors relative group"
+                                    style={{ backgroundColor: bgColor }}
+                                    title={cell && cell.total > 0 
+                                      ? `${dayName} ${hourIdx}:00 - Winrate: ${winrate.toFixed(1)}% (${cell.total} partite)`
+                                      : `${dayName} ${hourIdx}:00 - Nessuna partita`
+                                    }
+                                  >
+                                    {cell && cell.total > 0 && (
+                                      <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {winrate.toFixed(0)}%
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="flex items-center gap-4 mb-6">
+                        <span className="text-sm text-gray-400">Legenda:</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-red-600 rounded"></div>
+                          <span className="text-xs text-gray-400">Basso Winrate</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                          <span className="text-xs text-gray-400">Medio</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-600 rounded"></div>
+                          <span className="text-xs text-gray-400">Alto Winrate</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-gray-700 rounded"></div>
+                          <span className="text-xs text-gray-400">Nessuna Partita</span>
+                        </div>
+                      </div>
+
+                      {/* Best Times Cards */}
+                      {heatmap.bestTimes.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700 rounded-lg p-4">
+                            <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #1</h4>
+                            <p className="text-xl font-bold text-green-400">
+                              {heatmap.bestTimes[0].day} {heatmap.bestTimes[0].hour}
+                            </p>
+                            <p className="text-sm text-gray-300 mt-1">
+                              Winrate: {heatmap.bestTimes[0].winrate.toFixed(1)}% ({heatmap.bestTimes[0].total} partite)
+                            </p>
+                          </div>
+                          {heatmap.bestTimes[1] && (
+                            <div className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
+                              <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #2</h4>
+                              <p className="text-xl font-bold text-green-400">
+                                {heatmap.bestTimes[1].day} {heatmap.bestTimes[1].hour}
+                              </p>
+                              <p className="text-sm text-gray-300 mt-1">
+                                Winrate: {heatmap.bestTimes[1].winrate.toFixed(1)}% ({heatmap.bestTimes[1].total} partite)
+                              </p>
+                            </div>
+                          )}
+                          {heatmap.bestTimes[2] && (
+                            <div className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
+                              <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #3</h4>
+                              <p className="text-xl font-bold text-green-400">
+                                {heatmap.bestTimes[2].day} {heatmap.bestTimes[2].hour}
+                              </p>
+                              <p className="text-sm text-gray-300 mt-1">
+                                Winrate: {heatmap.bestTimes[2].winrate.toFixed(1)}% ({heatmap.bestTimes[2].total} partite)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Trend Ultime 10 Partite */}
                   {chartData.length > 0 && (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">

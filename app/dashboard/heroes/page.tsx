@@ -17,6 +17,9 @@ interface HeroStats {
   games: number
   wins: number
   winrate: number
+  avg_gpm?: string
+  avg_xpm?: string
+  kda?: string
 }
 
 type TabType = 'chart' | 'stats'
@@ -64,12 +67,15 @@ export default function HeroesPage() {
 
       const data = await response.json()
       const stats: HeroStats[] = (data.heroStats || [])
-        .map((h: { hero_id: number; games: number; wins: number; winrate: number; hero_name: string }) => ({
+        .map((h: { hero_id: number; games: number; wins: number; winrate: number; hero_name: string; avg_gpm?: string; avg_xpm?: string; kda?: string }) => ({
           hero_id: h.hero_id,
           hero_name: h.hero_name,
           games: h.games,
           wins: h.wins,
           winrate: h.winrate,
+          avg_gpm: h.avg_gpm,
+          avg_xpm: h.avg_xpm,
+          kda: h.kda,
         }))
         .sort((a: HeroStats, b: HeroStats) => b.games - a.games)
         .slice(0, 10)
@@ -138,6 +144,42 @@ export default function HeroesPage() {
 
       {heroStats.length > 0 && !loading && (
         <div className="space-y-6">
+          {/* Hero Pool Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-sm text-gray-400 mb-2">Heroes Totali</h3>
+              <p className="text-2xl font-bold text-white">{heroStats.length}</p>
+              <p className="text-xs text-gray-500 mt-1">Heroes giocati</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-sm text-gray-400 mb-2">KDA Medio</h3>
+              <p className="text-2xl font-bold text-red-400">
+                {heroStats.length > 0
+                  ? (heroStats.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / heroStats.length).toFixed(2)
+                  : '0.00'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
+              <p className="text-2xl font-bold text-yellow-400">
+                {heroStats.length > 0
+                  ? Math.round(heroStats.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / heroStats.length)
+                  : '0'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
+              <p className="text-2xl font-bold text-blue-400">
+                {heroStats.length > 0
+                  ? Math.round(heroStats.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / heroStats.length)
+                  : '0'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+            </div>
+          </div>
+
           {/* Tabs */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
             <div className="flex border-b border-gray-700 overflow-x-auto">
@@ -208,6 +250,9 @@ export default function HeroesPage() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">XPM</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-700">
@@ -229,6 +274,15 @@ export default function HeroesPage() {
                               <span className={`font-semibold ${hero.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
                                 {hero.winrate.toFixed(1)}%
                               </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
+                              <span className="font-medium">{hero.kda || 'N/A'}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
+                              <span className="font-medium text-yellow-400">{hero.avg_gpm || 'N/A'}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
+                              <span className="font-medium text-blue-400">{hero.avg_xpm || 'N/A'}</span>
                             </td>
                           </tr>
                         ))}
