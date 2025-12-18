@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import React from 'react'
 import { AuthProvider } from '@/lib/auth-context'
 import { PlayerIdProvider } from '@/lib/playerIdContext'
+import { ModalProvider } from '@/lib/modal-context'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
       <body suppressHydrationWarning style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <AuthProvider>
           <PlayerIdProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
+            <ModalProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+            </ModalProvider>
           </PlayerIdProvider>
         </AuthProvider>
       </body>

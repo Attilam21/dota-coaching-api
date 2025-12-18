@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { Lightbulb, X } from 'lucide-react'
+import { useModal } from '@/lib/modal-context'
 
 interface InsightBadgeProps {
   elementType: string
@@ -18,10 +19,23 @@ export default function InsightBadge({
   playerId,
   position = 'top-right'
 }: InsightBadgeProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const modalId = useId()
+  const { openModalId, setOpenModalId } = useModal()
+  const isOpen = openModalId === modalId
+  
   const [insight, setInsight] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Close modal when another one opens
+  useEffect(() => {
+    if (openModalId && openModalId !== modalId) {
+      // Another modal opened, reset our state
+      setInsight(null)
+      setError(null)
+      setLoading(false)
+    }
+  }, [openModalId, modalId])
 
   const positionClasses = {
     'top-right': 'top-2 right-2',
@@ -33,7 +47,7 @@ export default function InsightBadge({
   const fetchInsight = async () => {
     // If we already have a valid insight, just open the modal
     if (insight) {
-      setIsOpen(true)
+      setOpenModalId(modalId)
       return
     }
     
@@ -41,6 +55,9 @@ export default function InsightBadge({
     if (isOpen) {
       return
     }
+
+    // Close any other open modal first
+    setOpenModalId(modalId)
 
     try {
       setLoading(true)
@@ -71,12 +88,18 @@ export default function InsightBadge({
       }
       
       setInsight(data.insight)
-      setIsOpen(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load insight')
-      setIsOpen(true)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    setOpenModalId(null)
+    // Reset error when closing modal to allow retry
+    if (error) {
+      setError(null)
     }
   }
 
@@ -101,7 +124,7 @@ export default function InsightBadge({
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]"
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
           />
           
           {/* Modal */}
@@ -114,7 +137,7 @@ export default function InsightBadge({
                   <h2 className="text-lg font-bold text-white">Suggerimento AI</h2>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700"
                   aria-label="Chiudi"
                 >
@@ -150,13 +173,7 @@ export default function InsightBadge({
               {/* Footer */}
               <div className="bg-gray-900/50 border-t border-gray-700 p-3 flex justify-end flex-shrink-0">
                 <button
-                  onClick={() => {
-                    setIsOpen(false)
-                    // Reset error when closing modal to allow retry
-                    if (error) {
-                      setError(null)
-                    }
-                  }}
+                  onClick={handleClose}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   Chiudi
