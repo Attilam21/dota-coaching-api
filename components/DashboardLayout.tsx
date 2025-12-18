@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { useTheme } from '@/lib/theme-context'
 import { 
   BarChart, 
   Zap, 
@@ -18,9 +17,7 @@ import {
   Shield, 
   FlaskConical,
   Settings,
-  LogOut,
-  Sun,
-  Moon
+  LogOut
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -36,7 +33,6 @@ interface NavItem {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
-  const { theme, toggleTheme } = useTheme()
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(path + '/')
@@ -90,17 +86,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ]
 
   return (
-    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
+    <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+        <div className="p-6 border-b border-gray-700">
           <h1 className="text-xl font-bold">FZTH Dashboard</h1>
         </div>
         
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
           {navigation.map((section) => (
             <div key={section.title}>
-              <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 {section.title}
               </h2>
               <ul className="space-y-1">
@@ -110,8 +106,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                         isActive(item.href)
-                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                          ? 'bg-gray-700 text-white'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -125,38 +121,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </nav>
 
         {/* User info at bottom */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            title={theme === 'dark' ? 'Passa a modalità chiara' : 'Passa a modalità scura'}
-          >
-            {theme === 'dark' ? (
-              <>
-                <Sun className="w-4 h-4" />
-                <span>Light Mode</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-4 h-4" />
-                <span>Dark Mode</span>
-              </>
-            )}
-          </button>
-          
+        <div className="p-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
                 {user?.email?.[0].toUpperCase()}
               </div>
-              <span className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[120px]">
+              <span className="text-sm text-gray-300 truncate max-w-[120px]">
                 {user?.email}
               </span>
             </div>
             <button
               onClick={() => signOut()}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white text-sm p-1 transition-colors"
+              className="text-gray-400 hover:text-white text-sm p-1"
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -166,7 +143,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-white dark:bg-gray-900">
+      <main className="flex-1 overflow-y-auto bg-gray-900">
         {children}
       </main>
     </div>
