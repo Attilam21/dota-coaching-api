@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
@@ -119,9 +119,12 @@ export default function HeroesPage() {
   }
 
   const chartData = heroStats.map((hero) => ({
-    name: hero.hero_name,
+    name: hero.hero_name.length > 10 ? hero.hero_name.substring(0, 10) + '...' : hero.hero_name,
     winrate: hero.winrate,
     games: hero.games,
+    kda: hero.kda && hero.kda !== 'N/A' ? parseFloat(hero.kda) : 0,
+    gpm: hero.avg_gpm && hero.avg_gpm !== 'N/A' ? parseFloat(hero.avg_gpm) : 0,
+    xpm: hero.avg_xpm && hero.avg_xpm !== 'N/A' ? parseFloat(hero.avg_xpm) : 0,
   }))
 
   return (
@@ -154,27 +157,36 @@ export default function HeroesPage() {
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">KDA Medio</h3>
               <p className="text-2xl font-bold text-red-400">
-                {heroStats.length > 0
-                  ? (heroStats.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / heroStats.length).toFixed(2)
-                  : '0.00'}
+                {(() => {
+                  const validKDA = heroStats.filter(h => h.kda && h.kda !== '0' && h.kda !== 'N/A' && !isNaN(parseFloat(h.kda)))
+                  if (validKDA.length === 0) return '0.00'
+                  const avg = validKDA.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / validKDA.length
+                  return isNaN(avg) ? '0.00' : avg.toFixed(2)
+                })()}
               </p>
               <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
               <p className="text-2xl font-bold text-yellow-400">
-                {heroStats.length > 0
-                  ? Math.round(heroStats.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / heroStats.length)
-                  : '0'}
+                {(() => {
+                  const validGPM = heroStats.filter(h => h.avg_gpm && h.avg_gpm !== '0' && h.avg_gpm !== 'N/A' && !isNaN(parseFloat(h.avg_gpm)))
+                  if (validGPM.length === 0) return '0'
+                  const avg = validGPM.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / validGPM.length
+                  return isNaN(avg) ? '0' : Math.round(avg).toString()
+                })()}
               </p>
               <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
               <p className="text-2xl font-bold text-blue-400">
-                {heroStats.length > 0
-                  ? Math.round(heroStats.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / heroStats.length)
-                  : '0'}
+                {(() => {
+                  const validXPM = heroStats.filter(h => h.avg_xpm && h.avg_xpm !== '0' && h.avg_xpm !== 'N/A' && !isNaN(parseFloat(h.avg_xpm)))
+                  if (validXPM.length === 0) return '0'
+                  const avg = validXPM.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / validXPM.length
+                  return isNaN(avg) ? '0' : Math.round(avg).toString()
+                })()}
               </p>
               <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
             </div>
@@ -206,33 +218,80 @@ export default function HeroesPage() {
             <div className="p-6">
               {/* Chart Tab */}
               {activeTab === 'chart' && (
-                <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-                  {playerId && (
-                    <InsightBadge
-                      elementType="trend-chart"
-                      elementId="heroes-chart"
-                      contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
-                      playerId={playerId}
-                      position="top-right"
-                    />
-                  )}
-                  <h2 className="text-2xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1F2937',
-                          border: '1px solid #374151',
-                          borderRadius: '8px',
-                        }}
+                <div className="space-y-6">
+                  {/* Winrate Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                    {playerId && (
+                      <InsightBadge
+                        elementType="trend-chart"
+                        elementId="heroes-chart"
+                        contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
+                        playerId={playerId}
+                        position="top-right"
                       />
-                      <Legend />
-                      <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                    )}
+                    <h2 className="text-2xl font-semibold mb-4">Winrate per Hero</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* GPM/XPM Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-4">GPM e XPM per Hero</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ComposedChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
+                        <YAxis yAxisId="left" stroke="#9CA3AF" />
+                        <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="gpm" fill="#F59E0B" name="GPM" />
+                        <Bar yAxisId="right" dataKey="xpm" fill="#3B82F6" name="XPM" />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* KDA Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold mb-4">KDA per Hero</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="kda" fill="#EF4444" name="KDA" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               )}
 
