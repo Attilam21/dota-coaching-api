@@ -38,6 +38,64 @@ export async function GET(
       }
     })
 
+    // Fetch recent matches to calculate GPM/XPM per hero (OpenDota heroes endpoint doesn't provide these)
+    // We'll fetch matches and calculate averages per hero
+    let heroGPMXPM: Record<number, { gpm: number; xpm: number; count: number }> = {}
+    try {
+      const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=100`, {
+        next: { revalidate: 3600 }
+      })
+      if (matchesResponse.ok) {
+        const matches = await matchesResponse.json()
+        // Fetch full match details for first 50 matches to get accurate GPM/XPM
+        const matchesToFetch = matches.slice(0, 50)
+        const fullMatchesPromises = matchesToFetch.map((m: any) =>
+          fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+            next: { revalidate: 3600 }
+          }).then(res => res.ok ? res.json() : null).catch(() => null)
+        )
+        const fullMatches = await Promise.all(fullMatchesPromises)
+        
+        // Calculate GPM/XPM per hero from matches
+        fullMatches.forEach((fullMatch: any, idx: number) => {
+          if (!fullMatch?.players || idx >= matchesToFetch.length) return
+          const matchSummary = matchesToFetch[idx]
+          // Find player by account_id first, then fallback to player_slot
+          const playerInMatch = fullMatch.players.find((p: any) => 
+            p.account_id?.toString() === id
+          ) || fullMatch.players.find((p: any) => 
+            p.player_slot === matchSummary?.player_slot
+          )
+          if (playerInMatch && playerInMatch.hero_id) {
+            const heroId = playerInMatch.hero_id
+            const gpm = playerInMatch.gold_per_min || 0
+            const xpm = playerInMatch.xp_per_min || 0
+            
+            if (!heroGPMXPM[heroId]) {
+              heroGPMXPM[heroId] = { gpm: 0, xpm: 0, count: 0 }
+            }
+            if (gpm > 0 || xpm > 0) {
+              heroGPMXPM[heroId].gpm += gpm
+              heroGPMXPM[heroId].xpm += xpm
+              heroGPMXPM[heroId].count++
+            }
+          }
+        })
+        
+        // Calculate averages
+        Object.keys(heroGPMXPM).forEach(heroId => {
+          const stats = heroGPMXPM[parseInt(heroId)]
+          if (stats.count > 0) {
+            stats.gpm = stats.gpm / stats.count
+            stats.xpm = stats.xpm / stats.count
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching matches for hero GPM/XPM:', error)
+      // Continue without GPM/XPM data
+    }
+
     // Filter and process player heroes (only with games > 0)
     const heroStats = playerHeroes
       .filter((h: any) => h.games && h.games > 0)
@@ -60,14 +118,23 @@ export async function GET(
         else if (winrate >= 50 && h.games >= 5) rating = 'Buona'
         else if (winrate >= 45) rating = 'Media'
         
-        // Handle GPM/XPM - only include if actually available from API
-        // OpenDota may not always return these fields, so we check for actual values
-        const avgGPM = h.avg_gold_per_min != null && h.avg_gold_per_min > 0 
-          ? h.avg_gold_per_min.toFixed(0) 
-          : null
-        const avgXPM = h.avg_xp_per_min != null && h.avg_xp_per_min > 0 
-          ? h.avg_xp_per_min.toFixed(0) 
-          : null
+        // Handle GPM/XPM - try multiple sources
+        // 1. From OpenDota heroes endpoint (if available)
+        // 2. From calculated matches data (more accurate)
+        let avgGPM: string | null = null
+        let avgXPM: string | null = null
+        
+        // Priority: calculated from matches > OpenDota endpoint
+        if (heroGPMXPM[h.hero_id] && heroGPMXPM[h.hero_id].count > 0) {
+          avgGPM = Math.round(heroGPMXPM[h.hero_id].gpm).toString()
+          avgXPM = Math.round(heroGPMXPM[h.hero_id].xpm).toString()
+        } else if (h.avg_gold_per_min != null && h.avg_gold_per_min > 0) {
+          avgGPM = h.avg_gold_per_min.toFixed(0)
+        }
+        
+        if (!avgXPM && h.avg_xp_per_min != null && h.avg_xp_per_min > 0) {
+          avgXPM = h.avg_xp_per_min.toFixed(0)
+        }
         
         return {
           hero_id: h.hero_id,
