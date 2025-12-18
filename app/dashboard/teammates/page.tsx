@@ -10,7 +10,10 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star, BarChart as BarChartIcon, List } from 'lucide-react'
+import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star, BarChart as BarChartIcon, List, Users, Sparkles } from 'lucide-react'
+import TeamChemistryScore from '@/components/TeamChemistryScore'
+import SynergyMatrix from '@/components/SynergyMatrix'
+import OptimalTeams from '@/components/OptimalTeams'
 
 interface Teammate {
   account_id: number
@@ -30,7 +33,7 @@ interface TeammateInsights {
 type FilterType = 'all' | 'best' | 'most-played' | 'synergies'
 type SortField = 'games' | 'winrate' | 'name' | null
 type SortDirection = 'asc' | 'desc'
-type TabType = 'overview' | 'chart' | 'list'
+type TabType = 'overview' | 'chart' | 'list' | 'chemistry' | 'synergy' | 'optimal'
 
 export default function TeammatesPage() {
   const { user, loading: authLoading } = useAuth()
@@ -279,6 +282,9 @@ export default function TeammatesPage() {
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'chemistry' as TabType, name: 'Chemistry Score', icon: Sparkles },
+                { id: 'synergy' as TabType, name: 'Synergy Matrix', icon: Users },
+                { id: 'optimal' as TabType, name: 'Team Ottimali', icon: Trophy },
                 { id: 'chart' as TabType, name: 'Grafico', icon: TrendingUp },
                 { id: 'list' as TabType, name: 'Lista', icon: List },
               ].map((tab) => (
@@ -545,6 +551,27 @@ export default function TeammatesPage() {
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Chemistry Score Tab */}
+              {activeTab === 'chemistry' && playerId && (
+                <div className="space-y-6">
+                  <TeamChemistryScore playerId={playerId} />
+                </div>
+              )}
+
+              {/* Synergy Matrix Tab */}
+              {activeTab === 'synergy' && playerId && (
+                <div className="space-y-6">
+                  <SynergyMatrix playerId={playerId} />
+                </div>
+              )}
+
+              {/* Optimal Teams Tab */}
+              {activeTab === 'optimal' && playerId && (
+                <div className="space-y-6">
+                  <OptimalTeams playerId={playerId} />
                 </div>
               )}
             </div>
