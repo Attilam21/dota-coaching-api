@@ -8,7 +8,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
-import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2 } from 'lucide-react'
+import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartTabIcon, Activity, Eye } from 'lucide-react'
 
 interface PlayerProfile {
   role: string
@@ -52,6 +52,8 @@ interface PlayerProfile {
   trendData?: Array<{ match: string; gpm: number; xpm: number; kda: number; winrate: number }>
 }
 
+type TabType = 'overview' | 'advanced' | 'analysis' | 'visualizations'
+
 export default function ProfilingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -59,6 +61,7 @@ export default function ProfilingPage() {
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -211,8 +214,37 @@ export default function ProfilingPage() {
             </div>
           )}
 
-          {/* Profile Overview */}
-          <div className="grid md:grid-cols-2 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartTabIcon },
+                { id: 'advanced' as TabType, name: 'Metriche Avanzate', icon: Activity },
+                { id: 'analysis' as TabType, name: 'Analisi', icon: Target },
+                { id: 'visualizations' as TabType, name: 'Visualizzazioni', icon: Eye },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Profile Overview */}
+                  <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
               <InsightBadge
                 elementType="role"
@@ -428,141 +460,21 @@ export default function ProfilingPage() {
                 <p className="text-2xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
               </div>
             </div>
-          )}
-
-          {/* Trend Chart */}
-          {profile.trendData && profile.trendData.length > 0 && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
-              <InsightBadge
-                elementType="trend-chart"
-                elementId="trend-chart"
-                contextData={{ trends: profile.trends, data: profile.trendData }}
-                playerId={playerId || ''}
-                position="top-right"
-              />
-              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                <BarChartIcon className="w-6 h-6" />
-                Trend Performance (Ultime 10 Partite)
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={profile.trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="match" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Line type="monotone" dataKey="gpm" stroke="#F59E0B" strokeWidth={2} name="GPM" dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="xpm" stroke="#8B5CF6" strokeWidth={2} name="XPM" dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="kda" stroke="#EF4444" strokeWidth={2} name="KDA" dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Phase Analysis */}
-          {profile.phaseAnalysis && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                <Sword className="w-6 h-6" />
-                Performance per Fase di Gioco
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-700/50 rounded-lg p-4 relative">
-                  <InsightBadge
-                    elementType="phase-analysis"
-                    elementId="phase-early"
-                    contextData={{ phase: 'Early Game', score: profile.phaseAnalysis.early.score, strength: profile.phaseAnalysis.early.strength }}
-                    playerId={playerId || ''}
-                    position="top-right"
-                  />
-                  <h4 className="text-lg font-semibold mb-2 text-green-400">Early Game</h4>
-                  <p className="text-sm text-gray-300 mb-2">Last Hits, Denies, First Blood</p>
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold ${
-                      profile.phaseAnalysis.early.strength === 'Forti' ? 'text-green-400' : 'text-yellow-400'
-                    }`}>
-                      {profile.phaseAnalysis.early.strength}
-                    </span>
-                    <span className="text-2xl font-bold">{Math.round(profile.phaseAnalysis.early.score / 2)}/100</span>
-                  </div>
+                  )}
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-4 relative">
-                  <InsightBadge
-                    elementType="phase-analysis"
-                    elementId="phase-mid"
-                    contextData={{ phase: 'Mid Game', score: profile.phaseAnalysis.mid.score, strength: profile.phaseAnalysis.mid.strength }}
-                    playerId={playerId || ''}
-                    position="top-right"
-                  />
-                  <h4 className="text-lg font-semibold mb-2 text-blue-400">Mid Game</h4>
-                  <p className="text-sm text-gray-300 mb-2">Teamfight, Farm, Obiettivi</p>
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold ${
-                      profile.phaseAnalysis.mid.strength === 'Forti' ? 'text-green-400' : 'text-yellow-400'
-                    }`}>
-                      {profile.phaseAnalysis.mid.strength}
-                    </span>
-                    <span className="text-2xl font-bold">{Math.round(profile.phaseAnalysis.mid.score / 2)}/100</span>
-                  </div>
-                </div>
-                <div className="bg-gray-700/50 rounded-lg p-4 relative">
-                  <InsightBadge
-                    elementType="phase-analysis"
-                    elementId="phase-late"
-                    contextData={{ phase: 'Late Game', score: profile.phaseAnalysis.late.score, strength: profile.phaseAnalysis.late.strength }}
-                    playerId={playerId || ''}
-                    position="top-right"
-                  />
-                  <h4 className="text-lg font-semibold mb-2 text-purple-400">Late Game</h4>
-                  <p className="text-sm text-gray-300 mb-2">Decisioni, Item, Chiusura</p>
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold ${
-                      profile.phaseAnalysis.late.strength === 'Forti' ? 'text-green-400' : 'text-yellow-400'
-                    }`}>
-                      {profile.phaseAnalysis.late.strength}
-                    </span>
-                    <span className="text-2xl font-bold">{Math.round(profile.phaseAnalysis.late.score / 2)}/100</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Patterns */}
-          {profile.patterns && profile.patterns.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-900/80 to-purple-900/80 backdrop-blur-sm border border-blue-700 rounded-lg p-6 relative">
-              <InsightBadge
-                elementType="pattern"
-                elementId="patterns"
-                contextData={{ patterns: profile.patterns }}
-                playerId={playerId || ''}
-                position="top-right"
-              />
-              <h3 className="text-2xl font-semibold mb-4 text-blue-300">🔍 Pattern di Gioco Identificati</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.patterns.map((pattern, idx) => (
-                  <span key={idx} className="bg-gray-800/70 px-4 py-2 rounded-full text-sm text-blue-200 border border-blue-600">
-                    {pattern}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Advanced Metrics Grid */}
-          {profile.metrics && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                <BarChartIcon className="w-6 h-6" />
-                Metriche Avanzate
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Advanced Metrics Tab */}
+              {activeTab === 'advanced' && (
+                <div className="space-y-6">
+                  {/* Advanced Metrics Grid */}
+                  {profile.metrics && (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                        <BarChartIcon className="w-6 h-6" />
+                        Metriche Avanzate
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {profile.metrics.avgHeroDamage && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-red-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Hero Damage</p>
@@ -653,12 +565,17 @@ export default function ProfilingPage() {
                     </p>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-          {/* Comparative Analysis */}
-          {profile.metrics && profile.role && (
+              {/* Analysis Tab */}
+              {activeTab === 'analysis' && (
+                <div className="space-y-6">
+                  {/* Phase Analysis */}
+                  {profile.phaseAnalysis && (
             <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 backdrop-blur-sm border border-indigo-700 rounded-lg p-6 relative">
               <InsightBadge
                 elementType="comparative-analysis"
@@ -747,74 +664,114 @@ export default function ProfilingPage() {
                 </div>
               </div>
             </div>
-          )}
+                  )}
 
-          {/* Performance Insights */}
-          {profile.phaseAnalysis && (
-            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                <Target className="w-6 h-6" />
-                Insights Performance per Fase
-              </h3>
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-green-900/40 to-green-800/20 rounded-lg p-4 border border-green-700/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-semibold mb-2 text-green-400">Early Game</h4>
-                    <span className="text-2xl font-bold text-green-300">
-                      {Math.round(profile.phaseAnalysis.early.score / 2)}/100
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-300 mb-2">
-                    <strong>Focus:</strong> Last Hits, Denies, First Blood Involvement
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {profile.phaseAnalysis.early.strength === 'Forti' 
-                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime performance nella fase di laning. Mantieni questo livello di attenzione ai dettagli.</span>
-                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Concentrati sul miglioramento della fase di laning. Pratica il last hitting e controlla meglio la lane.</span>}
-                  </p>
+                  {/* Performance Insights */}
+                  {profile.phaseAnalysis && (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                        <Target className="w-6 h-6" />
+                        Insights Performance per Fase
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="bg-gradient-to-r from-green-900/40 to-green-800/20 rounded-lg p-4 border border-green-700/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-lg font-semibold mb-2 text-green-400">Early Game</h4>
+                            <span className="text-2xl font-bold text-green-300">
+                              {Math.round(profile.phaseAnalysis.early.score / 2)}/100
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-300 mb-2">
+                            <strong>Focus:</strong> Last Hits, Denies, First Blood Involvement
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {profile.phaseAnalysis.early.strength === 'Forti' 
+                              ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime performance nella fase di laning. Mantieni questo livello di attenzione ai dettagli.</span>
+                              : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Concentrati sul miglioramento della fase di laning. Pratica il last hitting e controlla meglio la lane.</span>}
+                          </p>
+                        </div>
+                        <div className="bg-gradient-to-r from-blue-900/40 to-blue-800/20 rounded-lg p-4 border border-blue-700/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-lg font-semibold mb-2 text-blue-400">Mid Game</h4>
+                            <span className="text-2xl font-bold text-blue-300">
+                              {Math.round(profile.phaseAnalysis.mid.score / 2)}/100
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-300 mb-2">
+                            <strong>Focus:</strong> Teamfight Participation, Farm Continuity, Objective Control
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {profile.phaseAnalysis.mid.strength === 'Forti'
+                              ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Eccellente presenza nei teamfight e gestione del farm in mid game.</span>
+                              : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Aumenta la partecipazione ai teamfight e mantieni il farm anche durante le rotazioni.</span>}
+                          </p>
+                        </div>
+                        <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/20 rounded-lg p-4 border border-purple-700/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-lg font-semibold mb-2 text-purple-400">Late Game</h4>
+                            <span className="text-2xl font-bold text-purple-300">
+                              {Math.round(profile.phaseAnalysis.late.score / 2)}/100
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-300 mb-2">
+                            <strong>Focus:</strong> Decision Making, Item Efficiency, Game Closing
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {profile.phaseAnalysis.late.strength === 'Forti'
+                              ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime decisioni in late game e gestione efficiente delle risorse.</span>
+                              : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Migliora il decision making in late game e l\'utilizzo del gold per item critici.</span>}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="bg-gradient-to-r from-blue-900/40 to-blue-800/20 rounded-lg p-4 border border-blue-700/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-semibold mb-2 text-blue-400">Mid Game</h4>
-                    <span className="text-2xl font-bold text-blue-300">
-                      {Math.round(profile.phaseAnalysis.mid.score / 2)}/100
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-300 mb-2">
-                    <strong>Focus:</strong> Teamfight Participation, Farm Continuity, Objective Control
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {profile.phaseAnalysis.mid.strength === 'Forti'
-                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Eccellente presenza nei teamfight e gestione del farm in mid game.</span>
-                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Aumenta la partecipazione ai teamfight e mantieni il farm anche durante le rotazioni.</span>}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/20 rounded-lg p-4 border border-purple-700/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-semibold mb-2 text-purple-400">Late Game</h4>
-                    <span className="text-2xl font-bold text-purple-300">
-                      {Math.round(profile.phaseAnalysis.late.score / 2)}/100
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-300 mb-2">
-                    <strong>Focus:</strong> Decision Making, Item Efficiency, Game Closing
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {profile.phaseAnalysis.late.strength === 'Forti'
-                      ? <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ottime decisioni in late game e gestione efficiente delle risorse.</span>
-                      : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Migliora il decision making in late game e l\'utilizzo del gold per item critici.</span>}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Charts Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Radar Chart */}
-            {profile.radarData && profile.radarData.length > 0 && (
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4">Profilo Multi-Dimensionale</h2>
+              {/* Visualizations Tab */}
+              {activeTab === 'visualizations' && (
+                <div className="space-y-6">
+                  {/* Trend Chart */}
+                  {profile.trendData && profile.trendData.length > 0 && (
+                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6 relative">
+                      <InsightBadge
+                        elementType="trend-chart"
+                        elementId="trend-chart"
+                        contextData={{ trends: profile.trends, data: profile.trendData }}
+                        playerId={playerId || ''}
+                        position="top-right"
+                      />
+                      <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                        <BarChartIcon className="w-6 h-6" />
+                        Trend Performance (Ultime 10 Partite)
+                      </h3>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={profile.trendData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis dataKey="match" stroke="#9CA3AF" />
+                          <YAxis stroke="#9CA3AF" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Legend />
+                          <Line type="monotone" dataKey="gpm" stroke="#F59E0B" strokeWidth={2} name="GPM" dot={{ r: 4 }} />
+                          <Line type="monotone" dataKey="xpm" stroke="#8B5CF6" strokeWidth={2} name="XPM" dot={{ r: 4 }} />
+                          <Line type="monotone" dataKey="kda" stroke="#EF4444" strokeWidth={2} name="KDA" dot={{ r: 4 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Charts Grid */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Radar Chart */}
+                    {profile.radarData && profile.radarData.length > 0 && (
+                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                        <h2 className="text-2xl font-semibold mb-4">Profilo Multi-Dimensionale</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={profile.radarData}>
                     <PolarGrid stroke="#374151" />
@@ -836,89 +793,36 @@ export default function ProfilingPage() {
                       }}
                     />
                   </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                        </ResponsiveContainer>
+                      </div>
+                    )}
 
-            {/* Performance Breakdown Bar Chart */}
-            {profile.radarData && profile.radarData.length > 0 && (
-              <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4">Breakdown Performance</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={profile.radarData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="subject" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
-                    <YAxis stroke="#9CA3AF" domain={[0, 100]} tick={{ fontSize: 10 }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1F2937',
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Bar dataKey="value" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-
-          {/* Strengths & Weaknesses */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800/90 backdrop-blur-sm border-2 border-green-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-green-400 flex items-center gap-2">
-                <span>✓</span> Punti di Forza
-              </h3>
-              <ul className="space-y-3">
-                {profile.strengths.length > 0 ? (
-                  profile.strengths.map((strength, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-gray-200 bg-green-900/20 p-3 rounded-lg">
-                      <span className="text-green-400 text-xl mt-0.5">●</span>
-                      <span>{strength}</span>
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-gray-500">Nessun punto di forza identificato</li>
-                )}
-              </ul>
-            </div>
-
-            <div className="bg-gray-800/90 backdrop-blur-sm border-2 border-red-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-red-400 flex items-center gap-2">
-                <span>⚠</span> Aree di Miglioramento
-              </h3>
-              <ul className="space-y-3">
-                {profile.weaknesses.length > 0 ? (
-                  profile.weaknesses.map((weakness, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-gray-200 bg-red-900/20 p-3 rounded-lg">
-                      <span className="text-red-400 text-xl mt-0.5">●</span>
-                      <span>{weakness}</span>
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-gray-500">Nessuna area di miglioramento identificata</li>
-                )}
-              </ul>
-            </div>
-          </div>
-
-          {/* Recommendations */}
-          {profile.recommendations && profile.recommendations.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-900/80 to-indigo-900/80 backdrop-blur-sm border-2 border-blue-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
-                <Lightbulb className="w-6 h-6" />
-                Raccomandazioni Personalizzate
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                {profile.recommendations.map((rec, idx) => (
-                  <div key={idx} className="flex items-start gap-3 bg-gray-800/50 p-4 rounded-lg border border-blue-600/30">
-                    <span className="text-blue-400 text-xl font-bold mt-0.5">{idx + 1}.</span>
-                    <span className="text-gray-200">{rec}</span>
+                    {/* Performance Breakdown Bar Chart */}
+                    {profile.radarData && profile.radarData.length > 0 && (
+                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                        <h2 className="text-2xl font-semibold mb-4">Breakdown Performance</h2>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={profile.radarData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <XAxis dataKey="subject" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                            <YAxis stroke="#9CA3AF" domain={[0, 100]} tick={{ fontSize: 10 }} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#1F2937',
+                                border: '1px solid #374151',
+                                borderRadius: '8px',
+                              }}
+                            />
+                            <Bar dataKey="value" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
       </div>
