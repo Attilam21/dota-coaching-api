@@ -29,18 +29,29 @@ async function generateInsight(
         }
       )
 
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-
-      if (text && text.trim()) {
-        return text.trim()
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+        
+        if (text && typeof text === 'string' && text.trim().length > 0) {
+          return text.trim()
+        } else {
+          console.warn('Gemini API returned empty or invalid response, trying OpenAI fallback:', {
+            hasCandidates: !!data.candidates,
+            candidatesLength: data.candidates?.length || 0,
+          })
+        }
+      } else {
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.warn('Gemini API failed, trying OpenAI fallback:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
-      console.error('Gemini API error:', error)
+      console.warn('Gemini API error, trying OpenAI fallback:', error)
+      // Continue to OpenAI fallback
     }
   }
 
@@ -67,22 +78,41 @@ async function generateInsight(
         }),
       })
 
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      const text = data.choices?.[0]?.message?.content
-
-      if (text && text.trim()) {
-        return text.trim()
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.choices?.[0]?.message?.content
+        
+        if (text && typeof text === 'string' && text.trim().length > 0) {
+          return text.trim()
+        } else {
+          console.warn('OpenAI API returned empty or invalid response:', {
+            hasChoices: !!data.choices,
+            choicesLength: data.choices?.length || 0,
+          })
+        }
+      } else {
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.error('OpenAI API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText.substring(0, 200)
+        })
       }
     } catch (error) {
       console.error('OpenAI API error:', error)
+      // Will throw error below if both fail
     }
   }
 
-  throw new Error('Both Gemini and OpenAI failed or are not configured')
+  // Check if keys are configured to give better error message
+  const hasGeminiKey = !!process.env.GEMINI_API_KEY
+  const hasOpenaiKey = !!(process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY)
+  
+  if (!hasGeminiKey && !hasOpenaiKey) {
+    throw new Error('AI API keys not configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in environment variables.')
+  }
+  
+  throw new Error('Both Gemini and OpenAI API calls failed. Please check your API keys and try again.')
 }
 
 export async function POST(request: NextRequest) {
@@ -233,4 +263,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
 
