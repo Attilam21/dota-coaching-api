@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useId } from 'react'
+import { useState, useEffect } from 'react'
 import { Lightbulb, X } from 'lucide-react'
 import { useModal } from '@/lib/modal-context'
 
@@ -19,7 +19,8 @@ export default function InsightBadge({
   playerId,
   position = 'top-right'
 }: InsightBadgeProps) {
-  const modalId = useId()
+  // Create unique modal ID from elementType and elementId
+  const modalId = `insight-${elementType}-${elementId}`
   const { openModalId, setOpenModalId } = useModal()
   const isOpen = openModalId === modalId
   
