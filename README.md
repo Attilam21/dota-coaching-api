@@ -61,7 +61,7 @@ Frontend (Next.js 14)       Backend (NestJS)
 │ - Home Page         │    │ - OpenDota proxy    │
 │ - Match Analysis    │    │ - AI Analysis       │
 │ - Player Stats      │    │ - Learning Paths    │
-│ - Learning Paths    │    │ - Gamification      │
+│ - Dashboard         │    │                     │
 └──────────────────────┘    └──────────────────────┘
          │                         │
          └───── Fallback ─────────┬┘
@@ -75,25 +75,31 @@ Frontend (Next.js 14)       Backend (NestJS)
 ## ✨ Funzionalità Implementate
 
 ### ✅ Già Funzionanti
+- **Autenticazione Supabase** (Login/Signup)
 - **Home Page** con form per analisi match e player
 - **Match Analysis** con dettagli completi e statistiche giocatori
+- **Dashboard Player** completo con statistiche, profiling, performance
+- **Salvataggio Analisi** in Supabase (solo dati custom)
 - **Fallback automatico** a OpenDota se backend offline
 - **UI responsive** con Tailwind CSS
 - **Loading states** e error handling
 
 ### 🚧 In Sviluppo
-- Player dashboard con grafici storici
-- Analisi AI con insights personalizzati
+- Analisi AI avanzata con OpenAI
 - Learning paths con moduli interattivi
-- Sistema di gamification (XP, achievement)
-- Autenticazione Supabase
+- Export dati (CSV/PDF)
 
 ## 📡 API Endpoints Frontend
 
 ### Pages
 - `/` - Home page con ricerca
-- `/analysis/match/[id]` - Dettagli match
-- `/analysis/player/[id]` - Stats giocatore (coming soon)
+- `/auth/login` - Login utente
+- `/auth/signup` - Registrazione utente
+- `/dashboard` - Dashboard principale con statistiche
+- `/dashboard/profiling` - Profilazione completa player
+- `/dashboard/performance` - Performance e stile di gioco
+- `/dashboard/coaching` - Coaching e task
+- `/analysis/match/[id]` - Dettagli match con analisi
 - `/learning` - Percorsi di apprendimento (coming soon)
 
 ### Backend Integration
@@ -134,6 +140,8 @@ Aggiungi queste variabili nel dashboard Vercel:
 NEXT_PUBLIC_API_URL=https://your-backend-url.com
 NEXT_PUBLIC_SUPABASE_URL=https://yzfjtrteezvyoudpfccb.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+
+# Nota: Player ID gestito in localStorage, non in Supabase
 ```
 
 ## 📁 Struttura Progetto

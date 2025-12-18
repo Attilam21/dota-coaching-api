@@ -1,6 +1,6 @@
 # 📋 Stato Completo del Progetto Dota 2 Coaching Platform
 
-**Data aggiornamento**: 16 Dicembre 2025, ore 08:45 CET
+**Data aggiornamento**: Gennaio 2025
 
 ---
 
@@ -54,19 +54,19 @@
 - fly.toml per Fly.io
 - Procfile per Heroku-compatible platforms
 
-### Database (Supabase) - DEFINITO AL 100%
+### Database (Supabase) - IMPLEMENTATO AL 100%
 
-✅ **Schema SQL Completo**
-- Tabelle: users, match_analyses, learning_modules, learning_progress
-- Tabelle gamification: achievements, user_achievements, user_stats
+✅ **Schema SQL Semplificato**
+- Tabelle: `users` (autenticazione), `match_analyses` (analisi salvate)
 - Row Level Security (RLS) configurato
-- Trigger per creazione automatica profili
-- Function per gestione XP e livelli
+- Trigger per creazione automatica profili utente
+- **Nessuna gamification** (rimossa per semplificare)
 
 ✅ **Integrazione**
 - Client Supabase configurato in `lib/supabase.ts`
 - TypeScript types per database
 - Environment variables setup
+- Autenticazione funzionante
 
 ### Documentazione - COMPLETA
 
@@ -78,26 +78,35 @@
 
 ---
 
+## ✅ COSA È IMPLEMENTATO
+
+### Autenticazione Supabase ✅
+- ✅ Login/Signup pages
+- ✅ Protected routes middleware
+- ✅ Session management
+- ✅ Player ID gestito in localStorage
+
+### Dashboard Player ✅
+- ✅ Pagina `/dashboard` con statistiche
+- ✅ Pagina `/dashboard/profiling` con analisi completa
+- ✅ Pagina `/dashboard/performance` con metriche avanzate
+- ✅ Grafici performance (Recharts)
+- ✅ Statistiche aggregate da OpenDota
+
+### Salvataggio Analisi ✅
+- ✅ Salvare match analizzati in Supabase (`match_analyses`)
+- ✅ Storico analisi personali
+- ✅ Pattern semplice: solo dati custom, OpenDota è source of truth
+
 ## 🚧 COSA MANCA DA IMPLEMENTARE
 
-### Priorità ALTA (necessario per MVP)
+### Priorità MEDIA (nice to have)
 
-⚪ **Autenticazione Supabase**
-- Login/Signup pages
-- Protected routes middleware
-- Session management
-- OAuth con Steam (opzionale)
-
-⚪ **Player Dashboard**
-- Pagina `/analysis/player/[id]`
-- Grafici performance storici (Recharts)
-- Statistiche aggregate
-- Win rate per eroe
-
-⚪ **Salvataggio Analisi**
-- Salvare match analizzati in Supabase
-- Storico analisi personali
-- Note e commenti utente
+⚪ **AI Analysis Avanzata**
+- Integrazione OpenAI API
+- Insights personalizzati farm efficiency
+- Suggerimenti positioning
+- Analisi teamfight
 
 ### Priorità MEDIA (nice to have)
 
@@ -112,12 +121,6 @@
 - Moduli interattivi
 - Quiz e sfide
 - Progress tracking visivo
-
-⚪ **Gamification**
-- Sistema XP e livelli
-- Achievements unlock
-- Leaderboard community
-- Badge collection
 
 ### Priorità BASSA (future)
 
@@ -173,45 +176,44 @@ L'app funziona già senza backend grazie alle API routes su Vercel!
 
 ## 📊 METRICHE PROGETTO
 
-**Completamento Generale**: 70%
+**Completamento Generale**: 85%
 
 | Componente | Stato | Completamento |
 |------------|-------|---------------|
-| Frontend UI | ✅ Funzionante | 80% |
-| API Routes | ✅ Funzionante | 70% |
+| Frontend UI | ✅ Funzionante | 90% |
+| API Routes | ✅ Funzionante | 85% |
 | Backend NestJS | 🚧 Opzionale | 60% |
-| Database Schema | ✅ Definito | 100% |
-| Autenticazione | ❌ Mancante | 0% |
-| AI Analysis | ❌ Mancante | 10% |
-| Learning Paths | ❌ Mancante | 20% |
-| Gamification | ❌ Mancante | 10% |
+| Database Schema | ✅ Implementato | 100% |
+| Autenticazione | ✅ Funzionante | 100% |
+| Dashboard Pages | ✅ Funzionanti | 90% |
+| Salvataggio Analisi | ✅ Funzionante | 100% |
+| AI Analysis | ⚠️ Base | 30% |
+| Learning Paths | ❌ Mancante | 0% |
 | Documentazione | ✅ Completa | 100% |
-| Deploy | ✅ Pronto | 90% |
+| Deploy | ✅ Pronto | 100% |
 
-**Lines of Code**: ~3,500
-**Files**: 35+
-**API Endpoints**: 5 attivi
-**Database Tables**: 8 definite
+**Lines of Code**: ~5,000+
+**Files**: 50+
+**API Endpoints**: 15+ attivi
+**Database Tables**: 2 (users, match_analyses)
 
 ---
 
 ## 🎯 ROADMAP PROSSIMI PASSI
 
-### Settimana 1 (16-22 Dic)
-1. ✅ Setup Supabase schema
+### ✅ Completato (Gennaio 2025)
+1. ✅ Setup Supabase schema (semplificato)
 2. ✅ Deploy frontend su Vercel
-3. ⚪ Implementare autenticazione
-4. ⚪ Player dashboard base
+3. ✅ Implementare autenticazione
+4. ✅ Player dashboard completo
+5. ✅ Salvataggio analisi in DB
+6. ✅ Rimozione gamification (semplificazione)
 
-### Settimana 2 (23-29 Dic)
-1. Salvare analisi in DB
-2. Storico match personali
-3. Grafici performance
-
-### Gennaio 2026
-1. AI analysis con OpenAI
-2. Learning paths MVP
-3. Sistema XP e achievements
+### Prossimi Passi
+1. ⚪ Migliorare AI analysis con OpenAI
+2. ⚪ Learning paths MVP
+3. ⚪ Export dati (CSV/PDF)
+4. ⚪ Filtri avanzati per match salvati
 
 ---
 

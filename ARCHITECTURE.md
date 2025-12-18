@@ -45,7 +45,7 @@ The following repositories are marked for deletion (Dec 20, 2025):
 │  - OpenDota API proxy            │
 │  - Match Analysis (AI)           │
 │  - Learning Paths                │
-│  - Gamification Logic            │
+│  (Gamification rimosso - semplificato)│
 └─────┬───────────────┬───────────────┘
      │              │
      │              │
@@ -67,13 +67,12 @@ The following repositories are marked for deletion (Dec 20, 2025):
 5. Results stored in Supabase and returned to frontend
 6. Frontend displays interactive charts and recommendations
 
-### Learning Path Flow
-1. User authenticates via Supabase
-2. Frontend requests personalized path from backend
-3. Backend analyzes recent matches and skill level
-4. Backend generates custom learning modules
-5. Progress tracked in Supabase
-6. Frontend shows gamified progress (XP, badges)
+### Data Flow Semplificato
+1. User authenticates via Supabase (solo per salvare analisi)
+2. Player ID gestito in localStorage (non in Supabase)
+3. Tutte le analisi fetchate da OpenDota API (backend/frontend)
+4. Solo analisi custom salvate in Supabase (`match_analyses`)
+5. Pattern: OpenDota = source of truth, Supabase = solo dati utente-specifici
 
 ## Technology Choices
 

@@ -172,8 +172,9 @@ Esegui lo schema SQL in `supabase/schema.sql` su Supabase Dashboard
 
 ### Database
 - Salvataggio match usa `upsert` per evitare duplicati
-- RPC `add_user_xp` opzionale (ignora errori se non configurato)
+- Solo dati custom salvati (analisi), OpenDota è source of truth per match data
 - Row Level Security (RLS) già configurato nello schema
+- Schema semplificato: solo `users` e `match_analyses` (gamification rimossa)
 
 ### Error Handling
 - Try-catch su tutte le operazioni async
