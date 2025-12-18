@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       achievements: achievementsWithStatus,
       grouped: groupedByCategory,
-      totalUnlocked: achievementsWithStatus.filter(a => a.unlocked).length,
+      totalUnlocked: achievementsWithStatus.filter((a: typeof achievementsWithStatus[0]) => a.unlocked).length,
       totalAchievements: achievementsWithStatus.length
     }, {
       headers: {
