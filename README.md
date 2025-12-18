@@ -271,6 +271,19 @@ npm run dev
 
 ---
 
-Last updated: December 16, 2025
+## 📊 Stato Attuale (Gennaio 2025)
+
+- ✅ **Autenticazione**: Funzionante (Supabase)
+- ✅ **Dashboard**: Completo con tutte le analisi
+- ✅ **Salvataggio Analisi**: Funzionante (Supabase)
+- ✅ **Player ID**: Gestito in localStorage
+- ✅ **Analisi**: Tutte fetchate da OpenDota (backend/frontend)
+- ❌ **Gamification**: Rimossa (semplificazione)
+
+**Pattern**: OpenDota = source of truth per dati match/player, Supabase = solo autenticazione e analisi salvate
+
+---
+
+Last updated: Gennaio 2025
 
 <!-- Vercel deployment trigger -->
