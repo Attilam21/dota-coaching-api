@@ -114,20 +114,39 @@ async function generateInsight(
   const hasOpenaiKey = !!(process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY)
   
   if (!hasGeminiKey && !hasOpenaiKey) {
-    throw new Error('AI API keys not configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in environment variables.')
+    throw new Error('AI_API_KEYS_NOT_CONFIGURED')
   }
   
-  throw new Error('Both Gemini and OpenAI API calls failed. Please check your API keys and try again.')
+  throw new Error('AI_SERVICE_FAILED')
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Check API keys availability first (before processing request)
+    const hasGeminiKey = !!process.env.GEMINI_API_KEY
+    const hasOpenaiKey = !!(process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY)
+    
+    if (!hasGeminiKey && !hasOpenaiKey) {
+      return NextResponse.json(
+        { 
+          error: 'AI service not configured',
+          message: 'Le chiavi API per il servizio AI non sono configurate. La funzionalità di suggerimenti AI non è disponibile al momento.',
+          code: 'API_KEYS_MISSING'
+        },
+        { status: 503 } // Service Unavailable
+      )
+    }
+
     const body = await request.json()
     const { playerId, elementType, elementId, contextData } = body
 
     if (!playerId || !elementType || !elementId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { 
+          error: 'Missing required fields',
+          message: 'Campi richiesti mancanti: playerId, elementType, elementId',
+          code: 'MISSING_FIELDS'
+        },
         { status: 400 }
       )
     }
@@ -262,8 +281,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ insight })
   } catch (error) {
     console.error('Error generating insight:', error)
+    
+    // Provide user-friendly error messages
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate insight'
+    
+    // Check if it's an API keys error
+    if (errorMessage === 'AI_API_KEYS_NOT_CONFIGURED' || errorMessage === 'AI_SERVICE_FAILED' || 
+        errorMessage.includes('API keys not configured') || errorMessage.includes('API calls failed')) {
+      return NextResponse.json(
+        { 
+          error: 'AI service unavailable',
+          message: 'Il servizio AI non è disponibile. Verifica la configurazione delle chiavi API.',
+          code: errorMessage === 'AI_API_KEYS_NOT_CONFIGURED' ? 'API_KEYS_MISSING' : 'AI_SERVICE_ERROR'
+        },
+        { status: 503 }
+      )
+    }
+    
+    // Generic error
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate insight' },
+      { 
+        error: 'Failed to generate insight',
+        message: 'Errore nel generare il suggerimento. Riprova più tardi.',
+        code: 'GENERATION_ERROR'
+      },
       { status: 500 }
     )
   }

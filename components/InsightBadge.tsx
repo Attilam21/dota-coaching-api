@@ -77,11 +77,21 @@ export default function InsightBadge({
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch insight')
-      }
-
       const data = await response.json()
+
+      // Handle API errors gracefully
+      if (!response.ok) {
+        // Use user-friendly message from API if available
+        const errorMessage = data.message || data.error || 'Errore nel generare il suggerimento'
+        const errorCode = data.code || 'UNKNOWN_ERROR'
+        
+        // Special handling for API keys missing (503 Service Unavailable)
+        if (response.status === 503 && (errorCode === 'API_KEYS_MISSING' || errorCode === 'AI_SERVICE_ERROR')) {
+          throw new Error('SERVICE_UNAVAILABLE')
+        }
+        
+        throw new Error(errorMessage)
+      }
       
       // Check if insight exists and is not empty
       if (!data.insight || typeof data.insight !== 'string' || data.insight.trim() === '') {
@@ -90,7 +100,14 @@ export default function InsightBadge({
       
       setInsight(data.insight)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load insight')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load insight'
+      
+      // Provide user-friendly error messages
+      if (errorMessage === 'SERVICE_UNAVAILABLE') {
+        setError('Il servizio AI non è disponibile al momento. La funzionalità di suggerimenti richiede la configurazione delle chiavi API.')
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setLoading(false)
     }
@@ -154,9 +171,20 @@ export default function InsightBadge({
                     <p className="mt-4 text-gray-400">Generazione suggerimento...</p>
                   </div>
                 ) : error ? (
-                  <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
-                    <p className="font-semibold mb-2">Errore nel generare il suggerimento</p>
-                    <p className="text-sm">{error}</p>
+                  <div className="space-y-3">
+                    <div className={`${error.includes('non è disponibile') ? 'bg-yellow-900/50 border-yellow-700 text-yellow-200' : 'bg-red-900/50 border-red-700 text-red-200'} border px-4 py-3 rounded-lg`}>
+                      <p className="font-semibold mb-2">
+                        {error.includes('non è disponibile') ? 'Servizio non disponibile' : 'Errore nel generare il suggerimento'}
+                      </p>
+                      <p className="text-sm">{error}</p>
+                    </div>
+                    {error.includes('non è disponibile') && (
+                      <div className="bg-gray-800/50 border border-gray-700 px-4 py-2 rounded-lg">
+                        <p className="text-xs text-gray-400">
+                          💡 Questa funzionalità richiede la configurazione delle chiavi API (GEMINI_API_KEY o OPENAI_API_KEY) nel server.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : insight ? (
                   <div className="space-y-4">
