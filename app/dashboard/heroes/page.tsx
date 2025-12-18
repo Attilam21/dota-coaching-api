@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import HeroCard from '@/components/HeroCard'
 
 interface HeroStats {
   hero_id: number
@@ -181,8 +182,15 @@ export default function HeroesPage() {
                 <tbody className="divide-y divide-gray-700">
                   {heroStats.map((hero) => (
                     <tr key={hero.hero_id} className="hover:bg-gray-700/50">
-                      <td className="px-6 py-4 whitespace-nowrap text-white font-medium">
-                        {hero.hero_name}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <HeroCard
+                            heroId={hero.hero_id}
+                            heroName={heroes[hero.hero_id]?.name || ''}
+                            size="sm"
+                          />
+                          <span className="text-white font-medium">{hero.hero_name}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.wins}</td>

@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import HeroCard from '@/components/HeroCard'
 
 interface Match {
   match_id: number
@@ -199,6 +200,13 @@ export default function MatchAnalysisSelectPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
+                        {match.hero_id && heroes[match.hero_id] && (
+                          <HeroCard
+                            heroId={match.hero_id}
+                            heroName={heroes[match.hero_id].name}
+                            size="md"
+                          />
+                        )}
                         <h3 className="text-2xl font-semibold text-white">
                           {getHeroName(match.hero_id)}
                         </h3>

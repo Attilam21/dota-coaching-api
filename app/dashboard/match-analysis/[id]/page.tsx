@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import WardMap from '@/components/WardMap'
+import HeroCard from '@/components/HeroCard'
 import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy, TrendingUp, TrendingDown } from 'lucide-react'
 
 interface MatchData {
@@ -513,7 +514,18 @@ export default function MatchAnalysisDetailPage() {
                       <tbody className="text-sm">
                         {match.players.slice(0, 5).map((player, idx) => (
                           <tr key={idx} className="border-t border-green-800/50">
-                            <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                            <td className="py-2">
+                              <div className="flex items-center gap-2">
+                                {heroes[player.hero_id] && (
+                                  <HeroCard
+                                    heroId={player.hero_id}
+                                    heroName={heroes[player.hero_id].name}
+                                    size="sm"
+                                  />
+                                )}
+                                <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
+                              </div>
+                            </td>
                             <td className="py-2 font-semibold text-gray-300">
                               {player.kills}/{player.deaths}/{player.assists}
                             </td>
@@ -546,7 +558,18 @@ export default function MatchAnalysisDetailPage() {
                       <tbody className="text-sm">
                         {match.players.slice(5, 10).map((player, idx) => (
                           <tr key={idx} className="border-t border-red-800/50">
-                            <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                            <td className="py-2">
+                              <div className="flex items-center gap-2">
+                                {heroes[player.hero_id] && (
+                                  <HeroCard
+                                    heroId={player.hero_id}
+                                    heroName={heroes[player.hero_id].name}
+                                    size="sm"
+                                  />
+                                )}
+                                <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
+                              </div>
+                            </td>
                             <td className="py-2 font-semibold text-gray-300">
                               {player.kills}/{player.deaths}/{player.assists}
                             </td>
@@ -780,9 +803,18 @@ export default function MatchAnalysisDetailPage() {
                           return (
                             <div key={idx} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-lg font-semibold text-white">
-                                  {heroes[playerPhase.hero_id]?.localized_name || `Hero ${playerPhase.hero_id}`}
-                                </h4>
+                                <div className="flex items-center gap-3">
+                                  {heroes[playerPhase.hero_id] && (
+                                    <HeroCard
+                                      heroId={playerPhase.hero_id}
+                                      heroName={heroes[playerPhase.hero_id].name}
+                                      size="sm"
+                                    />
+                                  )}
+                                  <h4 className="text-lg font-semibold text-white">
+                                    {heroes[playerPhase.hero_id]?.localized_name || `Hero ${playerPhase.hero_id}`}
+                                  </h4>
+                                </div>
                                 <span className={`px-3 py-1 rounded text-sm ${
                                   playerPhase.player_slot < 128 ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                                 }`}>
@@ -881,9 +913,18 @@ export default function MatchAnalysisDetailPage() {
                       return (
                         <div key={idx} className="bg-gray-700/50 border border-gray-600 rounded-lg p-6">
                           <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-semibold text-white">
-                              {heroes[playerTiming.hero_id]?.localized_name || `Hero ${playerTiming.hero_id}`}
-                            </h3>
+                            <div className="flex items-center gap-3">
+                              {heroes[playerTiming.hero_id] && (
+                                <HeroCard
+                                  heroId={playerTiming.hero_id}
+                                  heroName={heroes[playerTiming.hero_id].name}
+                                  size="sm"
+                                />
+                              )}
+                              <h3 className="text-xl font-semibold text-white">
+                                {heroes[playerTiming.hero_id]?.localized_name || `Hero ${playerTiming.hero_id}`}
+                              </h3>
+                            </div>
                             <span className={`px-3 py-1 rounded text-sm ${
                               playerTiming.player_slot < 128 ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                             }`}>
@@ -1079,8 +1120,19 @@ export default function MatchAnalysisDetailPage() {
                                 const player = match?.players.find(p => p.player_slot === playerStat.player_slot)
                                 return (
                                   <tr key={idx} className="border-b border-gray-700">
-                                    <td className="py-2 font-medium text-white">
-                                      {heroes[playerStat.hero_id]?.localized_name || `Hero ${playerStat.hero_id}`}
+                                    <td className="py-2">
+                                      <div className="flex items-center gap-2">
+                                        {heroes[playerStat.hero_id] && (
+                                          <HeroCard
+                                            heroId={playerStat.hero_id}
+                                            heroName={heroes[playerStat.hero_id].name}
+                                            size="sm"
+                                          />
+                                        )}
+                                        <span className="font-medium text-white">
+                                          {heroes[playerStat.hero_id]?.localized_name || `Hero ${playerStat.hero_id}`}
+                                        </span>
+                                      </div>
                                     </td>
                                     <td className="py-2 text-gray-300">
                                       {playerStat.participated}/{playerStat.totalTeamfights} ({playerStat.participationRate.toFixed(1)}%)

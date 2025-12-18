@@ -75,6 +75,7 @@ export default function HeroAnalysisPage() {
   const { playerId } = usePlayerIdContext()
   const [analysis, setAnalysis] = useState<HeroAnalysis | null>(null)
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null)
+  const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
   const [matchupLoading, setMatchupLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -86,6 +87,20 @@ export default function HeroAnalysisPage() {
       return
     }
   }, [user, authLoading, router])
+
+  useEffect(() => {
+    // Fetch heroes list
+    fetch('/api/opendota/heroes')
+      .then((res) => res.json())
+      .then((data) => {
+        const heroesMap: Record<number, { name: string; localized_name: string }> = {}
+        data.forEach((hero: { id: number; name: string; localized_name: string }) => {
+          heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+        })
+        setHeroes(heroesMap)
+      })
+      .catch(console.error)
+  }, [])
 
   const fetchAnalysis = useCallback(async () => {
     if (!playerId) return
@@ -337,8 +352,17 @@ export default function HeroAnalysisPage() {
                 <tbody className="divide-y divide-gray-700">
                   {analysis.heroStats.map((hero) => (
                     <tr key={hero.hero_id} className="hover:bg-gray-700/50">
-                      <td className="px-6 py-4 whitespace-nowrap text-white font-medium">
-                        {hero.hero_name}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          {heroes[hero.hero_id] && (
+                            <HeroCard
+                              heroId={hero.hero_id}
+                              heroName={heroes[hero.hero_id].name}
+                              size="sm"
+                            />
+                          )}
+                          <span className="text-white font-medium">{hero.hero_name}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.wins}</td>
