@@ -8,7 +8,7 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
-import { AlertTriangle, Lightbulb, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartIcon, Target } from 'lucide-react'
 
 interface AdvancedStats {
   lane: {
@@ -71,6 +71,8 @@ interface Match {
   start_time: number
 }
 
+type TabType = 'overview' | 'charts'
+
 export default function FarmEconomyPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -79,6 +81,7 @@ export default function FarmEconomyPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -180,8 +183,35 @@ export default function FarmEconomyPage() {
 
       {stats && !loading && (
         <div className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: Target },
+                { id: 'charts' as TabType, name: 'Grafici', icon: BarChartIcon },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Overview Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
               <p className="text-3xl font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</p>
@@ -201,11 +231,11 @@ export default function FarmEconomyPage() {
               <h3 className="text-sm text-gray-400 mb-2">Buyback Efficiency</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.farm.buybackEfficiency}%</p>
               <p className="text-xs text-gray-500 mt-2">Winrate con buyback</p>
-            </div>
-          </div>
-          
-          {/* Phase Analysis */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  </div>
+                </div>
+                  
+                  {/* Phase Analysis */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Analisi per Fase di Gioco</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-700/50 rounded-lg p-4">
@@ -225,12 +255,90 @@ export default function FarmEconomyPage() {
                 <p className="text-2xl font-bold text-purple-400">{stats.farm.phaseAnalysis.late.winrate}%</p>
                 <p className="text-xs text-gray-500 mt-1">{stats.farm.phaseAnalysis.late.matches} partite</p>
                 <p className="text-xs text-gray-500">Durata media: {Math.round(stats.farm.phaseAnalysis.late.avgDuration / 60)}min</p>
-              </div>
-            </div>
-          </div>
+                    </div>
+                  </div>
+                </div>
 
-          {/* GPM/XPM Trend Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Detailed Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4">Statistiche Farm & Economy</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">GPM Medio</span>
+                          <span className="font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">XPM Medio</span>
+                          <span className="font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Net Worth Medio</span>
+                          <span className="font-bold">{Math.round(stats.farm.avgNetWorth).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Gold Utilization</span>
+                          <span className="font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Buyback Medio</span>
+                          <span className="font-bold">{stats.farm.avgBuybacks.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Buyback Usage</span>
+                          <span className="font-bold">{stats.farm.buybackUsageRate.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Buyback Efficiency</span>
+                          <span className="font-bold text-purple-400">{stats.farm.buybackEfficiency}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4">Insights</h3>
+                      <div className="space-y-2 text-sm">
+                        {stats.farm.goldUtilization < 80 && (
+                          <p className="text-yellow-400 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Gold Utilization bassa ({stats.farm.goldUtilization.toFixed(1)}%). Prova a spendere più gold in item utili.
+                          </p>
+                        )}
+                        {stats.farm.avgGPM < 400 && (
+                          <p className="text-orange-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            GPM sotto la media. Concentrati sul farm più efficiente, ottimizza i percorsi di farm e valuta meglio i timing degli item.
+                          </p>
+                        )}
+                        {stats.farm.avgBuybacks > 1 && (
+                          <p className="text-purple-400 flex items-center gap-2">
+                            <Lightbulb className="w-4 h-4" />
+                            Buyback frequenti ({stats.farm.avgBuybacks.toFixed(1)}/game). Valuta meglio quando è utile comprare.
+                          </p>
+                        )}
+                        {parseFloat(stats.farm.buybackEfficiency) < 50 && stats.farm.buybackUsageRate > 30 && (
+                          <p className="text-red-400 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Buyback efficiency bassa ({stats.farm.buybackEfficiency}%). I tuoi buyback spesso non portano a vittoria. Usali solo in situazioni critiche.
+                          </p>
+                        )}
+                        {parseFloat(stats.farm.buybackEfficiency) > 70 && (
+                          <p className="text-green-400 flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Ottima buyback efficiency ({stats.farm.buybackEfficiency}%). Stai usando i buyback efficacemente.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* GPM/XPM Trend Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Trend GPM & XPM</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={gpmXpmData}>
@@ -248,11 +356,11 @@ export default function FarmEconomyPage() {
                 <Line type="monotone" dataKey="GPM" stroke="#F59E0B" strokeWidth={2} dot={{ fill: '#F59E0B' }} />
                 <Line type="monotone" dataKey="XPM" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6' }} />
               </LineChart>
-            </ResponsiveContainer>
-          </div>
+                  </ResponsiveContainer>
+                </div>
 
-          {/* Net Worth Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Net Worth Chart */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">Net Worth per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={netWorthData}>
@@ -270,79 +378,10 @@ export default function FarmEconomyPage() {
                 <Legend />
                 <Bar dataKey="Net Worth" fill="#8B5CF6" />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Statistiche Farm & Economy</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">GPM Medio</span>
-                  <span className="font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</span>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">XPM Medio</span>
-                  <span className="font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Net Worth Medio</span>
-                  <span className="font-bold">{Math.round(stats.farm.avgNetWorth).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Gold Utilization</span>
-                  <span className="font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Buyback Medio</span>
-                  <span className="font-bold">{stats.farm.avgBuybacks.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Buyback Usage</span>
-                  <span className="font-bold">{stats.farm.buybackUsageRate.toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Buyback Efficiency</span>
-                  <span className="font-bold text-purple-400">{stats.farm.buybackEfficiency}%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Insights</h3>
-              <div className="space-y-2 text-sm">
-                {stats.farm.goldUtilization < 80 && (
-                  <p className="text-yellow-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Gold Utilization bassa ({stats.farm.goldUtilization.toFixed(1)}%). Prova a spendere più gold in item utili.
-                  </p>
-                )}
-                {stats.farm.avgGPM < 400 && (
-                  <p className="text-orange-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    GPM sotto la media. Concentrati sul farm più efficiente, ottimizza i percorsi di farm e valuta meglio i timing degli item.
-                  </p>
-                )}
-                {stats.farm.avgBuybacks > 1 && (
-                  <p className="text-purple-400 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    Buyback frequenti ({stats.farm.avgBuybacks.toFixed(1)}/game). Valuta meglio quando è utile comprare.
-                  </p>
-                )}
-                {parseFloat(stats.farm.buybackEfficiency) < 50 && stats.farm.buybackUsageRate > 30 && (
-                  <p className="text-red-400 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Buyback efficiency bassa ({stats.farm.buybackEfficiency}%). I tuoi buyback spesso non portano a vittoria. Usali solo in situazioni critiche.
-                  </p>
-                )}
-                {parseFloat(stats.farm.buybackEfficiency) > 70 && (
-                  <p className="text-green-400 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Ottima buyback efficiency ({stats.farm.buybackEfficiency}%). Stai usando i buyback efficacemente.
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
