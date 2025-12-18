@@ -570,6 +570,54 @@ export default function BuildsPage() {
                     </div>
                   </div>
 
+                  {/* Top Builds by Frequency */}
+                  {heroBuildData.topBuilds && heroBuildData.topBuilds.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-xl font-semibold mb-3">Build Più Comuni</h3>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Tutte le build utilizzate, ordinate per frequenza d'uso
+                      </p>
+                      <div className="space-y-4">
+                        {heroBuildData.topBuilds.slice(0, 10).map((build, idx) => (
+                          <div key={idx} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-lg text-blue-400">
+                                  {build.frequency}x usato
+                                </span>
+                                <span className={`text-sm ${build.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                                  ({build.winrate.toFixed(1)}% WR)
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                              {build.itemDetails && build.itemDetails.length > 0 ? (
+                                build.itemDetails.map((item, i) => (
+                                  <ItemCard
+                                    key={`${item.id}-${i}`}
+                                    itemId={item.id}
+                                    itemName={item.name}
+                                    itemInternalName={item.internal_name}
+                                    size="sm"
+                                  />
+                                ))
+                              ) : (
+                                build.items.map((itemId, i) => (
+                                  <ItemCard
+                                    key={`${itemId}-${i}`}
+                                    itemId={itemId}
+                                    itemName={build.itemNames[i] || `Item ${itemId}`}
+                                    size="sm"
+                                  />
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Top Builds by Winrate */}
                   <div>
                     <h3 className="text-xl font-semibold mb-3">Build Più Efficaci (Winrate)</h3>
@@ -620,7 +668,7 @@ export default function BuildsPage() {
                           Le build vengono mostrate solo se utilizzate almeno 2 volte per garantire statistiche significative.
                           {heroBuildData.topBuilds && heroBuildData.topBuilds.length > 0 && (
                             <span className="block mt-2">
-                              Visualizza la sezione "Build Più Comuni" per vedere tutte le build, incluse quelle usate una sola volta.
+                              Visualizza la sezione "Build Più Comuni" sopra per vedere tutte le build, incluse quelle usate una sola volta.
                             </span>
                           )}
                         </p>

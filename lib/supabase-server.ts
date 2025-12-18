@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
+import type { Database } from './supabase'
 
 /**
  * Create Supabase client for server-side API routes
@@ -12,7 +13,7 @@ export function createServerSupabaseClient(request: NextRequest) {
   // Get cookie header from request
   const cookieHeader = request.headers.get('cookie') || ''
   
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

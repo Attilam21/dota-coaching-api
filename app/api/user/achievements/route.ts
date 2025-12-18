@@ -1,47 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
-/**
- * GET /api/user/achievements
- * Returns all achievements with user's unlock status
- */
 export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    // Try getSession first (works with cookies)
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get authenticated user
+    const { data: { session }, error: authError } = await supabase.auth.getSession()
     
-    let userId: string | null = null
-    
-    if (session?.user) {
-      userId = session.user.id
-    } else {
-      // Fallback: try getUser
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
-      
-      userId = user.id
-    }
-
-    if (!userId) {
+    if (authError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
+    const userId = session.user.id
+
     // Fetch all achievements
     const { data: achievements, error: achievementsError } = await supabase
       .from('achievements')
       .select('*')
-      .order('xp_reward', { ascending: false })
+      .order('category', { ascending: true })
+      .order('name', { ascending: true })
 
     if (achievementsError) {
       console.error('Error fetching achievements:', achievementsError)
@@ -65,12 +46,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Create a map of unlocked achievement IDs
+    // Create a set of unlocked achievement IDs for quick lookup
+    const unlockedIds = new Set((userAchievements || []).map((ua: any) => ua.achievement_id))
     const unlockedMap = new Map(
-      (userAchievements || []).map((ua: { achievement_id: string; unlocked_at: string }) => [ua.achievement_id, ua.unlocked_at])
+      (userAchievements || []).map((ua: any) => [ua.achievement_id, ua.unlocked_at])
     )
 
-    // Combine achievements with unlock status
+    // Merge achievements with unlock status
     const achievementsWithStatus = (achievements || []).map((achievement: any) => ({
       id: achievement.id,
       name: achievement.name,
@@ -78,12 +60,12 @@ export async function GET(request: NextRequest) {
       icon: achievement.icon,
       xpReward: achievement.xp_reward,
       category: achievement.category,
-      unlocked: unlockedMap.has(achievement.id),
-      unlockedAt: unlockedMap.get(achievement.id) || null
-    }))
+      unlocked: unlockedIds.has(achievement.id),
+      unlockedAt: unlockedMap.get(achievement.id) || null,
+    })) || []
 
     // Group by category
-    const groupedByCategory = achievementsWithStatus.reduce((acc: Record<string, typeof achievementsWithStatus>, achievement: typeof achievementsWithStatus[0]) => {
+    const grouped = achievementsWithStatus.reduce((acc, achievement) => {
       const category = achievement.category || 'other'
       if (!acc[category]) {
         acc[category] = []
@@ -94,16 +76,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       achievements: achievementsWithStatus,
-      grouped: groupedByCategory,
-      totalUnlocked: achievementsWithStatus.filter((a: typeof achievementsWithStatus[0]) => a.unlocked).length,
-      totalAchievements: achievementsWithStatus.length
-    }, {
-      headers: {
-        'Cache-Control': 'private, max-age=300',
-      },
+      grouped,
     })
   } catch (error) {
-    console.error('Error in /api/user/achievements:', error)
+    console.error('Error in achievements API:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -111,42 +87,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * POST /api/user/achievements
- * Unlock an achievement for the user
- */
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    // Try getSession first (works with cookies)
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get authenticated user
+    const { data: { session }, error: authError } = await supabase.auth.getSession()
     
-    let userId: string | null = null
-    
-    if (session?.user) {
-      userId = session.user.id
-    } else {
-      // Fallback: try getUser
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
-      
-      userId = user.id
-    }
-
-    if (!userId) {
+    if (authError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
+    const userId = session.user.id
     const body = await request.json()
     const { achievementId } = body
 
@@ -160,7 +115,7 @@ export async function POST(request: NextRequest) {
     // Check if achievement exists
     const { data: achievement, error: achievementError } = await supabase
       .from('achievements')
-      .select('id, xp_reward')
+      .select('*')
       .eq('id', achievementId)
       .single()
 
@@ -171,73 +126,85 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Insert user achievement (ON CONFLICT will prevent duplicates)
-    const { data: userAchievement, error: insertError } = await supabase
+    const achievementData = achievement as any
+
+    // Check if already unlocked
+    const { data: existing } = await supabase
       .from('user_achievements')
-      .insert({
-        user_id: userId,
-        achievement_id: achievementId
-      })
-      .select()
+      .select('id')
+      .eq('user_id', userId)
+      .eq('achievement_id', achievementId)
       .single()
 
-    // If already exists, fetch existing
-    if (insertError?.code === '23505') {
-      const { data: existing } = await supabase
+    if (existing) {
+      // Already unlocked, return existing
+      const { data: userAchievement } = await supabase
         .from('user_achievements')
-        .select('*')
+        .select('unlocked_at')
         .eq('user_id', userId)
         .eq('achievement_id', achievementId)
         .single()
 
-      if (existing) {
-        return NextResponse.json({
-          success: true,
-          alreadyUnlocked: true,
-          achievement: existing
-        })
-      }
+      return NextResponse.json({
+        achievement: {
+          id: achievementData.id,
+          name: achievementData.name,
+          description: achievementData.description,
+          icon: achievementData.icon,
+          xpReward: achievementData.xp_reward,
+          category: achievementData.category,
+          unlocked: true,
+          unlockedAt: (userAchievement as any)?.unlocked_at || new Date().toISOString(),
+        },
+        message: 'Achievement already unlocked',
+      })
     }
 
-    if (insertError && insertError.code !== '23505') {
-      console.error('Error unlocking achievement:', insertError)
+    // Unlock achievement
+    const { data: userAchievement, error: unlockError } = await supabase
+      .from('user_achievements')
+      .insert({
+        user_id: userId,
+        achievement_id: achievementId,
+      } as any)
+      .select('unlocked_at')
+      .single()
+
+    if (unlockError) {
+      console.error('Error unlocking achievement:', unlockError)
       return NextResponse.json(
         { error: 'Failed to unlock achievement' },
         { status: 500 }
       )
     }
 
-    // Award XP
-    if (achievement.xp_reward > 0) {
+    // Add XP reward
+    if (achievementData.xp_reward > 0) {
       const { error: xpError } = await supabase.rpc('add_user_xp', {
         p_user_id: userId,
-        p_xp: achievement.xp_reward
-      })
+        p_xp: achievementData.xp_reward,
+      } as any)
 
       if (xpError) {
         console.error('Error adding XP:', xpError)
-        // Don't fail the request, just log it
+        // Don't fail the request if XP addition fails
       }
     }
 
-    // Fetch full achievement details
-    const { data: fullAchievement } = await supabase
-      .from('achievements')
-      .select('*')
-      .eq('id', achievementId)
-      .single()
-
     return NextResponse.json({
-      success: true,
       achievement: {
-        ...fullAchievement,
-        xpReward: fullAchievement.xp_reward,
+        id: achievementData.id,
+        name: achievementData.name,
+        description: achievementData.description,
+        icon: achievementData.icon,
+        xpReward: achievementData.xp_reward,
+        category: achievementData.category,
         unlocked: true,
-        unlockedAt: userAchievement?.unlocked_at || new Date().toISOString()
-      }
+        unlockedAt: (userAchievement as any).unlocked_at,
+      },
     })
   } catch (error) {
-    console.error('Error in POST /api/user/achievements:', error)
+    console.error('Error in unlock achievement API:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
