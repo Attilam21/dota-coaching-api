@@ -10,9 +10,28 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Try getSession first (works with cookies)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (authError || !user) {
+    let userId: string | null = null
+    
+    if (session?.user) {
+      userId = session.user.id
+    } else {
+      // Fallback: try getUser
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
+      
+      userId = user.id
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -23,7 +42,7 @@ export async function GET(request: NextRequest) {
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
       .select('dota_account_id')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
     if (profileError || !userProfile?.dota_account_id) {
@@ -66,7 +85,7 @@ export async function GET(request: NextRequest) {
     const { data: latestSnapshot, error: snapshotError } = await supabase
       .from('user_performance_snapshots')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('snapshot_date', { ascending: false })
       .limit(1)
       .single()
@@ -75,7 +94,7 @@ export async function GET(request: NextRequest) {
     const { data: previousSnapshot } = await supabase
       .from('user_performance_snapshots')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('snapshot_date', { ascending: false })
       .limit(2)
       .offset(1)
@@ -159,9 +178,28 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createServerSupabaseClient(request)
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Try getSession first (works with cookies)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (authError || !user) {
+    let userId: string | null = null
+    
+    if (session?.user) {
+      userId = session.user.id
+    } else {
+      // Fallback: try getUser
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      }
+      
+      userId = user.id
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -172,7 +210,7 @@ export async function POST(request: NextRequest) {
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
       .select('dota_account_id')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
     if (profileError || !userProfile?.dota_account_id) {
@@ -200,7 +238,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare snapshot data
     const snapshotData = {
-      user_id: user.id,
+      user_id: userId,
       dota_account_id: dotaAccountId,
       snapshot_date: today,
       gpm_percentile: ratingData?.gpm_percentile || null,
@@ -244,4 +282,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
