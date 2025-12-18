@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     })) || []
 
     // Group by category
-    const grouped = achievementsWithStatus.reduce((acc, achievement) => {
+    const grouped = achievementsWithStatus.reduce((acc: Record<string, typeof achievementsWithStatus>, achievement) => {
       const category = achievement.category || 'other'
       if (!acc[category]) {
         acc[category] = []
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         xpReward: achievementData.xp_reward,
         category: achievementData.category,
         unlocked: true,
-        unlockedAt: (userAchievement as any)?.unlocked_at || new Date().toISOString(),
+        unlockedAt: (userAchievement as any).unlocked_at,
       },
     })
   } catch (error) {

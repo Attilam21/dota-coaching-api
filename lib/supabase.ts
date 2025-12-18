@@ -8,7 +8,6 @@ export type Database = {
         Row: {
           id: string
           email: string
-          dota_account_id: number | null
           username: string | null
           avatar_url: string | null
           created_at: string
@@ -17,7 +16,6 @@ export type Database = {
         Insert: {
           id?: string
           email: string
-          dota_account_id?: number | null
           username?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -26,7 +24,6 @@ export type Database = {
         Update: {
           id?: string
           email?: string
-          dota_account_id?: number | null
           username?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -57,73 +54,6 @@ export type Database = {
           analysis_data?: any
           ai_insights?: any | null
           created_at?: string
-        }
-      }
-      learning_modules: {
-        Row: {
-          id: string
-          title: string
-          description: string | null
-          difficulty: 'beginner' | 'intermediate' | 'advanced' | null
-          role: 'carry' | 'support' | 'offlane' | 'midlane' | 'all' | null
-          content: any
-          estimated_time_minutes: number | null
-          order_index: number | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          difficulty?: 'beginner' | 'intermediate' | 'advanced' | null
-          role?: 'carry' | 'support' | 'offlane' | 'midlane' | 'all' | null
-          content: any
-          estimated_time_minutes?: number | null
-          order_index?: number | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          difficulty?: 'beginner' | 'intermediate' | 'advanced' | null
-          role?: 'carry' | 'support' | 'offlane' | 'midlane' | 'all' | null
-          content?: any
-          estimated_time_minutes?: number | null
-          order_index?: number | null
-          created_at?: string
-        }
-      }
-      learning_progress: {
-        Row: {
-          id: string
-          user_id: string
-          module_id: string
-          progress: number
-          completed: boolean
-          started_at: string
-          completed_at: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          module_id: string
-          progress?: number
-          completed?: boolean
-          started_at?: string
-          completed_at?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          module_id?: string
-          progress?: number
-          completed?: boolean
-          started_at?: string
-          completed_at?: string | null
-          updated_at?: string
         }
       }
       achievements: {
@@ -181,7 +111,6 @@ export type Database = {
           total_xp: number
           level: number
           matches_analyzed: number
-          modules_completed: number
           updated_at: string
         }
         Insert: {
@@ -189,7 +118,6 @@ export type Database = {
           total_xp?: number
           level?: number
           matches_analyzed?: number
-          modules_completed?: number
           updated_at?: string
         }
         Update: {
@@ -197,7 +125,6 @@ export type Database = {
           total_xp?: number
           level?: number
           matches_analyzed?: number
-          modules_completed?: number
           updated_at?: string
         }
       }

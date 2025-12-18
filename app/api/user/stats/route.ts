@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
             total_xp: 0,
             level: 1,
             matches_analyzed: 0,
-            modules_completed: 0,
           } as any)
           .select()
           .single()
@@ -52,7 +51,6 @@ export async function GET(request: NextRequest) {
           totalXp: statsData.total_xp,
           level: statsData.level,
           matchesAnalyzed: statsData.matches_analyzed,
-          modulesCompleted: statsData.modules_completed,
           updatedAt: statsData.updated_at,
         })
       }
@@ -69,7 +67,6 @@ export async function GET(request: NextRequest) {
       totalXp: statsData.total_xp,
       level: statsData.level,
       matchesAnalyzed: statsData.matches_analyzed,
-      modulesCompleted: statsData.modules_completed,
       updatedAt: statsData.updated_at,
     })
   } catch (error) {
