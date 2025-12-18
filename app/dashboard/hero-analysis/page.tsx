@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
+import AttributeIcon from '@/components/AttributeIcon'
 
 interface HeroStat {
   hero_id: number
@@ -361,7 +362,15 @@ export default function HeroAnalysisPage() {
                               size="sm"
                             />
                           )}
-                          <span className="text-white font-medium">{hero.hero_name}</span>
+                          <div className="flex items-center gap-2">
+                            {hero.primary_attr && hero.primary_attr !== 'unknown' && (
+                              <AttributeIcon
+                                attribute={hero.primary_attr as 'str' | 'agi' | 'int'}
+                                size="xs"
+                              />
+                            )}
+                            <span className="text-white font-medium">{hero.hero_name}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
