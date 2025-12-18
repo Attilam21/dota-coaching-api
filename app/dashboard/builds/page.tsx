@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -123,6 +123,9 @@ export default function BuildsPage() {
   const [heroLoading, setHeroLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [buildsError, setBuildsError] = useState<string | null>(null)
+  const [itemsError, setItemsError] = useState<string | null>(null)
+  const [heroesError, setHeroesError] = useState<string | null>(null)
 
   useEffect(() => {
     if (authLoading) return
@@ -141,39 +144,55 @@ export default function BuildsPage() {
       try {
         setLoading(true)
         setError(null)
+        setBuildsError(null)
+        setItemsError(null)
+        setHeroesError(null)
         
-        // Fetch builds overview
-        const buildsResponse = await fetch(`/api/player/${playerId}/builds`)
-        if (!buildsResponse.ok) {
-          throw new Error('Errore nel caricamento dei dati delle build')
-        }
-        const buildsData = await buildsResponse.json()
-        if (buildsData.error) {
-          throw new Error(buildsData.error)
-        }
-        setBuildData(buildsData)
+        // Fetch all data in parallel (independent fetches)
+        const [buildsResponse, itemsResponse, heroesResponse] = await Promise.all([
+          fetch(`/api/player/${playerId}/builds`),
+          fetch(`/api/player/${playerId}/items/stats`),
+          fetch('/api/opendota/heroes')
+        ])
 
-        // Fetch item stats
-        const itemsResponse = await fetch(`/api/player/${playerId}/items/stats`)
-        if (!itemsResponse.ok) {
-          throw new Error('Errore nel caricamento delle statistiche degli item')
+        // Process builds data (independent)
+        if (buildsResponse.ok) {
+          const buildsData = await buildsResponse.json()
+          if (!buildsData.error) {
+            setBuildData(buildsData)
+            setBuildsError(null)
+          } else {
+            setBuildsError(`Errore: ${buildsData.error}`)
+          }
+        } else {
+          setBuildsError('Errore nel caricamento delle build. Riprova.')
         }
-        const itemsData = await itemsResponse.json()
-        if (itemsData.error) {
-          throw new Error(itemsData.error)
-        }
-        setItemStats(itemsData)
 
-        // Fetch heroes list
-        const heroesResponse = await fetch('/api/opendota/heroes')
-        if (!heroesResponse.ok) {
-          throw new Error('Errore nel caricamento della lista degli eroi')
+        // Process item stats data (independent)
+        if (itemsResponse.ok) {
+          const itemsData = await itemsResponse.json()
+          if (!itemsData.error) {
+            setItemStats(itemsData)
+            setItemsError(null)
+          } else {
+            setItemsError(`Errore: ${itemsData.error}`)
+          }
+        } else {
+          setItemsError('Errore nel caricamento delle statistiche item. Riprova.')
         }
-        const heroesData = await heroesResponse.json()
-        if (heroesData.error) {
-          throw new Error(heroesData.error)
+
+        // Process heroes data (independent)
+        if (heroesResponse.ok) {
+          const heroesData = await heroesResponse.json()
+          if (!heroesData.error) {
+            setHeroes(heroesData)
+            setHeroesError(null)
+          } else {
+            setHeroesError(`Errore: ${heroesData.error}`)
+          }
+        } else {
+          setHeroesError('Errore nel caricamento degli eroi. Riprova.')
         }
-        setHeroes(heroesData)
       } catch (error) {
         console.error('Error fetching build data:', error)
         setError(error instanceof Error ? error.message : 'Errore sconosciuto nel caricamento dei dati')
@@ -184,6 +203,63 @@ export default function BuildsPage() {
 
     fetchData()
   }, [user, playerId, router, authLoading])
+
+  const retryBuilds = useCallback(async () => {
+    try {
+      setBuildsError(null)
+      const response = await fetch(`/api/player/${playerId}/builds`)
+      if (response.ok) {
+        const data = await response.json()
+        if (!data.error) {
+          setBuildData(data)
+        } else {
+          setBuildsError(`Errore: ${data.error}`)
+        }
+      } else {
+        setBuildsError('Errore nel caricamento delle build. Riprova.')
+      }
+    } catch (error) {
+      setBuildsError('Errore nel caricamento delle build. Riprova.')
+    }
+  }, [playerId])
+
+  const retryItems = useCallback(async () => {
+    try {
+      setItemsError(null)
+      const response = await fetch(`/api/player/${playerId}/items/stats`)
+      if (response.ok) {
+        const data = await response.json()
+        if (!data.error) {
+          setItemStats(data)
+        } else {
+          setItemsError(`Errore: ${data.error}`)
+        }
+      } else {
+        setItemsError('Errore nel caricamento delle statistiche item. Riprova.')
+      }
+    } catch (error) {
+      setItemsError('Errore nel caricamento delle statistiche item. Riprova.')
+    }
+  }, [playerId])
+
+  const retryHeroes = useCallback(async () => {
+    try {
+      setHeroesError(null)
+      const response = await fetch('/api/opendota/heroes')
+      if (response.ok) {
+        const data = await response.json()
+        if (!data.error) {
+          setHeroes(data)
+        } else {
+          setHeroesError(`Errore: ${data.error}`)
+        }
+      } else {
+        setHeroesError('Errore nel caricamento degli eroi. Riprova.')
+      }
+    } catch (error) {
+      setHeroesError('Errore nel caricamento degli eroi. Riprova.')
+    }
+  }, [])
 
   useEffect(() => {
     if (selectedHero && playerId) {
@@ -289,11 +365,25 @@ export default function BuildsPage() {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6" role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview">
-            {!buildData ? (
+            {buildsError && (
+              <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">Errore Build</p>
+                  <p>{buildsError}</p>
+                </div>
+                <button
+                  onClick={retryBuilds}
+                  className="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                >
+                  Riprova
+                </button>
+              </div>
+            )}
+            {!buildData && !buildsError ? (
               <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center">
                 <p className="text-gray-400">Nessun dato disponibile. Carica i dati per visualizzare le statistiche.</p>
               </div>
-            ) : (
+            ) : buildData ? (
               <>
             {/* Overall Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -388,16 +478,33 @@ export default function BuildsPage() {
               </div>
             </div>
               </>
-            )}
+            ) : null}
           </div>
         )}
 
         {/* Hero Tab */}
         {activeTab === 'hero' && (
           <div className="space-y-6" role="tabpanel" id="tabpanel-hero" aria-labelledby="tab-hero">
+            {heroesError && (
+              <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">Errore Lista Eroi</p>
+                  <p>{heroesError}</p>
+                </div>
+                <button
+                  onClick={retryHeroes}
+                  className="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                >
+                  Riprova
+                </button>
+              </div>
+            )}
             {/* Hero Selection */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h2 className="text-2xl font-semibold mb-4">Seleziona Hero</h2>
+              {heroes.length === 0 && !heroesError ? (
+                <p className="text-gray-400">Caricamento eroi...</p>
+              ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {heroes.slice(0, 50).map((hero) => (
                   <button
@@ -413,6 +520,7 @@ export default function BuildsPage() {
                   </button>
                 ))}
               </div>
+              )}
             </div>
 
             {/* Hero Build Data */}
@@ -526,8 +634,28 @@ export default function BuildsPage() {
         )}
 
         {/* Items Tab */}
-        {activeTab === 'items' && itemStats && (
+        {activeTab === 'items' && (
           <div className="space-y-6" role="tabpanel" id="tabpanel-items" aria-labelledby="tab-items">
+            {itemsError && (
+              <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">Errore Statistiche Item</p>
+                  <p>{itemsError}</p>
+                </div>
+                <button
+                  onClick={retryItems}
+                  className="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                >
+                  Riprova
+                </button>
+              </div>
+            )}
+            {!itemStats && !itemsError ? (
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center">
+                <p className="text-gray-400">Nessun dato disponibile. Carica i dati per visualizzare le statistiche degli item.</p>
+              </div>
+            ) : itemStats ? (
+              <>
             {/* Underutilized Items */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
@@ -613,6 +741,8 @@ export default function BuildsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+              </>
+            ) : null}
           </div>
         )}
 
