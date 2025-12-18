@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     })) || []
 
     // Group by category
-    const grouped = achievementsWithStatus.reduce((acc: Record<string, typeof achievementsWithStatus>, achievement: typeof achievementsWithStatus[number]) => {
+    const grouped = achievementsWithStatus.reduce((acc: Record<string, typeof achievementsWithStatus>, achievement) => {
       const category = achievement.category || 'other'
       if (!acc[category]) {
         acc[category] = []

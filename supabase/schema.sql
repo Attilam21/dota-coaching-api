@@ -80,6 +80,9 @@ CREATE POLICY "Users can view own analyses" ON public.match_analyses
 CREATE POLICY "Users can insert own analyses" ON public.match_analyses
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Users can update own analyses" ON public.match_analyses
+  FOR UPDATE USING (auth.uid() = user_id);
+
 -- Achievements are publicly readable
 CREATE POLICY "Achievements are viewable by everyone" ON public.achievements
   FOR SELECT TO authenticated USING (true);
@@ -88,11 +91,15 @@ CREATE POLICY "Achievements are viewable by everyone" ON public.achievements
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Create user profile
   INSERT INTO public.users (id, email)
-  VALUES (NEW.id, NEW.email);
+  VALUES (NEW.id, NEW.email)
+  ON CONFLICT (id) DO NOTHING;
   
+  -- Create user stats (required for gamification)
   INSERT INTO public.user_stats (user_id)
-  VALUES (NEW.id);
+  VALUES (NEW.id)
+  ON CONFLICT (user_id) DO NOTHING;
   
   RETURN NEW;
 END;
@@ -123,5 +130,25 @@ BEGIN
   UPDATE public.user_stats
   SET level = v_new_level
   WHERE user_id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to increment matches_analyzed counter
+CREATE OR REPLACE FUNCTION public.increment_matches_analyzed(p_user_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.user_stats
+  SET matches_analyzed = COALESCE(matches_analyzed, 0) + 1,
+      updated_at = NOW()
+  WHERE user_id = p_user_id;
+  
+  -- Create stats if they don't exist
+  IF NOT FOUND THEN
+    INSERT INTO public.user_stats (user_id, matches_analyzed)
+    VALUES (p_user_id, 1)
+    ON CONFLICT (user_id) DO UPDATE
+    SET matches_analyzed = COALESCE(user_stats.matches_analyzed, 0) + 1,
+        updated_at = NOW();
+  END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

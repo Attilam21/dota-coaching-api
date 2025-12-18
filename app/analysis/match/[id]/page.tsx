@@ -188,42 +188,83 @@ export default function MatchAnalysisPage() {
     try {
       setSaving(true)
 
-      // Save to Supabase
+      // Save ONLY custom analysis data (not full match - OpenDota is source of truth)
+      // This follows OpenDota's approach: store only custom/user-specific data
       const { error: saveError } = await supabase
         .from('match_analyses')
         .upsert({
           user_id: user.id,
           match_id: parseInt(matchId),
           analysis_data: {
-            match: match,
+            // Only save our custom analysis, not the full match data
             analysis: analysis,
-            saved_at: new Date().toISOString()
-          }
+            saved_at: new Date().toISOString(),
+            match_id: parseInt(matchId) // Reference only, full data from OpenDota
+          },
+          ai_insights: (analysis as any).insights || null
         } as any, {
           onConflict: 'user_id,match_id'
         })
 
-      if (saveError) throw saveError
+      if (saveError) {
+        console.error('Save error details:', saveError)
+        throw new Error(saveError.message || 'Failed to save analysis')
+      }
 
-      // Update user stats (if function exists)
+      // Update user stats: XP + matches_analyzed counter
       try {
-        const { error: statsError } = await supabase.rpc('add_user_xp', {
+        // Add XP for saving analysis
+        const { error: xpError } = await supabase.rpc('add_user_xp', {
           p_user_id: user.id,
-          p_xp: 50 // XP for saving an analysis
+          p_xp: 50
         } as any)
-        if (statsError) console.error('Failed to update XP:', statsError)
+        
+        if (xpError) {
+          console.error('Failed to update XP:', xpError)
+        }
+
+        // Increment matches_analyzed counter using RPC function
+        const { error: statsError } = await supabase.rpc('increment_matches_analyzed', {
+          p_user_id: user.id
+        } as any)
+
+        if (statsError) {
+          console.error('Failed to update matches_analyzed:', statsError)
+        }
+
+        // Check and unlock achievements automatically
+        await checkAndUnlockAchievements(user.id, 'match_saved')
       } catch (rpcError) {
-        // RPC might not exist yet, ignore
-        console.log('XP update skipped (RPC might not be configured)')
+        console.error('Error updating stats:', rpcError)
+        // Don't fail the save if stats update fails
       }
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       console.error('Failed to save analysis:', err)
-      alert(`Failed to save analysis: ${err instanceof Error ? err.message : 'Please try again.'}`)
+      const errorMessage = err instanceof Error ? err.message : 'Please try again.'
+      alert(`Failed to save analysis: ${errorMessage}`)
     } finally {
       setSaving(false)
+    }
+  }
+
+  // Auto-unlock achievements based on user actions
+  const checkAndUnlockAchievements = async (userId: string, actionType: string) => {
+    try {
+      const response = await fetch('/api/user/achievements/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actionType })
+      })
+      
+      if (!response.ok) {
+        console.error('Failed to check achievements')
+      }
+    } catch (err) {
+      console.error('Error checking achievements:', err)
+      // Silent fail - achievements are nice to have, not critical
     }
   }
 
