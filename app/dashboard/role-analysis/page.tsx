@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
-import { Lightbulb } from 'lucide-react'
+import { Lightbulb, BarChart as BarChartIcon, Target, List } from 'lucide-react'
 
 interface RolePerformance {
   games: number
@@ -44,6 +44,8 @@ interface RoleAnalysis {
 
 const COLORS = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B']
 
+type TabType = 'overview' | 'charts' | 'details'
+
 export default function RoleAnalysisPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -51,6 +53,7 @@ export default function RoleAnalysisPage() {
   const [analysis, setAnalysis] = useState<RoleAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -143,8 +146,36 @@ export default function RoleAnalysisPage() {
 
       {analysis && !loading && (
         <div className="space-y-6">
-          {/* Preferred Role */}
-          {analysis.preferredRole && (
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
+                { id: 'charts' as TabType, name: 'Grafici', icon: Target },
+                { id: 'details' as TabType, name: 'Dettagli', icon: List },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Preferred Role */}
+                  {analysis.preferredRole && (
             <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6 relative">
               {playerId && (
                 <InsightBadge
@@ -174,11 +205,11 @@ export default function RoleAnalysisPage() {
                   </span>
                 </div>
               </div>
-            </div>
-          )}
+                  </div>
+                  )}
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Ruoli Giocati</h3>
               <p className="text-3xl font-bold">{analysis.summary.totalRolesPlayed}</p>
@@ -190,69 +221,97 @@ export default function RoleAnalysisPage() {
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Ruolo Migliore</h3>
               <p className="text-2xl font-bold text-green-400">{analysis.summary.bestRole}</p>
-            </div>
-          </div>
+                  </div>
+                </div>
 
-          {/* Role Performance Charts */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Winrate per Ruolo</h2>
-              {roleWinrateData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={roleWinrateData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="role" stroke="#9CA3AF" />
-                    <YAxis stroke="#9CA3AF" domain={[0, 100]} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1F2937',
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-gray-500 text-center py-12">Nessun dato disponibile</p>
+                  {/* Recommendations */}
+                  {analysis.recommendations.length > 0 && (
+                    <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
+                      <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
+                        <Lightbulb className="w-6 h-6" />
+                        Raccomandazioni
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.recommendations.map((rec, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-blue-300">
+                            <span className="text-blue-400 mt-1">→</span>
+                            {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Distribuzione Partite per Ruolo</h2>
-              {roleGamesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={roleGamesData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {roleGamesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-gray-500 text-center py-12">Nessun dato disponibile</p>
+              {/* Charts Tab */}
+              {activeTab === 'charts' && (
+                <div className="space-y-6">
+                  {/* Role Performance Charts */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h2 className="text-2xl font-semibold mb-4">Winrate per Ruolo</h2>
+                      {roleWinrateData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={roleWinrateData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                            <XAxis dataKey="role" stroke="#9CA3AF" />
+                            <YAxis stroke="#9CA3AF" domain={[0, 100]} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#1F2937',
+                                border: '1px solid #374151',
+                                borderRadius: '8px',
+                              }}
+                            />
+                            <Legend />
+                            <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-gray-500 text-center py-12">Nessun dato disponibile</p>
+                      )}
+                    </div>
+
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h2 className="text-2xl font-semibold mb-4">Distribuzione Partite per Ruolo</h2>
+                      {roleGamesData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={roleGamesData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={100}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {roleGamesData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-gray-500 text-center py-12">Nessun dato disponibile</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Role Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.entries(analysis.roles)
-              .filter(([_, perf]) => perf.games > 0)
-              .map(([role, perf]) => (
-                <div key={role} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              {/* Details Tab */}
+              {activeTab === 'details' && (
+                <div className="space-y-6">
+                  {/* Role Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(analysis.roles)
+                      .filter(([_, perf]) => perf.games > 0)
+                      .map(([role, perf]) => (
+                        <div key={role} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                   <h3 className="text-2xl font-semibold mb-4">{role}</h3>
                   <div className="space-y-3 mb-4">
                     <div className="flex justify-between">
@@ -300,26 +359,12 @@ export default function RoleAnalysisPage() {
                     </div>
                   )}
                 </div>
-              ))}
-          </div>
-
-          {/* Recommendations */}
-          {analysis.recommendations.length > 0 && (
-            <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
-                <Lightbulb className="w-6 h-6" />
-                Raccomandazioni
-              </h3>
-              <ul className="space-y-2">
-                {analysis.recommendations.map((rec, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-blue-300">
-                    <span className="text-blue-400 mt-1">→</span>
-                    {rec}
-                  </li>
-                ))}
-              </ul>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
