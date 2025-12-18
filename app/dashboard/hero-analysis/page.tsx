@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import HeroCard from '@/components/HeroCard'
 
 interface HeroStat {
   hero_id: number
@@ -46,9 +47,11 @@ interface HeroAnalysis {
 interface Matchup {
   playerHeroId: number
   playerHeroName: string
+  playerHeroInternalName: string
   matchups: Array<{
     enemyHeroId: number
     enemyHeroName: string
+    enemyHeroInternalName: string
     games: number
     wins: number
     winrate: number
@@ -430,13 +433,18 @@ export default function HeroAnalysisPage() {
                         onClick={() => setSelectedHeroForMatchup(
                           selectedHeroForMatchup === matchup.playerHeroId ? null : matchup.playerHeroId
                         )}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           selectedHeroForMatchup === matchup.playerHeroId
                             ? 'bg-red-600 text-white'
                             : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                         }`}
                       >
-                        {matchup.playerHeroName} ({matchup.totalMatchups} matchup)
+                        <HeroCard
+                          heroId={matchup.playerHeroId}
+                          heroName={matchup.playerHeroInternalName}
+                          size="sm"
+                        />
+                        <span>{matchup.playerHeroName} ({matchup.totalMatchups} matchup)</span>
                       </button>
                     ))}
                   </div>
@@ -482,8 +490,17 @@ export default function HeroAnalysisPage() {
                               <tbody className="divide-y divide-gray-600">
                                 {sortedMatchups.map((matchup) => (
                                   <tr key={matchup.enemyHeroId} className="hover:bg-gray-600/50">
-                                    <td className="px-4 py-3 text-white font-medium">
-                                      {matchup.enemyHeroName}
+                                    <td className="px-4 py-3">
+                                      <div className="flex items-center gap-3">
+                                        <HeroCard
+                                          heroId={matchup.enemyHeroId}
+                                          heroName={matchup.enemyHeroInternalName}
+                                          size="sm"
+                                        />
+                                        <span className="text-white font-medium">
+                                          {matchup.enemyHeroName}
+                                        </span>
+                                      </div>
                                     </td>
                                     <td className="px-4 py-3 text-gray-300">{matchup.games}</td>
                                     <td className="px-4 py-3 text-gray-300">{matchup.wins}</td>

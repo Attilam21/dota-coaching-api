@@ -45,8 +45,8 @@ export async function GET(
     const heroesMap: Record<number, { name: string; localized_name: string }> = {}
     allHeroes.forEach((hero: any) => {
       heroesMap[hero.id] = {
-        name: hero.name,
-        localized_name: hero.localized_name,
+        name: hero.name || '', // e.g., "npc_dota_hero_antimage"
+        localized_name: hero.localized_name || `Hero ${hero.id}`,
       }
     })
 
@@ -112,9 +112,11 @@ export async function GET(
     const matchups: Array<{
       playerHeroId: number
       playerHeroName: string
+      playerHeroInternalName: string
       matchups: Array<{
         enemyHeroId: number
         enemyHeroName: string
+        enemyHeroInternalName: string
         games: number
         wins: number
         winrate: number
@@ -137,6 +139,7 @@ export async function GET(
           return {
             enemyHeroId,
             enemyHeroName: enemyHero?.localized_name || `Hero ${enemyHeroId}`,
+            enemyHeroInternalName: enemyHero?.name || `npc_dota_hero_${enemyHeroId}`,
             games: stats.games,
             wins: stats.wins,
             winrate: parseFloat(winrate.toFixed(2)),
@@ -149,6 +152,7 @@ export async function GET(
         matchups.push({
           playerHeroId,
           playerHeroName: playerHero.localized_name,
+          playerHeroInternalName: playerHero.name,
           matchups: matchupList,
           totalMatchups: matchupList.length,
         })
