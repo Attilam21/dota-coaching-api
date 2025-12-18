@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
+import { BarChart as BarChartIcon, Table } from 'lucide-react'
 
 interface HeroStats {
   hero_id: number
@@ -18,6 +19,8 @@ interface HeroStats {
   winrate: number
 }
 
+type TabType = 'chart' | 'stats'
+
 export default function HeroesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -26,6 +29,7 @@ export default function HeroesPage() {
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('chart')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -134,75 +138,105 @@ export default function HeroesPage() {
 
       {heroStats.length > 0 && !loading && (
         <div className="space-y-6">
-          {/* Chart */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-            {playerId && (
-              <InsightBadge
-                elementType="trend-chart"
-                elementId="heroes-chart"
-                contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
-                playerId={playerId}
-                position="top-right"
-              />
-            )}
-            <h2 className="text-2xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Heroes Table */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-700">
-              <h2 className="text-2xl font-semibold">Statistiche Heroes</h2>
+          {/* Tabs */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+            <div className="flex border-b border-gray-700 overflow-x-auto">
+              {[
+                { id: 'chart' as TabType, name: 'Grafico', icon: BarChartIcon },
+                { id: 'stats' as TabType, name: 'Statistiche', icon: Table },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.name}
+                </button>
+              ))}
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {heroStats.map((hero) => (
-                    <tr key={hero.hero_id} className="hover:bg-gray-700/50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <HeroCard
-                            heroId={hero.hero_id}
-                            heroName={heroes[hero.hero_id]?.name || ''}
-                            size="sm"
-                          />
-                          <span className="text-white font-medium">{hero.hero_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.wins}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`font-semibold ${hero.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
-                          {hero.winrate.toFixed(1)}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {/* Chart Tab */}
+              {activeTab === 'chart' && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                  {playerId && (
+                    <InsightBadge
+                      elementType="trend-chart"
+                      elementId="heroes-chart"
+                      contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
+                      playerId={playerId}
+                      position="top-right"
+                    />
+                  )}
+                  <h2 className="text-2xl font-semibold mb-4">Top 10 Heroes per Partite</h2>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={120} />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="winrate" fill="#EF4444" name="Winrate %" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Stats Tab */}
+              {activeTab === 'stats' && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                  <div className="p-6 border-b border-gray-700">
+                    <h2 className="text-2xl font-semibold">Statistiche Heroes</h2>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {heroStats.map((hero) => (
+                          <tr key={hero.hero_id} className="hover:bg-gray-700/50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <HeroCard
+                                  heroId={hero.hero_id}
+                                  heroName={heroes[hero.hero_id]?.name || ''}
+                                  size="sm"
+                                />
+                                <span className="text-white font-medium">{hero.hero_name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.wins}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`font-semibold ${hero.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                                {hero.winrate.toFixed(1)}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
