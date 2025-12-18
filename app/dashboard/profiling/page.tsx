@@ -409,9 +409,9 @@ export default function ProfilingPage() {
                 <div className="mt-3 pt-3 border-t border-gray-700">
                   <p className="text-xs text-gray-400 leading-relaxed">
                     <strong className="text-green-400">Winrate</strong> è la percentuale di partite vinte. 
-                    {parseFloat(profile.metrics.winrate) > 55 ? (
+                    {parseFloat(profile.metrics.winrate) >= 55 ? (
                       <> Eccellente winrate! Stai giocando molto bene e contribuendo alle vittorie del team.</>
-                    ) : parseFloat(profile.metrics.winrate) > 50 ? (
+                    ) : parseFloat(profile.metrics.winrate) >= 50 ? (
                       <> Winrate nella media. Analizza le tue partite perse per identificare aree di miglioramento.</>
                     ) : (
                       <> Focus su decision making, comunicazione con il team e analisi degli errori per migliorare il winrate.</>
@@ -562,65 +562,95 @@ export default function ProfilingPage() {
                 <BarChartIcon className="w-6 h-6" />
                 Metriche Avanzate
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {profile.metrics.avgHeroDamage && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-red-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Hero Damage</p>
-                    <p className="text-xl font-bold text-red-400">{profile.metrics.avgHeroDamage}</p>
+                    <p className="text-xl font-bold text-red-400 mb-2">{profile.metrics.avgHeroDamage}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Danno totale inflitto agli eroi nemici. Importante per misurare il tuo impatto nei teamfight.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgTowerDamage && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-orange-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Tower Damage</p>
-                    <p className="text-xl font-bold text-orange-400">{profile.metrics.avgTowerDamage}</p>
+                    <p className="text-xl font-bold text-orange-400 mb-2">{profile.metrics.avgTowerDamage}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Danno alle torri. Indica quanto contribuisci alla pressione sugli obiettivi e alla chiusura delle partite.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgLastHits && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-green-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Last Hits</p>
-                    <p className="text-xl font-bold text-green-400">{profile.metrics.avgLastHits}</p>
+                    <p className="text-xl font-bold text-green-400 mb-2">{profile.metrics.avgLastHits}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Creep uccisi con l'ultimo colpo. Fondamentale per il farming e la crescita economica durante la partita.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgDenies && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-blue-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Denies</p>
-                    <p className="text-xl font-bold text-blue-400">{profile.metrics.avgDenies}</p>
+                    <p className="text-xl font-bold text-blue-400 mb-2">{profile.metrics.avgDenies}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Creep negati al nemico. Negare esperienza e oro avversario è cruciale nella fase di laning.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgNetWorth && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-yellow-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Net Worth</p>
-                    <p className="text-xl font-bold text-yellow-400">{profile.metrics.avgNetWorth}</p>
+                    <p className="text-xl font-bold text-yellow-400 mb-2">{profile.metrics.avgNetWorth}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Valore netto totale (oro + valore item). Riflette la tua efficienza economica complessiva nella partita.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.visionScore && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-purple-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Vision Score</p>
-                    <p className="text-xl font-bold text-purple-400">{profile.metrics.visionScore}</p>
+                    <p className="text-xl font-bold text-purple-400 mb-2">{profile.metrics.visionScore}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Contributo al controllo della mappa. Ward e deward sono essenziali per la visione e la sicurezza del team.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.goldUtilization && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-emerald-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Gold Util.</p>
-                    <p className="text-xl font-bold text-emerald-400">{profile.metrics.goldUtilization}%</p>
+                    <p className="text-xl font-bold text-emerald-400 mb-2">{profile.metrics.goldUtilization}%</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Percentuale di oro convertito in item. Un'alta percentuale indica efficienza nell'acquisto di item.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.denyRate && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-cyan-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deny Rate</p>
-                    <p className="text-xl font-bold text-cyan-400">{profile.metrics.denyRate}%</p>
+                    <p className="text-xl font-bold text-cyan-400 mb-2">{profile.metrics.denyRate}%</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Percentuale di creep negati rispetto ai totali. Indica la tua abilità nel controllo della lane.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgAssists && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-pink-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Assist/Game</p>
-                    <p className="text-xl font-bold text-pink-400">{profile.metrics.avgAssists}</p>
+                    <p className="text-xl font-bold text-pink-400 mb-2">{profile.metrics.avgAssists}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Assist medie per partita. Mostra quanto partecipi ai teamfight e supporti il team nelle kill.
+                    </p>
                   </div>
                 )}
                 {profile.metrics.avgKills && (
                   <div className="bg-gray-700/50 rounded-lg p-4 border border-amber-700/30">
                     <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Kill/Game</p>
-                    <p className="text-xl font-bold text-amber-400">{profile.metrics.avgKills}</p>
+                    <p className="text-xl font-bold text-amber-400 mb-2">{profile.metrics.avgKills}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Kill medie per partita. Indica la tua capacità di finire i nemici e contribuire alle eliminazioni.
+                    </p>
                   </div>
                 )}
               </div>
