@@ -34,21 +34,29 @@ export default function AttributeIcon({
     int: 'text-blue-400'
   }
 
-  const iconComponents = {
+  const iconComponents: Record<'str' | 'agi' | 'int', typeof Sword> = {
     str: Sword,
     agi: Zap,
     int: Brain
   }
 
-  const IconComponent = iconComponents[attribute]
+  // Validate attribute and get icon component with fallback
+  const IconComponent = (attribute === 'str' || attribute === 'agi' || attribute === 'int') 
+    ? iconComponents[attribute] 
+    : Sword // Fallback to Sword if invalid attribute
+
+  // Get color with fallback
+  const iconColor = (attribute === 'str' || attribute === 'agi' || attribute === 'int')
+    ? labelColors[attribute]
+    : 'text-gray-400'
 
   return (
     <div className={`flex items-center gap-1 ${className}`} title={attribute.toUpperCase()}>
       <div className={`${sizeClasses[size]} flex items-center justify-center`}>
-        <IconComponent className={`${sizeClasses[size]} ${labelColors[attribute]}`} />
+        <IconComponent className={`${sizeClasses[size]} ${iconColor}`} />
       </div>
       {showLabel && (
-        <span className={`text-xs font-semibold ${labelColors[attribute]}`}>
+        <span className={`text-xs font-semibold ${iconColor}`}>
           {labelText[attribute]}
         </span>
       )}
