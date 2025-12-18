@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle } from 'lucide-react'
 
 interface MetaComparison {
   role: string
@@ -49,7 +49,9 @@ export default function CoachingPage() {
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const [metaData, setMetaData] = useState<MetaComparison | null>(null)
+  const [winConditions, setWinConditions] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [loadingWinConditions, setLoadingWinConditions] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -78,11 +80,29 @@ export default function CoachingPage() {
     }
   }, [playerId])
 
+  const fetchWinConditions = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      setLoadingWinConditions(true)
+      const response = await fetch(`/api/player/${playerId}/win-conditions`)
+      if (response.ok) {
+        const data = await response.json()
+        setWinConditions(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch win conditions:', err)
+    } finally {
+      setLoadingWinConditions(false)
+    }
+  }, [playerId])
+
   useEffect(() => {
     if (playerId) {
       fetchMetaComparison()
+      fetchWinConditions()
     }
-  }, [playerId, fetchMetaComparison])
+  }, [playerId, fetchMetaComparison, fetchWinConditions])
 
   const getMetricLabel = (metric: string) => {
     const labels: Record<string, string> = {
@@ -91,8 +111,14 @@ export default function CoachingPage() {
       kda: 'KDA',
       winrate: 'Winrate',
       heroDamage: 'Hero Damage',
+      hero_damage: 'Hero Damage',
       towerDamage: 'Tower Damage',
+      tower_damage: 'Tower Damage',
       lastHits: 'Last Hits',
+      last_hits: 'Last Hits',
+      deaths: 'Morti',
+      teamfightParticipation: 'Teamfight Part.',
+      teamfight_participation: 'Teamfight Part.',
     }
     return labels[metric] || metric
   }
@@ -111,11 +137,17 @@ export default function CoachingPage() {
   }
 
   const formatValue = (metric: string, value: number) => {
-    if (metric === 'winrate' || metric === 'killParticipation' || metric === 'denyRate' || metric === 'goldUtilization' || metric === 'visionScore') {
+    if (metric === 'winrate' || metric === 'killParticipation' || metric === 'denyRate' || metric === 'goldUtilization' || metric === 'visionScore' || metric === 'teamfightParticipation' || metric === 'teamfight_participation') {
       return `${value.toFixed(1)}%`
     }
     if (metric === 'kda') {
       return value.toFixed(2)
+    }
+    if (metric === 'gpm' || metric === 'xpm') {
+      return Math.round(value).toLocaleString()
+    }
+    if (metric === 'heroDamage' || metric === 'hero_damage' || metric === 'towerDamage' || metric === 'tower_damage') {
+      return Math.round(value).toLocaleString()
     }
     return Math.round(value).toLocaleString()
   }
@@ -309,6 +341,132 @@ export default function CoachingPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Win Condition Analysis */}
+          {winConditions && !loadingWinConditions && (
+            <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-700/50 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Trophy className="w-6 h-6 text-green-400" />
+                <h2 className="text-2xl font-semibold">Analisi Pattern di Vittoria</h2>
+              </div>
+
+              {/* Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-green-700/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy className="w-5 h-5 text-green-400" />
+                    <span className="text-sm text-gray-400">Vittorie</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-400">{winConditions.summary.wins}</p>
+                  <p className="text-xs text-gray-500 mt-1">Winrate: {winConditions.summary.winrate.toFixed(1)}%</p>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-red-700/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <XCircle className="w-5 h-5 text-red-400" />
+                    <span className="text-sm text-gray-400">Sconfitte</span>
+                  </div>
+                  <p className="text-2xl font-bold text-red-400">{winConditions.summary.losses}</p>
+                  <p className="text-xs text-gray-500 mt-1">Totale: {winConditions.summary.totalMatches} partite</p>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-700/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-5 h-5 text-blue-400" />
+                    <span className="text-sm text-gray-400">Replicabilità</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-400">{winConditions.winConditionScore.overallScore.toFixed(0)}%</p>
+                  <p className="text-xs text-gray-500 mt-1">Quanto replichi i pattern vincenti</p>
+                </div>
+              </div>
+
+              {/* Key Differentiators */}
+              {winConditions.keyDifferentiators && winConditions.keyDifferentiators.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4 text-green-300">Cosa Fai di Diverso Quando Vinci</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {winConditions.keyDifferentiators.map((diff: any, idx: number) => (
+                      <div key={idx} className="bg-gray-800/70 rounded-lg p-4 border border-green-600/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-gray-300">{getMetricLabel(diff.metric)}</span>
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-400">Vittorie:</span>
+                            <span className="text-green-400 font-semibold">{formatValue(diff.metric, diff.winValue)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-400">Sconfitte:</span>
+                            <span className="text-red-400 font-semibold">{formatValue(diff.metric, diff.lossValue)}</span>
+                          </div>
+                          <div className="pt-2 border-t border-gray-700 flex justify-between items-center">
+                            <span className="text-xs text-gray-400">Differenza</span>
+                            <span className="text-sm font-bold text-green-400">
+                              +{diff.differencePercent.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Insight */}
+              {winConditions.aiInsight && (
+                <div className="bg-gray-800/70 rounded-lg p-5 border border-green-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-5 h-5 text-yellow-400" />
+                    <h3 className="text-lg font-semibold text-yellow-300">Insight AI: Pattern di Vittoria</h3>
+                  </div>
+                  <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{winConditions.aiInsight}</p>
+                </div>
+              )}
+
+              {/* Detailed Comparison Table */}
+              <div className="mt-6 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <h3 className="text-md font-semibold mb-4 text-gray-300">Confronto Dettagliato: Vittorie vs Sconfitte</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-700">
+                        <th className="text-left py-2 text-gray-400">Metrica</th>
+                        <th className="text-right py-2 text-green-400">Vittorie</th>
+                        <th className="text-right py-2 text-red-400">Sconfitte</th>
+                        <th className="text-right py-2 text-gray-400">Differenza</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(winConditions.differences || {}).map(([metric, data]: [string, any]) => (
+                        <tr key={metric} className="border-b border-gray-800">
+                          <td className="py-2 text-gray-300">{getMetricLabel(metric)}</td>
+                          <td className="text-right py-2 text-green-400 font-semibold">
+                            {formatValue(metric, data.win)}
+                          </td>
+                          <td className="text-right py-2 text-red-400 font-semibold">
+                            {formatValue(metric, data.loss)}
+                          </td>
+                          <td className="text-right py-2">
+                            <span className={`font-semibold ${data.diffPercent > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {data.diffPercent > 0 ? '+' : ''}{data.diffPercent.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {loadingWinConditions && (
+            <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <p className="mt-4 text-gray-400">Analisi pattern di vittoria in corso...</p>
               </div>
             </div>
           )}
