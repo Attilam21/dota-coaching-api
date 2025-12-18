@@ -18,7 +18,7 @@ Ho creato il file `supabase/gamification_schema_update.sql` ma **devi eseguirlo 
 
 ### 3. Copia e Incolla lo Script
 - Apri il file: `supabase/gamification_schema_update.sql`
-- Copia **tutto il contenuto**
+- Copia **tutto il contenuto** (lo script è completo e gestisce tutte le colonne mancanti)
 - Incolla nella query box di Supabase
 
 ### 4. Esegui la Query
