@@ -409,9 +409,9 @@ export default function ProfilingPage() {
                 <div className="mt-3 pt-3 border-t border-gray-700">
                   <p className="text-xs text-gray-400 leading-relaxed">
                     <strong className="text-green-400">Winrate</strong> è la percentuale di partite vinte. 
-                    {parseFloat(profile.metrics.winrate) >= 55 ? (
+                    {parseFloat(profile.metrics.winrate) > 55 ? (
                       <> Eccellente winrate! Stai giocando molto bene e contribuendo alle vittorie del team.</>
-                    ) : parseFloat(profile.metrics.winrate) >= 50 ? (
+                    ) : parseFloat(profile.metrics.winrate) > 50 ? (
                       <> Winrate nella media. Analizza le tue partite perse per identificare aree di miglioramento.</>
                     ) : (
                       <> Focus su decision making, comunicazione con il team e analisi degli errori per migliorare il winrate.</>
