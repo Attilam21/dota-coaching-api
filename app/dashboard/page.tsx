@@ -127,16 +127,16 @@ export default function DashboardPage() {
   }
 
   const getWinrateTrend = () => {
-    if (!stats) return { label: '', color: '' }
-    const delta = stats.winrate.delta
+    if (!stats || !stats.winrate) return { label: 'N/A', color: 'bg-gray-500' }
+    const delta = stats.winrate.delta || 0
     if (delta > 5) return { label: 'In aumento', color: 'bg-green-500' }
     if (delta < -5) return { label: 'In calo', color: 'bg-red-500' }
     return { label: 'Stabile', color: 'bg-gray-500' }
   }
 
   const getKDATrend = () => {
-    if (!stats) return { label: '', color: '' }
-    const delta = stats.kda.delta
+    if (!stats || !stats.kda) return { label: 'N/A', color: 'bg-gray-500' }
+    const delta = stats.kda.delta || 0
     if (delta > 0.5) return { label: 'Migliora', color: 'bg-green-500' }
     if (delta < -0.5) return { label: 'Peggiora', color: 'bg-red-500' }
     return { label: 'Stabile', color: 'bg-gray-500' }
@@ -154,13 +154,15 @@ export default function DashboardPage() {
     return 'Le tue performance sono stabili rispetto al tuo storico recente.'
   }
 
-  // Prepare chart data
-  const chartData = stats?.matches.map((m, idx) => ({
-    match: `Match ${idx + 1}`,
-    winrate: m.win ? 100 : 0,
-    kda: m.kda,
-    gpm: m.gpm,
-  })) || []
+  // Prepare chart data - ensure matches array exists and has data
+  const chartData = (stats?.matches && Array.isArray(stats.matches) && stats.matches.length > 0)
+    ? stats.matches.map((m, idx) => ({
+        match: `Match ${idx + 1}`,
+        winrate: m.win ? 100 : 0,
+        kda: m.kda || 0,
+        gpm: m.gpm || 0,
+      }))
+    : []
 
   // Calculate heatmap data (day of week x hour of day)
   const calculateHeatmap = () => {
@@ -336,7 +338,7 @@ export default function DashboardPage() {
                   <InsightBadge
                     elementType="trend-winrate"
                     elementId="dashboard-winrate-trend"
-                    contextData={{ direction: stats.winrate.delta >= 0 ? 'up' : 'down', value: stats.winrate.delta, label: winrateTrend.label, last5: stats.winrate.last5, last10: stats.winrate.last10 }}
+                    contextData={{ direction: (stats.winrate?.delta ?? 0) >= 0 ? 'up' : 'down', value: stats.winrate?.delta ?? 0, label: winrateTrend.label, last5: stats.winrate?.last5 ?? 0, last10: stats.winrate?.last10 ?? 0 }}
                     playerId={playerId}
                     position="top-right"
                   />
@@ -350,16 +352,16 @@ export default function DashboardPage() {
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="text-gray-400">Ultime 5 partite: </span>
-                    <span className="font-bold">{stats.winrate.last5.toFixed(1)}%</span>
+                    <span className="font-bold">{(stats.winrate?.last5 ?? 0).toFixed(1)}%</span>
                   </div>
                   <div>
                     <span className="text-gray-400">Ultime 10 partite: </span>
-                    <span className="font-bold">{stats.winrate.last10.toFixed(1)}%</span>
+                    <span className="font-bold">{(stats.winrate?.last10 ?? 0).toFixed(1)}%</span>
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <span className={`font-bold ${stats.winrate.delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {stats.winrate.delta >= 0 ? '+' : ''}{stats.winrate.delta.toFixed(1)}%
+                    <span className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
                     </span>
                   </div>
                 </div>
@@ -372,7 +374,7 @@ export default function DashboardPage() {
                   <InsightBadge
                     elementType="trend-kda"
                     elementId="dashboard-kda-trend"
-                    contextData={{ direction: stats.kda.delta >= 0 ? 'up' : 'down', value: stats.kda.delta, label: kdaTrend.label, last5: stats.kda.last5, last10: stats.kda.last10 }}
+                    contextData={{ direction: (stats.kda?.delta ?? 0) >= 0 ? 'up' : 'down', value: stats.kda?.delta ?? 0, label: kdaTrend.label, last5: stats.kda?.last5 ?? 0, last10: stats.kda?.last10 ?? 0 }}
                     playerId={playerId}
                     position="top-right"
                   />
@@ -386,16 +388,16 @@ export default function DashboardPage() {
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="text-gray-400">Ultime 5 partite: </span>
-                    <span className="font-bold">{stats.kda.last5.toFixed(2)}</span>
+                    <span className="font-bold">{(stats.kda?.last5 ?? 0).toFixed(2)}</span>
                   </div>
                   <div>
                     <span className="text-gray-400">Ultime 10 partite: </span>
-                    <span className="font-bold">{stats.kda.last10.toFixed(2)}</span>
+                    <span className="font-bold">{(stats.kda?.last10 ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <span className={`font-bold ${stats.kda.delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {stats.kda.delta >= 0 ? '+' : ''}{stats.kda.delta.toFixed(2)}
+                    <span className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {(stats.kda?.delta ?? 0) >= 0 ? '+' : ''}{(stats.kda?.delta ?? 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -408,13 +410,13 @@ export default function DashboardPage() {
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-gray-400">GPM: </span>
-                    <span className="font-bold text-yellow-400">{stats.farm.gpm.last5.toFixed(0)}</span>
-                    <span className="text-gray-500 ml-2">/ {stats.farm.gpm.last10.toFixed(0)}</span>
+                    <span className="font-bold text-yellow-400">{(stats.farm?.gpm?.last5 ?? 0).toFixed(0)}</span>
+                    <span className="text-gray-500 ml-2">/ {(stats.farm?.gpm?.last10 ?? 0).toFixed(0)}</span>
                   </div>
                   <div>
                     <span className="text-gray-400">XPM: </span>
-                    <span className="font-bold text-blue-400">{stats.farm.xpm.last5.toFixed(0)}</span>
-                    <span className="text-gray-500 ml-2">/ {stats.farm.xpm.last10.toFixed(0)}</span>
+                    <span className="font-bold text-blue-400">{(stats.farm?.xpm?.last5 ?? 0).toFixed(0)}</span>
+                    <span className="text-gray-500 ml-2">/ {(stats.farm?.xpm?.last10 ?? 0).toFixed(0)}</span>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite</p>
@@ -440,7 +442,7 @@ export default function DashboardPage() {
                           </div>
                           <div>
                             <span className="text-gray-400">Partite analizzate: </span>
-                            <span className="font-semibold">{stats.matches.length}</span>
+                            <span className="font-semibold">{stats.matches?.length ?? 0}</span>
                           </div>
                         </div>
                       </div>
@@ -587,7 +589,7 @@ export default function DashboardPage() {
                         <InsightBadge
                           elementType="trend-chart"
                           elementId="dashboard-trend-chart"
-                          contextData={{ trends: { winrate: stats.winrate, kda: stats.kda, farm: stats.farm }, data: chartData }}
+                          contextData={{ trends: { winrate: stats.winrate ?? {}, kda: stats.kda ?? {}, farm: stats.farm ?? {} }, data: chartData }}
                           playerId={playerId}
                           position="top-right"
                         />
@@ -685,7 +687,7 @@ export default function DashboardPage() {
               {activeTab === 'matches' && (
                 <div className="space-y-6">
                   {/* Recent Matches Grid */}
-                  {stats.matches.length > 0 && (
+                  {stats.matches && stats.matches.length > 0 && (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
@@ -697,7 +699,7 @@ export default function DashboardPage() {
                         </Link>
                       </div>
                       <div className="grid md:grid-cols-5 gap-4">
-                        {stats.matches.slice(0, 5).map((match, idx) => (
+                        {(stats.matches || []).slice(0, 5).map((match, idx) => (
                           <Link
                             key={match.match_id}
                             href={`/analysis/match/${match.match_id}`}

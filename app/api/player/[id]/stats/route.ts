@@ -38,7 +38,23 @@ export async function GET(
     if (!matches || matches.length === 0) {
       return NextResponse.json({
         matches: [],
-        stats: null
+        stats: {
+          winrate: {
+            last5: 0,
+            last10: 0,
+            delta: 0,
+          },
+          kda: {
+            last5: 0,
+            last10: 0,
+            delta: 0,
+          },
+          farm: {
+            gpm: { last5: 0, last10: 0 },
+            xpm: { last5: 0, last10: 0 },
+          },
+          matches: [],
+        }
       })
     }
     
