@@ -256,6 +256,7 @@ export default function MatchAnalysisPage() {
       const response = await fetch('/api/user/achievements/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ actionType })
       })
       

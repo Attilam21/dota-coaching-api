@@ -44,7 +44,9 @@ export default function AchievementsPage() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/user/achievements')
+        const response = await fetch('/api/user/achievements', {
+          credentials: 'include'
+        })
         if (!response.ok) {
           throw new Error('Failed to fetch achievements')
         }
@@ -86,6 +88,7 @@ export default function AchievementsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ achievementId }),
       })
 
@@ -109,7 +112,9 @@ export default function AchievementsPage() {
       setShowNotification(true)
 
       // Refresh achievements to get updated data
-      const refreshResponse = await fetch('/api/user/achievements')
+      const refreshResponse = await fetch('/api/user/achievements', {
+        credentials: 'include'
+      })
       if (refreshResponse.ok) {
         const refreshData = await refreshResponse.json()
         setAchievements(refreshData.achievements || [])

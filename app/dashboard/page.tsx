@@ -109,19 +109,16 @@ export default function DashboardPage() {
       if (!user) return
       try {
         setLoadingGamification(true)
-        const [statsResponse, progressionResponse] = await Promise.all([
-          fetch('/api/user/stats'),
-          fetch('/api/user/progression-snapshot')
-        ])
+        const statsResponse = await fetch('/api/user/stats', {
+          credentials: 'include'
+        })
         
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
           setUserStats(statsData)
-        }
-
-        if (progressionResponse.ok) {
-          const progressionData = await progressionResponse.json()
-          setProgression(progressionData)
+        } else if (statsResponse.status === 401) {
+          // User not authenticated, skip gamification
+          console.log('User not authenticated, skipping gamification')
         }
       } catch (err) {
         console.error('Error fetching gamification data:', err)

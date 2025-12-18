@@ -54,11 +54,16 @@ export async function GET(
       console.error('Heroes fetch failed:', heroesResponse.status)
     }
     
-    if (!statsData?.stats || !advancedData?.stats) {
+    if (!statsData?.stats) {
       return NextResponse.json(
-        { error: 'Failed to fetch or parse player data' },
+        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
         { status: 500 }
       )
+    }
+
+    // Advanced stats are optional but preferred
+    if (!advancedData?.stats) {
+      console.warn('Advanced stats not available, using basic stats only')
     }
 
     // Fetch heroes data to get role info
@@ -92,7 +97,7 @@ export async function GET(
     }
 
     // Process player heroes and assign to roles
-    playerHeroes
+    (playerHeroes || [])
       .filter((h: any) => h.games && h.games > 0)
       .forEach((h: any) => {
         const hero = heroesMap[h.hero_id]
@@ -132,7 +137,12 @@ export async function GET(
 
     // Calculate winrates and REAL metrics per role
     const stats = statsData.stats
-    const advanced = advancedData.stats
+    const advanced = advancedData?.stats || {
+      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
+      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
+      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
+      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
+    }
     const matches = stats.matches || []
 
     // Calculate REAL metrics per role based on actual match data

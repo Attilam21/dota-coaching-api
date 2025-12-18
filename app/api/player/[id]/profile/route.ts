@@ -40,15 +40,25 @@ export async function GET(
       console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
     }
     
-    if (!statsData?.stats || !advancedData?.stats) {
+    if (!statsData?.stats) {
       return NextResponse.json(
-        { error: 'Failed to fetch or parse player data' },
+        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
         { status: 500 }
       )
     }
 
+    // Advanced stats are optional but preferred
+    if (!advancedData?.stats) {
+      console.warn('Advanced stats not available, using basic stats only')
+    }
+
     const stats = statsData.stats
-    const advanced = advancedData.stats
+    const advanced = advancedData?.stats || {
+      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
+      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
+      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
+      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
+    }
     const matches = stats.matches || []
 
     // Calculate comprehensive metrics - prioritize stats.farm (already calculated averages)
