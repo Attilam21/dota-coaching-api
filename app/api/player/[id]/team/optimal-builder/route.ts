@@ -135,15 +135,16 @@ export async function GET(
     // Strategy: Try combinations of top players with good winrates
     const optimalTeams: OptimalTeam[] = []
     
-    // Get top players by winrate
+    // Get top players by winrate (limit to 10 for performance)
     const topPlayers = validPeers.slice(0, 10)
     
-    // Generate combinations (brute force for small sets)
-    // Limit to reasonable combinations
-    for (let i = 0; i < Math.min(topPlayers.length, 8); i++) {
-      for (let j = i + 1; j < Math.min(topPlayers.length, 9); j++) {
-        for (let k = j + 1; k < Math.min(topPlayers.length, 10); k++) {
-          for (let l = k + 1; l < Math.min(topPlayers.length, 11); l++) {
+    // Generate all possible 4-player combinations from topPlayers
+    // Use consistent limits (topPlayers.length) across all loops to ensure
+    // all valid combinations are evaluated, accounting for incrementing start positions
+    for (let i = 0; i < topPlayers.length; i++) {
+      for (let j = i + 1; j < topPlayers.length; j++) {
+        for (let k = j + 1; k < topPlayers.length; k++) {
+          for (let l = k + 1; l < topPlayers.length; l++) {
             const team = [
               { account_id: parseInt(id), name: 'Tu', games: 0, winrate: 50 }, // Placeholder
               topPlayers[i],
