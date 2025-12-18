@@ -1,7 +1,5 @@
 'use client'
 
-import React from 'react'
-import Image from 'next/image'
 import { Sword, Zap, Brain } from 'lucide-react'
 
 interface AttributeIconProps {
@@ -17,14 +15,6 @@ export default function AttributeIcon({
   showLabel = false,
   className = ''
 }: AttributeIconProps) {
-  // Steam CDN URL for attribute icons
-  const getImageUrl = () => {
-    const attrName = attribute === 'str' ? 'strength' : attribute === 'agi' ? 'agility' : 'intelligence'
-    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/attributes/${attrName}_icon.png`
-  }
-
-  const imageUrl = getImageUrl()
-  
   const sizeClasses = {
     xs: 'w-4 h-4',
     sm: 'w-5 h-5',
@@ -51,25 +41,11 @@ export default function AttributeIcon({
   }
 
   const IconComponent = iconComponents[attribute]
-  const [useFallback, setUseFallback] = React.useState(false)
 
   return (
     <div className={`flex items-center gap-1 ${className}`} title={attribute.toUpperCase()}>
-      <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
-        {imageUrl && !useFallback ? (
-          <div className="relative w-full h-full">
-            <Image
-              src={imageUrl}
-              alt={attribute.toUpperCase()}
-              fill
-              className="object-contain"
-              unoptimized
-              onError={() => setUseFallback(true)}
-            />
-          </div>
-        ) : (
-          <IconComponent className={`${sizeClasses[size]} ${labelColors[attribute]}`} />
-        )}
+      <div className={`${sizeClasses[size]} flex items-center justify-center`}>
+        <IconComponent className={`${sizeClasses[size]} ${labelColors[attribute]}`} />
       </div>
       {showLabel && (
         <span className={`text-xs font-semibold ${labelColors[attribute]}`}>
