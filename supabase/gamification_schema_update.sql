@@ -83,9 +83,13 @@ INSERT INTO public.achievements (name, description, icon, xp_reward, category) V
 ON CONFLICT (name) DO NOTHING;
 
 -- 6. Update RLS policy for user_stats (allow users to update their own stats)
-CREATE POLICY IF NOT EXISTS "Users can update own stats" ON public.user_stats
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "Users can update own stats" ON public.user_stats;
+DROP POLICY IF EXISTS "Users can view own stats" ON public.user_stats;
+
+CREATE POLICY "Users can update own stats" ON public.user_stats
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can view own stats" ON public.user_stats
+CREATE POLICY "Users can view own stats" ON public.user_stats
   FOR SELECT USING (auth.uid() = user_id);
 
