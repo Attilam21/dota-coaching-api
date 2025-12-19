@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Database Types - Allineati con schema Supabase
+// Database Types - Allineati con uso attuale (solo dota_account_id)
+// Schema semplificato: rimossi display_name e avatar_url (non usati per ora)
 export type Database = {
   public: {
     Tables: {
@@ -8,33 +9,21 @@ export type Database = {
         Row: {
           id: string
           email: string
-          display_name: string | null
-          avatar_url: string | null
           dota_account_id: number | null
-          dota_account_verified_at: string | null
-          dota_verification_method: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           email: string
-          display_name?: string | null
-          avatar_url?: string | null
           dota_account_id?: number | null
-          dota_account_verified_at?: string | null
-          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           email?: string
-          display_name?: string | null
-          avatar_url?: string | null
           dota_account_id?: number | null
-          dota_account_verified_at?: string | null
-          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -72,8 +61,12 @@ function createSupabaseClient(): SupabaseClient<Database> {
   }
 
   // Create client with proper configuration for client-side usage
-  // FIX: Custom fetch per risolvere conflitto tra apikey e Authorization header
-  // Quando c'è un JWT valido, rimuoviamo apikey per evitare che Supabase usi anon invece di authenticated
+  // IMPORTANT: apikey è SEMPRE richiesto da Supabase per identificare il progetto
+  // Authorization header (JWT) viene usato per l'autenticazione quando presente
+  // Entrambi DEVONO essere presenti simultaneamente - Supabase gestisce correttamente:
+  // - apikey identifica il progetto (sempre richiesto)
+  // - Authorization identifica l'utente (quando presente)
+  // Il problema 403 NON è causato dal conflitto tra i due header
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -82,37 +75,11 @@ function createSupabaseClient(): SupabaseClient<Database> {
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
     },
-    global: {
-      fetch: async (url, options = {}) => {
-        const headers = new Headers(options.headers)
-        
-        // Verifica se c'è un JWT valido nell'Authorization header
-        const authHeader = headers.get('Authorization')
-        const hasValidJWT = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
-        
-        if (hasValidJWT) {
-          // JWT presente: rimuovi apikey per evitare conflitto
-          // Supabase userà solo il JWT per determinare il ruolo (authenticated)
-          // e RLS riconoscerà correttamente auth.uid()
-          headers.delete('apikey')
-          
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[Supabase Client] JWT detected, removed apikey header to avoid RLS conflict')
-          }
-        } else {
-          // Nessun JWT: mantieni apikey per richieste anonime
-          // Assicurati che apikey sia presente
-          if (!headers.has('apikey')) {
-            headers.set('apikey', supabaseAnonKey)
-          }
-        }
-        
-        return fetch(url, {
-          ...options,
-          headers,
-        })
-      },
-    },
+    // No custom fetch - Supabase JS gestisce automaticamente apikey e JWT correttamente
+    // Il problema 403 è probabilmente dovuto a:
+    // 1. JWT role non corretto (deve essere "authenticated" non "anon")
+    // 2. RLS policies che usano roles: {authenticated} ma JWT ha role: "anon"
+    // 3. Configurazione Supabase Auth che non genera JWT con role corretto
   })
 
   // Debug: Log session state in development

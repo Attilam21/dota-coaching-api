@@ -106,6 +106,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   }, [isMounted, playerId])
 
   // Save to Supabase and localStorage whenever playerId changes
+  // Semplificato: usa INSERT/UPDATE separati invece di UPSERT per evitare problemi RLS
   const setPlayerId = useCallback(async (id: string | null) => {
     try {
       if (id) {
@@ -122,15 +123,29 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
           try {
             const parsedId = parseInt(trimmedId)
             if (!isNaN(parsedId)) {
-              await (supabase
-                .from('users') as any)
-                .upsert({
-                  id: user.id,
-                  email: user.email || '',
-                  dota_account_id: parsedId,
-                }, {
-                  onConflict: 'id'
-                })
+              // Verifica se esiste
+              const { data: existing } = await supabase
+                .from('users')
+                .select('id')
+                .eq('id', user.id)
+                .maybeSingle()
+
+              if (existing) {
+                // UPDATE
+                await (supabase
+                  .from('users') as any)
+                  .update({ dota_account_id: parsedId })
+                  .eq('id', user.id)
+              } else {
+                // INSERT
+                await (supabase
+                  .from('users') as any)
+                  .insert({
+                    id: user.id,
+                    email: user.email || '',
+                    dota_account_id: parsedId,
+                  })
+              }
             }
           } catch (err) {
             console.error('[PlayerIdContext] Failed to save to Supabase:', err)
@@ -146,15 +161,21 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
         // Remove from Supabase if user is logged in
         if (user) {
           try {
-            await (supabase
-              .from('users') as any)
-              .upsert({
-                id: user.id,
-                email: user.email || '',
-                dota_account_id: null,
-              }, {
-                onConflict: 'id'
-              })
+            // Verifica se esiste
+            const { data: existing } = await supabase
+              .from('users')
+              .select('id')
+              .eq('id', user.id)
+              .maybeSingle()
+
+            if (existing) {
+              // UPDATE
+              await (supabase
+                .from('users') as any)
+                .update({ dota_account_id: null })
+                .eq('id', user.id)
+            }
+            // Se non esiste, non facciamo nulla (non serve creare un record con dota_account_id null)
           } catch (err) {
             console.error('[PlayerIdContext] Failed to remove from Supabase:', err)
           }
