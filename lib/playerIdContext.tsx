@@ -46,7 +46,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
         const { data } = await supabase
           .from('users')
           .select('dota_account_id')
-          .eq('auth_id', user.id)
+          .eq('id', user.id)
           .single()
 
         const profile = data as { dota_account_id: number | null } | null
