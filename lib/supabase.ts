@@ -86,17 +86,17 @@ function createSupabaseClient(): SupabaseClient<Database> {
         'apikey': supabaseAnonKey,
       },
       // Custom fetch to ensure API key is always included
+      // IMPORTANT: Do NOT override Authorization header - Supabase JS adds JWT token automatically
       fetch: (url, options = {}) => {
-        // Ensure apikey header is always present
         const headers = new Headers(options.headers)
+        // Always include apikey header (required by Supabase)
         if (!headers.has('apikey')) {
           headers.set('apikey', supabaseAnonKey)
         }
-        // If there's an Authorization header from session, keep it
-        // Otherwise, use anon key as fallback
-        if (!headers.has('Authorization')) {
-          headers.set('Authorization', `Bearer ${supabaseAnonKey}`)
-        }
+        // DO NOT set Authorization here - Supabase JS handles it automatically
+        // When user is authenticated, it uses JWT token from session
+        // When not authenticated, it uses anon key
+        // If we override it, RLS won't recognize the authenticated user!
         return fetch(url, {
           ...options,
           headers,
