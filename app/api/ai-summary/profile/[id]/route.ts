@@ -80,7 +80,7 @@ async function generateSummary(prompt: string): Promise<{ summary: string; provi
               content: prompt
             }
           ],
-          max_tokens: 1000,
+          max_tokens: 400,
           temperature: 0.7,
         }),
       })
@@ -253,15 +253,14 @@ ${profileData.phaseAnalysis.late ? `- Late Game: ${profileData.phaseAnalysis.lat
 
 PATTERN IDENTIFICATI: ${profileData.patterns.join(', ') || 'Nessuno'}
 
-Genera un riassunto professionale in italiano (max 400 parole) che includa:
-1. Analisi del profilo generale del giocatore
-2. Ruolo e stile di gioco identificati
-3. Punti di forza principali
-4. Aree di miglioramento critiche
-5. Trend delle performance recenti
-6. Raccomandazione strategica principale per il miglioramento
+Genera un riassunto conciso in italiano (max 200 parole) con:
+1. Profilo generale (1 frase)
+2. Punto di forza principale (1 frase)
+3. Problema critico principale (1 frase)
+4. Azione concreta per migliorare (1 frase)
+5. Target misurabile (1 frase)
 
-Il tono deve essere professionale, motivazionale e orientato al miglioramento continuo.`
+FORMATO: Paragrafi brevi, tono diretto, niente introduzioni lunghe.`
 
     // Generate summary with fallback (Gemini -> OpenAI)
     let summary: string

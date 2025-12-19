@@ -1,249 +1,241 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Helper function to generate AI coaching advice
+async function generateCoachingAdvice(prompt: string): Promise<string> {
+  const geminiKey = process.env.GEMINI_API_KEY
+  if (geminiKey) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      )
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+        if (text && typeof text === 'string' && text.trim().length > 0) {
+          return text.trim()
+        }
+      }
+    } catch (error) {
+      console.warn('Gemini API error, trying OpenAI fallback:', error)
+    }
+  }
+
+  // Fallback to OpenAI
+  const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
+  if (openaiKey) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 200,
+          temperature: 0.7,
+        }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const text = data.choices?.[0]?.message?.content
+        if (text && typeof text === 'string' && text.trim().length > 0) {
+          return text.trim()
+        }
+      }
+    } catch (error) {
+      console.error('OpenAI API error:', error)
+    }
+  }
+
+  throw new Error('AI service unavailable')
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
-    
-    // Fetch both basic and advanced stats
-    // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const [statsResponse, advancedStatsResponse] = await Promise.all([
+
+    // Fetch profile and stats
+    const [profileResponse, statsResponse, advancedResponse] = await Promise.all([
+      fetch(`${request.nextUrl.origin}/api/player/${id}/profile`),
       fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`)
+      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`).catch(() => null),
     ])
-    
-    // Parse responses safely
-    let statsData: any = null
-    let advancedData: any = null
-    
-    if (statsResponse.ok) {
-      try {
-        statsData = await statsResponse.json()
-      } catch (err) {
-        console.error('Failed to parse stats response:', err)
-      }
-    } else {
-      const errorText = await statsResponse.text().catch(() => 'Unknown error')
-      console.error('Stats fetch failed:', statsResponse.status, errorText)
-    }
-    
-    if (advancedStatsResponse.ok) {
-      try {
-        advancedData = await advancedStatsResponse.json()
-      } catch (err) {
-        console.error('Failed to parse advanced stats response:', err)
-      }
-    } else {
-      const errorText = await advancedStatsResponse.text().catch(() => 'Unknown error')
-      console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
-    }
-    
-    if (!statsData?.stats) {
+
+    if (!profileResponse.ok || !statsResponse.ok) {
       return NextResponse.json(
-        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
+        { error: 'Failed to fetch player data' },
         { status: 500 }
       )
     }
-    
-    // Advanced stats are optional but preferred
-    if (!advancedData?.stats) {
-      console.warn('Advanced stats not available, using basic stats only')
-    }
+
+    const profile = await profileResponse.json()
+    const statsData = await statsResponse.json()
+    const advancedData = advancedResponse?.ok ? await advancedResponse.json() : null
 
     const stats = statsData.stats
     const advanced = advancedData?.stats || {
-      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
-      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
-      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
-      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
+      lane: { avgLastHits: 0, avgDenies: 0 },
+      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0 },
+      fights: { killParticipation: 0, avgHeroDamage: 0, avgDeaths: 0 },
+      vision: { avgObserverPlaced: 0 },
     }
+
     const matches = stats.matches || []
+    if (matches.length === 0) {
+      return NextResponse.json({ error: 'No matches found' }, { status: 400 })
+    }
 
-    // Calculate key metrics - prevent division by zero
-    const avgGPM = matches.length > 0 
-      ? matches.reduce((acc: number, m: { gpm: number }) => acc + (m.gpm || 0), 0) / matches.length 
+    // Calculate metrics
+    const avgGPM = stats.farm?.gpm?.last10 || 0
+    const avgXPM = stats.farm?.xpm?.last10 || 0
+    const avgKDA = matches.length > 0
+      ? matches.reduce((acc: number, m: any) => acc + (m.kda || 0), 0) / matches.length
       : 0
-    const avgKDA = matches.length > 0 
-      ? matches.reduce((acc: number, m: { kda: number }) => acc + (m.kda || 0), 0) / matches.length 
-      : 0
-    const avgDeaths = advanced.fights.avgDeaths || 0
-    const winrate = stats.winrate.last10 || 0
-    const avgLastHits = advanced.lane.avgLastHits || 0
-    const avgDenies = advanced.lane.avgDenies || 0
-    const denyRate = advanced.lane.denyRate || 0
-    const killParticipation = advanced.fights.killParticipation || 0
-    const avgHeroDamage = advanced.fights.avgHeroDamage || 0
-    const avgTowerDamage = advanced.fights.avgTowerDamage || 0
-    const avgObserverPlaced = advanced.vision.avgObserverPlaced || 0
-    const goldUtilization = advanced.farm.goldUtilization || 0
+    const winrate = stats.winrate?.last10 || 0
+    const avgDeaths = advanced.fights?.avgDeaths || 0
+    const role = profile.role || 'Core'
 
-    // Generate tasks based on weaknesses
-    const tasks: Array<{
-      id: string
-      title: string
-      description: string
-      priority: 'high' | 'medium' | 'low'
-      category: string
-      target: string
-      current: string
-    }> = []
-
-    // Farm & Economy Tasks
-    if (avgGPM < 450) {
-      tasks.push({
-        id: 'farm-gpm',
-        title: 'Migliora il Farm Rate',
-        description: `Il tuo GPM medio è ${avgGPM.toFixed(0)}. Obiettivo: raggiungere almeno 500 GPM nelle prossime 5 partite.`,
-        priority: 'high',
-        category: 'Farm & Economy',
-        target: '500',
-        current: avgGPM.toFixed(0)
-      })
+    // Benchmark per ruolo
+    const benchmarks: Record<string, { gpm: number; xpm: number; kda: number; deaths: number }> = {
+      Carry: { gpm: 550, xpm: 600, kda: 2.5, deaths: 5 },
+      Mid: { gpm: 500, xpm: 550, kda: 2.8, deaths: 5 },
+      Offlane: { gpm: 450, xpm: 500, kda: 2.2, deaths: 6 },
+      Support: { gpm: 300, xpm: 350, kda: 1.8, deaths: 6 },
+      Core: { gpm: 500, xpm: 550, kda: 2.5, deaths: 5 },
     }
 
-    if (avgLastHits < 50) {
-      tasks.push({
-        id: 'farm-lh',
-        title: 'Aumenta Last Hits',
-        description: `Media di ${avgLastHits.toFixed(1)} last hits per partita. Obiettivo: almeno 60 last hits nelle prossime 3 partite.`,
-        priority: 'high',
-        category: 'Lane & Early Game',
-        target: '60',
-        current: avgLastHits.toFixed(1)
-      })
+    const benchmark = benchmarks[role] || benchmarks.Core
+
+    // Calculate gaps
+    const gaps = {
+      gpm: { value: avgGPM - benchmark.gpm, percent: ((avgGPM - benchmark.gpm) / benchmark.gpm) * 100 },
+      xpm: { value: avgXPM - benchmark.xpm, percent: ((avgXPM - benchmark.xpm) / benchmark.xpm) * 100 },
+      kda: { value: avgKDA - benchmark.kda, percent: ((avgKDA - benchmark.kda) / benchmark.kda) * 100 },
+      deaths: { value: avgDeaths - benchmark.deaths, percent: ((avgDeaths - benchmark.deaths) / benchmark.deaths) * 100 },
     }
 
-    if (denyRate < 10 && avgGPM > 400) {
-      tasks.push({
-        id: 'farm-denies',
-        title: 'Migliora Deny Rate',
-        description: `Deny rate attuale: ${denyRate.toFixed(1)}%. Obiettivo: almeno 15% nelle prossime 5 partite.`,
-        priority: 'medium',
-        category: 'Lane & Early Game',
-        target: '15%',
-        current: `${denyRate.toFixed(1)}%`
-      })
+    // Detect patterns
+    const recent5 = matches.slice(0, 5)
+    const recent10 = matches.slice(5, 10)
+
+    // Pattern 1: Late game farm drop
+    const gpm5 = recent5.length > 0 ? recent5.reduce((acc: number, m: any) => acc + (m.gpm || 0), 0) / recent5.length : 0
+    const gpm10 = recent10.length > 0 ? recent10.reduce((acc: number, m: any) => acc + (m.gpm || 0), 0) / recent10.length : 0
+    const lateGameFarmDrop = gpm5 < gpm10 * 0.85 ? {
+      detected: true,
+      drop: ((gpm10 - gpm5) / gpm10) * 100,
+      severity: gpm5 < gpm10 * 0.75 ? 'high' : 'medium',
+    } : null
+
+    // Pattern 2: Death timing (if we have match details)
+    const deathTiming = avgDeaths > benchmark.deaths * 1.2 ? {
+      detected: true,
+      avgDeaths,
+      benchmark: benchmark.deaths,
+      excess: avgDeaths - benchmark.deaths,
+    } : null
+
+    // Pattern 3: Kill participation vs farm
+    const killParticipation = advanced.fights?.killParticipation || 0
+    const farmVsFight = killParticipation > 75 && avgGPM < benchmark.gpm * 0.9 ? {
+      detected: true,
+      issue: 'High fight participation but low farm',
+    } : null
+
+    // Identify main issue (highest priority)
+    let mainIssue = {
+      type: 'general',
+      description: 'Performance generale da migliorare',
+      gap: 0,
+      priority: 0,
     }
 
-    // Fights & Damage Tasks
-    if (avgDeaths > 7) {
-      tasks.push({
-        id: 'fights-deaths',
-        title: 'Riduci le Morte',
-        description: `Media di ${avgDeaths.toFixed(1)} morti per partita. Obiettivo: massimo 5 morti nelle prossime 3 partite.`,
-        priority: 'high',
-        category: 'Fights & Damage',
-        target: '5',
-        current: avgDeaths.toFixed(1)
-      })
+    if (Math.abs(gaps.gpm.percent) > 15 && gaps.gpm.percent < 0) {
+      mainIssue = {
+        type: 'farm',
+        description: `GPM ${avgGPM.toFixed(0)} vs benchmark ${benchmark.gpm} (gap ${gaps.gpm.percent.toFixed(1)}%)`,
+        gap: gaps.gpm.percent,
+        priority: Math.abs(gaps.gpm.percent),
+      }
+    } else if (Math.abs(gaps.kda.percent) > 20 && gaps.kda.percent < 0) {
+      mainIssue = {
+        type: 'kda',
+        description: `KDA ${avgKDA.toFixed(2)} vs benchmark ${benchmark.kda} (gap ${gaps.kda.percent.toFixed(1)}%)`,
+        gap: gaps.kda.percent,
+        priority: Math.abs(gaps.kda.percent),
+      }
+    } else if (deathTiming) {
+      mainIssue = {
+        type: 'deaths',
+        description: `Morti medie ${avgDeaths.toFixed(1)} vs benchmark ${benchmark.deaths} (${deathTiming.excess.toFixed(1)} in eccesso)`,
+        gap: gaps.deaths.percent,
+        priority: Math.abs(gaps.deaths.percent),
+      }
     }
 
-    if (killParticipation < 60) {
-      tasks.push({
-        id: 'fights-kp',
-        title: 'Aumenta Kill Participation',
-        description: `Kill participation: ${killParticipation.toFixed(1)}%. Obiettivo: almeno 70% nelle prossime 5 partite.`,
-        priority: 'high',
-        category: 'Fights & Damage',
-        target: '70%',
-        current: `${killParticipation.toFixed(1)}%`
-      })
+    // Build context for prompt (max 50 words)
+    let context = `Ruolo ${role}. `
+    if (mainIssue.type !== 'general') {
+      context += `Problema: ${mainIssue.description}. `
     }
-
-    if (avgTowerDamage < 500) {
-      tasks.push({
-        id: 'fights-tower',
-        title: 'Aumenta Tower Damage',
-        description: `Tower damage medio: ${Math.round(avgTowerDamage)}. Obiettivo: almeno 1000 nelle prossime 3 partite.`,
-        priority: 'medium',
-        category: 'Fights & Damage',
-        target: '1000',
-        current: Math.round(avgTowerDamage).toString()
-      })
+    if (lateGameFarmDrop?.detected) {
+      context += `GPM cala ${lateGameFarmDrop.drop.toFixed(0)}% nelle ultime partite. `
     }
-
-    // Vision & Map Control Tasks
-    if (avgObserverPlaced < 5 && avgGPM < 450) {
-      tasks.push({
-        id: 'vision-wards',
-        title: 'Aumenta Warding',
-        description: `Media di ${avgObserverPlaced.toFixed(1)} observer wards per partita. Obiettivo: almeno 8 wards nelle prossime 3 partite.`,
-        priority: 'medium',
-        category: 'Vision & Map Control',
-        target: '8',
-        current: avgObserverPlaced.toFixed(1)
-      })
+    if (deathTiming?.detected) {
+      context += `Morti ${deathTiming.excess.toFixed(1)} sopra benchmark. `
     }
-
-    // Economy Tasks
-    if (goldUtilization < 85) {
-      tasks.push({
-        id: 'economy-utilization',
-        title: 'Migliora Gold Utilization',
-        description: `Utilizzo gold: ${goldUtilization.toFixed(1)}%. Obiettivo: almeno 90% nelle prossime 5 partite.`,
-        priority: 'medium',
-        category: 'Farm & Economy',
-        target: '90%',
-        current: `${goldUtilization.toFixed(1)}%`
-      })
+    if (farmVsFight?.detected) {
+      context += `Alta partecipazione fight ma farm basso. `
     }
+    context += `Winrate ${winrate.toFixed(1)}%.`
 
-    // Winrate Tasks
-    if (winrate < 50) {
-      tasks.push({
-        id: 'winrate',
-        title: 'Migliora Winrate',
-        description: `Winrate ultime 10 partite: ${winrate.toFixed(1)}%. Obiettivo: almeno 55% nelle prossime 10 partite.`,
-        priority: 'high',
-        category: 'Overall Performance',
-        target: '55%',
-        current: `${winrate.toFixed(1)}%`
-      })
-    }
+    // Generate prompt
+    const prompt = `CONTESTO (${context.length} caratteri):
+${context}
 
-    // Generate recommendations
-    const recommendations: string[] = []
+AZIONE:
+Scrivi 3 bullet points specifici (max 20 parole ciascuno):
+1. Cosa fare DURANTE la partita (azione immediata)
+2. Cosa praticare TRA le partite (skill da migliorare)
+3. Come misurare il miglioramento (metrica target)
 
-    if (avgKDA < 2) {
-      recommendations.push('Il tuo KDA è sotto la media. Concentrati sul ridurre le morti e aumentare la partecipazione ai kill.')
-    }
+FORMATO: Solo bullet points, niente introduzione, tono diretto.`
 
-    if (avgHeroDamage < 10000 && avgGPM > 450) {
-      recommendations.push('Come core, il tuo hero damage è basso rispetto al farm. Partecipa di più ai teamfight.')
-    }
-
-    if (advanced.lane.firstBloodInvolvement < 20) {
-      recommendations.push('Partecipa di più alle early game skirmishes per aumentare la tua presenza in early game.')
-    }
-
-    if (advanced.farm.avgBuybacks > 1.5) {
-      recommendations.push('Stai usando troppi buyback. Valuta meglio quando è strategico comprare.')
-    }
-
-    if (advanced.vision.wardEfficiency < 30 && avgObserverPlaced > 3) {
-      recommendations.push('Migliora la tua capacità di trovare e distruggere le wards nemiche.')
-    }
+    // Generate advice
+    const advice = await generateCoachingAdvice(prompt)
 
     return NextResponse.json({
-      tasks: tasks.slice(0, 8), // Max 8 tasks
-      recommendations,
-      summary: {
-        totalTasks: tasks.length,
-        highPriority: tasks.filter(t => t.priority === 'high').length,
-        mediumPriority: tasks.filter(t => t.priority === 'medium').length,
-        lowPriority: tasks.filter(t => t.priority === 'low').length,
-      }
+      advice,
+      mainIssue: {
+        type: mainIssue.type,
+        description: mainIssue.description,
+      },
+      patterns: {
+        lateGameFarmDrop: lateGameFarmDrop?.detected || false,
+        deathTiming: deathTiming?.detected || false,
+        farmVsFight: farmVsFight?.detected || false,
+      },
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=1800', // 30 minutes
+        'Cache-Control': 'public, s-maxage=1800',
       },
     })
   } catch (error) {
-    console.error('Error generating coaching data:', error)
+    console.error('Error generating coaching advice:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to generate coaching advice' },
       { status: 500 }
     )
   }

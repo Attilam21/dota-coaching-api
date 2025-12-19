@@ -76,7 +76,7 @@ async function generateInsight(
               content: prompt,
             },
           ],
-          max_tokens: 300,
+          max_tokens: 150,
           temperature: 0.7,
         }),
       })
@@ -157,21 +157,30 @@ export async function POST(request: NextRequest) {
 
     switch (elementType) {
       case 'fzth-score':
-        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. L'AttilaLAB Score è ${contextData.score}/100 per un giocatore ${contextData.role || 'di ruolo non specificato'}. 
-        Scrivi un feedback diretto e assertivo (max 150 parole) identificando il punto debole principale e dando un'azione concreta per migliorarlo. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che sa esattamente cosa fare.`
+        prompt = `Ruolo ${contextData.role || 'Core'}. AttilaLAB Score ${contextData.score}/100. 
+        Scrivi 3 bullet points specifici (max 20 parole ciascuno):
+        1. Problema principale identificato
+        2. Azione concreta per migliorarlo
+        3. Metrica target per misurare progresso
+        FORMATO: Solo bullet points, tono diretto, niente "potresti/dovresti".`
         break
 
       case 'role':
-        prompt = `Sei un coach professionale di Dota 2. Un giocatore è classificato come ${contextData.role} (confidenza: ${contextData.confidence}). 
-        Scrivi un feedback diretto (max 120 parole) su cosa deve migliorare in questo ruolo. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce perfettamente il ruolo.`
+        prompt = `Ruolo ${contextData.role} (confidenza: ${contextData.confidence}). 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Skill principale da migliorare per questo ruolo
+        2. Azione specifica da fare
+        3. Come misurare il miglioramento
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'playstyle':
-        prompt = `Sei un coach professionale di Dota 2. Il giocatore ha uno stile "${contextData.playstyle}". 
-        Scrivi un feedback diretto (max 120 parole) su come ottimizzare questo stile. Identifica un punto specifico da migliorare e dai un'azione concreta. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto.`
+        prompt = `Stile di gioco: ${contextData.playstyle}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Punto debole di questo stile
+        2. Come ottimizzarlo
+        3. Metrica per misurare miglioramento
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'trend-gpm':
@@ -183,9 +192,12 @@ export async function POST(request: NextRequest) {
         const value = contextData.value
         const label = contextData.label
         
-        prompt = `Sei un coach professionale di Dota 2. Il ${metric} mostra un trend ${direction === 'up' ? 'in aumento' : direction === 'down' ? 'in calo' : 'stabile'} (${label}, valore: ${value}). 
-        Scrivi un feedback diretto (max 120 parole) spiegando cosa significa questo trend e cosa fare. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che interpreta i dati con precisione.`
+        prompt = `${metric} trend ${direction === 'up' ? 'in aumento' : direction === 'down' ? 'in calo' : 'stabile'} (${label}, ${value}). 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Cosa significa questo trend
+        2. Azione immediata da fare
+        3. Target per prossime partite
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'metric-card':
@@ -193,15 +205,21 @@ export async function POST(request: NextRequest) {
         const metricValue = contextData.value
         const benchmark = contextData.benchmark
         
-        prompt = `Sei un coach professionale di Dota 2. Il ${metricName} è ${metricValue}${benchmark ? ` (benchmark ruolo: ${benchmark})` : ''}. 
-        Scrivi un feedback diretto (max 120 parole) valutando questa metrica e dando un'azione concreta. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta le metriche con competenza.`
+        prompt = `${metricName}: ${metricValue}${benchmark ? ` (benchmark: ${benchmark})` : ''}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Valutazione della metrica
+        2. Azione concreta per migliorarla
+        3. Target da raggiungere
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'trend-chart':
-        prompt = `Sei un coach professionale di Dota 2. Il trend chart mostra GPM, XPM e KDA nelle ultime partite. Pattern: ${JSON.stringify(contextData.trends || {})}. 
-        Scrivi un feedback diretto (max 150 parole) interpretando questi trend e dando azioni concrete. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che legge i grafici con esperienza.`
+        prompt = `Trend GPM/XPM/KDA ultime partite. Pattern: ${JSON.stringify(contextData.trends || {}).substring(0, 100)}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Pattern principale identificato
+        2. Azione per migliorare
+        3. Metrica target
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'phase-analysis':
@@ -209,71 +227,104 @@ export async function POST(request: NextRequest) {
         const phaseScore = contextData.score
         const phaseStrength = contextData.strength
         
-        prompt = `Sei un coach professionale di Dota 2. Nella fase ${phase} le performance sono ${phaseStrength} (score: ${phaseScore}/100). 
-        Scrivi un feedback diretto (max 120 parole) identificando il problema specifico di questa fase e dando un'azione concreta. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce ogni fase di gioco.`
+        prompt = `Fase ${phase}: performance ${phaseStrength} (score ${phaseScore}/100). 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Problema specifico di questa fase
+        2. Azione concreta per migliorarla
+        3. Target per prossime partite
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'comparative-analysis':
-        prompt = `Sei un coach professionale di Dota 2. L'analisi comparativa per il ruolo ${contextData.role} mostra: ${JSON.stringify(contextData.metrics || {})}. 
-        Scrivi un feedback diretto (max 150 parole) confrontando con i benchmark del ruolo e dando azioni concrete per migliorare. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce i benchmark di ogni ruolo.`
+        prompt = `Ruolo ${contextData.role}. Confronto con benchmark: ${JSON.stringify(contextData.metrics || {}).substring(0, 100)}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Gap principale vs benchmark
+        2. Azione per colmare il gap
+        3. Target misurabile
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'pattern':
-        prompt = `Sei un coach professionale di Dota 2. Pattern identificati: ${contextData.patterns?.join(', ') || 'Nessun pattern specifico'}. 
-        Scrivi un feedback diretto (max 120 parole) su come sfruttare o modificare questi pattern. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che riconosce i pattern di gioco.`
+        prompt = `Pattern identificati: ${contextData.patterns?.join(', ') || 'Nessun pattern specifico'}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Come sfruttare/modificare questi pattern
+        2. Azione concreta
+        3. Metrica per misurare miglioramento
+        FORMATO: Solo bullet points, tono diretto.`
         break
 
       case 'builds':
         if (elementId === 'top-items') {
           const topItems = contextData.topItems || []
           const itemsList = topItems.map((item: any) => `${item.item_name} (${item.frequency}x, ${item.winrate}% WR)`).join(', ')
-          prompt = `Sei un coach professionale di Dota 2. I top item utilizzati sono: ${itemsList}. 
-          Scrivi un feedback diretto (max 150 parole) analizzando questi item e dando suggerimenti concreti su come ottimizzare le build. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che conosce le build ottimali.`
+          prompt = `Top item: ${itemsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Analisi item utilizzati
+          2. Come ottimizzare le build
+          3. Target winrate item
+          FORMATO: Solo bullet points, tono diretto.`
         } else if (elementId === 'build-patterns') {
           const patterns = contextData.patterns || []
           const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR, ${p.frequency}x)`).join('; ')
-          prompt = `Sei un coach professionale di Dota 2. Le build più comuni sono: ${patternsList}. 
-          Scrivi un feedback diretto (max 150 parole) analizzando queste build e identificando quale funziona meglio e perché. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta le build con competenza.`
+          prompt = `Build comuni: ${patternsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Build più efficace e perché
+          2. Come ottimizzare
+          3. Target winrate build
+          FORMATO: Solo bullet points, tono diretto.`
         } else if (elementId === 'underutilized') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
-          prompt = `Sei un coach professionale di Dota 2. Item sottoutilizzati con alto winrate: ${itemsList}. 
-          Scrivi un feedback diretto (max 150 parole) spiegando perché questi item funzionano bene e come integrarli più spesso nelle build. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che identifica item efficaci.`
+          prompt = `Item sottoutilizzati con alto winrate: ${itemsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Perché questi item funzionano
+          2. Come integrarli nelle build
+          3. Target frequenza utilizzo
+          FORMATO: Solo bullet points, tono diretto.`
         } else if (elementId === 'overpurchased') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
-          prompt = `Sei un coach professionale di Dota 2. Item overpurchased con basso winrate: ${itemsList}. 
-          Scrivi un feedback diretto (max 150 parole) spiegando perché questi item non funzionano e quali alternative usare. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che identifica item inefficaci.`
+          prompt = `Item overpurchased con basso winrate: ${itemsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Perché questi item non funzionano
+          2. Alternative da usare
+          3. Quando evitarli
+          FORMATO: Solo bullet points, tono diretto.`
         } else if (elementId === 'efficiency') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, efficienza: ${item.efficiency?.toFixed(2) || 'N/A'})`).join(', ')
-          prompt = `Sei un coach professionale di Dota 2. Efficienza item: ${itemsList}. 
-          Scrivi un feedback diretto (max 150 parole) analizzando l'efficienza degli item e come ottimizzare le scelte. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che valuta l'efficienza degli item.`
+          prompt = `Efficienza item: ${itemsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Analisi efficienza item
+          2. Come ottimizzare le scelte
+          3. Target efficienza
+          FORMATO: Solo bullet points, tono diretto.`
         } else if (elementId === 'comparison') {
           const patterns = contextData.patterns || []
           const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR)`).join('; ')
-          prompt = `Sei un coach professionale di Dota 2. Confronto build: ${patternsList}. 
-          Scrivi un feedback diretto (max 150 parole) confrontando queste build e identificando la più efficace e perché. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che confronta le build con precisione.`
+          prompt = `Confronto build: ${patternsList.substring(0, 150)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Build più efficace e perché
+          2. Quando usare ciascuna
+          3. Target winrate
+          FORMATO: Solo bullet points, tono diretto.`
         } else {
-          prompt = `Sei un coach professionale di Dota 2. Analisi build: ${JSON.stringify(contextData)}. 
-          Scrivi un feedback diretto (max 150 parole) analizzando le build e dando suggerimenti concreti. 
-          Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto di build.`
+          prompt = `Analisi build: ${JSON.stringify(contextData).substring(0, 200)}. 
+          Scrivi 3 bullet points (max 20 parole ciascuno):
+          1. Analisi build
+          2. Suggerimento concreto
+          3. Target misurabile
+          FORMATO: Solo bullet points, tono diretto.`
         }
         break
 
       default:
-        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Dati: ${JSON.stringify(contextData)}. 
-        Scrivi un feedback diretto e assertivo (max 150 parole) identificando il problema principale e dando un'azione concreta. 
-        Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach esperto.`
+        prompt = `Dati: ${JSON.stringify(contextData).substring(0, 200)}. 
+        Scrivi 3 bullet points (max 20 parole ciascuno):
+        1. Problema principale
+        2. Azione concreta
+        3. Target misurabile
+        FORMATO: Solo bullet points, tono diretto.`
     }
 
     const insight = await generateInsight(prompt)
