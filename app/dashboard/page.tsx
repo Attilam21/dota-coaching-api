@@ -11,6 +11,8 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
+import AnimatedCard from '@/components/AnimatedCard'
+import AnimatedPage from '@/components/AnimatedPage'
 
 interface PlayerStats {
   winrate: {
@@ -226,8 +228,9 @@ export default function DashboardPage() {
   const kdaTrend = getKDATrend()
 
   return (
-    <div className="p-4 md:p-6">
-      <HelpButton />
+    <AnimatedPage>
+      <div className="p-4 md:p-6">
+        <HelpButton />
       {/* Header */}
       <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -333,7 +336,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-winrate"
@@ -366,10 +369,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Trend basato su 5/10 partite</p>
-              </div>
+              </AnimatedCard>
 
               {/* KDA Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-kda"
@@ -402,10 +405,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">KDA = (Kill + Assist) / Death</p>
-              </div>
+              </AnimatedCard>
 
               {/* Farm Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div>
@@ -420,18 +423,18 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite</p>
-              </div>
+              </AnimatedCard>
 
               {/* Insight Automatico Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <AnimatedCard index={3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                 <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
                 <p className="text-sm text-gray-300">{getInsight()}</p>
-              </div>
+              </AnimatedCard>
                   </div>
                   </div>
 
                   {/* Profilo Giocatore */}
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <AnimatedCard delay={0.4} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
@@ -453,7 +456,7 @@ export default function DashboardPage() {
                         Profilo Completo →
                       </Link>
                     </div>
-                  </div>
+                  </AnimatedCard>
                 </div>
               )}
 
@@ -782,6 +785,7 @@ export default function DashboardPage() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </AnimatedPage>
   )
 }
