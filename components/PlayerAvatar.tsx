@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { User } from 'lucide-react'
+import { User, Award } from 'lucide-react'
+import { useState } from 'react'
 
 interface PlayerAvatarProps {
   accountId?: number
@@ -28,6 +29,7 @@ export default function PlayerAvatar({
   showRank = false,
   className = ''
 }: PlayerAvatarProps) {
+  const [rankImageError, setRankImageError] = useState(false)
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -94,18 +96,31 @@ export default function PlayerAvatar({
       </div>
 
       {/* Rank Medal (optional) */}
-      {showRank && rankMedalUrl && rankTier && rankTier > 0 && (
+      {showRank && (
         <div 
-          className={`${rankSizeClasses[size]} relative flex-shrink-0`}
-          title={`${getRankName(rankTier)}${soloMMR ? ` - ${soloMMR} MMR` : ''}`}
+          className={`${rankSizeClasses[size]} relative flex-shrink-0 flex items-center justify-center`}
+          title={rankTier && rankTier > 0 ? `${getRankName(rankTier)}${soloMMR ? ` - ${soloMMR} MMR` : ''}` : 'Unranked'}
         >
-          <Image
-            src={rankMedalUrl}
-            alt={`Rank ${rankTier}`}
-            fill
-            className="object-contain"
-            unoptimized
-          />
+          {rankMedalUrl && rankTier && rankTier > 0 && !rankImageError ? (
+            <Image
+              src={rankMedalUrl}
+              alt={`Rank ${rankTier}`}
+              fill
+              className="object-contain"
+              unoptimized
+              onError={() => {
+                setRankImageError(true)
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-700 rounded border border-gray-600">
+              {rankTier && rankTier > 0 ? (
+                <Award className={`${iconSizeClasses[size]} text-yellow-400`} />
+              ) : (
+                <span className="text-xs text-gray-400 font-medium">Unranked</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
