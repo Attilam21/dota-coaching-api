@@ -32,36 +32,19 @@ export async function GET(request: NextRequest) {
   })
 
   // Handle email confirmation (token_hash + type)
-  // Supabase email confirmation links use token_hash, not token
+  // Supabase email confirmation links use token_hash, which is self-contained
+  // token_hash contains all necessary info (email, user ID, timestamp) and does NOT require email parameter
   if (token_hash && type) {
     try {
-      // For email confirmations with token_hash, email is required
-      // The email should be in the URL or we need to extract it
-      if (email) {
-        // Use email + token_hash for verification
-        const { error } = await supabase.auth.verifyOtp({
-          email: email,
-          token: token_hash,
-          type: type as 'signup' | 'email' | 'recovery' | 'email_change',
-        })
-        
-        if (error) {
-          console.error('Error verifying email:', error)
-          return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
-        }
-      } else {
-        // If email is not in URL, try with token_hash directly
-        // This works for email confirmations where token_hash is self-contained
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: token_hash,
-          type: type as 'signup' | 'email' | 'recovery' | 'email_change',
-        })
-        
-        if (error) {
-          console.error('Error verifying email (no email param):', error)
-          // If this fails, redirect to login with a message
-          return NextResponse.redirect(new URL('/auth/login?error=verification&message=email_required', requestUrl.origin))
-        }
+      // Use only token_hash + type (email is NOT needed, token_hash is self-contained)
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: token_hash,
+        type: type as 'signup' | 'email' | 'recovery' | 'email_change',
+      })
+      
+      if (error) {
+        console.error('Error verifying email:', error)
+        return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
       }
     } catch (err) {
       console.error('Exception verifying email:', err)
