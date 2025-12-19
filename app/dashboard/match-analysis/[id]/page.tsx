@@ -7,10 +7,10 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
-import WardMap from '@/components/WardMap'
+// Removed WardMap - replaced with enterprise data analysis
 import HeroCard from '@/components/HeroCard'
 import RuneIcon from '@/components/RuneIcon'
-import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy, TrendingUp, TrendingDown } from 'lucide-react'
+import { BarChart as BarChartIcon, Clock, Shield, Sword, Map, Timer, Droplet, Building2, Skull, Play, Trophy, TrendingUp, TrendingDown, Lightbulb, AlertTriangle, CheckCircle2, Target } from 'lucide-react'
 
 interface MatchData {
   match_id: number
@@ -1173,42 +1173,300 @@ export default function MatchAnalysisDetailPage() {
             </div>
           )}
 
-          {activeTab === 'vision' && (
+          {activeTab === 'vision' && match && (
             <div className="space-y-6">
+              {/* Header */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-white flex items-center gap-2">
+                <h2 className="text-2xl font-semibold mb-2 text-white flex items-center gap-2">
                   <Map className="w-6 h-6" />
-                  Ward Map - Posizioni Wards
+                  Vision & Map Control - Analisi Enterprise
                 </h2>
-                <p className="text-gray-400 mb-6 text-sm">
-                  Visualizza le heatmap interattive delle posizioni delle Observer e Sentry wards piazzate in questa partita.
+                <p className="text-gray-400 text-sm">
+                  Analisi dettagliata delle ward, visione e controllo mappa con metriche, suggerimenti e insights
                 </p>
-
-                {loadingWardmap && (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-                    <p className="mt-4 text-gray-400">Caricamento dati wardmap...</p>
-                  </div>
-                )}
-
-                {!loadingWardmap && wardmapData && (
-                  <div className="relative w-full">
-                    <WardMap
-                      observerWards={wardmapData.observerWards || []}
-                      sentryWards={wardmapData.sentryWards || []}
-                    />
-                  </div>
-                )}
-
-                {!loadingWardmap && !wardmapData && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-400">Nessun dato wardmap disponibile per questa partita</p>
-                    <p className="text-gray-500 text-sm mt-2">
-                      La partita potrebbe non avere replay disponibili o dati wardmap analizzati.
-                    </p>
-                  </div>
-                )}
               </div>
+
+              {/* KPI Cards */}
+              {(() => {
+                const radiantPlayers = match.players.filter(p => p.player_slot < 128)
+                const direPlayers = match.players.filter(p => p.player_slot >= 128)
+                
+                const radiantObserver = radiantPlayers.reduce((sum, p) => sum + (p.observer_uses || 0), 0)
+                const radiantSentry = radiantPlayers.reduce((sum, p) => sum + (p.sentry_uses || 0), 0)
+                const radiantObserverKilled = radiantPlayers.reduce((sum, p) => sum + (p.observer_kills || 0), 0)
+                const radiantSentryKilled = radiantPlayers.reduce((sum, p) => sum + (p.sentry_kills || 0), 0)
+                
+                const direObserver = direPlayers.reduce((sum, p) => sum + (p.observer_uses || 0), 0)
+                const direSentry = direPlayers.reduce((sum, p) => sum + (p.sentry_uses || 0), 0)
+                const direObserverKilled = direPlayers.reduce((sum, p) => sum + (p.observer_kills || 0), 0)
+                const direSentryKilled = direPlayers.reduce((sum, p) => sum + (p.sentry_kills || 0), 0)
+                
+                const matchDurationMinutes = match.duration / 60
+                const radiantWardsPerMin = (radiantObserver + radiantSentry) / matchDurationMinutes
+                const direWardsPerMin = (direObserver + direSentry) / matchDurationMinutes
+                
+                const radiantDewardRate = radiantObserverKilled + radiantSentryKilled > 0 
+                  ? ((radiantObserverKilled + radiantSentryKilled) / (direObserver + direSentry)) * 100 
+                  : 0
+                const direDewardRate = direObserverKilled + direSentryKilled > 0
+                  ? ((direObserverKilled + direSentryKilled) / (radiantObserver + radiantSentry)) * 100
+                  : 0
+                
+                const radiantVisionScore = (radiantObserver * 2) + (radiantObserverKilled * 1) + (radiantSentry * 1)
+                const direVisionScore = (direObserver * 2) + (direObserverKilled * 1) + (direSentry * 1)
+                
+                // Standard professional: ~0.5-0.7 wards/min, 15-20% deward rate
+                const standardWardsPerMin = 0.6
+                const standardDewardRate = 18
+                
+                return (
+                  <>
+                    {/* Team Comparison KPI */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Radiant Team */}
+                      <div className="bg-green-900/20 border border-green-700 rounded-lg p-6">
+                        <h3 className="text-xl font-bold mb-4 text-green-400">Radiant Team - Vision Metrics</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Observer Wards</div>
+                            <div className="text-2xl font-bold text-blue-400">{radiantObserver}</div>
+                            <div className="text-xs text-gray-500 mt-1">Piazzate</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Sentry Wards</div>
+                            <div className="text-2xl font-bold text-green-400">{radiantSentry}</div>
+                            <div className="text-xs text-gray-500 mt-1">Piazzate</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Wards/Min</div>
+                            <div className="text-2xl font-bold text-white">{radiantWardsPerMin.toFixed(2)}</div>
+                            <div className={`text-xs mt-1 ${radiantWardsPerMin >= standardWardsPerMin ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {radiantWardsPerMin >= standardWardsPerMin ? '✓ Standard' : '⚠ Sotto standard'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Deward Rate</div>
+                            <div className="text-2xl font-bold text-yellow-400">{radiantDewardRate.toFixed(1)}%</div>
+                            <div className={`text-xs mt-1 ${radiantDewardRate >= standardDewardRate ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {radiantDewardRate >= standardDewardRate ? '✓ Eccellente' : '⚠ Da migliorare'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3 col-span-2">
+                            <div className="text-xs text-gray-400 mb-1">Vision Score</div>
+                            <div className="text-3xl font-bold text-purple-400">{radiantVisionScore}</div>
+                            <div className="text-xs text-gray-500 mt-1">Score complessivo visione</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dire Team */}
+                      <div className="bg-red-900/20 border border-red-700 rounded-lg p-6">
+                        <h3 className="text-xl font-bold mb-4 text-red-400">Dire Team - Vision Metrics</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Observer Wards</div>
+                            <div className="text-2xl font-bold text-blue-400">{direObserver}</div>
+                            <div className="text-xs text-gray-500 mt-1">Piazzate</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Sentry Wards</div>
+                            <div className="text-2xl font-bold text-green-400">{direSentry}</div>
+                            <div className="text-xs text-gray-500 mt-1">Piazzate</div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Wards/Min</div>
+                            <div className="text-2xl font-bold text-white">{direWardsPerMin.toFixed(2)}</div>
+                            <div className={`text-xs mt-1 ${direWardsPerMin >= standardWardsPerMin ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {direWardsPerMin >= standardWardsPerMin ? '✓ Standard' : '⚠ Sotto standard'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3">
+                            <div className="text-xs text-gray-400 mb-1">Deward Rate</div>
+                            <div className="text-2xl font-bold text-yellow-400">{direDewardRate.toFixed(1)}%</div>
+                            <div className={`text-xs mt-1 ${direDewardRate >= standardDewardRate ? 'text-green-400' : 'text-yellow-400'}`}>
+                              {direDewardRate >= standardDewardRate ? '✓ Eccellente' : '⚠ Da migliorare'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-800/50 rounded p-3 col-span-2">
+                            <div className="text-xs text-gray-400 mb-1">Vision Score</div>
+                            <div className="text-3xl font-bold text-purple-400">{direVisionScore}</div>
+                            <div className="text-xs text-gray-500 mt-1">Score complessivo visione</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Player Table */}
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-xl font-semibold mb-4 text-white">Dettaglio per Giocatore</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-700">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Giocatore</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Observer</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Sentry</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Deward</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Wards/Min</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vision Score</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-700">
+                            {match.players.map((player, idx) => {
+                              const observerPlaced = player.observer_uses || 0
+                              const sentryPlaced = player.sentry_uses || 0
+                              const observerKilled = player.observer_kills || 0
+                              const sentryKilled = player.sentry_kills || 0
+                              const totalWards = observerPlaced + sentryPlaced
+                              const totalDeward = observerKilled + sentryKilled
+                              const playerWardsPerMin = totalWards / matchDurationMinutes
+                              const playerVisionScore = (observerPlaced * 2) + (observerKilled * 1) + (sentryPlaced * 1)
+                              const isRadiant = player.player_slot < 128
+                              const isCurrentPlayer = currentPlayer && player.account_id === currentPlayer.account_id
+                              
+                              return (
+                                <tr key={idx} className={isRadiant ? 'bg-green-900/10 hover:bg-green-900/20' : 'bg-red-900/10 hover:bg-red-900/20'}>
+                                  <td className="px-4 py-3 text-white font-medium">
+                                    {getHeroName(player.hero_id)}
+                                    {isCurrentPlayer && (
+                                      <span className="ml-2 text-xs text-red-400 font-bold">(TU)</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-blue-400 font-semibold">{observerPlaced}</td>
+                                  <td className="px-4 py-3 text-green-400 font-semibold">{sentryPlaced}</td>
+                                  <td className="px-4 py-3 text-yellow-400 font-semibold">{totalDeward}</td>
+                                  <td className="px-4 py-3 text-white font-semibold">
+                                    {playerWardsPerMin.toFixed(2)}
+                                    {playerWardsPerMin < 0.3 && (
+                                      <span className="ml-2 text-xs text-yellow-400">⚠</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 text-purple-400 font-bold">{playerVisionScore}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* AI Suggestions & Insights */}
+                    <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+                      <h3 className="text-xl font-semibold mb-4 text-white flex items-center gap-2">
+                        <Target className="w-5 h-5" />
+                        Suggerimenti & Insights AttilaLAB
+                      </h3>
+                      <div className="space-y-4">
+                        {/* Suggestion 1: Warding Rate */}
+                        {radiantWardsPerMin < standardWardsPerMin && match.radiant_win === false && (
+                          <div className="bg-yellow-900/30 border border-yellow-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-yellow-200 mb-1">Radiant: Warding Insufficiente</h4>
+                                <p className="text-sm text-yellow-100">
+                                  Il team Radiant ha piazzato solo <strong>{radiantWardsPerMin.toFixed(2)} wards/min</strong> (standard: {standardWardsPerMin}). 
+                                  Questo ha probabilmente contribuito alla sconfitta. Obiettivo: almeno 0.6 wards/min per un controllo mappa efficace.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {direWardsPerMin < standardWardsPerMin && match.radiant_win === true && (
+                          <div className="bg-yellow-900/30 border border-yellow-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-yellow-200 mb-1">Dire: Warding Insufficiente</h4>
+                                <p className="text-sm text-yellow-100">
+                                  Il team Dire ha piazzato solo <strong>{direWardsPerMin.toFixed(2)} wards/min</strong> (standard: {standardWardsPerMin}). 
+                                  Questo ha probabilmente contribuito alla sconfitta. Obiettivo: almeno 0.6 wards/min per un controllo mappa efficace.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Suggestion 2: Deward Rate */}
+                        {radiantDewardRate < standardDewardRate && (
+                          <div className="bg-blue-900/30 border border-blue-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <Lightbulb className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-blue-200 mb-1">Radiant: Migliora Dewarding</h4>
+                                <p className="text-sm text-blue-100">
+                                  Deward rate: <strong>{radiantDewardRate.toFixed(1)}%</strong> (target: {standardDewardRate}%). 
+                                  Usa più Sentry wards per trovare e rimuovere le Observer nemiche. Focus su aree chiave: rune spots, jungle entrances, Roshan area.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {direDewardRate < standardDewardRate && (
+                          <div className="bg-blue-900/30 border border-blue-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <Lightbulb className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-blue-200 mb-1">Dire: Migliora Dewarding</h4>
+                                <p className="text-sm text-blue-100">
+                                  Deward rate: <strong>{direDewardRate.toFixed(1)}%</strong> (target: {standardDewardRate}%). 
+                                  Usa più Sentry wards per trovare e rimuovere le Observer nemiche. Focus su aree chiave: rune spots, jungle entrances, Roshan area.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Suggestion 3: Vision Score Winner */}
+                        {radiantVisionScore > direVisionScore && (
+                          <div className="bg-green-900/30 border border-green-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-green-200 mb-1">Radiant: Superiorità Vision</h4>
+                                <p className="text-sm text-green-100">
+                                  Vision Score: <strong>{radiantVisionScore}</strong> vs {direVisionScore} (Dire). 
+                                  Il controllo visione superiore ha dato un vantaggio strategico significativo al team Radiant.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {direVisionScore > radiantVisionScore && (
+                          <div className="bg-green-900/30 border border-green-700 rounded p-4">
+                            <div className="flex items-start gap-3">
+                              <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h4 className="font-semibold text-green-200 mb-1">Dire: Superiorità Vision</h4>
+                                <p className="text-sm text-green-100">
+                                  Vision Score: <strong>{direVisionScore}</strong> vs {radiantVisionScore} (Radiant). 
+                                  Il controllo visione superiore ha dato un vantaggio strategico significativo al team Dire.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* General Best Practice */}
+                        <div className="bg-gray-800/50 border border-gray-600 rounded p-4">
+                          <div className="flex items-start gap-3">
+                            <BarChartIcon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-gray-200 mb-1">Best Practice Professional</h4>
+                              <ul className="text-sm text-gray-300 space-y-1 list-disc list-inside">
+                                <li>Support: minimo 10-12 Observer + 4-6 Sentry per partita</li>
+                                <li>Wards/Min: target 0.6-0.7 per team (tutti i ruoli contribuiscono)</li>
+                                <li>Deward Rate: obiettivo 15-20% delle ward nemiche rimosse</li>
+                                <li>Vision Score: 25+ per support, 15+ per core con buon warding</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )
+              })()}
             </div>
           )}
         </div>
