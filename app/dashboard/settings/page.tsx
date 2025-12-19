@@ -201,13 +201,33 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
-            >
-              {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
+              >
+                {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
+              </button>
+              {playerId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
+                      setPlayerId(null)
+                      setDotaAccountId('')
+                      setMessage({
+                        type: 'success',
+                        text: 'Player ID rimosso con successo.'
+                      })
+                    }
+                  }}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-semibold transition"
+                >
+                  Rimuovi Player ID
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>
