@@ -7,11 +7,14 @@ export async function GET(
   try {
     const { id } = await params
     
-    // Fetch both basic and advanced stats
+    // Fetch both basic and advanced stats + OpenDota player data for avatar/rank
     // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const [statsResponse, advancedStatsResponse] = await Promise.all([
+    const [statsResponse, advancedStatsResponse, opendotaResponse] = await Promise.all([
       fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`)
+      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
+      fetch(`https://api.opendota.com/api/players/${id}`, {
+        next: { revalidate: 3600 }
+      }).catch(() => null) // Non bloccare se fallisce
     ])
     
     // Parse responses safely
@@ -38,6 +41,16 @@ export async function GET(
     } else {
       const errorText = await advancedStatsResponse.text().catch(() => 'Unknown error')
       console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
+    }
+    
+    // Parse OpenDota data for avatar and rank
+    let opendotaData: any = null
+    if (opendotaResponse?.ok) {
+      try {
+        opendotaData = await opendotaResponse.json()
+      } catch (err) {
+        console.warn('Failed to parse OpenDota response:', err)
+      }
     }
     
     if (!statsData?.stats) {
@@ -332,6 +345,15 @@ export async function GET(
       winrate: m.win ? 100 : 0,
     }))
 
+    // Extract avatar and rank from OpenDota data
+    const avatar = opendotaData?.profile?.avatarfull || null
+    const personaname = opendotaData?.profile?.personaname || null
+    const rankTier = opendotaData?.rank_tier || 0
+    const soloMMR = opendotaData?.solo_competitive_rank || null
+    const rankMedalUrl = rankTier > 0 
+      ? `https://steamcdn-a.akamaihd.net/apps/dota2/images/rank_icons/rank_icon_${rankTier}.png`
+      : null
+
     return NextResponse.json({
       role,
       roleConfidence,
@@ -363,6 +385,12 @@ export async function GET(
       patterns: patterns.slice(0, 5),
       phaseAnalysis,
       trendData,
+      // Avatar and rank data
+      avatar,
+      personaname,
+      rankTier,
+      soloMMR,
+      rankMedalUrl,
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
