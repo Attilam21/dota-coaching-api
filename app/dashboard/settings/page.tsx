@@ -37,6 +37,41 @@ export default function SettingsPage() {
     try {
       setLoading(true)
       
+      // Verifica e refresh sessione prima di fare query
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !currentSession) {
+        console.error('[Settings] No valid session found:', sessionError)
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Per favore, effettua il login di nuovo.',
+        })
+        return
+      }
+
+      // Refresh session per assicurarsi che il token sia valido
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+      if (refreshError) {
+        console.warn('[Settings] Session refresh warning:', refreshError)
+        // Non bloccare se il refresh fallisce, usa la sessione corrente
+      }
+
+      const activeSession = refreshedSession || currentSession
+      console.log('[Settings] Loading profile for user:', user.id)
+      console.log('[Settings] Session valid:', !!activeSession)
+      console.log('[Settings] Session user ID:', activeSession?.user?.id)
+      console.log('[Settings] Session access_token present:', !!activeSession?.access_token)
+      console.log('[Settings] Session expires at:', activeSession?.expires_at ? new Date(activeSession.expires_at * 1000).toISOString() : 'N/A')
+      
+      // Verifica che user.id corrisponda a session.user.id
+      if (activeSession?.user?.id !== user.id) {
+        console.error('[Settings] User ID mismatch! Context user:', user.id, 'Session user:', activeSession?.user?.id)
+        setMessage({
+          type: 'error',
+          text: 'Errore di autenticazione: ID utente non corrisponde. Per favore, effettua il logout e login di nuovo.',
+        })
+        return
+      }
+      
       // Carica profilo da Supabase (usa id che è foreign key a auth.users.id)
       const { data, error } = await supabase
         .from('users')
@@ -45,14 +80,25 @@ export default function SettingsPage() {
         .single()
 
       if (error) {
-        console.error('Error loading user profile:', error)
+        console.error('[Settings] Error loading user profile:', error)
+        console.error('[Settings] Error code:', error.code)
+        console.error('[Settings] Error message:', error.message)
+        
         // Se non esiste, crea profilo base
         if (error.code === 'PGRST116') {
           // No rows returned - crea profilo
+          console.log('[Settings] Profile not found, creating...')
           await createUserProfile()
           return
+        } else {
+          // Altri errori (403, etc.)
+          setMessage({
+            type: 'error',
+            text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
+          })
         }
       } else if (data) {
+        console.log('[Settings] Profile loaded successfully:', data)
         const profile = data as { display_name: string | null; avatar_url: string | null; dota_account_id: number | null }
         setUserProfile(profile)
         setDisplayName(profile.display_name || '')
@@ -60,7 +106,11 @@ export default function SettingsPage() {
         setDotaAccountId(profile.dota_account_id ? String(profile.dota_account_id) : '')
       }
     } catch (err) {
-      console.error('Failed to load settings:', err)
+      console.error('[Settings] Failed to load settings:', err)
+      setMessage({
+        type: 'error',
+        text: 'Errore nel caricamento delle impostazioni',
+      })
     } finally {
       setLoading(false)
     }
@@ -70,6 +120,18 @@ export default function SettingsPage() {
     if (!user) return
 
     try {
+      // Verifica sessione prima di creare profilo
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        console.error('[Settings] No valid session for profile creation:', sessionError)
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Per favore, effettua il login di nuovo.',
+        })
+        return
+      }
+
+      console.log('[Settings] Creating profile for user:', user.id)
       const { error } = await (supabase
         .from('users') as any)
         .upsert({
@@ -80,13 +142,24 @@ export default function SettingsPage() {
         })
 
       if (error) {
-        console.error('Error creating profile:', error)
+        console.error('[Settings] Error creating profile:', error)
+        console.error('[Settings] Error code:', error.code)
+        console.error('[Settings] Error message:', error.message)
+        setMessage({
+          type: 'error',
+          text: `Errore nella creazione del profilo: ${error.message || 'Errore sconosciuto'}`,
+        })
       } else {
+        console.log('[Settings] Profile created successfully')
         // Ricarica dopo creazione
         await loadUserSettings()
       }
     } catch (err) {
-      console.error('Failed to create profile:', err)
+      console.error('[Settings] Failed to create profile:', err)
+      setMessage({
+        type: 'error',
+        text: 'Errore nella creazione del profilo',
+      })
     }
   }
 
@@ -101,6 +174,7 @@ export default function SettingsPage() {
       // Refresh session per assicurarsi che sia valida
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
+        console.error('[Settings] No valid session for save:', sessionError)
         setMessage({
           type: 'error',
           text: 'Sessione non valida. Per favore, effettua il login di nuovo.',
@@ -108,6 +182,10 @@ export default function SettingsPage() {
         setSaving(false)
         return
       }
+
+      console.log('[Settings] Saving profile for user:', user.id)
+      console.log('[Settings] Session valid:', !!session)
+      console.log('[Settings] Session access_token present:', !!session?.access_token)
 
       // Validate Dota Account ID
       let dotaAccountIdNum: number | null = null
@@ -150,12 +228,16 @@ export default function SettingsPage() {
         })
 
       if (error) {
-        console.error('Save error details:', error)
+        console.error('[Settings] Save error details:', error)
+        console.error('[Settings] Error code:', error.code)
+        console.error('[Settings] Error message:', error.message)
+        console.error('[Settings] Error details:', JSON.stringify(error, null, 2))
+        
         // Messaggio errore più dettagliato
-        if (error.code === '42501' || error.message?.includes('permission denied')) {
+        if (error.code === '42501' || error.message?.includes('permission denied') || error.code === 'PGRST301') {
           setMessage({
             type: 'error',
-            text: 'Permessi insufficienti. Assicurati di essere loggato correttamente.',
+            text: 'Permessi insufficienti. La sessione potrebbe essere scaduta. Per favore, effettua il logout e login di nuovo.',
           })
         } else {
           setMessage({

@@ -86,17 +86,45 @@ function createSupabaseClient(): SupabaseClient<Database> {
         'apikey': supabaseAnonKey,
       },
       // Custom fetch to ensure API key is always included
-      // IMPORTANT: Do NOT override Authorization header - Supabase JS adds JWT token automatically
+      // IMPORTANT: Preserve Authorization header if Supabase JS already added it (JWT token)
       fetch: (url, options = {}) => {
-        const headers = new Headers(options.headers)
+        // Preserve existing headers correctly
+        let headers: Headers
+        if (options.headers instanceof Headers) {
+          // If it's already a Headers object, clone it
+          headers = new Headers(options.headers)
+        } else if (options.headers) {
+          // If it's a plain object or array, convert to Headers
+          headers = new Headers(options.headers)
+        } else {
+          // If no headers, create new Headers
+          headers = new Headers()
+        }
+        
         // Always include apikey header (required by Supabase)
         if (!headers.has('apikey')) {
           headers.set('apikey', supabaseAnonKey)
         }
-        // DO NOT set Authorization here - Supabase JS handles it automatically
-        // When user is authenticated, it uses JWT token from session
-        // When not authenticated, it uses anon key
-        // If we override it, RLS won't recognize the authenticated user!
+        
+        // CRITICAL: DO NOT set Authorization header here
+        // Supabase JS automatically adds "Authorization: Bearer <jwt_token>" when user is authenticated
+        // If we override it, RLS won't recognize the authenticated user
+        // The Authorization header should already be in options.headers if session exists
+        
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'development' && typeof url === 'string' && url.includes('/rest/v1/users')) {
+          const authHeader = headers.get('Authorization')
+          const hasJWT = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
+          console.log('[Supabase Client] Request to users table:', {
+            url: url.toString().substring(0, 100),
+            hasApikey: headers.has('apikey'),
+            hasAuthorization: !!authHeader,
+            hasJWT: hasJWT,
+            authHeaderPreview: authHeader ? `${authHeader.substring(0, 20)}...` : 'none',
+            originalHeadersType: options.headers ? options.headers.constructor.name : 'none'
+          })
+        }
+        
         return fetch(url, {
           ...options,
           headers,
