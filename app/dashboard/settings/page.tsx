@@ -27,11 +27,13 @@ export default function SettingsPage() {
       return
     }
 
-    if (user && !isLoadingSettings) {
+    // Chiama loadUserSettings solo una volta quando user è disponibile
+    // Usa user?.id invece di user per evitare re-render quando cambia l'oggetto
+    if (user && !isLoadingSettings && !loading) {
       loadUserSettings()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, router])
+  }, [user?.id, authLoading]) // Usa user?.id per evitare loop infiniti
 
   const loadUserSettings = async () => {
     if (!user || isLoadingSettings) return
@@ -88,18 +90,13 @@ export default function SettingsPage() {
         })
         return
       }
-      
-      // IMPORTANTE: Assicurati che il client Supabase abbia la sessione corrente
-      // Imposta esplicitamente la sessione sul client per garantire che il JWT venga passato
-      // Questo è necessario perché Supabase JS potrebbe non sincronizzare automaticamente la sessione
-      await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token!,
-      })
 
-      console.log('[Settings] Session set on client, making query...')
+      console.log('[Settings] Making query with session token...')
+      console.log('[Settings] Token preview:', session.access_token ? `${session.access_token.substring(0, 20)}...` : 'MISSING')
       
       // Carica profilo da Supabase (usa id che è foreign key a auth.users.id)
+      // IMPORTANTE: NON chiamare setSession() qui - causa loop infinito!
+      // Supabase JS gestisce automaticamente il JWT quando c'è una sessione valida
       const { data, error } = await supabase
         .from('users')
         .select('display_name, avatar_url, dota_account_id')
