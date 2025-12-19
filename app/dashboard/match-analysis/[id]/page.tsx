@@ -34,6 +34,10 @@ interface MatchData {
     tower_damage?: number
     hero_healing?: number
     player_slot: number
+    observer_uses?: number
+    sentry_uses?: number
+    observer_kills?: number
+    sentry_kills?: number
   }>
 }
 
