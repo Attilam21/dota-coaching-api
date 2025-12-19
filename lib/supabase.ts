@@ -72,8 +72,10 @@ function createSupabaseClient(): SupabaseClient<Database> {
   }
 
   // Create client with proper configuration for client-side usage
-  // Use custom fetch to ensure API key is always included in requests
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  // IMPORTANT: Do NOT use custom fetch - it interferes with Supabase JS automatic JWT token handling
+  // Supabase JS automatically adds Authorization header with JWT token when user is authenticated
+  // The apikey is automatically included by Supabase JS in all requests
+  const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -81,57 +83,22 @@ function createSupabaseClient(): SupabaseClient<Database> {
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
     },
-    global: {
-      headers: {
-        'apikey': supabaseAnonKey,
-      },
-      // Custom fetch to ensure API key is always included
-      // IMPORTANT: Preserve Authorization header if Supabase JS already added it (JWT token)
-      fetch: (url, options = {}) => {
-        // Preserve existing headers correctly
-        let headers: Headers
-        if (options.headers instanceof Headers) {
-          // If it's already a Headers object, clone it
-          headers = new Headers(options.headers)
-        } else if (options.headers) {
-          // If it's a plain object or array, convert to Headers
-          headers = new Headers(options.headers)
-        } else {
-          // If no headers, create new Headers
-          headers = new Headers()
-        }
-        
-        // Always include apikey header (required by Supabase)
-        if (!headers.has('apikey')) {
-          headers.set('apikey', supabaseAnonKey)
-        }
-        
-        // CRITICAL: DO NOT set Authorization header here
-        // Supabase JS automatically adds "Authorization: Bearer <jwt_token>" when user is authenticated
-        // If we override it, RLS won't recognize the authenticated user
-        // The Authorization header should already be in options.headers if session exists
-        
-        // Debug logging (only in development)
-        if (process.env.NODE_ENV === 'development' && typeof url === 'string' && url.includes('/rest/v1/users')) {
-          const authHeader = headers.get('Authorization')
-          const hasJWT = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
-          console.log('[Supabase Client] Request to users table:', {
-            url: url.toString().substring(0, 100),
-            hasApikey: headers.has('apikey'),
-            hasAuthorization: !!authHeader,
-            hasJWT: hasJWT,
-            authHeaderPreview: authHeader ? `${authHeader.substring(0, 20)}...` : 'none',
-            originalHeadersType: options.headers ? options.headers.constructor.name : 'none'
-          })
-        }
-        
-        return fetch(url, {
-          ...options,
-          headers,
-        })
-      },
-    },
+    // No custom fetch - let Supabase JS handle everything automatically
+    // This ensures JWT tokens are properly included in requests for RLS
   })
+
+  // Debug: Log session state in development
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    client.auth.onAuthStateChange((event, session) => {
+      console.log('[Supabase Client] Auth state changed:', event, {
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token,
+        userId: session?.user?.id,
+      })
+    })
+  }
+
+  return client
 }
 
 // Create singleton instance for client-side usage

@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -26,20 +27,33 @@ export default function SettingsPage() {
       return
     }
 
-    if (user) {
+    if (user && !isLoadingSettings) {
       loadUserSettings()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, router])
 
   const loadUserSettings = async () => {
-    if (!user) return
+    if (!user || isLoadingSettings) return
 
     try {
+      setIsLoadingSettings(true)
       setLoading(true)
       
-      // Verifica e refresh sessione prima di fare query
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError || !currentSession) {
+      // Verifica sessione usando getUser() per ottenere l'utente dal server (più affidabile)
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser()
+      if (userError || !authUser) {
+        console.error('[Settings] No valid user found:', userError)
+        setMessage({
+          type: 'error',
+          text: 'Utente non autenticato. Per favore, effettua il login di nuovo.',
+        })
+        return
+      }
+
+      // Verifica anche la sessione per ottenere l'access_token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
         console.error('[Settings] No valid session found:', sessionError)
         setMessage({
           type: 'error',
@@ -48,29 +62,42 @@ export default function SettingsPage() {
         return
       }
 
-      // Refresh session per assicurarsi che il token sia valido
-      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
-      if (refreshError) {
-        console.warn('[Settings] Session refresh warning:', refreshError)
-        // Non bloccare se il refresh fallisce, usa la sessione corrente
-      }
-
-      const activeSession = refreshedSession || currentSession
-      console.log('[Settings] Loading profile for user:', user.id)
-      console.log('[Settings] Session valid:', !!activeSession)
-      console.log('[Settings] Session user ID:', activeSession?.user?.id)
-      console.log('[Settings] Session access_token present:', !!activeSession?.access_token)
-      console.log('[Settings] Session expires at:', activeSession?.expires_at ? new Date(activeSession.expires_at * 1000).toISOString() : 'N/A')
-      
-      // Verifica che user.id corrisponda a session.user.id
-      if (activeSession?.user?.id !== user.id) {
-        console.error('[Settings] User ID mismatch! Context user:', user.id, 'Session user:', activeSession?.user?.id)
+      // Verifica che user.id corrisponda a authUser.id
+      if (authUser.id !== user.id) {
+        console.error('[Settings] User ID mismatch! Context user:', user.id, 'Auth user:', authUser.id)
         setMessage({
           type: 'error',
           text: 'Errore di autenticazione: ID utente non corrisponde. Per favore, effettua il logout e login di nuovo.',
         })
         return
       }
+
+      console.log('[Settings] Loading profile for user:', user.id)
+      console.log('[Settings] Auth user valid:', !!authUser)
+      console.log('[Settings] Session valid:', !!session)
+      console.log('[Settings] Session access_token present:', !!session.access_token)
+      console.log('[Settings] Session access_token length:', session.access_token?.length || 0)
+      console.log('[Settings] Session expires at:', session.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'N/A')
+      
+      // Verifica se il token è scaduto
+      if (session.expires_at && session.expires_at * 1000 < Date.now()) {
+        console.warn('[Settings] Session token expired!')
+        setMessage({
+          type: 'error',
+          text: 'Sessione scaduta. Per favore, effettua il login di nuovo.',
+        })
+        return
+      }
+      
+      // IMPORTANTE: Assicurati che il client Supabase abbia la sessione corrente
+      // Imposta esplicitamente la sessione sul client per garantire che il JWT venga passato
+      // Questo è necessario perché Supabase JS potrebbe non sincronizzare automaticamente la sessione
+      await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token!,
+      })
+
+      console.log('[Settings] Session set on client, making query...')
       
       // Carica profilo da Supabase (usa id che è foreign key a auth.users.id)
       const { data, error } = await supabase
@@ -113,6 +140,7 @@ export default function SettingsPage() {
       })
     } finally {
       setLoading(false)
+      setIsLoadingSettings(false)
     }
   }
 
@@ -120,7 +148,7 @@ export default function SettingsPage() {
     if (!user) return
 
     try {
-      // Verifica sessione prima di creare profilo
+      // Verifica sessione (autoRefreshToken gestisce il refresh automaticamente)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
         console.error('[Settings] No valid session for profile creation:', sessionError)
@@ -171,7 +199,7 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
-      // Refresh session per assicurarsi che sia valida
+      // Verifica sessione (autoRefreshToken gestisce il refresh automaticamente)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
         console.error('[Settings] No valid session for save:', sessionError)
@@ -185,7 +213,6 @@ export default function SettingsPage() {
 
       console.log('[Settings] Saving profile for user:', user.id)
       console.log('[Settings] Session valid:', !!session)
-      console.log('[Settings] Session access_token present:', !!session?.access_token)
 
       // Validate Dota Account ID
       let dotaAccountIdNum: number | null = null
