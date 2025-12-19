@@ -21,6 +21,8 @@ interface Teammate {
   games: number
   wins: number
   winrate: number
+  avatar?: string
+  personaname?: string
 }
 
 interface TeammateInsights {
@@ -164,12 +166,14 @@ export default function TeammatesPage() {
       const data = await response.json()
       const teammatesData: Teammate[] = data
         .filter((t: { games?: number }) => t.games && t.games > 0)
-        .map((t: { account_id: number; games: number; win: number; personaname?: string }) => ({
+        .map((t: { account_id: number; games: number; win: number; personaname?: string; avatarfull?: string }) => ({
           account_id: t.account_id,
           name: t.personaname || `Player ${t.account_id}`,
           games: t.games,
           wins: t.win,
           winrate: (t.win / t.games) * 100,
+          avatar: t.avatarfull || undefined,
+          personaname: t.personaname || undefined,
         }))
         .sort((a: Teammate, b: Teammate) => b.games - a.games)
         .slice(0, 20)
@@ -514,6 +518,7 @@ export default function TeammatesPage() {
                               {isHighWinrate && !isBest && <span title="Alta sinergia"><Star className="w-4 h-4 text-blue-400" /></span>}
                               <PlayerAvatar
                                 accountId={teammate.account_id}
+                                avatarUrl={teammate.avatar}
                                 playerName={teammate.name}
                                 size="sm"
                               />
