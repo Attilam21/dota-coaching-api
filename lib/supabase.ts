@@ -1,7 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Database Types - Allineati con uso attuale (solo dota_account_id)
-// Schema semplificato: rimossi display_name e avatar_url (non usati per ora)
+// Database Types - Allineati con uso reale
+// SOLO autenticazione: usiamo solo auth.users (automatico)
+// public.users viene creato automaticamente dal trigger ma NON lo usiamo nel codice
+// Player ID salvato in localStorage, non in Supabase
 export type Database = {
   public: {
     Tables: {
@@ -9,21 +11,18 @@ export type Database = {
         Row: {
           id: string
           email: string
-          dota_account_id: number | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           email: string
-          dota_account_id?: number | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           email?: string
-          dota_account_id?: number | null
           created_at?: string
           updated_at?: string
         }
