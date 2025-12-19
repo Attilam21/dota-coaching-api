@@ -159,6 +159,41 @@ export default function SettingsPage() {
           </AnimatedCard>
         )}
 
+        {/* Guida per nuovo utente - solo se non ha ancora un Player ID */}
+        {!playerId && !dotaAccountId && (
+          <AnimatedCard delay={0.15} className="bg-green-900/30 border border-green-700 rounded-lg p-6 max-w-2xl mb-6">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-green-200 mb-2">Come far funzionare la Dashboard</h3>
+                <p className="text-gray-300 mb-3">
+                  Per iniziare ad usare tutte le funzionalità della dashboard, inserisci il tuo Dota 2 Account ID:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-gray-300 text-sm mb-4 ml-2">
+                  <li>
+                    Vai su{' '}
+                    <a
+                      href="https://www.opendota.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-400 hover:text-green-300 underline"
+                    >
+                      OpenDota.com
+                    </a>{' '}
+                    e cerca il tuo nome utente Steam o nickname
+                  </li>
+                  <li>Nella pagina del tuo profilo, copia il numero dell'<strong>Account ID</strong> (è un numero lungo, es: 123456789)</li>
+                  <li>Incolla l'ID nel campo qui sotto e clicca "Salva Impostazioni"</li>
+                  <li>Torna alla dashboard principale e vedrai popolarsi automaticamente tutte le statistiche del tuo profilo!</li>
+                </ol>
+                <p className="text-sm text-green-200 font-medium">
+                  💡 Suggerimento: Una volta salvato, l'ID rimarrà memorizzato e la dashboard si aggiornerà automaticamente ogni volta che accedi.
+                </p>
+              </div>
+            </div>
+          </AnimatedCard>
+        )}
+
         <AnimatedCard delay={0.2} className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
         <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
 
@@ -177,7 +212,7 @@ export default function SettingsPage() {
           <form onSubmit={handleSave}>
             <div className="mb-4">
               <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
-                Dota 2 Account ID
+                Dota 2 Account ID <span className="text-red-400">*</span>
               </label>
               <input
                 id="dotaAccountId"
@@ -188,15 +223,16 @@ export default function SettingsPage() {
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Il tuo Steam Account ID per Dota 2. Puoi trovarlo su{' '}
+                Il tuo Steam Account ID per Dota 2. Cercalo su{' '}
                 <a
                   href="https://www.opendota.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 underline"
                 >
-                  OpenDota
+                  OpenDota.com
                 </a>
+                {' '}inserendo il tuo nome utente Steam.
               </p>
               <div className="text-xs text-blue-400 mt-2 flex items-center gap-2">
                 <Info className="w-3 h-3" />
