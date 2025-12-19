@@ -60,28 +60,49 @@ export type Database = {
   }
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+// Client-side Supabase client
+// In Next.js 14 App Router, we need to ensure the client is created correctly
+// for client-side usage (browser)
 
-let supabase: SupabaseClient<Database>
+function createSupabaseClient(): SupabaseClient<Database> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key not configured. Authentication features will not work.')
-  // Create a mock client that will fail gracefully
-  supabase = createClient<Database>('https://placeholder.supabase.co', 'placeholder', {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  })
-} else {
-  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Supabase configuration missing!')
+    console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
+    console.error('Authentication features will not work. Please configure environment variables.')
+    
+    // Return a mock client that will fail gracefully
+    return createClient<Database>('https://placeholder.supabase.co', 'placeholder', {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
+  }
+
+  // Verify the keys are not placeholder values
+  if (supabaseUrl === 'https://placeholder.supabase.co' || supabaseAnonKey === 'placeholder') {
+    console.error('❌ Supabase using placeholder values! Please configure real environment variables.')
+  }
+
+  // Create client with proper configuration for client-side usage
+  // Supabase JS client automatically handles the API key in headers
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'sb-auth-token',
     },
   })
 }
+
+// Create singleton instance for client-side usage
+// This ensures we only create one client instance per browser session
+const supabase = createSupabaseClient()
 
 export { supabase }
