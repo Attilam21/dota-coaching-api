@@ -72,9 +72,8 @@ function createSupabaseClient(): SupabaseClient<Database> {
   }
 
   // Create client with proper configuration for client-side usage
-  // IMPORTANT: apikey è sempre richiesto da Supabase per identificare il progetto
-  // Authorization header (JWT) viene usato per l'autenticazione quando presente
-  // Entrambi possono essere presenti simultaneamente - Supabase gestisce correttamente
+  // FIX: Custom fetch per risolvere conflitto tra apikey e Authorization header
+  // Quando c'è un JWT valido, rimuoviamo apikey per evitare che Supabase usi anon invece di authenticated
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -83,11 +82,37 @@ function createSupabaseClient(): SupabaseClient<Database> {
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
     },
-    // No custom fetch - Supabase JS gestisce automaticamente apikey e JWT
-    // Il problema 403 potrebbe essere dovuto a:
-    // 1. JWT non valido o scaduto
-    // 2. Problema con RLS policies
-    // 3. Problema con la configurazione Supabase Auth
+    global: {
+      fetch: async (url, options = {}) => {
+        const headers = new Headers(options.headers)
+        
+        // Verifica se c'è un JWT valido nell'Authorization header
+        const authHeader = headers.get('Authorization')
+        const hasValidJWT = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
+        
+        if (hasValidJWT) {
+          // JWT presente: rimuovi apikey per evitare conflitto
+          // Supabase userà solo il JWT per determinare il ruolo (authenticated)
+          // e RLS riconoscerà correttamente auth.uid()
+          headers.delete('apikey')
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Supabase Client] JWT detected, removed apikey header to avoid RLS conflict')
+          }
+        } else {
+          // Nessun JWT: mantieni apikey per richieste anonime
+          // Assicurati che apikey sia presente
+          if (!headers.has('apikey')) {
+            headers.set('apikey', supabaseAnonKey)
+          }
+        }
+        
+        return fetch(url, {
+          ...options,
+          headers,
+        })
+      },
+    },
   })
 
   // Debug: Log session state in development
