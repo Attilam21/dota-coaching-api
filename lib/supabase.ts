@@ -92,7 +92,7 @@ function createSupabaseClient(): SupabaseClient<Database> {
   }
 
   // Create client with proper configuration for client-side usage
-  // Supabase JS client automatically handles the API key in headers
+  // Explicitly set API key in headers to ensure it's always included
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -100,6 +100,12 @@ function createSupabaseClient(): SupabaseClient<Database> {
       detectSessionInUrl: true,
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
+    },
+    global: {
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
     },
   })
 }

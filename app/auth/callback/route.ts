@@ -15,6 +15,12 @@ export async function GET(request: NextRequest) {
       auth: {
         persistSession: false,
       },
+      global: {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+      },
     })
     await supabase.auth.exchangeCodeForSession(code)
   }

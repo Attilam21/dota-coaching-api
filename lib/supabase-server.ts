@@ -21,6 +21,8 @@ export function createServerSupabaseClient(request: NextRequest) {
     },
     global: {
       headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
         ...(cookieHeader && { cookie: cookieHeader }),
       },
     },
