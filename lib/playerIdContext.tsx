@@ -46,7 +46,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
         const { data } = await supabase
           .from('users')
           .select('dota_account_id')
-          .eq('id', user.id)
+          .eq('auth_id', user.id)
           .single()
 
         const profile = data as { dota_account_id: number | null } | null
@@ -124,8 +124,13 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
             if (!isNaN(parsedId)) {
               await (supabase
                 .from('users') as any)
-                .update({ dota_account_id: parsedId })
-                .eq('id', user.id)
+                .upsert({
+                  id: user.id,
+                  email: user.email || '',
+                  dota_account_id: parsedId,
+                }, {
+                  onConflict: 'id'
+                })
             }
           } catch (err) {
             console.error('[PlayerIdContext] Failed to save to Supabase:', err)
@@ -143,8 +148,13 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
           try {
             await (supabase
               .from('users') as any)
-              .update({ dota_account_id: null })
-              .eq('id', user.id)
+              .upsert({
+                id: user.id,
+                email: user.email || '',
+                dota_account_id: null,
+              }, {
+                onConflict: 'id'
+              })
           } catch (err) {
             console.error('[PlayerIdContext] Failed to remove from Supabase:', err)
           }

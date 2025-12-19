@@ -37,7 +37,7 @@ export default function SettingsPage() {
     try {
       setLoading(true)
       
-      // Carica profilo da Supabase
+      // Carica profilo da Supabase (usa id che è foreign key a auth.users.id)
       const { data, error } = await supabase
         .from('users')
         .select('display_name, avatar_url, dota_account_id')
@@ -75,6 +75,8 @@ export default function SettingsPage() {
         .upsert({
           id: user.id,
           email: user.email || '',
+        }, {
+          onConflict: 'id'
         })
 
       if (error) {
@@ -95,6 +97,17 @@ export default function SettingsPage() {
     try {
       setSaving(true)
       setMessage(null)
+
+      // Refresh session per assicurarsi che sia valida
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Per favore, effettua il login di nuovo.',
+        })
+        setSaving(false)
+        return
+      }
 
       // Validate Dota Account ID
       let dotaAccountIdNum: number | null = null
@@ -121,20 +134,37 @@ export default function SettingsPage() {
         return
       }
 
-      // Salva tutto in Supabase
-      const { error } = await (supabase
+      // Salva tutto in Supabase usando UPSERT (crea se non esiste, aggiorna se esiste)
+      // Usa id che è foreign key a auth.users.id
+      const { data, error } = await (supabase
         .from('users') as any)
-        .update({
+        .upsert({
+          id: user.id,
+          email: user.email || '',
           display_name: displayName.trim() || null,
           avatar_url: avatarUrl.trim() || null,
           dota_account_id: dotaAccountIdNum,
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
         })
-        .eq('id', user.id)
 
       if (error) {
-        console.error('Save error:', error)
-        throw new Error(error.message || 'Errore nel salvataggio')
+        console.error('Save error details:', error)
+        // Messaggio errore più dettagliato
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          setMessage({
+            type: 'error',
+            text: 'Permessi insufficienti. Assicurati di essere loggato correttamente.',
+          })
+        } else {
+          setMessage({
+            type: 'error',
+            text: `Errore nel salvataggio: ${error.message || 'Errore sconosciuto'}`,
+          })
+        }
+        setSaving(false)
+        return
       }
 
       setMessage({ 

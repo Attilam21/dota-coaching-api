@@ -29,7 +29,7 @@ export default function Navbar() {
       const { data } = await supabase
         .from('users')
         .select('display_name, avatar_url')
-        .eq('id', user.id)
+        .eq('auth_id', user.id)
         .single()
 
       if (data) {
