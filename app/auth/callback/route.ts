@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const token = requestUrl.searchParams.get('token')
+  const token_hash = requestUrl.searchParams.get('token_hash')
   const type = requestUrl.searchParams.get('type')
+  const email = requestUrl.searchParams.get('email')
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ Supabase configuration missing in callback route')
@@ -29,20 +31,59 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  // Handle email confirmation (token + type)
-  if (token && type) {
+  // Handle email confirmation (token_hash + type)
+  // Supabase email confirmation links use token_hash, not token
+  if (token_hash && type) {
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: type as any,
-      })
-      
-      if (error) {
-        console.error('Error verifying email:', error)
-        return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
+      // For email confirmations with token_hash, email is required
+      // The email should be in the URL or we need to extract it
+      if (email) {
+        // Use email + token_hash for verification
+        const { error } = await supabase.auth.verifyOtp({
+          email: email,
+          token: token_hash,
+          type: type as 'signup' | 'email' | 'recovery' | 'email_change',
+        })
+        
+        if (error) {
+          console.error('Error verifying email:', error)
+          return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
+        }
+      } else {
+        // If email is not in URL, try with token_hash directly
+        // This works for email confirmations where token_hash is self-contained
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: token_hash,
+          type: type as 'signup' | 'email' | 'recovery' | 'email_change',
+        })
+        
+        if (error) {
+          console.error('Error verifying email (no email param):', error)
+          // If this fails, redirect to login with a message
+          return NextResponse.redirect(new URL('/auth/login?error=verification&message=email_required', requestUrl.origin))
+        }
       }
     } catch (err) {
       console.error('Exception verifying email:', err)
+      return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
+    }
+  }
+  
+  // Handle OTP verification with token (not token_hash) - for manual OTP entry
+  if (token && type && email) {
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: token,
+        type: type as 'signup' | 'email' | 'recovery' | 'email_change',
+      })
+      
+      if (error) {
+        console.error('Error verifying OTP:', error)
+        return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
+      }
+    } catch (err) {
+      console.error('Exception verifying OTP:', err)
       return NextResponse.redirect(new URL('/auth/login?error=verification', requestUrl.origin))
     }
   }
