@@ -87,7 +87,7 @@ export default function AnalysisPage() {
               href="/dashboard/profiling"
               className="bg-gray-700/50 border border-gray-600 rounded-lg p-4 hover:bg-gray-700 transition-colors"
             >
-              <h4 className="font-semibold text-white mb-2">Profilazione FZTH</h4>
+              <h4 className="font-semibold text-white mb-2">Profilazione AttilaLAB</h4>
               <p className="text-sm text-gray-400">Profilo completo con IA</p>
             </Link>
             <Link

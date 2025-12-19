@@ -1,7 +1,7 @@
 {
   "name": "dota-coaching-api",
   "version": "1.0.0",
-  "description": "Advanced Dota 2 Coaching Platform with AI-powered analysis",
+  "description": "PRO DOTA ANALISI - AttilaLAB: Analisi avanzate Dota 2 con AI-powered match analysis",
   "private": true,
   "scripts": {
     "dev": "next dev",

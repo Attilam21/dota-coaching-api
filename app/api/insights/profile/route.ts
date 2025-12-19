@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     switch (elementType) {
       case 'fzth-score':
-        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. Il FZTH Score è ${contextData.score}/100 per un giocatore ${contextData.role || 'di ruolo non specificato'}. 
+        prompt = `Sei un coach professionale di Dota 2 con anni di esperienza. L'AttilaLAB Score è ${contextData.score}/100 per un giocatore ${contextData.role || 'di ruolo non specificato'}. 
         Scrivi un feedback diretto e assertivo (max 150 parole) identificando il punto debole principale e dando un'azione concreta per migliorarlo. 
         Usa un tono professionale e autoritario. NON usare "potresti", "dovresti", "considera", "guarda", "analizza". Scrivi come un coach che sa esattamente cosa fare.`
         break

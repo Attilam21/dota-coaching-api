@@ -227,7 +227,7 @@ export async function GET(
 PROFILO GIOCATORE:
 - Ruolo principale: ${profileData.role} (${profileData.roleConfidence})
 - Stile di gioco: ${profileData.playstyle}
-- FZTH Score: ${profileData.fzthScore}/100
+- AttilaLAB Score: ${profileData.fzthScore}/100
 
 METRICHE CHIAVE:
 - Winrate: ${profileData.winrate}

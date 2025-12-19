@@ -42,7 +42,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold text-red-500">
-              Dota 2 Coach
+              PRO DOTA ANALISI
             </Link>
           </div>
           

@@ -29,7 +29,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
         <footer className="bg-gray-800 border-t border-gray-700 mt-12">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <p className="text-center text-gray-400 text-sm">
-              © 2025 Dota 2 Coaching Platform. Powered by OpenDota API.
+              © 2025 PRO DOTA ANALISI - AttilaLAB. Powered by OpenDota API.
             </p>
           </div>
         </footer>

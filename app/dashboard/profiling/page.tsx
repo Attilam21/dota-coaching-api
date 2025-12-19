@@ -113,7 +113,7 @@ export default function ProfilingPage() {
   if (!playerId) {
     return (
       <PlayerIdInput
-        pageTitle="Profilazione FZTH"
+        pageTitle="Profilazione AttilaLAB"
         title="Inserisci Player ID"
         description="Inserisci il tuo Dota 2 Account ID per generare il tuo profilo di giocatore. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
       />
@@ -134,7 +134,7 @@ export default function ProfilingPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/75 via-blue-900/65 to-slate-900/75 -z-10"></div>
       
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold mb-2">Profilazione FZTH</h1>
+        <h1 className="text-3xl font-bold mb-2">Profilazione AttilaLAB</h1>
         <p className="text-gray-300 mb-6">Il tuo profilo di giocatore completo basato sulle performance reali</p>
 
       {error && (
@@ -152,7 +152,7 @@ export default function ProfilingPage() {
 
       {profile && !loading && (
         <div className="space-y-6">
-          {/* FZTH Score Banner */}
+          {/* AttilaLAB Score Banner */}
           {profile.fzthScore !== undefined && (
             <div className="bg-gradient-to-r from-red-900/80 to-blue-900/80 border-2 border-red-600 rounded-lg p-6 backdrop-blur-sm relative">
               <InsightBadge
@@ -164,7 +164,7 @@ export default function ProfilingPage() {
               />
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold mb-4 text-white">FZTH Score</h2>
+                  <h2 className="text-2xl font-semibold mb-4 text-white">AttilaLAB Score</h2>
                   <p className="text-4xl font-bold text-red-400">{profile.fzthScore}/100</p>
                   <p className="text-sm text-gray-300 mt-2">
                     Score complessivo basato su Farm, Teamfight, Survival, Impact, Vision e Winrate

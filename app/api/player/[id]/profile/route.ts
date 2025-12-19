@@ -211,7 +211,7 @@ export async function GET(
       recommendations.push('Analizza le tue partite perse per identificare pattern comuni. Focus su decision making e team coordination.')
     }
 
-    // Calculate FZTH Score (0-100 comprehensive score)
+    // Calculate AttilaLAB Score (0-100 comprehensive score)
     const farmScore = Math.min((avgGPM / 600) * 100, 100) * 0.20
     const teamfightScore = Math.min(advanced.fights.killParticipation, 100) * 0.20
     const survivalScore = Math.max(100 - (avgDeaths * 10), 0) * 0.15

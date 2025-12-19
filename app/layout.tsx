@@ -7,8 +7,8 @@ import { ModalProvider } from '@/lib/modal-context'
 import ConditionalLayout from '@/components/ConditionalLayout'
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Coaching Platform',
-  description: 'AI-powered Dota 2 coaching with match analysis and personalized learning paths',
+  title: 'PRO DOTA ANALISI - AttilaLAB',
+  description: 'Analisi avanzate Dota 2 con AI-powered match analysis e statistiche dettagliate',
 }
 
 export default function RootLayout({

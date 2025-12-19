@@ -119,7 +119,7 @@ export default function DashboardPage() {
   if (!playerId) {
     return (
       <PlayerIdInput
-        pageTitle="FZTH Dota 2 Dashboard"
+        pageTitle="PRO DOTA ANALISI - AttilaLAB"
         title="Inserisci Player ID"
         description="Inserisci il tuo Dota 2 Account ID per visualizzare le statistiche. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
       />
@@ -232,7 +232,7 @@ export default function DashboardPage() {
       <div className="mb-8">
           <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">FZTH Dota 2 Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-2">PRO DOTA ANALISI - AttilaLAB</h1>
             <p className="text-gray-400">Player #{playerId}</p>
           </div>
           <Link
@@ -750,7 +750,7 @@ export default function DashboardPage() {
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="w-8 h-8 text-purple-400" />
-                          <h4 className="font-semibold">Profilazione FZTH</h4>
+                          <h4 className="font-semibold">Profilazione AttilaLAB</h4>
                         </div>
                         <p className="text-xs text-gray-400">Profilo completo con IA</p>
                       </Link>
