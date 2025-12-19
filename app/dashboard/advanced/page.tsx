@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { Target, Coins, Sword, Map } from 'lucide-react'
+import AnimatedCard from '@/components/AnimatedCard'
+import AnimatedPage from '@/components/AnimatedPage'
+import AnimatedButton from '@/components/AnimatedButton'
+import { motion } from 'framer-motion'
 
 export default function AdvancedPage() {
   const { user, loading: authLoading } = useAuth()
@@ -64,27 +68,34 @@ export default function AdvancedPage() {
   ]
 
   return (
-    <div className="p-4 md:p-6">
-      <HelpButton />
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Analisi Avanzate</h1>
-        <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
+    <AnimatedPage>
+      <div className="p-4 md:p-6">
+        <HelpButton />
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Analisi Avanzate</h1>
+          <AnimatedCard delay={0.1} className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
           <p className="text-green-200">
             Analisi basate sul tuo storico recente (fino a 20 partite) – Valori medi/aggregati
           </p>
           <p className="text-green-300 text-sm mt-2">
             Questa sezione mostra valori medi e aggregati sulle ultime N partite. Per analizzare una singola partita in dettaglio, vai alla sezione 'Analisi partita (singola)'.
           </p>
+          </AnimatedCard>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {analysisCards.map((card) => (
-          <Link
-            key={card.href}
-            href={card.href}
-            className={`bg-gray-800 border ${card.color} rounded-lg p-6 hover:bg-gray-700/50 transition cursor-pointer`}
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {analysisCards.map((card, index) => (
+            <motion.div
+              key={card.href}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + (index * 0.1), duration: 0.4 }}
+              whileHover={{ scale: 1.03, y: -5 }}
+            >
+              <Link
+                href={card.href}
+                className={`block bg-gray-800 border ${card.color} rounded-lg p-6 hover:bg-gray-700/50 transition cursor-pointer`}
+              >
             <div className="flex items-start gap-4">
               <div className="text-red-400">
                 <card.icon className="w-10 h-10" />
@@ -94,31 +105,33 @@ export default function AdvancedPage() {
                 <p className="text-gray-400 text-sm">{card.description}</p>
               </div>
             </div>
-          </Link>
+            </Link>
+          </motion.div>
         ))}
-      </div>
-
-      <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
-        <h2 className="text-2xl font-semibold mb-4">Analisi Approfondite</h2>
-        <p className="text-gray-400 mb-4">
-          Le analisi avanzate forniscono metriche dettagliate e visualizzazioni approfondite delle tue performance di gioco.
-        </p>
-        <div className="flex gap-4">
-          <Link
-            href="/dashboard/match-analysis"
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition"
-          >
-            Analisi Partita Singola
-          </Link>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
-          >
-            Torna alla Panoramica
-          </Link>
         </div>
+
+        <AnimatedCard delay={0.6} className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
+          <h2 className="text-2xl font-semibold mb-4">Analisi Approfondite</h2>
+          <p className="text-gray-400 mb-4">
+            Le analisi avanzate forniscono metriche dettagliate e visualizzazioni approfondite delle tue performance di gioco.
+          </p>
+          <div className="flex gap-4">
+            <AnimatedButton
+              variant="primary"
+              onClick={() => window.location.href = '/dashboard/match-analysis'}
+            >
+              Analisi Partita Singola
+            </AnimatedButton>
+            <AnimatedButton
+              variant="secondary"
+              onClick={() => window.location.href = '/dashboard'}
+            >
+              Torna alla Panoramica
+            </AnimatedButton>
+          </div>
+        </AnimatedCard>
       </div>
-    </div>
+    </AnimatedPage>
   )
 }
 

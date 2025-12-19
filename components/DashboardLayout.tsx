@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { motion } from 'framer-motion'
 import { 
   BarChart, 
   Zap, 
@@ -107,20 +108,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {section.title}
               </h2>
               <ul className="space-y-1">
-                {section.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-gray-700 text-white'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      }`}
+                {section.items.map((item, itemIndex) => (
+                  <motion.li
+                    key={item.href}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (index * 0.05) + (itemIndex * 0.03), duration: 0.3 }}
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.02, x: 4 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive(item.href)
+                            ? 'bg-gray-700 text-white'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </motion.div>
+                  </motion.li>
                 ))}
               </ul>
             </div>
@@ -138,13 +149,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {user?.email}
               </span>
             </div>
-            <button
+            <motion.button
               onClick={() => signOut()}
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
               className="text-gray-400 hover:text-white text-sm p-1"
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </aside>

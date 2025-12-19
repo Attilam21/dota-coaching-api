@@ -7,6 +7,9 @@ import Link from 'next/link'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
 import { Info } from 'lucide-react'
+import AnimatedCard from '@/components/AnimatedCard'
+import AnimatedPage from '@/components/AnimatedPage'
+import AnimatedButton from '@/components/AnimatedButton'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -140,24 +143,23 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <HelpButton />
-      <h1 className="text-3xl font-bold mb-4">Impostazioni Account</h1>
-      <p className="text-gray-400 mb-8">Gestisci le tue impostazioni personali</p>
+    <AnimatedPage>
+      <div className="p-4 md:p-6">
+        <HelpButton />
+        <h1 className="text-3xl font-bold mb-4">Impostazioni Account</h1>
+        <p className="text-gray-400 mb-8">Gestisci le tue impostazioni personali</p>
 
-      {message && (
-        <div
-          className={`mb-6 border rounded-lg p-4 ${
+        {message && (
+          <AnimatedCard delay={0.1} className={`mb-6 border rounded-lg p-4 ${
             message.type === 'success'
               ? 'bg-green-900/50 border-green-700 text-green-200'
               : 'bg-red-900/50 border-red-700 text-red-200'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+          }`}>
+            {message.text}
+          </AnimatedCard>
+        )}
 
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
+        <AnimatedCard delay={0.2} className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
         <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
 
         <div className="space-y-4 mb-6">
@@ -203,15 +205,15 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex gap-3">
-              <button
+              <AnimatedButton
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
+                variant="primary"
               >
                 {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
-              </button>
+              </AnimatedButton>
               {playerId && (
-                <button
+                <AnimatedButton
                   type="button"
                   onClick={() => {
                     if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
@@ -223,28 +225,29 @@ export default function SettingsPage() {
                       })
                     }
                   }}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-semibold transition"
+                  variant="secondary"
                 >
                   Rimuovi Player ID
-                </button>
+                </AnimatedButton>
               )}
             </div>
           </form>
         </div>
-      </div>
+        </AnimatedCard>
 
-      <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
-        <h2 className="text-xl font-semibold mb-4">Sicurezza</h2>
-        <p className="text-gray-400 text-sm mb-4">
-          Per modificare la password, utilizza la funzione di reset password dalla pagina di login.
-        </p>
-        <Link
-          href="/auth/login"
-          className="inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
-        >
-          Vai al Login
-        </Link>
+        <AnimatedCard delay={0.3} className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
+          <h2 className="text-xl font-semibold mb-4">Sicurezza</h2>
+          <p className="text-gray-400 text-sm mb-4">
+            Per modificare la password, utilizza la funzione di reset password dalla pagina di login.
+          </p>
+          <AnimatedButton
+            variant="secondary"
+            onClick={() => window.location.href = '/auth/login'}
+          >
+            Vai al Login
+          </AnimatedButton>
+        </AnimatedCard>
       </div>
-    </div>
+    </AnimatedPage>
   )
 }
