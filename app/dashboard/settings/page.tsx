@@ -234,10 +234,6 @@ export default function SettingsPage() {
                 </a>
                 {' '}inserendo il tuo nome utente Steam.
               </p>
-              <div className="text-xs text-blue-400 mt-2 flex items-center gap-2">
-                <Info className="w-3 h-3" />
-                <span>Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.</span>
-              </div>
             </div>
 
             <div className="flex gap-3">
