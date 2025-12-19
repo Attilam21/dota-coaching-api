@@ -11,10 +11,6 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
-import AnimatedCard from '@/components/AnimatedCard'
-import AnimatedPage from '@/components/AnimatedPage'
-import AnimatedButton from '@/components/AnimatedButton'
-import { motion } from 'framer-motion'
 
 interface PlayerStats {
   winrate: {
@@ -230,9 +226,8 @@ export default function DashboardPage() {
   const kdaTrend = getKDATrend()
 
   return (
-    <AnimatedPage>
-      <div className="p-4 md:p-6">
-        <HelpButton />
+    <div className="p-4 md:p-6">
+      <HelpButton />
       {/* Header */}
       <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -306,18 +301,16 @@ export default function DashboardPage() {
           </div>
 
           {/* Tabs */}
-          <AnimatedCard delay={0.2} className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
                 { id: 'trends' as TabType, name: 'Trend & Statistiche', icon: Activity },
                 { id: 'matches' as TabType, name: 'Partite', icon: Gamepad2 },
               ].map((tab) => (
-                <motion.button
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
                       ? 'bg-gray-700 text-white border-b-2 border-red-500'
@@ -326,7 +319,7 @@ export default function DashboardPage() {
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.name}
-                </motion.button>
+                </button>
               ))}
             </div>
 
@@ -340,7 +333,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-winrate"
@@ -373,10 +366,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Trend basato su 5/10 partite</p>
-              </AnimatedCard>
+              </div>
 
               {/* KDA Trend Card */}
-              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-kda"
@@ -409,10 +402,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">KDA = (Kill + Assist) / Death</p>
-              </AnimatedCard>
+              </div>
 
               {/* Farm Trend Card */}
-              <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div>
@@ -427,18 +420,18 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite</p>
-              </AnimatedCard>
+              </div>
 
               {/* Insight Automatico Card */}
-              <AnimatedCard index={3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                 <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
                 <p className="text-sm text-gray-300">{getInsight()}</p>
-              </AnimatedCard>
+              </div>
                   </div>
                   </div>
 
                   {/* Profilo Giocatore */}
-                  <AnimatedCard delay={0.4} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
@@ -460,7 +453,7 @@ export default function DashboardPage() {
                         Profilo Completo →
                       </Link>
                     </div>
-                  </AnimatedCard>
+                  </div>
                 </div>
               )}
 
@@ -469,7 +462,7 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                   {/* Heatmap Partite */}
                   {heatmap && (
-                    <AnimatedCard delay={0.3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                       <h3 className="text-xl font-semibold mb-4">Heatmap Partite - Quando Giochi Meglio</h3>
                       <p className="text-sm text-gray-400 mb-4">
                         Visualizza il tuo winrate per giorno della settimana e ora del giorno
@@ -553,7 +546,7 @@ export default function DashboardPage() {
                       {/* Best Times Cards */}
                       {heatmap.bestTimes.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <AnimatedCard index={0} delay={0.5} className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700 rounded-lg p-4">
+                          <div className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700 rounded-lg p-4">
                             <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #1</h4>
                             <p className="text-xl font-bold text-green-400">
                               {heatmap.bestTimes[0].day} {heatmap.bestTimes[0].hour}
@@ -561,9 +554,9 @@ export default function DashboardPage() {
                             <p className="text-sm text-gray-300 mt-1">
                               Winrate: {heatmap.bestTimes[0].winrate.toFixed(1)}% ({heatmap.bestTimes[0].total} partite)
                             </p>
-                          </AnimatedCard>
+                          </div>
                           {heatmap.bestTimes[1] && (
-                            <AnimatedCard index={1} delay={0.6} className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
+                            <div className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
                               <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #2</h4>
                               <p className="text-xl font-bold text-green-400">
                                 {heatmap.bestTimes[1].day} {heatmap.bestTimes[1].hour}
@@ -571,10 +564,10 @@ export default function DashboardPage() {
                               <p className="text-sm text-gray-300 mt-1">
                                 Winrate: {heatmap.bestTimes[1].winrate.toFixed(1)}% ({heatmap.bestTimes[1].total} partite)
                               </p>
-                            </AnimatedCard>
+                            </div>
                           )}
                           {heatmap.bestTimes[2] && (
-                            <AnimatedCard index={2} delay={0.7} className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
+                            <div className="bg-gradient-to-br from-green-900/20 to-gray-800 border border-green-700/50 rounded-lg p-4">
                               <h4 className="text-sm text-gray-400 mb-2">Orario Migliore #3</h4>
                               <p className="text-xl font-bold text-green-400">
                                 {heatmap.bestTimes[2].day} {heatmap.bestTimes[2].hour}
@@ -582,16 +575,16 @@ export default function DashboardPage() {
                               <p className="text-sm text-gray-300 mt-1">
                                 Winrate: {heatmap.bestTimes[2].winrate.toFixed(1)}% ({heatmap.bestTimes[2].total} partite)
                               </p>
-                            </AnimatedCard>
+                            </div>
                           )}
                         </div>
                       )}
-                    </AnimatedCard>
+                    </div>
                   )}
 
                   {/* Trend Ultime 10 Partite */}
                   {chartData.length > 0 && (
-                    <AnimatedCard delay={0.4} className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
                       {playerId && (
                         <InsightBadge
                           elementType="trend-chart"
@@ -644,47 +637,47 @@ export default function DashboardPage() {
                           />
                         </LineChart>
                       </ResponsiveContainer>
-                    </AnimatedCard>
+                    </div>
                   )}
 
                   {/* Quick Stats Cards */}
                   {stats.advanced && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                      <AnimatedCard index={0} delay={0.5} className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm text-gray-400 uppercase tracking-wider">Last Hits</h4>
                           <Sword className="w-6 h-6" />
                         </div>
                         <p className="text-3xl font-bold text-white">{stats.advanced.lane.avgLastHits.toFixed(1)}</p>
                         <p className="text-xs text-gray-500 mt-1">Media per partita</p>
-                      </AnimatedCard>
+                      </div>
 
-                      <AnimatedCard index={1} delay={0.6} className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm text-gray-400 uppercase tracking-wider">Hero Damage</h4>
                           <Sparkles className="w-8 h-8 text-red-400" />
                         </div>
                         <p className="text-3xl font-bold text-red-400">{Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}</p>
                         <p className="text-xs text-gray-500 mt-1">Danno medio</p>
-                      </AnimatedCard>
+                      </div>
 
-                      <AnimatedCard index={2} delay={0.7} className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm text-gray-400 uppercase tracking-wider">Kill Participation</h4>
                           <Zap className="w-8 h-8 text-yellow-400" />
                         </div>
                         <p className="text-3xl font-bold text-green-400">{stats.advanced.fights.killParticipation.toFixed(1)}%</p>
                         <p className="text-xs text-gray-500 mt-1">Partecipazione fight</p>
-                      </AnimatedCard>
+                      </div>
 
-                      <AnimatedCard index={3} delay={0.8} className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm text-gray-400 uppercase tracking-wider">Net Worth</h4>
                           <DollarSign className="w-8 h-8 text-green-400" />
                         </div>
                         <p className="text-3xl font-bold text-yellow-400">{Math.round(stats.advanced.farm.avgNetWorth).toLocaleString()}</p>
                         <p className="text-xs text-gray-500 mt-1">Valore medio</p>
-                      </AnimatedCard>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -695,7 +688,7 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                   {/* Recent Matches Grid */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <AnimatedCard delay={0.3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
                         <Link
@@ -707,17 +700,11 @@ export default function DashboardPage() {
                       </div>
                       <div className="grid md:grid-cols-5 gap-4">
                         {(stats.matches || []).slice(0, 5).map((match, idx) => (
-                          <motion.div
+                          <Link
                             key={match.match_id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 + (idx * 0.1), duration: 0.4 }}
-                            whileHover={{ scale: 1.05, y: -4 }}
+                            href={`/analysis/match/${match.match_id}`}
+                            className="bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
                           >
-                            <Link
-                              href={`/analysis/match/${match.match_id}`}
-                              className="block bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
-                            >
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-xs text-gray-400">Match {idx + 1}</span>
                               <span className={`text-xs px-2 py-1 rounded ${match.win ? 'bg-green-600' : 'bg-red-600'} text-white`}>
@@ -734,97 +721,67 @@ export default function DashboardPage() {
                                 <span className="font-bold">{match.gpm}</span>
                               </div>
                             </div>
-                            </Link>
-                          </motion.div>
+                          </Link>
                         ))}
                       </div>
-                    </AnimatedCard>
+                    </div>
                   )}
 
                   {/* Quick Links to Deep Analysis */}
-                  <AnimatedCard delay={0.4} className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                     <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                       <Search className="w-5 h-5" />
                       Analisi Approfondite
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 0.4 }}
-                        whileHover={{ scale: 1.05, y: -4 }}
+                      <Link
+                        href="/dashboard/performance"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/performance"
-                          className="block bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-                        >
                         <div className="flex items-center gap-2 mb-2">
                           <Zap className="w-8 h-8 text-yellow-400" />
                           <h4 className="font-semibold">Performance</h4>
                         </div>
                         <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
-                        </Link>
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.4 }}
-                        whileHover={{ scale: 1.05, y: -4 }}
+                      </Link>
+                      <Link
+                        href="/dashboard/profiling"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/profiling"
-                          className="block bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-                        >
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="w-8 h-8 text-purple-400" />
                           <h4 className="font-semibold">Profilazione AttilaLAB</h4>
                         </div>
                         <p className="text-xs text-gray-400">Profilo completo con IA</p>
-                        </Link>
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7, duration: 0.4 }}
-                        whileHover={{ scale: 1.05, y: -4 }}
+                      </Link>
+                      <Link
+                        href="/dashboard/advanced"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/advanced"
-                          className="block bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-                        >
                         <div className="flex items-center gap-2 mb-2">
                           <FlaskConical className="w-8 h-8 text-blue-400" />
                           <h4 className="font-semibold">Analisi Avanzate</h4>
                         </div>
                         <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
-                        </Link>
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8, duration: 0.4 }}
-                        whileHover={{ scale: 1.05, y: -4 }}
+                      </Link>
+                      <Link
+                        href="/dashboard/coaching"
+                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
-                        <Link
-                          href="/dashboard/coaching"
-                          className="block bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-                        >
                         <div className="flex items-center gap-2 mb-2">
                           <BookOpen className="w-8 h-8 text-indigo-400" />
                           <h4 className="font-semibold">Coaching</h4>
                         </div>
                         <p className="text-xs text-gray-400">Task e raccomandazioni</p>
-                        </Link>
-                      </motion.div>
+                      </Link>
                     </div>
-                  </AnimatedCard>
+                  </div>
                 </div>
               )}
             </div>
-          </AnimatedCard>
+          </div>
         </>
       )}
-      </div>
-    </AnimatedPage>
+    </div>
   )
 }
