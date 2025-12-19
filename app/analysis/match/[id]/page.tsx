@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import DashboardLayout from '@/components/DashboardLayout'
 
@@ -98,12 +97,9 @@ export default function MatchAnalysisPage() {
   const params = useParams()
   const matchId = params.id as string
   const { user } = useAuth()
-  const router = useRouter()
   const [match, setMatch] = useState<MatchData | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [timeline, setTimeline] = useState<any>(null)
@@ -174,53 +170,6 @@ export default function MatchAnalysisPage() {
 
     fetchMatch()
   }, [matchId])
-
-  const handleSaveAnalysis = async () => {
-    if (!match || !analysis) return
-
-    if (!user) {
-      if (confirm('Please sign in to save your analysis. Would you like to go to the login page?')) {
-        router.push('/auth/login')
-      }
-      return
-    }
-
-    try {
-      setSaving(true)
-
-      // Save ONLY custom analysis data (not full match - OpenDota is source of truth)
-      // This follows OpenDota's approach: store only custom/user-specific data
-      const { error: saveError } = await supabase
-        .from('match_analyses')
-        .upsert({
-          user_id: user.id,
-          match_id: parseInt(matchId),
-          analysis_data: {
-            // Only save our custom analysis, not the full match data
-            analysis: analysis,
-            saved_at: new Date().toISOString(),
-            match_id: parseInt(matchId) // Reference only, full data from OpenDota
-          },
-          ai_insights: (analysis as any).insights || null
-        } as any, {
-          onConflict: 'user_id,match_id'
-        })
-
-      if (saveError) {
-        console.error('Save error details:', saveError)
-        throw new Error(saveError.message || 'Failed to save analysis')
-      }
-
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
-      console.error('Failed to save analysis:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Please try again.'
-      alert(`Failed to save analysis: ${errorMessage}`)
-    } finally {
-      setSaving(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -295,22 +244,9 @@ export default function MatchAnalysisPage() {
             )}
           </div>
           <div className="text-right">
-            <div className={`text-2xl font-bold mb-2 ${match.radiant_win ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`text-2xl font-bold ${match.radiant_win ? 'text-green-400' : 'text-red-400'}`}>
               {match.radiant_win ? 'Radiant Victory' : 'Dire Victory'}
             </div>
-            <button
-              onClick={handleSaveAnalysis}
-              disabled={saving || saved}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                saved
-                  ? 'bg-green-600 text-white'
-                  : saving
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-              }`}
-            >
-              {saved ? '✓ Salvato!' : saving ? 'Salvataggio...' : '💾 Salva Analisi'}
-            </button>
           </div>
         </div>
         <div className="flex justify-center items-center gap-8 text-4xl font-bold">

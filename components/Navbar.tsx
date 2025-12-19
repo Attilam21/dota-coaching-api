@@ -4,12 +4,41 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function Navbar() {
   const { user, loading, signOut } = useAuth()
   const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [userProfile, setUserProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // Load user profile when user is available
+  useEffect(() => {
+    if (user) {
+      loadUserProfile()
+    } else {
+      setUserProfile(null)
+    }
+  }, [user])
+
+  const loadUserProfile = async () => {
+    if (!user) return
+
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('display_name, avatar_url')
+        .eq('id', user.id)
+        .single()
+
+      if (data) {
+        setUserProfile(data as { display_name: string | null; avatar_url: string | null })
+      }
+    } catch (err) {
+      console.error('Failed to load user profile:', err)
+    }
+  }
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -61,9 +90,19 @@ export default function Navbar() {
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="flex items-center text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
+                    className="flex items-center gap-2 text-gray-300 hover:text-red-500 px-3 py-2 transition-colors"
                   >
-                    {user.email}
+                    {userProfile?.avatar_url && (
+                      <img
+                        src={userProfile.avatar_url}
+                        alt="Avatar"
+                        className="w-6 h-6 rounded-full border border-gray-600 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    )}
+                    <span>{userProfile?.display_name || user.email}</span>
                     <svg
                       className="ml-1 h-4 w-4"
                       fill="none"

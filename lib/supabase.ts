@@ -8,6 +8,8 @@ export type Database = {
         Row: {
           id: string
           email: string
+          display_name: string | null
+          avatar_url: string | null
           dota_account_id: number | null
           dota_account_verified_at: string | null
           dota_verification_method: string | null
@@ -17,6 +19,8 @@ export type Database = {
         Insert: {
           id?: string
           email: string
+          display_name?: string | null
+          avatar_url?: string | null
           dota_account_id?: number | null
           dota_account_verified_at?: string | null
           dota_verification_method?: string | null
@@ -26,37 +30,13 @@ export type Database = {
         Update: {
           id?: string
           email?: string
+          display_name?: string | null
+          avatar_url?: string | null
           dota_account_id?: number | null
           dota_account_verified_at?: string | null
           dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
-        }
-      }
-      match_analyses: {
-        Row: {
-          id: string
-          user_id: string
-          match_id: number
-          analysis_data: any
-          ai_insights: any | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          match_id: number
-          analysis_data: any
-          ai_insights?: any | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          match_id?: number
-          analysis_data?: any
-          ai_insights?: any | null
-          created_at?: string
         }
       }
     }

@@ -4,18 +4,21 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { supabase } from '@/lib/supabase'
+import type { Database } from '@/lib/supabase'
 import HelpButton from '@/components/HelpButton'
-import { Info } from 'lucide-react'
+import { Info, User, Image as ImageIcon } from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, setPlayerId } = usePlayerIdContext()
+  const [displayName, setDisplayName] = useState<string>('')
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,28 +31,33 @@ export default function SettingsPage() {
     }
   }, [user, authLoading, router])
 
-  // Load from PlayerIdContext (which reads from localStorage)
-  const loadUserSettings = () => {
+  const loadUserSettings = async () => {
     if (!user) return
 
     try {
       setLoading(true)
       
-      // Load from PlayerIdContext (which uses localStorage)
-      if (playerId) {
-        setDotaAccountId(playerId)
-      } else {
-        // Also try direct localStorage read as fallback
-        try {
-          const saved = localStorage.getItem('fzth_player_id')
-          if (saved) {
-            setDotaAccountId(saved)
-            // Sync with context
-            setPlayerId(saved)
-          }
-        } catch (err) {
-          console.error('Failed to read localStorage:', err)
+      // Carica profilo da Supabase
+      const { data, error } = await supabase
+        .from('users')
+        .select('display_name, avatar_url, dota_account_id')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error loading user profile:', error)
+        // Se non esiste, crea profilo base
+        if (error.code === 'PGRST116') {
+          // No rows returned - crea profilo
+          await createUserProfile()
+          return
         }
+      } else if (data) {
+        const profile = data as { display_name: string | null; avatar_url: string | null; dota_account_id: number | null }
+        setUserProfile(profile)
+        setDisplayName(profile.display_name || '')
+        setAvatarUrl(profile.avatar_url || '')
+        setDotaAccountId(profile.dota_account_id ? String(profile.dota_account_id) : '')
       }
     } catch (err) {
       console.error('Failed to load settings:', err)
@@ -58,14 +66,27 @@ export default function SettingsPage() {
     }
   }
 
-  // Update local state when playerId changes
-  useEffect(() => {
-    if (playerId) {
-      setDotaAccountId(playerId)
-    } else {
-      setDotaAccountId('')
+  const createUserProfile = async () => {
+    if (!user) return
+
+    try {
+      const { error } = await (supabase
+        .from('users') as any)
+        .upsert({
+          id: user.id,
+          email: user.email || '',
+        })
+
+      if (error) {
+        console.error('Error creating profile:', error)
+      } else {
+        // Ricarica dopo creazione
+        await loadUserSettings()
+      }
+    } catch (err) {
+      console.error('Failed to create profile:', err)
     }
-  }, [playerId])
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,43 +96,54 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
-      // Validate that it's a valid number if provided
-      if (dotaAccountId.trim() && isNaN(parseInt(dotaAccountId.trim()))) {
+      // Validate Dota Account ID
+      let dotaAccountIdNum: number | null = null
+      if (dotaAccountId.trim()) {
+        const parsed = parseInt(dotaAccountId.trim())
+        if (isNaN(parsed)) {
+          setMessage({
+            type: 'error',
+            text: 'L\'ID Dota deve essere un numero valido',
+          })
+          setSaving(false)
+          return
+        }
+        dotaAccountIdNum = parsed
+      }
+
+      // Validate avatar URL (basic check)
+      if (avatarUrl.trim() && !isValidUrl(avatarUrl.trim())) {
         setMessage({
           type: 'error',
-          text: 'L\'ID Dota deve essere un numero valido',
+          text: 'L\'URL dell\'avatar non è valido',
         })
         setSaving(false)
         return
       }
 
-      // Salva SOLO in localStorage (via PlayerIdContext)
-      // Non usiamo più Supabase per evitare errori RLS
-      const playerIdString = dotaAccountId.trim() || null
-      
-      // Force update: salva in localStorage direttamente E tramite context
-      // Questo assicura che tutte le pagine vedano il cambio immediatamente
-      if (playerIdString) {
-        try {
-          localStorage.setItem('fzth_player_id', playerIdString)
-        } catch (err) {
-          console.error('Failed to save to localStorage:', err)
-        }
-      } else {
-        try {
-          localStorage.removeItem('fzth_player_id')
-        } catch (err) {
-          console.error('Failed to remove from localStorage:', err)
-        }
+      // Salva tutto in Supabase
+      const { error } = await (supabase
+        .from('users') as any)
+        .update({
+          display_name: displayName.trim() || null,
+          avatar_url: avatarUrl.trim() || null,
+          dota_account_id: dotaAccountIdNum,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('Save error:', error)
+        throw new Error(error.message || 'Errore nel salvataggio')
       }
-      
-      // Update context (this will trigger re-renders in all consuming components)
-      setPlayerId(playerIdString)
 
       setMessage({ 
         type: 'success', 
-        text: 'Player ID salvato con successo! Naviga tra le sezioni per vedere i dati aggiornati.' 
+        text: 'Impostazioni salvate con successo!' 
       })
+
+      // Ricarica profilo
+      await loadUserSettings()
     } catch (err) {
       console.error('Failed to save settings:', err)
       const errorMessage = err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni'
@@ -124,7 +156,52 @@ export default function SettingsPage() {
     }
   }
 
-  if (authLoading) {
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const handleUseSteamAvatar = async () => {
+    if (!dotaAccountId.trim()) {
+      setMessage({
+        type: 'error',
+        text: 'Inserisci prima il Dota Account ID',
+      })
+      return
+    }
+
+    try {
+      // Prova a fetchare profilo da OpenDota
+      const response = await fetch(`https://api.opendota.com/api/players/${dotaAccountId.trim()}`)
+      if (!response.ok) {
+        setMessage({
+          type: 'error',
+          text: 'Impossibile recuperare l\'avatar Steam. Verifica che l\'ID sia corretto.',
+        })
+        return
+      }
+
+      const data = await response.json()
+      // OpenDota non ha direttamente avatar, ma possiamo costruire URL Steam
+      // Per ora, mostra messaggio che l'utente deve inserire manualmente
+      setMessage({
+        type: 'error',
+        text: 'L\'avatar Steam deve essere inserito manualmente. Cerca il tuo profilo Steam e copia l\'URL dell\'avatar.',
+      })
+    } catch (err) {
+      console.error('Failed to fetch Steam avatar:', err)
+      setMessage({
+        type: 'error',
+        text: 'Errore nel recupero dell\'avatar Steam',
+      })
+    }
+  }
+
+  if (authLoading || loading) {
     return (
       <div className="p-4 md:p-6">
         <div className="text-center">
@@ -156,23 +233,83 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
-        <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
+      <form onSubmit={handleSave}>
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl mb-6">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <User className="w-5 h-5" />
+            Profilo Personale
+          </h2>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input
-              type="email"
-              value={user.email || ''}
-              disabled
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
-            />
-            <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <input
+                type="email"
+                value={user.email || ''}
+                disabled
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
+            </div>
+
+            <div>
+              <label htmlFor="displayName" className="block text-sm font-medium text-gray-300 mb-2">
+                Nome Visualizzato
+              </label>
+              <input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Il tuo nome nel dashboard"
+                maxLength={50}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Questo nome verrà mostrato nel dashboard invece dell'email
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="avatarUrl" className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                Avatar URL
+              </label>
+              <input
+                id="avatarUrl"
+                type="text"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://example.com/avatar.jpg"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Inserisci l'URL dell'immagine del tuo avatar (Steam, Imgur, Gravatar, etc.)
+              </p>
+              
+              {/* Preview Avatar */}
+              {avatarUrl && isValidUrl(avatarUrl) && (
+                <div className="mt-3 flex items-center gap-3">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar preview"
+                    className="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                  <span className="text-xs text-green-400">Preview avatar</span>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
 
-          <form onSubmit={handleSave}>
-            <div className="mb-4">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl mb-6">
+          <h2 className="text-xl font-semibold mb-6">Dota 2 Account</h2>
+
+          <div className="space-y-4">
+            <div>
               <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
                 Dota 2 Account ID
               </label>
@@ -180,7 +317,7 @@ export default function SettingsPage() {
                 id="dotaAccountId"
                 type="text"
                 value={dotaAccountId}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
+                onChange={(e) => setDotaAccountId(e.target.value)}
                 placeholder="es. 8607682237"
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
@@ -197,20 +334,22 @@ export default function SettingsPage() {
               </p>
               <div className="text-xs text-blue-400 mt-2 flex items-center gap-2">
                 <Info className="w-3 h-3" />
-                <span>Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.</span>
+                <span>Il Player ID viene salvato in Supabase e sarà disponibile su tutte le pagine del dashboard.</span>
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
-            >
-              {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
-            </button>
-          </form>
+          </div>
         </div>
-      </div>
+
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
+          >
+            {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
+          </button>
+        </div>
+      </form>
 
       <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
         <h2 className="text-xl font-semibold mb-4">Sicurezza</h2>
