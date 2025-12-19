@@ -236,20 +236,66 @@ export default function SettingsPage() {
         return
       }
 
-      // Salva tutto in Supabase usando UPSERT (crea se non esiste, aggiorna se esiste)
-      // Usa id che è foreign key a auth.users.id
-      const { data, error } = await (supabase
-        .from('users') as any)
-        .upsert({
-          id: user.id,
-          email: user.email || '',
-          display_name: displayName.trim() || null,
-          avatar_url: avatarUrl.trim() || null,
-          dota_account_id: dotaAccountIdNum,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'id'
+      // SOLUZIONE: Separare INSERT e UPDATE invece di UPSERT
+      // UPSERT può avere problemi con RLS quando fa sia INSERT che UPDATE
+      // Prima verifica se il record esiste, poi fa UPDATE o INSERT
+      
+      // Step 1: Verifica se il profilo esiste
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // Errore diverso da "not found"
+        console.error('[Settings] Error checking existing profile:', checkError)
+        setMessage({
+          type: 'error',
+          text: `Errore nel controllo del profilo: ${checkError.message || 'Errore sconosciuto'}`,
         })
+        setSaving(false)
+        return
+      }
+
+      const profileData: {
+        id: string
+        email: string
+        display_name: string | null
+        avatar_url: string | null
+        dota_account_id: number | null
+        updated_at: string
+      } = {
+        id: user.id,
+        email: user.email || '',
+        display_name: displayName.trim() || null,
+        avatar_url: avatarUrl.trim() || null,
+        dota_account_id: dotaAccountIdNum,
+        updated_at: new Date().toISOString(),
+      }
+
+      let data, error
+
+      if (existingProfile) {
+        // Step 2a: UPDATE se esiste
+        console.log('[Settings] Profile exists, updating...')
+        const result = await (supabase
+          .from('users') as any)
+          .update(profileData)
+          .eq('id', user.id)
+          .select()
+        data = result.data
+        error = result.error
+      } else {
+        // Step 2b: INSERT se non esiste
+        console.log('[Settings] Profile does not exist, creating...')
+        const result = await (supabase
+          .from('users') as any)
+          .insert(profileData)
+          .select()
+        data = result.data
+        error = result.error
+      }
 
       if (error) {
         console.error('[Settings] Save error details:', error)

@@ -72,9 +72,9 @@ function createSupabaseClient(): SupabaseClient<Database> {
   }
 
   // Create client with proper configuration for client-side usage
-  // IMPORTANT: Do NOT use custom fetch - it interferes with Supabase JS automatic JWT token handling
-  // Supabase JS automatically adds Authorization header with JWT token when user is authenticated
-  // The apikey is automatically included by Supabase JS in all requests
+  // IMPORTANT: apikey è sempre richiesto da Supabase per identificare il progetto
+  // Authorization header (JWT) viene usato per l'autenticazione quando presente
+  // Entrambi possono essere presenti simultaneamente - Supabase gestisce correttamente
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -83,8 +83,11 @@ function createSupabaseClient(): SupabaseClient<Database> {
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
     },
-    // No custom fetch - let Supabase JS handle everything automatically
-    // This ensures JWT tokens are properly included in requests for RLS
+    // No custom fetch - Supabase JS gestisce automaticamente apikey e JWT
+    // Il problema 403 potrebbe essere dovuto a:
+    // 1. JWT non valido o scaduto
+    // 2. Problema con RLS policies
+    // 3. Problema con la configurazione Supabase Auth
   })
 
   // Debug: Log session state in development
