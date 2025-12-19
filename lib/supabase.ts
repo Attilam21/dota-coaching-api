@@ -8,24 +8,27 @@ export type Database = {
         Row: {
           id: string
           email: string
-          username: string | null
-          avatar_url: string | null
+          dota_account_id: number | null
+          dota_account_verified_at: string | null
+          dota_verification_method: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           email: string
-          username?: string | null
-          avatar_url?: string | null
+          dota_account_id?: number | null
+          dota_account_verified_at?: string | null
+          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           email?: string
-          username?: string | null
-          avatar_url?: string | null
+          dota_account_id?: number | null
+          dota_account_verified_at?: string | null
+          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }
