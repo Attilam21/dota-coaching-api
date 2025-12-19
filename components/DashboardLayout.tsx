@@ -38,49 +38,55 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return pathname === path || pathname?.startsWith(path + '/')
   }
 
-  const navigation: Array<{ title: string; items: NavItem[] }> = [
+  const navigation: Array<{ title: string; colorClass: string; items: NavItem[] }> = [
     {
-      title: 'ANALISI PLAYER',
+      title: 'STATISTICHE GIOCATORE',
+      colorClass: 'text-blue-400',
       items: [
         { name: 'Panoramica', href: '/dashboard', icon: BarChart },
-        { name: 'Performance & Stile di Gioco', href: '/dashboard/performance', icon: Zap },
+        { name: 'Performance & Stile', href: '/dashboard/performance', icon: Zap },
         { name: 'Hero Pool', href: '/dashboard/heroes', icon: Theater },
-        { name: 'Hero Analysis', href: '/dashboard/hero-analysis', icon: Search },
+        { name: 'Analisi Eroi', href: '/dashboard/hero-analysis', icon: Search },
         { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: Target },
       ],
     },
     {
-      title: 'ANALISI TEAM & MATCH',
+      title: 'TEAM & PARTITE',
+      colorClass: 'text-green-400',
       items: [
-        { name: 'Team & Compagni', href: '/dashboard/teammates', icon: Users },
-        { name: 'Partite', href: '/dashboard/matches', icon: Gamepad2 },
+        { name: 'I Tuoi Compagni', href: '/dashboard/teammates', icon: Users },
+        { name: 'Storico Partite', href: '/dashboard/matches', icon: Gamepad2 },
       ],
     },
     {
-      title: 'ANALISI PARTITA SINGOLA',
+      title: 'ANALISI PARTITA',
+      colorClass: 'text-yellow-400',
       items: [
         { name: 'Seleziona Partita', href: '/dashboard/match-analysis', icon: Search },
       ],
     },
     {
-      title: 'COACHING & ANALISI AVANZATE',
+      title: 'COACHING & PROFILO',
+      colorClass: 'text-purple-400',
       items: [
-        { name: 'Coaching & Confronto Meta', href: '/dashboard/coaching', icon: BookOpen },
-        { name: 'Profilazione FZTH', href: '/dashboard/profiling', icon: Target },
+        { name: 'Coaching & Meta', href: '/dashboard/coaching', icon: BookOpen },
+        { name: 'Profilo AttilaLAB', href: '/dashboard/profiling', icon: Target },
         { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
       ],
     },
     {
-      title: 'ANALISI AVANZATE',
+      title: 'ANALISI TECNICHE',
+      colorClass: 'text-orange-400',
       items: [
-        { name: 'Analisi avanzate', href: '/dashboard/advanced', icon: FlaskConical },
+        { name: 'Analisi Avanzate', href: '/dashboard/advanced', icon: FlaskConical },
         { name: 'Build & Items', href: '/dashboard/builds', icon: Shield },
       ],
     },
     {
-      title: 'SISTEMA',
+      title: 'IMPOSTAZIONI',
+      colorClass: 'text-gray-400',
       items: [
-        { name: 'Profilo Utente', href: '/dashboard/settings', icon: Settings },
+        { name: 'Impostazioni Account', href: '/dashboard/settings', icon: Settings },
       ],
     },
   ]
@@ -94,9 +100,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
-          {navigation.map((section) => (
+          {navigation.map((section, index) => (
             <div key={section.title}>
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <h2 className={`text-xs font-semibold ${section.colorClass} uppercase tracking-wider mb-3 ${index === 0 ? 'mt-0' : 'mt-6'}`}>
                 {section.title}
               </h2>
               <ul className="space-y-1">
