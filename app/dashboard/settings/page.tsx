@@ -51,6 +51,7 @@ export default function SettingsPage() {
           console.error('Failed to read localStorage:', err)
         }
       }
+
     } catch (err) {
       console.error('Failed to load settings:', err)
     } finally {
