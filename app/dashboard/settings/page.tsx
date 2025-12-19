@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
 import { Info } from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { playerId, setPlayerId } = usePlayerIdContext()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -22,49 +23,49 @@ export default function SettingsPage() {
       return
     }
 
-    if (user && !loading) {
+    if (user) {
       loadUserSettings()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, authLoading])
+  }, [user, authLoading, router])
 
-  const loadUserSettings = async () => {
-    if (!user || loading) return
+  // Load from PlayerIdContext (which reads from localStorage)
+  const loadUserSettings = () => {
+    if (!user) return
 
     try {
       setLoading(true)
       
-      // Carica solo dota_account_id da Supabase
-      const { data, error } = await supabase
-        .from('users')
-        .select('dota_account_id')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (error && error.code !== 'PGRST116') {
-        // Errore diverso da "not found"
-        console.error('[Settings] Error loading:', error)
-        setMessage({
-          type: 'error',
-          text: `Errore nel caricamento: ${error.message || 'Errore sconosciuto'}`,
-        })
-        return
-      }
-
-      const profile = data as { dota_account_id: number | null } | null
-      if (profile?.dota_account_id) {
-        setDotaAccountId(String(profile.dota_account_id))
+      // Load from PlayerIdContext (which uses localStorage)
+      if (playerId) {
+        setDotaAccountId(playerId)
+      } else {
+        // Also try direct localStorage read as fallback
+        try {
+          const saved = localStorage.getItem('fzth_player_id')
+          if (saved) {
+            setDotaAccountId(saved)
+            // Sync with context
+            setPlayerId(saved)
+          }
+        } catch (err) {
+          console.error('Failed to read localStorage:', err)
+        }
       }
     } catch (err) {
-      console.error('[Settings] Failed to load:', err)
-      setMessage({
-        type: 'error',
-        text: 'Errore nel caricamento delle impostazioni',
-      })
+      console.error('Failed to load settings:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  // Update local state when playerId changes
+  useEffect(() => {
+    if (playerId) {
+      setDotaAccountId(playerId)
+    } else {
+      setDotaAccountId('')
+    }
+  }, [playerId])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,91 +75,56 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
-      // Validate Dota Account ID
-      let dotaAccountIdNum: number | null = null
-      if (dotaAccountId.trim()) {
-        const parsed = parseInt(dotaAccountId.trim())
-        if (isNaN(parsed)) {
-          setMessage({
-            type: 'error',
-            text: 'L\'ID Dota deve essere un numero valido',
-          })
-          setSaving(false)
-          return
+      // Validate that it's a valid number if provided
+      if (dotaAccountId.trim() && isNaN(parseInt(dotaAccountId.trim()))) {
+        setMessage({
+          type: 'error',
+          text: 'L\'ID Dota deve essere un numero valido',
+        })
+        setSaving(false)
+        return
+      }
+
+      // Salva SOLO in localStorage (via PlayerIdContext)
+      // Non usiamo più Supabase per evitare errori RLS
+      const playerIdString = dotaAccountId.trim() || null
+      
+      // Force update: salva in localStorage direttamente E tramite context
+      // Questo assicura che tutte le pagine vedano il cambio immediatamente
+      if (playerIdString) {
+        try {
+          localStorage.setItem('fzth_player_id', playerIdString)
+        } catch (err) {
+          console.error('Failed to save to localStorage:', err)
         }
-        dotaAccountIdNum = parsed
-      }
-
-      // Verifica se il profilo esiste
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('[Settings] Error checking profile:', checkError)
-        setMessage({
-          type: 'error',
-          text: `Errore: ${checkError.message || 'Errore sconosciuto'}`,
-        })
-        setSaving(false)
-        return
-      }
-
-      // Salva solo dota_account_id
-      let error
-      if (existingProfile) {
-        // UPDATE se esiste
-        const result = await (supabase
-          .from('users') as any)
-          .update({
-            dota_account_id: dotaAccountIdNum,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', user.id)
-        error = result.error
       } else {
-        // INSERT se non esiste
-        const result = await (supabase
-          .from('users') as any)
-          .insert({
-            id: user.id,
-            email: user.email || '',
-            dota_account_id: dotaAccountIdNum,
-          })
-        error = result.error
+        try {
+          localStorage.removeItem('fzth_player_id')
+        } catch (err) {
+          console.error('Failed to remove from localStorage:', err)
+        }
       }
-
-      if (error) {
-        console.error('[Settings] Save error:', error)
-        setMessage({
-          type: 'error',
-          text: `Errore nel salvataggio: ${error.message || 'Errore sconosciuto'}`,
-        })
-        setSaving(false)
-        return
-      }
+      
+      // Update context (this will trigger re-renders in all consuming components)
+      setPlayerId(playerIdString)
 
       setMessage({ 
         type: 'success', 
-        text: 'Dota Account ID salvato con successo!' 
+        text: 'Player ID salvato con successo! Naviga tra le sezioni per vedere i dati aggiornati.' 
       })
-
-      // Ricarica
-      await loadUserSettings()
     } catch (err) {
-      console.error('Failed to save:', err)
+      console.error('Failed to save settings:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni'
       setMessage({
         type: 'error',
-        text: 'Errore nel salvataggio',
+        text: errorMessage,
       })
     } finally {
       setSaving(false)
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="p-4 md:p-6">
         <div className="text-center">
@@ -176,7 +142,7 @@ export default function SettingsPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Impostazioni Account</h1>
-      <p className="text-gray-400 mb-8">Gestisci il tuo Dota 2 Account ID</p>
+      <p className="text-gray-400 mb-8">Gestisci le tue impostazioni personali</p>
 
       {message && (
         <div
@@ -190,12 +156,23 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSave}>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl mb-6">
-          <h2 className="text-xl font-semibold mb-6">Dota 2 Account</h2>
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
+        <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
 
-          <div className="space-y-4">
-            <div>
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input
+              type="email"
+              value={user.email || ''}
+              disabled
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
+          </div>
+
+          <form onSubmit={handleSave}>
+            <div className="mb-4">
               <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
                 Dota 2 Account ID
               </label>
@@ -203,7 +180,7 @@ export default function SettingsPage() {
                 id="dotaAccountId"
                 type="text"
                 value={dotaAccountId}
-                onChange={(e) => setDotaAccountId(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
                 placeholder="es. 8607682237"
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
@@ -220,31 +197,32 @@ export default function SettingsPage() {
               </p>
               <div className="text-xs text-blue-400 mt-2 flex items-center gap-2">
                 <Info className="w-3 h-3" />
-                <span>Il Player ID viene salvato e sarà disponibile su tutte le pagine del dashboard.</span>
+                <span>Il Player ID viene salvato nel tuo browser (localStorage) e sarà disponibile su tutte le pagine del dashboard.</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
-          >
-            {saving ? 'Salvataggio...' : 'Salva'}
-          </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-semibold transition"
+            >
+              {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
+            </button>
+          </form>
         </div>
-      </form>
+      </div>
 
       <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
-        <h2 className="text-xl font-semibold mb-4">Account</h2>
-        <div className="space-y-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-            <p className="text-gray-400">{user.email}</p>
-          </div>
-        </div>
+        <h2 className="text-xl font-semibold mb-4">Sicurezza</h2>
+        <p className="text-gray-400 text-sm mb-4">
+          Per modificare la password, utilizza la funzione di reset password dalla pagina di login.
+        </p>
+        <Link
+          href="/auth/login"
+          className="inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
+        >
+          Vai al Login
+        </Link>
       </div>
     </div>
   )
