@@ -51,6 +51,7 @@ export default function HelpButton() {
         className="fixed top-8 right-8 z-40 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl hover:border-gray-500"
         title="Guida"
         aria-label="Mostra guida"
+        data-tour="help-button"
       >
         <HelpCircle className="w-4 h-4" />
         <span className="text-sm font-semibold">Help</span>

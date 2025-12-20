@@ -20,7 +20,8 @@ import {
   Shield, 
   FlaskConical,
   Settings,
-  LogOut
+  LogOut,
+  GraduationCap
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -41,7 +42,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return pathname === path || pathname?.startsWith(path + '/')
   }
 
-  const navigation: Array<{ title: string; colorClass: string; items: NavItem[] }> = [
+  const navigation: Array<{ title: string; colorClass: string; items: NavItem[]; highlight?: boolean }> = [
+    {
+      title: 'GUIDA UTENTE',
+      colorClass: 'text-red-400',
+      highlight: true,
+      items: [
+        { name: 'Guida Utente', href: '/dashboard/guida-utente', icon: GraduationCap },
+      ],
+    },
     {
       title: 'STATISTICHE GIOCATORE',
       colorClass: 'text-blue-400',
@@ -103,10 +112,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <h1 className="text-xl font-bold">AttilaLAB Dashboard</h1>
         </div>
         
-        <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-6" data-tour="sidebar">
           {navigation.map((section, index) => (
             <div key={section.title}>
-              <h2 className={`text-xs font-semibold ${section.colorClass} uppercase tracking-wider mb-3 ${index === 0 ? 'mt-0' : 'mt-6'}`}>
+              <h2 className={`text-xs font-semibold ${section.colorClass} uppercase tracking-wider mb-3 ${index === 0 ? 'mt-0' : 'mt-6'} ${section.highlight ? 'bg-red-900/30 px-2 py-1 rounded border border-red-700/50' : ''}`}>
                 {section.title}
               </h2>
               <ul className="space-y-1">
@@ -125,8 +134,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         href={item.href}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                           isActive(item.href)
-                            ? 'bg-gray-700 text-white'
-                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                            ? section.highlight 
+                              ? 'bg-red-600 text-white font-semibold'
+                              : 'bg-gray-700 text-white'
+                            : section.highlight
+                              ? 'text-red-300 hover:bg-red-900/30 hover:text-red-200 border border-red-700/30'
+                              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                         }`}
                       >
                         <item.icon className="w-5 h-5 flex-shrink-0" />

@@ -271,7 +271,7 @@ export default function DashboardPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
              {/* Header */}
-             <div className="mb-8">
+             <div className="mb-8" data-tour="dashboard-overview">
                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                  <div className="flex items-center gap-4">
                    <PlayerAvatar
