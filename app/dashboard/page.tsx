@@ -359,10 +359,10 @@ export default function DashboardPage() {
             {/* Analysis info box */}
             <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
               <p className="text-green-200">
-                Analisi basata sul tuo storico recente (fino a 10 partite) – Valori medi/aggregati
+                Analisi basata sul tuo storico recente (ultime 20 partite) – Valori medi/aggregati
               </p>
               <p className="text-green-300 text-sm mt-2">
-                Questa sezione mostra valori medi e aggregati sulle ultime N partite. Per analizzare una singola partita in dettaglio, vai alla sezione 'Analisi partita'.
+                Questa sezione mostra valori medi e aggregati sulle ultime 20 partite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Per analizzare una singola partita in dettaglio, vai alla sezione 'Analisi partita'.
               </p>
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                   {/* Snapshot Stato Forma */}
                   <div>
-            <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime partite)</h3>
+            <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
@@ -437,7 +437,7 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-4">Trend basato su 5/10 partite</p>
+                <p className="text-xs text-gray-500 mt-4">Trend basato su ultime 5/10 partite (di 20 totali)</p>
               </div>
 
               {/* KDA Trend Card */}
@@ -491,7 +491,7 @@ export default function DashboardPage() {
                     <span className="text-gray-500 ml-2">/ {(stats.farm?.xpm?.last10 ?? 0).toFixed(0)}</span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite</p>
+                <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite (di 20 totali)</p>
               </div>
 
               {/* Insight Automatico Card */}
@@ -896,7 +896,7 @@ export default function DashboardPage() {
                         />
                       )}
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold mb-3">Trend Ultime 10 Partite</h3>
+                        <h3 className="text-xl font-semibold mb-3">Trend Ultime 20 Partite</h3>
                         <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
                       </div>
                       <ResponsiveContainer width="100%" height={300}>

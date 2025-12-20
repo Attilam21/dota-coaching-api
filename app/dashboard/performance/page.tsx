@@ -535,9 +535,9 @@ export default function PerformancePage() {
                   position="top-right"
                 />
               )}
-              <h3 className="text-xl font-semibold mb-3">Trend Performance (Ultime 10 Partite)</h3>
+              <h3 className="text-xl font-semibold mb-3">Trend Performance (Ultime 20 Partite)</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={stats.matches.slice(0, 10).map((m, idx) => ({
+                <LineChart data={stats.matches.slice(0, 20).map((m, idx) => ({
                   match: `M${idx + 1}`,
                   kda: m.kda,
                   gpm: m.gpm,

@@ -768,7 +768,7 @@ export default function ProfilingPage() {
                       />
                       <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                         <BarChartIcon className="w-6 h-6" />
-                        Trend Performance (Ultime 10 Partite)
+                        Trend Performance (Ultime 20 Partite)
                       </h3>
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={profile.trendData}>

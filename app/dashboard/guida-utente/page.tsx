@@ -13,7 +13,8 @@ import {
   Zap, 
   BarChart,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Lightbulb
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -203,6 +204,53 @@ export default function GuidaUtentePage() {
         </div>
       </div>
 
+      {/* Lampadine Interattive Section */}
+      <div className="mb-8 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-blue-600/30 rounded-lg">
+            <Zap className="w-6 h-6 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white mb-1">💡 Lampadine Interattive - Suggerimenti AI</h3>
+            <p className="text-gray-300 text-sm">Consigli personalizzati generati da AI in tempo reale</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3 text-gray-300 text-sm">
+          <p className="mb-3">
+            In molte card statistiche e metriche troverai delle <strong className="text-blue-400">piccole lampadine blu interattive</strong> (icona 💡) posizionate negli angoli delle card.
+          </p>
+          
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 space-y-2">
+            <h4 className="font-semibold text-white mb-2">Come funzionano:</h4>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <span><strong>Clicca</strong> su una lampadina per ottenere un suggerimento personalizzato</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <span>Il suggerimento viene <strong>generato in tempo reale</strong> da AI analizzando i tuoi dati specifici</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <span>Ogni suggerimento è <strong>contestuale</strong>: analizza la metrica specifica (es. trend winrate, performance eroe, ruolo) e ti dà consigli pratici</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <span>I suggerimenti sono <strong>personalizzati</strong> basati sulle tue performance reali, non generici</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 mt-3">
+            <p className="text-yellow-200 text-xs">
+              <strong>Nota:</strong> Questa funzionalità richiede la configurazione delle chiavi API (GEMINI_API_KEY o OPENAI_API_KEY) nel server. Se il servizio non è disponibile, vedrai un messaggio informativo.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Tips */}
       <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-400 mb-3">💡 Consigli Utili</h3>
@@ -217,11 +265,15 @@ export default function GuidaUtentePage() {
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-            <span>Le analisi sono basate sulle tue ultime 10-20 partite</span>
+            <span>Le analisi sono basate sulle tue ultime 20 partite (i trend confrontano le ultime 5 e 10)</span>
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <span>Puoi riprendere questo tour in qualsiasi momento</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <span><strong>Clicca sulle lampadine blu</strong> nelle card statistiche per ottenere suggerimenti AI personalizzati</span>
           </li>
         </ul>
       </div>

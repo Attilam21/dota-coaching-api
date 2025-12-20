@@ -14,7 +14,7 @@ export const pageGuides: Record<string, PageGuide> = {
     sections: [
       {
         title: 'Cosa trovi qui',
-        content: 'Statistiche aggregate delle ultime 10-20 partite: winrate complessivo e per periodo, KDA medio, GPM/XPM, trend delle performance nel tempo, heatmap attività e link rapidi alle analisi approfondite. Questa pagina è il tuo punto di partenza per monitorare le tue performance generali.'
+        content: 'Statistiche aggregate delle ultime 20 partite: winrate complessivo e per periodo, KDA medio, GPM/XPM, trend delle performance nel tempo, heatmap attività e link rapidi alle analisi approfondite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Questa pagina è il tuo punto di partenza per monitorare le tue performance generali.'
       },
       {
         title: 'Come usarlo',
@@ -23,6 +23,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Metriche principali',
         content: 'Winrate: percentuale di vittorie. KDA: rapporto Kill/Death/Assist. GPM/XPM: Gold e Experience per minuto. Queste metriche vengono confrontate con i tuoi valori medi per mostrare se stai performando meglio o peggio del solito.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'In alcune card statistiche troverai delle piccole lampadine blu (icona 💡) in alto a destra o in altri angoli. Queste sono interattive: clicca su una lampadina per ottenere un suggerimento personalizzato generato da AI basato sui tuoi dati specifici. Il suggerimento analizza il contesto della metrica (es. trend winrate, performance eroe, ecc.) e ti fornisce consigli pratici per migliorare. I suggerimenti vengono generati in tempo reale quando clicchi la lampadina.'
       }
     ]
   },
@@ -59,6 +63,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Come usarlo',
         content: 'Usa questa pagina per capire quali eroi giochi di più e con quali hai il miglior winrate. Clicca su un eroe per vedere statistiche più dettagliate. Identifica i tuoi eroi più forti (alto winrate) e quelli su cui devi migliorare (basso winrate).'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle card statistiche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sui tuoi eroi e le tue performance. Il suggerimento analizza il tuo hero pool (es. distribuzione winrate, eroi più giocati) e ti fornisce consigli pratici su quali eroi giocare di più o su cui migliorare.'
       }
     ]
   },
@@ -77,6 +85,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Confronto eroi',
         content: 'Confronta le performance di diversi eroi per capire quali si adattano meglio al tuo stile di gioco. I grafici ti permettono di vedere visivamente le differenze in winrate, KDA e altre metriche tra i tuoi eroi.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle card delle metriche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sull\'eroe specifico o sulla metrica visualizzata. Il suggerimento analizza le tue performance con quell\'eroe e ti fornisce consigli pratici per migliorare (es. "Con questo eroe, migliora il tuo GPM" o "Questo eroe non si adatta al tuo stile").'
       }
     ]
   },
@@ -95,6 +107,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Raccomandazioni per ruolo',
         content: 'Suggerimenti specifici per migliorare in ogni ruolo basati sulle tue performance. Le raccomandazioni sono personalizzate per ogni ruolo e ti aiutano a capire cosa devi migliorare (es. "Come Carry, migliora il tuo GPM" o "Come Support, aumenta la tua kill participation").'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle card dei ruoli e nelle metriche troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sul ruolo specifico o sulla metrica visualizzata. Il suggerimento analizza le tue performance in quel ruolo e ti fornisce consigli pratici e concreti per migliorare (es. "Come Carry, concentrati sul farm nelle prime 10 minuti" o "Il tuo ruolo preferito è Support, ma hai bisogno di migliorare la vision").'
       }
     ]
   },
@@ -113,6 +129,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Come usarlo',
         content: 'Usa questa pagina per capire con chi giochi meglio e identificare i compagni ideali per le tue partite. Clicca su un compagno per vedere statistiche più dettagliate. Questa analisi ti aiuta a costruire team più efficaci.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle card dei compagni e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sulle tue sinergie con i compagni. Il suggerimento analizza i tuoi pattern di gioco insieme (es. winrate con compagni specifici, ruoli giocati insieme) e ti fornisce consigli pratici su come costruire team più efficaci.'
       }
     ]
   },
@@ -223,6 +243,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Punti di forza e debolezze',
         content: 'Analisi dettagliata dei tuoi punti di forza principali e delle aree che richiedono miglioramento.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'In molte card e metriche troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sulla metrica specifica (es. FZTH Score, trend GPM/XPM, stile di gioco, analisi fasi). Il suggerimento analizza i tuoi dati di profilazione e ti fornisce consigli pratici e concreti per migliorare. Ogni lampadina fornisce suggerimenti contestuali basati sulla sezione specifica (es. suggerimenti sul tuo stile di gioco, trend delle performance, analisi comparativa).'
       }
     ]
   },
@@ -333,6 +357,10 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Build Comparison',
         content: 'Confronto tra diverse build per identificare quali combinazioni di item sono più efficaci in termini di winrate.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle sezioni Item Più Utilizzati, Build Più Comuni, Item Sottoutilizzati, Item Overpurchased, Efficienza Item e Confronto Build troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sui tuoi item e build. Il suggerimento analizza i tuoi pattern di itemization (es. item sottoutilizzati con alto winrate, build più efficaci) e ti fornisce consigli pratici su quali item comprare più spesso o quali build evitare.'
       }
     ]
   },
@@ -372,7 +400,7 @@ export const pageGuides: Record<string, PageGuide> = {
       },
       {
         title: 'Consigli Utili',
-        content: 'Suggerimenti pratici per usare al meglio la piattaforma: usa sempre il pulsante Help in ogni pagina, configura il Player ID prima di iniziare, le analisi sono basate sulle ultime 10-20 partite, puoi riprendere il tour quando vuoi.'
+        content: 'Suggerimenti pratici per usare al meglio la piattaforma: usa sempre il pulsante Help in ogni pagina, configura il Player ID prima di iniziare, le analisi sono basate sulle ultime 20 partite (i trend confrontano le ultime 5 e 10), puoi riprendere il tour quando vuoi.'
       }
     ]
   }

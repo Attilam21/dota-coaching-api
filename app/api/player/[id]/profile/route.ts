@@ -336,9 +336,9 @@ export async function GET(
       },
     ]
 
-    // Trend data for chart
-    const trendData = matches.slice(0, 10).reverse().map((m: any, idx: number) => ({
-      match: `M${10 - idx}`,
+    // Trend data for chart (last 20 matches)
+    const trendData = matches.slice(0, 20).reverse().map((m: any, idx: number) => ({
+      match: `M${20 - idx}`,
       gpm: m.gpm || m.gold_per_min || 0,
       xpm: m.xpm || m.xp_per_min || 0,
       kda: m.kda || 0,

@@ -22,7 +22,7 @@ const tourSteps: TourStep[] = [
   {
     id: 'dashboard',
     title: 'Dashboard Panoramica',
-    description: 'La pagina principale mostra le tue statistiche aggregate delle ultime partite: winrate, KDA, GPM/XPM e trend delle performance. Usa questa pagina come punto di partenza.',
+    description: 'La pagina principale mostra le tue statistiche aggregate delle ultime 20 partite: winrate, KDA, GPM/XPM e trend delle performance. I trend confrontano le ultime 5 e 10 partite. Usa questa pagina come punto di partenza.',
     target: '[data-tour="dashboard-overview"]',
     position: 'bottom',
   },
