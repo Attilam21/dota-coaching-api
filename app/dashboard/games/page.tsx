@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Gamepad2, Zap, Target, Trophy, ArrowLeft } from 'lucide-react'
+import { Gamepad2, Zap, Target, Trophy, ArrowLeft, Sword } from 'lucide-react'
 import SmashGame from '@/components/games/SmashGame'
+import HeroMatchupGame from '@/components/games/HeroMatchupGame'
 import HelpButton from '@/components/HelpButton'
 
-type GameType = 'smash' | null
+type GameType = 'smash' | 'hero-matchup' | null
 
 export default function GamesPage() {
   const { user, loading: authLoading } = useAuth()
@@ -39,11 +40,25 @@ export default function GamesPage() {
       bgColor: 'bg-red-900/20',
       borderColor: 'border-red-700',
     },
+    {
+      id: 'hero-matchup' as GameType,
+      name: 'Hero Matchup',
+      description: 'Indovina quale eroe batte l\'avversario! Metti alla prova la tua conoscenza dei matchups di Dota 2.',
+      icon: Sword,
+      color: 'from-blue-600 to-purple-600',
+      bgColor: 'bg-blue-900/20',
+      borderColor: 'border-blue-700',
+    },
   ]
 
   if (selectedGame) {
+    const gameComponent = selectedGame === 'smash' ? <SmashGame /> : <HeroMatchupGame />
+    const bgGradient = selectedGame === 'smash' 
+      ? 'from-gray-900 via-red-900/20 to-gray-900'
+      : 'from-gray-900 via-blue-900/20 to-gray-900'
+
     return (
-      <div className="h-screen w-full relative overflow-hidden bg-gradient-to-br from-gray-900 via-red-900/20 to-gray-900">
+      <div className={`h-screen w-full relative overflow-hidden bg-gradient-to-br ${bgGradient}`}>
         <HelpButton />
         <motion.button
           initial={{ opacity: 0, x: -20 }}
@@ -54,7 +69,7 @@ export default function GamesPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>Torna ai Giochi</span>
         </motion.button>
-        <SmashGame />
+        {gameComponent}
       </div>
     )
   }
