@@ -345,6 +345,11 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Ad Placeholder - Top (Always visible) */}
+      <div className="mb-6">
+        <AdPlaceholder position="top" />
+      </div>
+
       {stats && !loading && (
         <>
           {/* Panoramica Section - Always visible */}
@@ -387,6 +392,11 @@ export default function DashboardPage() {
 
             {/* Tab Content */}
             <div className="p-6">
+              {/* Ad Placeholder - In-Content (Always visible in tabs) */}
+              <div className="mb-6">
+                <AdPlaceholder position="in-content" />
+              </div>
+
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
@@ -585,11 +595,6 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-
-                  {/* Ad Placeholder - In-Content */}
-                  <div className="my-6">
-                    <AdPlaceholder position="in-content" />
-                  </div>
 
                   {/* Benchmarks Compatti */}
                   {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
