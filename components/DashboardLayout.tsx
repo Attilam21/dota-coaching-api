@@ -21,8 +21,7 @@ import {
   FlaskConical,
   Settings,
   LogOut,
-  GraduationCap,
-  Trophy
+  GraduationCap
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -57,7 +56,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       colorClass: 'text-yellow-400',
       highlight: true,
       items: [
-        { name: 'Dota Quiz Challenge', href: '/dashboard/quiz', icon: Trophy },
+        { name: 'Giochi', href: '/dashboard/games', icon: Gamepad2 },
       ],
     },
     {
