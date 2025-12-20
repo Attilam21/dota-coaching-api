@@ -46,7 +46,9 @@ interface Benchmarks {
     xpm: { value: number; percentile: number; label: string }
     kda: { value: number; percentile: number; label: string }
   }
-  rankings?: any
+  rankings?: {
+    [key: string]: unknown
+  }
   source: string
 }
 
@@ -237,55 +239,55 @@ export default function PerformancePage() {
                         <div className="grid md:grid-cols-3 gap-4">
                           {benchmarks.percentiles?.gpm && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <div className="text-3xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Percentile:</span>
-                      <span className={`text-sm font-bold ${
-                        benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
-                        benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
-                        'text-gray-400'
-                      }`}>
-                        {benchmarks.percentiles.gpm.label}
-                      </span>
+                              <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <div className="text-3xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                                  'text-gray-400'
+                                }`}>
+                                  {benchmarks.percentiles.gpm.label}
+                                </span>
                               </div>
                             </div>
                           )}
                           {benchmarks.percentiles?.xpm && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <div className="text-3xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Percentile:</span>
-                      <span className={`text-sm font-bold ${
-                        benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
-                        benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
-                        'text-gray-400'
-                      }`}>
-                        {benchmarks.percentiles.xpm.label}
-                      </span>
+                              <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <div className="text-3xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                                  'text-gray-400'
+                                }`}>
+                                  {benchmarks.percentiles.xpm.label}
+                                </span>
                               </div>
                             </div>
                           )}
                           {benchmarks.percentiles?.kda && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                    <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <div className="text-3xl font-bold text-red-400">{stats.avgKDA.toFixed(2)}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Percentile:</span>
-                      <span className={`text-sm font-bold ${
-                        benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
-                        benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
-                        'text-gray-400'
-                      }`}>
-                        {benchmarks.percentiles.kda.label}
-                      </span>
+                              <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <div className="text-3xl font-bold text-red-400">{stats.avgKDA.toFixed(2)}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                                  'text-gray-400'
+                                }`}>
+                                  {benchmarks.percentiles.kda.label}
+                                </span>
                               </div>
                             </div>
                           )}
@@ -293,19 +295,19 @@ export default function PerformancePage() {
                           {!benchmarks.percentiles && benchmarks.calculatedPercentiles && (
                             <>
                               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                      <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <div className="text-3xl font-bold text-yellow-400">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">Percentile:</span>
-                        <span className={`text-sm font-bold ${
-                          benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
-                          benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
-                          'text-gray-400'
-                        }`}>
-                          {benchmarks.calculatedPercentiles.gpm.label}
-                        </span>
+                                <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                                <div className="flex items-baseline gap-2 mb-2">
+                                  <div className="text-3xl font-bold text-yellow-400">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500">Percentile:</span>
+                                  <span className={`text-sm font-bold ${
+                                    benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                                    benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                                    'text-gray-400'
+                                  }`}>
+                                    {benchmarks.calculatedPercentiles.gpm.label}
+                                  </span>
                                 </div>
                               </div>
                               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
