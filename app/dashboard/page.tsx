@@ -198,16 +198,6 @@ export default function DashboardPage() {
     return 'Le tue performance sono stabili rispetto al tuo storico recente.'
   }
 
-  // Prepare chart data - ensure matches array exists and has data
-  const chartData = (stats?.matches && Array.isArray(stats.matches) && stats.matches.length > 0)
-    ? stats.matches.map((m, idx) => ({
-        match: `Match ${idx + 1}`,
-        winrate: m.win ? 100 : 0,
-        kda: m.kda || 0,
-        gpm: m.gpm || 0,
-      }))
-    : []
-
   // Calculate heatmap data (day of week x hour of day)
   const calculateHeatmap = () => {
     if (!stats?.matches || stats.matches.length === 0) return null
@@ -264,10 +254,18 @@ export default function DashboardPage() {
     return { heatmapData, heatmapWinrates, bestTimes, days }
   }
 
-  const heatmap = calculateHeatmap()
-
-  const winrateTrend = getWinrateTrend()
-  const kdaTrend = getKDATrend()
+  // Calculate values only when stats is available
+  const chartData = (stats?.matches && Array.isArray(stats.matches) && stats.matches.length > 0)
+    ? stats.matches.map((m, idx) => ({
+        match: `Match ${idx + 1}`,
+        winrate: m.win ? 100 : 0,
+        kda: m.kda || 0,
+        gpm: m.gpm || 0,
+      }))
+    : []
+  const heatmap = stats ? calculateHeatmap() : null
+  const winrateTrend = stats ? getWinrateTrend() : { label: 'N/A', color: 'bg-gray-500' }
+  const kdaTrend = stats ? getKDATrend() : { label: 'N/A', color: 'bg-gray-500' }
 
   return (
     <div className="p-4 md:p-6">
@@ -434,13 +432,19 @@ export default function DashboardPage() {
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <motion.span 
-                      className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                      animate={(stats.winrate?.delta ?? 0) > 5 ? { scale: [1, 1.05, 1] } : {}}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
-                    </motion.span>
+                    {(stats.winrate?.delta ?? 0) > 5 ? (
+                      <motion.span 
+                        className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
+                      </motion.span>
+                    ) : (
+                      <span className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
+                      </span>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Trend basato su ultime 5/10 partite (di 20 totali)</p>
@@ -474,13 +478,19 @@ export default function DashboardPage() {
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <motion.span 
-                      className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                      animate={(stats.kda?.delta ?? 0) > 0.5 ? { scale: [1, 1.05, 1] } : {}}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {(stats.kda?.delta ?? 0) >= 0 ? '+' : ''}{(stats.kda?.delta ?? 0).toFixed(2)}
-                    </motion.span>
+                    {(stats.kda?.delta ?? 0) > 0.5 ? (
+                      <motion.span 
+                        className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {(stats.kda?.delta ?? 0) >= 0 ? '+' : ''}{(stats.kda?.delta ?? 0).toFixed(2)}
+                      </motion.span>
+                    ) : (
+                      <span className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {(stats.kda?.delta ?? 0) >= 0 ? '+' : ''}{(stats.kda?.delta ?? 0).toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">KDA = (Kill + Assist) / Death</p>
@@ -615,7 +625,7 @@ export default function DashboardPage() {
                               </div>
                             )}
                           </div>
-                        </div>
+                        </AnimatedCard>
                       </div>
                     </div>
                   )}
@@ -647,7 +657,7 @@ export default function DashboardPage() {
                                 {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
                               </span>
                             </div>
-                          </div>
+                          </AnimatedCard>
                         )}
 
                         {/* XPM Percentile */}
