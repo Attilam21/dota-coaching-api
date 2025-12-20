@@ -43,6 +43,21 @@ export default function AdSense({
     }
   }, [])
 
+  useEffect(() => {
+    // Ensure adsbygoogle is available and push ad
+    // Only run when mounted and has consent
+    if (mounted && hasConsent && typeof window !== 'undefined') {
+      try {
+        const adsbygoogle = (window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle || []
+        ;(window as unknown as { adsbygoogle: unknown[] }).adsbygoogle = adsbygoogle
+        adsbygoogle.push({})
+      } catch (err) {
+        // Silently fail if AdSense is not ready
+        console.error('AdSense error:', err)
+      }
+    }
+  }, [hasConsent, mounted])
+
   // Don't render if AdSense ID is not configured
   if (!adClientId) {
     return null
@@ -57,20 +72,6 @@ export default function AdSense({
   if (!mounted) {
     return null
   }
-
-  useEffect(() => {
-    // Ensure adsbygoogle is available and push ad
-    if (typeof window !== 'undefined') {
-      try {
-        const adsbygoogle = (window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle || []
-        ;(window as unknown as { adsbygoogle: unknown[] }).adsbygoogle = adsbygoogle
-        adsbygoogle.push({})
-      } catch (err) {
-        // Silently fail if AdSense is not ready
-        console.error('AdSense error:', err)
-      }
-    }
-  }, [hasConsent, mounted])
 
   return (
     <>

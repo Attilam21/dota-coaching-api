@@ -49,10 +49,10 @@ export default function PlayerIdInput({ title, description, pageTitle }: PlayerI
                   </a>{' '}
                   e cerca il tuo nome utente Steam
                 </li>
-                <li>Copia il numero dell'Account ID dalla pagina del tuo profilo</li>
-                <li>Incolla qui sotto e clicca "Carica" per vedere subito le statistiche</li>
+                <li>Copia il numero dell&apos;Account ID dalla pagina del tuo profilo</li>
+                <li>Incolla qui sotto e clicca &quot;Carica&quot; per vedere subito le statistiche</li>
                 <li>
-                  <strong>Consiglio:</strong> Salva l'ID nel{' '}
+                  <strong>Consiglio:</strong> Salva l&apos;ID nel{' '}
                   <Link href="/dashboard/settings" className="text-green-400 hover:text-green-300 underline inline-flex items-center gap-1">
                     Profilo <Settings className="w-3 h-3" />
                   </Link>{' '}
@@ -90,7 +90,7 @@ export default function PlayerIdInput({ title, description, pageTitle }: PlayerI
               className="text-blue-300 hover:text-blue-200 text-sm inline-flex items-center gap-2"
             >
               <Settings className="w-4 h-4" />
-              Salva l'ID nel profilo per non doverlo reinserire ogni volta
+              Salva l&apos;ID nel profilo per non doverlo reinserire ogni volta
             </Link>
           </div>
         </div>

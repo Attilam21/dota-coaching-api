@@ -362,7 +362,7 @@ export default function DashboardPage() {
                 Analisi basata sul tuo storico recente (ultime 20 partite) – Valori medi/aggregati
               </p>
               <p className="text-green-300 text-sm mt-2">
-                Questa sezione mostra valori medi e aggregati sulle ultime 20 partite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Per analizzare una singola partita in dettaglio, vai alla sezione 'Analisi partita'.
+                Questa sezione mostra valori medi e aggregati sulle ultime 20 partite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Per analizzare una singola partita in dettaglio, vai alla sezione &apos;Analisi partita&apos;.
               </p>
             </div>
           </div>
