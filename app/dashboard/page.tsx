@@ -12,6 +12,7 @@ import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
+import AdPlaceholder from '@/components/AdPlaceholder'
 
 interface PlayerStats {
   winrate: {
@@ -584,6 +585,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Ad Placeholder - In-Content */}
+                  <div className="my-6">
+                    <AdPlaceholder position="in-content" />
+                  </div>
 
                   {/* Benchmarks Compatti */}
                   {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (

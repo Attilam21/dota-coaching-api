@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
+import CookieConsent from './CookieConsent'
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -22,20 +23,21 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   // This ensures consistent HTML between server and client, avoiding hydration mismatch
   // The layout will be corrected immediately after hydration via useEffect
   if (!isMounted) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-gray-900">{children}</main>
-        <footer className="bg-gray-800 border-t border-gray-700 mt-12">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-gray-400 text-sm">
-              © 2025 PRO DOTA ANALISI - AttilaLAB. Powered by OpenDota API.
-            </p>
-          </div>
-        </footer>
-      </>
-    )
-  }
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gray-900">{children}</main>
+      <footer className="bg-gray-800 border-t border-gray-700 mt-12">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-gray-400 text-sm">
+            © 2025 PRO DOTA ANALISI - AttilaLAB. Powered by OpenDota API.
+          </p>
+        </div>
+      </footer>
+      <CookieConsent />
+    </>
+  )
+}
 
   if (isDashboard) {
     return <>{children}</>
@@ -52,6 +54,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
           </p>
         </div>
       </footer>
+      <CookieConsent />
     </>
   )
 }

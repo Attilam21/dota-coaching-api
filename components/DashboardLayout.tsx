@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
+import AdPlaceholder from './AdPlaceholder'
 import { 
   BarChart, 
   Zap, 
@@ -138,6 +139,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           ))}
         </nav>
+
+        {/* Ad Placeholder - Sidebar (sticky) */}
+        <div className="p-4 border-t border-gray-700">
+          <AdPlaceholder position="sidebar" className="mb-4" />
+        </div>
 
         {/* User info at bottom */}
         <div className="p-4 border-t border-gray-700">
