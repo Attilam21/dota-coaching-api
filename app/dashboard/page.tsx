@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, RefreshCw } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -15,6 +15,7 @@ import PlayerAvatar from '@/components/PlayerAvatar'
 import AdPlaceholder from '@/components/AdPlaceholder'
 import AnimatedCard from '@/components/AnimatedCard'
 import { motion } from 'framer-motion'
+import { useRefreshLimiter } from '@/lib/useRefreshLimiter'
 
 interface PlayerStats {
   winrate: {
@@ -61,6 +62,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const refreshLimiter = useRefreshLimiter(playerId)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -69,19 +71,22 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router])
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (forceRefresh = false) => {
     if (!playerId) return
 
     try {
       setLoading(true)
       setError(null)
 
+      // Add timestamp to bypass cache if forceRefresh is true
+      const cacheBuster = forceRefresh ? `?_refresh=${Date.now()}` : ''
+      
       const [statsResponse, advancedResponse, profileResponse, wlResponse, benchmarksResponse] = await Promise.all([
-        fetch(`/api/player/${playerId}/stats`),
-        fetch(`/api/player/${playerId}/advanced-stats`),
-        fetch(`/api/player/${playerId}/profile`).catch(() => null), // Non bloccare se fallisce
-        fetch(`/api/player/${playerId}/wl`).catch(() => null), // Non bloccare se fallisce
-        fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/stats${cacheBuster}`, forceRefresh ? { cache: 'no-store' } : {}),
+        fetch(`/api/player/${playerId}/advanced-stats${cacheBuster}`, forceRefresh ? { cache: 'no-store' } : {}),
+        fetch(`/api/player/${playerId}/profile${cacheBuster}`, forceRefresh ? { cache: 'no-store' } : {}).catch(() => null), // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/wl${cacheBuster}`, forceRefresh ? { cache: 'no-store' } : {}).catch(() => null), // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/benchmarks${cacheBuster}`, forceRefresh ? { cache: 'no-store' } : {}).catch(() => null) // Non bloccare se fallisce
       ])
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
@@ -140,9 +145,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (playerId) {
-      fetchStats()
+      fetchStats(false) // Initial load uses cache
     }
   }, [playerId, fetchStats])
+
+  const handleRefresh = useCallback(() => {
+    if (!refreshLimiter.canRefresh) return
+    refreshLimiter.consumeRefresh()
+    fetchStats(true) // Force refresh bypasses cache
+  }, [refreshLimiter, fetchStats])
 
 
   if (authLoading) {
@@ -297,12 +308,42 @@ export default function DashboardPage() {
                      </div>
                    </div>
                  </div>
-                 <Link
-                   href="/dashboard/settings"
-                   className="text-sm text-gray-400 hover:text-white self-start sm:self-auto"
-                 >
-                   Modifica Profilo
-                 </Link>
+                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                   {/* Refresh Button */}
+                   <button
+                     onClick={handleRefresh}
+                     disabled={!refreshLimiter.canRefresh || loading}
+                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                       refreshLimiter.canRefresh && !loading
+                         ? 'bg-red-600 hover:bg-red-700 text-white'
+                         : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                     }`}
+                     title={
+                       !refreshLimiter.canRefresh && refreshLimiter.timeUntilNextRefresh
+                         ? `Prossimo aggiornamento disponibile tra: ${refreshLimiter.formatTimeUntilNext(refreshLimiter.timeUntilNextRefresh)}`
+                         : `Aggiornamenti disponibili: ${refreshLimiter.remainingRefreshes}/4 all'ora`
+                     }
+                   >
+                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                     <span>Aggiorna</span>
+                     {refreshLimiter.remainingRefreshes > 0 && (
+                       <span className="text-xs bg-red-800 px-2 py-0.5 rounded">
+                         {refreshLimiter.remainingRefreshes}/4
+                       </span>
+                     )}
+                   </button>
+                   {!refreshLimiter.canRefresh && refreshLimiter.timeUntilNextRefresh && (
+                     <div className="text-xs text-gray-400 text-center sm:text-left">
+                       Prossimo aggiornamento tra: {refreshLimiter.formatTimeUntilNext(refreshLimiter.timeUntilNextRefresh)}
+                     </div>
+                   )}
+                   <Link
+                     href="/dashboard/settings"
+                     className="text-sm text-gray-400 hover:text-white self-start sm:self-auto"
+                   >
+                     Modifica Profilo
+                   </Link>
+                 </div>
                </div>
              </div>
 
