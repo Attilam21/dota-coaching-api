@@ -710,7 +710,7 @@ export default function DashboardPage() {
                         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                           <div className="text-sm text-gray-400 mb-2">Early Game</div>
                           <div className="flex items-center gap-3">
-                            <div className="text-3xl font-bold text-green-400">{fullProfile.phaseAnalysis.early.score}</div>
+                            <div className="text-3xl font-bold text-green-400">{Math.round(fullProfile.phaseAnalysis.early.score)}</div>
                             <div className="flex-1">
                               <div className="text-xs text-gray-500 mb-1">Score</div>
                               <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.early.strength}</div>
@@ -722,7 +722,7 @@ export default function DashboardPage() {
                         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                           <div className="text-sm text-gray-400 mb-2">Mid Game</div>
                           <div className="flex items-center gap-3">
-                            <div className="text-3xl font-bold text-blue-400">{fullProfile.phaseAnalysis.mid.score}</div>
+                            <div className="text-3xl font-bold text-blue-400">{Math.round(fullProfile.phaseAnalysis.mid.score)}</div>
                             <div className="flex-1">
                               <div className="text-xs text-gray-500 mb-1">Score</div>
                               <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.mid.strength}</div>
@@ -734,7 +734,7 @@ export default function DashboardPage() {
                         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                           <div className="text-sm text-gray-400 mb-2">Late Game</div>
                           <div className="flex items-center gap-3">
-                            <div className="text-3xl font-bold text-purple-400">{fullProfile.phaseAnalysis.late.score}</div>
+                            <div className="text-3xl font-bold text-purple-400">{Math.round(fullProfile.phaseAnalysis.late.score)}</div>
                             <div className="flex-1">
                               <div className="text-xs text-gray-500 mb-1">Score</div>
                               <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.late.strength}</div>
@@ -744,37 +744,6 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-
-                  {/* Profilo Giocatore */}
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-semibold mb-3">Profilo Giocatore</h3>
-                        <div className="space-y-1">
-                          <div>
-                            <span className="text-gray-400">Player ID: </span>
-                            <span className="font-semibold text-red-400">{playerId}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Partite analizzate: </span>
-                            <span className="font-semibold">{stats.matches?.length ?? 0}</span>
-                          </div>
-                          {winLoss && (winLoss.win > 0 || winLoss.lose > 0) && (
-                            <div>
-                              <span className="text-gray-400">Partite totali: </span>
-                              <span className="font-semibold">{(winLoss.win + winLoss.lose).toLocaleString()}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard/profiling"
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
-                      >
-                        Profilo Completo →
-                      </Link>
-                    </div>
-                  </div>
                 </div>
               )}
 

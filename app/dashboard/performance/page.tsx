@@ -224,8 +224,7 @@ export default function PerformancePage() {
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Benchmarks Section */}
-                  {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
-                    <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+                  <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
               <h2 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
                 <BarChartIcon className="w-6 h-6" />
                 Benchmarks & Percentili
@@ -233,6 +232,7 @@ export default function PerformancePage() {
               <p className="text-gray-400 text-sm mb-4">
                 Come ti posizioni rispetto alla comunità Dota 2
               </p>
+              {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) ? (
               <div className="grid md:grid-cols-3 gap-4">
                 {benchmarks.percentiles?.gpm && (
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
@@ -347,12 +347,20 @@ export default function PerformancePage() {
                   <Info className="w-3 h-3" />
                   Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
                 </p>
-                    )}
+              )}
+              ) : (
+                <div className="text-center py-8">
+                  <BarChartIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm mb-2">Benchmarks non disponibili</p>
+                  <p className="text-gray-500 text-xs">
+                    I dati di benchmark vengono calcolati in base alle tue performance recenti
+                  </p>
+                </div>
+              )}
                   </div>
-                  )}
 
-                  {/* Playstyle Banner - Compact */}
-                  <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-4 relative">
+                  {/* Playstyle Banner - Enhanced */}
+                  <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6 relative">
                     {playerId && (
                       <InsightBadge
                         elementType="playstyle"
@@ -363,20 +371,42 @@ export default function PerformancePage() {
                       />
                     )}
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl font-semibold mb-4">Stile di Gioco Identificato</h2>
-                        <p className="text-2xl font-bold text-red-400">{stats.playstyle}</p>
-                        <p className="text-xs text-gray-400 mt-1">Basato su 20 partite recenti</p>
-                      </div>
-                      <div className="text-red-400">
-                        <Target className="w-10 h-10" />
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-semibold mb-3 flex items-center gap-2">
+                          <Target className="w-6 h-6 text-red-400" />
+                          Stile di Gioco Identificato
+                        </h2>
+                        <p className="text-3xl font-bold text-red-400 mb-2">{stats.playstyle}</p>
+                        <p className="text-sm text-gray-400 mb-3">Basato su {stats.matches?.length || 20} partite recenti</p>
+                        {stats.advanced && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-red-700/50">
+                            <div>
+                              <div className="text-xs text-gray-500">Kill Participation</div>
+                              <div className="text-lg font-semibold text-white">{stats.teamfightParticipation.toFixed(0)}%</div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500">Gold Utilization</div>
+                              <div className="text-lg font-semibold text-white">{stats.advanced.farm.goldUtilization.toFixed(0)}%</div>
+                            </div>
+                            {stats.advanced.vision && (
+                              <div>
+                                <div className="text-xs text-gray-500">Wards/Game</div>
+                                <div className="text-lg font-semibold text-white">{stats.advanced.vision.avgObserverPlaced.toFixed(1)}</div>
+                              </div>
+                            )}
+                            <div>
+                              <div className="text-xs text-gray-500">Hero Damage</div>
+                              <div className="text-lg font-semibold text-white">{Math.round(stats.advanced.fights.avgHeroDamage / 1000)}k</div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Performance Overview - Smaller Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors relative">
+                  {/* Performance Overview - Enhanced Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors relative shadow-lg">
                       {playerId && (
                         <InsightBadge
                           elementType="metric-card"
@@ -386,11 +416,29 @@ export default function PerformancePage() {
                           position="top-right"
                         />
                       )}
-                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">KDA</h3>
-                      <p className="text-2xl font-bold text-white">{stats.avgKDA.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500 mt-1">KP: {stats.teamfightParticipation.toFixed(0)}%</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">KDA</h3>
+                        <Sword className="w-5 h-5 text-red-400" />
+                      </div>
+                      <p className="text-3xl font-bold text-white mb-2">{stats.avgKDA.toFixed(2)}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">KP:</span>
+                        <span className="font-semibold text-gray-300">{stats.teamfightParticipation.toFixed(0)}%</span>
+                      </div>
+                      {benchmarks?.percentiles?.kda && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-500">Percentile:</div>
+                          <div className={`text-sm font-bold ${
+                            benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
+                            benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
+                            'text-gray-400'
+                          }`}>
+                            {benchmarks.percentiles.kda.label}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-yellow-600 transition-colors relative">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors relative shadow-lg">
                       {playerId && (
                         <InsightBadge
                           elementType="metric-card"
@@ -400,19 +448,69 @@ export default function PerformancePage() {
                           position="top-right"
                         />
                       )}
-                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">GPM</h3>
-                      <p className="text-2xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</p>
-                      <p className="text-xs text-gray-500 mt-1">Eff: {stats.farmEfficiency.toFixed(0)}%</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">GPM</h3>
+                        <Coins className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <p className="text-3xl font-bold text-yellow-400 mb-2">{stats.avgGPM.toFixed(0)}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">Efficienza:</span>
+                        <span className="font-semibold text-gray-300">{stats.farmEfficiency.toFixed(0)}%</span>
+                      </div>
+                      {benchmarks?.percentiles?.gpm && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-500">Percentile:</div>
+                          <div className={`text-sm font-bold ${
+                            benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                            benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
+                            'text-gray-400'
+                          }`}>
+                            {benchmarks.percentiles.gpm.label}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors">
-                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">XPM</h3>
-                      <p className="text-2xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</p>
-                      <p className="text-xs text-gray-500 mt-1">Exp acquisita</p>
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">XPM</h3>
+                        <Activity className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <p className="text-3xl font-bold text-blue-400 mb-2">{stats.avgXPM.toFixed(0)}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">XP acquisita</span>
+                        <span className="font-semibold text-gray-300">/min</span>
+                      </div>
+                      {benchmarks?.percentiles?.xpm && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-500">Percentile:</div>
+                          <div className={`text-sm font-bold ${
+                            benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                            benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
+                            'text-gray-400'
+                          }`}>
+                            {benchmarks.percentiles.xpm.label}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-red-600 transition-colors">
-                      <h3 className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Deaths</h3>
-                      <p className="text-2xl font-bold text-red-400">{stats.avgDeaths.toFixed(1)}</p>
-                      <p className="text-xs text-gray-500 mt-1">Assist: {stats.avgAssists.toFixed(1)}</p>
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Deaths</h3>
+                        <Shield className="w-5 h-5 text-red-400" />
+                      </div>
+                      <p className="text-3xl font-bold text-red-400 mb-2">{stats.avgDeaths.toFixed(1)}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">Assist:</span>
+                        <span className="font-semibold text-gray-300">{stats.avgAssists.toFixed(1)}</span>
+                      </div>
+                      {stats.advanced && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <div className="text-xs text-gray-500">Survival Score:</div>
+                          <div className="text-sm font-bold text-gray-300">
+                            {Math.max(100 - (stats.avgDeaths * 10), 0).toFixed(0)}%
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
