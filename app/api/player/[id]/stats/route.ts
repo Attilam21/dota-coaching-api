@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 
 interface OpenDotaMatch {
@@ -21,15 +20,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const { searchParams } = new URL(request.url)
-    const forceRefresh = searchParams.has('_refresh')
     
     // Fetch recent matches (20 per allineare con analisi avanzate)
-    const fetchOptions = forceRefresh 
-      ? { cache: 'no-store' as RequestCache }
-      : { next: { revalidate: 3600 } }
-    
-    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, fetchOptions)
+    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
+      next: { revalidate: 3600 }
+    })
     
     if (!matchesResponse.ok) {
       return NextResponse.json(
@@ -65,13 +60,10 @@ export async function GET(
     
     // Always fetch full match details for ALL matches to ensure accurate GPM/XPM
     // OpenDota's match list endpoint may not always include or have accurate GPM/XPM
-    const matchFetchOptions = forceRefresh 
-      ? { cache: 'no-store' as RequestCache }
-      : { next: { revalidate: 3600 } }
-    
     const fullMatchesPromises = matches.slice(0, 20).map((m) =>
-      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, matchFetchOptions)
-        .then(res => res.ok ? res.json() : null).catch(() => null)
+      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+        next: { revalidate: 3600 }
+      }).then(res => res.ok ? res.json() : null).catch(() => null)
     )
     const fullMatches = await Promise.all(fullMatchesPromises)
     
@@ -193,15 +185,9 @@ export async function GET(
       })),
     }
 
-    const responseHeaders = forceRefresh 
-      ? { 'Cache-Control': 'no-store' }
-      : { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
-
     return NextResponse.json({
       matches: matches.slice(0, 20),
       stats,
-    }, {
-      headers: responseHeaders
     })
   } catch (error) {
     console.error('Error fetching player stats:', error)
@@ -211,3 +197,4 @@ export async function GET(
     )
   }
 }
+
