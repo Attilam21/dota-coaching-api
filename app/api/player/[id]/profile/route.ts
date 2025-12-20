@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithTimeout } from '@/lib/fetch-utils'
 
 export async function GET(
   request: NextRequest,
@@ -7,53 +8,78 @@ export async function GET(
   try {
     const { id } = await params
     
+    // Validate player ID format
+    if (!id || id.trim() === '' || isNaN(Number(id.trim()))) {
+      return NextResponse.json(
+        { error: 'Invalid player ID format. Please provide a valid numeric player ID.' },
+        { status: 400 }
+      )
+    }
+    
+    const playerId = id.trim()
+    
     // Fetch both basic and advanced stats + OpenDota player data for avatar/rank
     // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const [statsResponse, advancedStatsResponse, opendotaResponse] = await Promise.all([
-      fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
-      fetch(`https://api.opendota.com/api/players/${id}`, {
+    // Add timeout to prevent hanging requests (15 seconds for internal, 10 for external)
+    const [statsResponse, advancedStatsResponse, opendotaResponse] = await Promise.allSettled([
+      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/stats`, {
+        timeout: 15000,
+        next: { revalidate: 3600 }
+      }),
+      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/advanced-stats`, {
+        timeout: 15000,
+        next: { revalidate: 3600 }
+      }),
+      fetchWithTimeout(`https://api.opendota.com/api/players/${playerId}`, {
+        timeout: 10000,
         next: { revalidate: 3600 }
       }).catch(() => null) // Non bloccare se fallisce
     ])
     
-    // Parse responses safely
+    // Parse responses safely - handle Promise.allSettled results
     let statsData: any = null
     let advancedData: any = null
     
-    if (statsResponse.ok) {
+    if (statsResponse.status === 'fulfilled' && statsResponse.value.ok) {
       try {
-        statsData = await statsResponse.json()
+        statsData = await statsResponse.value.json()
       } catch (err) {
         console.error('Failed to parse stats response:', err)
       }
     } else {
-      const errorText = await statsResponse.text().catch(() => 'Unknown error')
-      console.error('Stats fetch failed:', statsResponse.status, errorText)
+      const errorMsg = statsResponse.status === 'rejected' ? statsResponse.reason?.message : 'Unknown error'
+      console.error('Stats fetch failed:', errorMsg)
     }
     
-    if (advancedStatsResponse.ok) {
+    if (advancedStatsResponse.status === 'fulfilled' && advancedStatsResponse.value.ok) {
       try {
-        advancedData = await advancedStatsResponse.json()
+        advancedData = await advancedStatsResponse.value.json()
       } catch (err) {
         console.error('Failed to parse advanced stats response:', err)
       }
     } else {
-      const errorText = await advancedStatsResponse.text().catch(() => 'Unknown error')
-      console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
+      const errorMsg = advancedStatsResponse.status === 'rejected' ? advancedStatsResponse.reason?.message : 'Unknown error'
+      console.error('Advanced stats fetch failed:', errorMsg)
     }
     
     // Parse OpenDota data for avatar and rank
     let opendotaData: any = null
-    if (opendotaResponse?.ok) {
+    if (opendotaResponse && opendotaResponse.status === 'fulfilled' && opendotaResponse.value?.ok) {
       try {
-        opendotaData = await opendotaResponse.json()
+        opendotaData = await opendotaResponse.value.json()
       } catch (err) {
         console.warn('Failed to parse OpenDota response:', err)
       }
     }
     
+    // Validate statsData structure - must have stats object
     if (!statsData?.stats) {
+      // Log the actual response for debugging
+      console.error('Stats data structure invalid:', {
+        hasStatsData: !!statsData,
+        statsDataKeys: statsData ? Object.keys(statsData) : [],
+        statsResponseStatus: statsResponse.status,
+      })
       return NextResponse.json(
         { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
         { status: 500 }
@@ -72,7 +98,8 @@ export async function GET(
       fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
       vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
     }
-    const matches = stats.matches || []
+    // Use stats.matches if available, otherwise fallback to root matches array
+    const matches = stats.matches || statsData.matches || []
 
     // Calculate comprehensive metrics - prioritize stats.farm (already calculated averages)
     // Then fallback to matches calculation, then advanced stats

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithTimeout } from '@/lib/fetch-utils'
 
 interface OpenDotaMatch {
   match_id: number
@@ -39,7 +40,8 @@ export async function GET(
     
     // Fetch recent matches summary (20 per analisi avanzate)
     // Note: Summary endpoint has limited fields, we'll fetch full details for first 10 matches
-    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
+    const matchesResponse = await fetchWithTimeout(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
+      timeout: 10000, // 10 seconds timeout
       next: { revalidate: 3600 }
     })
     
@@ -63,14 +65,24 @@ export async function GET(
     const validSummaryMatches = matchesSummary.filter((m: any) => m.duration > 0)
     
     // Fetch full match details for all 20 matches (to get advanced stats)
+    // Use Promise.allSettled with timeout to prevent hanging if one match fails
     const matchesToFetch = validSummaryMatches.slice(0, 20)
     const fullMatchesPromises = matchesToFetch.map((m: any) =>
-      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+      fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
+        timeout: 8000, // 8 seconds per match
         next: { revalidate: 3600 }
-      }).then(res => res.ok ? res.json() : null).catch(() => null)
+      })
+        .then(res => res.ok ? res.json() : null)
+        .catch((err) => {
+          console.warn(`Failed to fetch match ${m.match_id}:`, err.message)
+          return null
+        })
     )
     
-    const fullMatchesData = await Promise.all(fullMatchesPromises)
+    const fullMatchesResults = await Promise.allSettled(fullMatchesPromises)
+    const fullMatchesData = fullMatchesResults.map(result => 
+      result.status === 'fulfilled' ? result.value : null
+    )
     
     // Map full match data to player data
     const enrichedMatches = validSummaryMatches.map((summaryMatch: any, idx: number) => {

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithTimeout } from '@/lib/fetch-utils'
 
 // Helper function to generate AI coaching advice
 async function generateCoachingAdvice(prompt: string): Promise<string> {
   const geminiKey = process.env.GEMINI_API_KEY
   if (geminiKey) {
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
@@ -13,6 +14,7 @@ async function generateCoachingAdvice(prompt: string): Promise<string> {
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
           }),
+          timeout: 15000, // 15 seconds for AI API
         }
       )
       if (response.ok) {
@@ -31,7 +33,7 @@ async function generateCoachingAdvice(prompt: string): Promise<string> {
   const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.OPEN_AI_KEY
   if (openaiKey) {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,6 +45,7 @@ async function generateCoachingAdvice(prompt: string): Promise<string> {
           max_tokens: 200,
           temperature: 0.7,
         }),
+        timeout: 15000, // 15 seconds for AI API
       })
       if (response.ok) {
         const data = await response.json()
@@ -66,23 +69,52 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Fetch profile and stats
-    const [profileResponse, statsResponse, advancedResponse] = await Promise.all([
-      fetch(`${request.nextUrl.origin}/api/player/${id}/profile`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`).catch(() => null),
+    // Validate player ID format
+    if (!id || id.trim() === '' || isNaN(Number(id.trim()))) {
+      return NextResponse.json(
+        { error: 'Invalid player ID format. Please provide a valid numeric player ID.' },
+        { status: 400 }
+      )
+    }
+    
+    const playerId = id.trim()
+
+    // Fetch profile and stats with timeout to prevent hanging
+    const [profileResponse, statsResponse, advancedResponse] = await Promise.allSettled([
+      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/profile`, {
+        timeout: 15000,
+        next: { revalidate: 3600 }
+      }),
+      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/stats`, {
+        timeout: 15000,
+        next: { revalidate: 3600 }
+      }),
+      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/advanced-stats`, {
+        timeout: 15000,
+        next: { revalidate: 3600 }
+      }).catch(() => null),
     ])
 
-    if (!profileResponse.ok || !statsResponse.ok) {
+    // Check if critical responses succeeded
+    if (profileResponse.status === 'rejected' || statsResponse.status === 'rejected') {
       return NextResponse.json(
         { error: 'Failed to fetch player data' },
         { status: 500 }
       )
     }
 
-    const profile = await profileResponse.json()
-    const statsData = await statsResponse.json()
-    const advancedData = advancedResponse?.ok ? await advancedResponse.json() : null
+    if (!profileResponse.value.ok || !statsResponse.value.ok) {
+      return NextResponse.json(
+        { error: 'Failed to fetch player data' },
+        { status: 500 }
+      )
+    }
+
+    const profile = await profileResponse.value.json()
+    const statsData = await statsResponse.value.json()
+    const advancedData = advancedResponse?.status === 'fulfilled' && advancedResponse.value?.ok 
+      ? await advancedResponse.value.json() 
+      : null
 
     const stats = statsData.stats
     const advanced = advancedData?.stats || {

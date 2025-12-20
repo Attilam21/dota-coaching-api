@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithTimeout } from '@/lib/fetch-utils'
 
 interface OpenDotaMatch {
   match_id: number
@@ -22,7 +23,8 @@ export async function GET(
     const { id } = await params
     
     // Fetch recent matches (20 per allineare con analisi avanzate)
-    const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
+    const matchesResponse = await fetchWithTimeout(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
+      timeout: 10000, // 10 seconds timeout
       next: { revalidate: 3600 }
     })
     
@@ -60,12 +62,24 @@ export async function GET(
     
     // Always fetch full match details for ALL matches to ensure accurate GPM/XPM
     // OpenDota's match list endpoint may not always include or have accurate GPM/XPM
+    // Use fetchWithTimeout utility with 8 seconds per match
     const fullMatchesPromises = matches.slice(0, 20).map((m) =>
-      fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
+      fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
+        timeout: 8000, // 8 seconds per match
         next: { revalidate: 3600 }
-      }).then(res => res.ok ? res.json() : null).catch(() => null)
+      })
+        .then(res => res.ok ? res.json() : null)
+        .catch((err) => {
+          console.warn(`Failed to fetch match ${m.match_id} details:`, err.message)
+          return null
+        })
     )
-    const fullMatches = await Promise.all(fullMatchesPromises)
+    
+    // Use Promise.allSettled instead of Promise.all to continue even if some fail
+    const fullMatchesResults = await Promise.allSettled(fullMatchesPromises)
+    const fullMatches = fullMatchesResults.map(result => 
+      result.status === 'fulfilled' ? result.value : null
+    )
     
     // Enrich matches with accurate GPM/XPM, hero_id, and duration from full match details
     matches.forEach((match, idx) => {
@@ -188,6 +202,10 @@ export async function GET(
     return NextResponse.json({
       matches: matches.slice(0, 20),
       stats,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
     })
   } catch (error) {
     console.error('Error fetching player stats:', error)
