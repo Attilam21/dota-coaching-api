@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
-import { shouldLoadAdSense } from '@/lib/adsense-utils'
+import { useMemo, useState, useEffect } from 'react'
 import AdBanner from './AdBanner'
 
 interface AdPlaceholderProps {
@@ -20,15 +19,14 @@ export default function AdPlaceholder({
   className = '',
   showLabel = true 
 }: AdPlaceholderProps) {
-  const hasAdSense = shouldLoadAdSense()
-  const adClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+  const [mounted, setMounted] = useState(false)
+  const adClientId = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID : null
 
-  // If AdSense is configured and user has consent, show real ads
-  if (hasAdSense && adClientId) {
-    return <AdBanner position={position} className={className} />
-  }
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  // Otherwise show placeholder
+  // Get dimensions for placeholder
   const dimensions = useMemo(() => {
     switch (position) {
       case 'top':
@@ -44,6 +42,34 @@ export default function AdPlaceholder({
     }
   }, [position])
 
+  // On server, show placeholder skeleton
+  if (!mounted) {
+    return (
+      <div 
+        className={`ad-placeholder border-2 border-dashed border-gray-600 bg-gray-800/50 rounded-lg flex items-center justify-center ${className}`}
+        style={{ 
+          minHeight: dimensions.height,
+          width: dimensions.width 
+        }}
+      >
+        <div className="text-center p-4">
+          <div className="text-xs text-gray-500">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // On client, check if we should show real ads
+  const hasConsent = typeof window !== 'undefined' 
+    ? localStorage.getItem('cookie-consent') === 'accepted' 
+    : false
+
+  // If AdSense is configured and user has consent, show real ads
+  if (adClientId && hasConsent) {
+    return <AdBanner position={position} className={className} />
+  }
+
+  // Otherwise show placeholder - ALWAYS visible
   return (
     <div 
       className={`ad-placeholder border-2 border-dashed border-gray-600 bg-gray-800/50 rounded-lg flex items-center justify-center ${className}`}
@@ -67,4 +93,3 @@ export default function AdPlaceholder({
     </div>
   )
 }
-

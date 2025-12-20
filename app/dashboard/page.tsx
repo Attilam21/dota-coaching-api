@@ -345,13 +345,13 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Ad Placeholder - Top (Always visible) */}
-      <div className="mb-6">
-        <AdPlaceholder position="top" />
-      </div>
-
       {stats && !loading && (
         <>
+          {/* Ad Placeholder - Top (Only when content is available) */}
+          <div className="mb-6">
+            <AdPlaceholder position="top" />
+          </div>
+
           {/* Panoramica Section - Always visible */}
           <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">Panoramica</h2>
