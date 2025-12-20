@@ -13,6 +13,8 @@ import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleto
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import AdPlaceholder from '@/components/AdPlaceholder'
+import AnimatedCard from '@/components/AnimatedCard'
+import { motion } from 'framer-motion'
 
 interface PlayerStats {
   winrate: {
@@ -405,7 +407,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-winrate"
@@ -432,16 +434,20 @@ export default function DashboardPage() {
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <span className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <motion.span 
+                      className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                      animate={(stats.winrate?.delta ?? 0) > 5 ? { scale: [1, 1.05, 1] } : {}}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
                       {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
-                    </span>
+                    </motion.span>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Trend basato su ultime 5/10 partite (di 20 totali)</p>
-              </div>
+              </AnimatedCard>
 
               {/* KDA Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                 {playerId && (
                   <InsightBadge
                     elementType="trend-kda"
@@ -468,16 +474,20 @@ export default function DashboardPage() {
                   </div>
                   <div className="pt-2 border-t border-gray-700">
                     <span className="text-gray-400">Delta: </span>
-                    <span className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <motion.span 
+                      className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                      animate={(stats.kda?.delta ?? 0) > 0.5 ? { scale: [1, 1.05, 1] } : {}}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
                       {(stats.kda?.delta ?? 0) >= 0 ? '+' : ''}{(stats.kda?.delta ?? 0).toFixed(2)}
-                    </span>
+                    </motion.span>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">KDA = (Kill + Assist) / Death</p>
-              </div>
+              </AnimatedCard>
 
               {/* Farm Trend Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div className="space-y-1">
@@ -506,13 +516,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-4">Media calcolata su ultime 5/10 partite (su 20 totali analizzate)</p>
-              </div>
+              </AnimatedCard>
 
               {/* Insight Automatico Card */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <AnimatedCard index={3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                 <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
                 <p className="text-sm text-gray-300">{getInsight()}</p>
-              </div>
+              </AnimatedCard>
                   </div>
                   </div>
 
@@ -525,7 +535,7 @@ export default function DashboardPage() {
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {/* Winrate Globale Card */}
-                        <div className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700/50 rounded-lg p-5">
+                        <AnimatedCard index={0} className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700/50 rounded-lg p-5">
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="text-lg font-semibold text-green-300">Winrate Globale</h4>
                             <Trophy className="w-5 h-5 text-green-400" />
@@ -549,10 +559,10 @@ export default function DashboardPage() {
                               <span className="font-semibold text-white">{(winLoss.win + winLoss.lose).toLocaleString()}</span>
                             </div>
                           </div>
-                        </div>
+                        </AnimatedCard>
 
                         {/* Vittorie Card */}
-                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                        <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-5">
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="text-lg font-semibold">Vittorie Totali</h4>
                             <TrendingUp className="w-5 h-5 text-green-400" />
@@ -577,10 +587,10 @@ export default function DashboardPage() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </AnimatedCard>
 
                         {/* Confronto Trend Card */}
-                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                        <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-5">
                           <h4 className="text-lg font-semibold mb-3">Confronto Trend</h4>
                           <div className="space-y-3 text-sm">
                             {stats.winrate && (
@@ -620,7 +630,7 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {/* GPM Percentile */}
                         {(benchmarks.percentiles?.gpm || benchmarks.calculatedPercentiles?.gpm) && (
-                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                             <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
                             <div className="flex items-baseline gap-2 mb-2">
                               <div className="text-2xl font-bold text-yellow-400">
@@ -642,7 +652,7 @@ export default function DashboardPage() {
 
                         {/* XPM Percentile */}
                         {(benchmarks.percentiles?.xpm || benchmarks.calculatedPercentiles?.xpm) && (
-                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                             <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
                             <div className="flex items-baseline gap-2 mb-2">
                               <div className="text-2xl font-bold text-blue-400">
@@ -659,12 +669,12 @@ export default function DashboardPage() {
                                 {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
                               </span>
                             </div>
-                          </div>
+                          </AnimatedCard>
                         )}
 
                         {/* KDA Percentile */}
                         {(benchmarks.percentiles?.kda || benchmarks.calculatedPercentiles?.kda) && (
-                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                             <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
                             <div className="flex items-baseline gap-2 mb-2">
                               <div className="text-2xl font-bold text-red-400">
@@ -681,7 +691,7 @@ export default function DashboardPage() {
                                 {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
                               </span>
                             </div>
-                          </div>
+                          </AnimatedCard>
                         )}
                       </div>
                       {benchmarks.source === 'calculated' && (
