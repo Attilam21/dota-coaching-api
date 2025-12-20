@@ -6,8 +6,10 @@ import PlayerAvatar from './PlayerAvatar'
 interface SynergyPair {
   player1_id: number
   player1_name: string
+  player1_avatar?: string
   player2_id: number
   player2_name: string
+  player2_avatar?: string
   games: number
   wins: number
   winrate: number
@@ -113,12 +115,14 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <PlayerAvatar
                     accountId={pair.player1_id}
+                    avatarUrl={pair.player1_avatar}
                     playerName={pair.player1_name}
                     size="sm"
                   />
                   <span className="text-gray-400">+</span>
                   <PlayerAvatar
                     accountId={pair.player2_id}
+                    avatarUrl={pair.player2_avatar}
                     playerName={pair.player2_name}
                     size="sm"
                   />
@@ -163,6 +167,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                     <div className="flex items-center gap-2">
                       <PlayerAvatar
                         accountId={pair.player1_id}
+                        avatarUrl={pair.player1_avatar}
                         playerName={pair.player1_name}
                         size="sm"
                       />
@@ -173,6 +178,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                     <div className="flex items-center gap-2">
                       <PlayerAvatar
                         accountId={pair.player2_id}
+                        avatarUrl={pair.player2_avatar}
                         playerName={pair.player2_name}
                         size="sm"
                       />

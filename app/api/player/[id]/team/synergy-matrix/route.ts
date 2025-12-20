@@ -5,13 +5,16 @@ interface Peer {
   games: number
   win: number
   personaname?: string
+  avatarfull?: string
 }
 
 interface SynergyPair {
   player1_id: number
   player1_name: string
+  player1_avatar?: string
   player2_id: number
   player2_name: string
+  player2_avatar?: string
   games: number
   wins: number
   winrate: number
@@ -186,8 +189,10 @@ export async function GET(
       synergyPairs.push({
         player1_id: id1,
         player1_name: player1.personaname || `Player ${id1}`,
+        player1_avatar: player1.avatarfull || undefined,
         player2_id: id2,
         player2_name: player2.personaname || `Player ${id2}`,
+        player2_avatar: player2.avatarfull || undefined,
         games: stats.games,
         wins: stats.wins,
         winrate,
