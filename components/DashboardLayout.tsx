@@ -44,19 +44,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation: Array<{ title: string; colorClass: string; items: NavItem[]; highlight?: boolean }> = [
     {
-      title: 'GUIDA UTENTE',
+      title: 'GUIDA',
       colorClass: 'text-red-400',
       highlight: true,
       items: [
-        { name: 'Guida Utente', href: '/dashboard/guida-utente', icon: GraduationCap },
+        { name: 'Guida', href: '/dashboard/guida-utente', icon: GraduationCap },
       ],
     },
     {
-      title: 'GIOCHI',
+      title: 'GIOCHI ANTI-TILT',
       colorClass: 'text-yellow-400',
       highlight: true,
       items: [
-        { name: 'Giochi', href: '/dashboard/games', icon: Gamepad2 },
+        { name: 'Giochi Anti-Tilt', href: '/dashboard/games', icon: Gamepad2 },
       ],
     },
     {
