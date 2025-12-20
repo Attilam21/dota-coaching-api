@@ -15,6 +15,7 @@ interface PlayerAvatarProps {
   showName?: boolean
   showRank?: boolean
   className?: string
+  tooltipText?: string // Tooltip personalizzato (se non fornito, usa nome o accountId)
 }
 
 export default function PlayerAvatar({
@@ -27,7 +28,8 @@ export default function PlayerAvatar({
   size = 'md',
   showName = false,
   showRank = false,
-  className = ''
+  className = '',
+  tooltipText
 }: PlayerAvatarProps) {
   const [rankImageError, setRankImageError] = useState(false)
   const sizeClasses = {
@@ -69,10 +71,13 @@ export default function PlayerAvatar({
     return 'Unknown'
   }
 
+  // Costruisci il tooltip: se fornito tooltipText usa quello, altrimenti nome o accountId
+  const tooltip = tooltipText || playerName || `Player ${accountId || ''}`
+
   return (
     <div
       className={`relative flex items-center gap-2 ${className}`}
-      title={playerName || `Player ${accountId || ''}`}
+      title={tooltip}
     >
       {/* Avatar Image */}
       <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gray-700 rounded-full border border-gray-600 overflow-hidden flex-shrink-0`}>

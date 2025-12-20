@@ -118,6 +118,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                     avatarUrl={pair.player1_avatar}
                     playerName={pair.player1_name}
                     size="sm"
+                    tooltipText={`${pair.player1_name} - ID: ${pair.player1_id}`}
                   />
                   <span className="text-gray-400">+</span>
                   <PlayerAvatar
@@ -125,6 +126,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                     avatarUrl={pair.player2_avatar}
                     playerName={pair.player2_name}
                     size="sm"
+                    tooltipText={`${pair.player2_name} - ID: ${pair.player2_id}`}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -170,6 +172,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                         avatarUrl={pair.player1_avatar}
                         playerName={pair.player1_name}
                         size="sm"
+                        tooltipText={`${pair.player1_name} - ID: ${pair.player1_id}`}
                       />
                       <span className="text-sm text-white">{pair.player1_name}</span>
                     </div>
@@ -181,6 +184,7 @@ export default function SynergyMatrix({ playerId }: SynergyMatrixProps) {
                         avatarUrl={pair.player2_avatar}
                         playerName={pair.player2_name}
                         size="sm"
+                        tooltipText={`${pair.player2_name} - ID: ${pair.player2_id}`}
                       />
                       <span className="text-sm text-white">{pair.player2_name}</span>
                     </div>
