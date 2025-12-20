@@ -240,12 +240,9 @@ export default function PerformancePage() {
                           {benchmarks.percentiles?.gpm && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                               <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <div className="text-3xl font-bold text-yellow-400">{stats.avgGPM.toFixed(0)}</div>
-                              </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
-                                <span className={`text-sm font-bold ${
+                                <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
                                   'text-gray-400'
@@ -253,17 +250,15 @@ export default function PerformancePage() {
                                   {benchmarks.percentiles.gpm.label}
                                 </span>
                               </div>
+                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {benchmarks.percentiles?.xpm && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                               <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <div className="text-3xl font-bold text-blue-400">{stats.avgXPM.toFixed(0)}</div>
-                              </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
-                                <span className={`text-sm font-bold ${
+                                <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
                                   'text-gray-400'
@@ -271,17 +266,15 @@ export default function PerformancePage() {
                                   {benchmarks.percentiles.xpm.label}
                                 </span>
                               </div>
+                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {benchmarks.percentiles?.kda && (
                             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                               <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <div className="text-3xl font-bold text-red-400">{stats.avgKDA.toFixed(2)}</div>
-                              </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
-                                <span className={`text-sm font-bold ${
+                                <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
                                   'text-gray-400'
@@ -289,6 +282,7 @@ export default function PerformancePage() {
                                   {benchmarks.percentiles.kda.label}
                                 </span>
                               </div>
+                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {/* Fallback to calculated percentiles if OpenDota ratings not available */}
@@ -296,12 +290,9 @@ export default function PerformancePage() {
                             <>
                               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                                 <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
-                                <div className="flex items-baseline gap-2 mb-2">
-                                  <div className="text-3xl font-bold text-yellow-400">{benchmarks.calculatedPercentiles.gpm.value.toFixed(0)}</div>
-                                </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
-                                  <span className={`text-sm font-bold ${
+                                  <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
                                     'text-gray-400'
@@ -309,15 +300,13 @@ export default function PerformancePage() {
                                     {benchmarks.calculatedPercentiles.gpm.label}
                                   </span>
                                 </div>
+                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                               </div>
                               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                                 <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
-                                <div className="flex items-baseline gap-2 mb-2">
-                                  <div className="text-3xl font-bold text-blue-400">{benchmarks.calculatedPercentiles.xpm.value.toFixed(0)}</div>
-                                </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
-                                  <span className={`text-sm font-bold ${
+                                  <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.xpm.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.xpm.percentile >= 50 ? 'text-blue-400' :
                                     'text-gray-400'
@@ -325,15 +314,13 @@ export default function PerformancePage() {
                                     {benchmarks.calculatedPercentiles.xpm.label}
                                   </span>
                                 </div>
+                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                               </div>
                               <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
                                 <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
-                                <div className="flex items-baseline gap-2 mb-2">
-                                  <div className="text-3xl font-bold text-red-400">{benchmarks.calculatedPercentiles.kda.value.toFixed(2)}</div>
-                                </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
-                                  <span className={`text-sm font-bold ${
+                                  <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.kda.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.kda.percentile >= 50 ? 'text-blue-400' :
                                     'text-gray-400'
@@ -341,6 +328,7 @@ export default function PerformancePage() {
                                     {benchmarks.calculatedPercentiles.kda.label}
                                   </span>
                                 </div>
+                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                               </div>
                             </>
                           )}
@@ -424,12 +412,13 @@ export default function PerformancePage() {
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">KDA</h3>
                         <Sword className="w-5 h-5 text-red-400" />
                       </div>
-                      <p className="text-3xl font-bold text-white mb-2">{stats.avgKDA.toFixed(2)}</p>
+                      <p className="text-3xl font-bold text-white mb-1 pr-8">{stats.avgKDA.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">KP:</span>
                         <span className="font-semibold text-gray-300">{stats.teamfightParticipation.toFixed(0)}%</span>
                       </div>
-                      {benchmarks?.percentiles?.kda && (
+                      {benchmarks?.percentiles?.kda ? (
                         <div className="mt-2 pt-2 border-t border-gray-700">
                           <div className="text-xs text-gray-500">Percentile:</div>
                           <div className={`text-sm font-bold ${
@@ -439,6 +428,10 @@ export default function PerformancePage() {
                           }`}>
                             {benchmarks.percentiles.kda.label}
                           </div>
+                        </div>
+                      ) : (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <p className="text-xs text-gray-500">Percentile non disponibile</p>
                         </div>
                       )}
                     </div>
@@ -452,16 +445,17 @@ export default function PerformancePage() {
                           position="top-right"
                         />
                       )}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-2 pr-8">
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">GPM</h3>
                         <Coins className="w-5 h-5 text-yellow-400" />
                       </div>
-                      <p className="text-3xl font-bold text-yellow-400 mb-2">{stats.avgGPM.toFixed(0)}</p>
+                      <p className="text-3xl font-bold text-yellow-400 mb-1 pr-8">{stats.avgGPM.toFixed(0)}</p>
+                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Efficienza:</span>
                         <span className="font-semibold text-gray-300">{stats.farmEfficiency.toFixed(0)}%</span>
                       </div>
-                      {benchmarks?.percentiles?.gpm && (
+                      {benchmarks?.percentiles?.gpm ? (
                         <div className="mt-2 pt-2 border-t border-gray-700">
                           <div className="text-xs text-gray-500">Percentile:</div>
                           <div className={`text-sm font-bold ${
@@ -472,6 +466,10 @@ export default function PerformancePage() {
                             {benchmarks.percentiles.gpm.label}
                           </div>
                         </div>
+                      ) : (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <p className="text-xs text-gray-500">Percentile non disponibile</p>
+                        </div>
                       )}
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors shadow-lg">
@@ -479,12 +477,13 @@ export default function PerformancePage() {
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">XPM</h3>
                         <Activity className="w-5 h-5 text-blue-400" />
                       </div>
-                      <p className="text-3xl font-bold text-blue-400 mb-2">{stats.avgXPM.toFixed(0)}</p>
+                      <p className="text-3xl font-bold text-blue-400 mb-1">{stats.avgXPM.toFixed(0)}</p>
+                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">XP acquisita</span>
                         <span className="font-semibold text-gray-300">/min</span>
                       </div>
-                      {benchmarks?.percentiles?.xpm && (
+                      {benchmarks?.percentiles?.xpm ? (
                         <div className="mt-2 pt-2 border-t border-gray-700">
                           <div className="text-xs text-gray-500">Percentile:</div>
                           <div className={`text-sm font-bold ${
@@ -494,6 +493,10 @@ export default function PerformancePage() {
                           }`}>
                             {benchmarks.percentiles.xpm.label}
                           </div>
+                        </div>
+                      ) : (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <p className="text-xs text-gray-500">Percentile non disponibile</p>
                         </div>
                       )}
                     </div>
@@ -507,12 +510,16 @@ export default function PerformancePage() {
                         <span className="text-gray-500">Assist:</span>
                         <span className="font-semibold text-gray-300">{stats.avgAssists.toFixed(1)}</span>
                       </div>
-                      {stats.advanced && (
+                      {stats.advanced ? (
                         <div className="mt-2 pt-2 border-t border-gray-700">
                           <div className="text-xs text-gray-500">Survival Score:</div>
                           <div className="text-sm font-bold text-gray-300">
                             {Math.max(100 - (stats.avgDeaths * 10), 0).toFixed(0)}%
                           </div>
+                        </div>
+                      ) : (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <p className="text-xs text-gray-500">Dati avanzati non disponibili</p>
                         </div>
                       )}
                     </div>

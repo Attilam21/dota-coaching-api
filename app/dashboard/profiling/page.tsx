@@ -331,7 +331,7 @@ export default function ProfilingPage() {
                   </div>
                   <p className="text-2xl font-bold">{profile.trends.gpm.label}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {profile.trends.gpm.value > 0 ? '+' : ''}{profile.trends.gpm.value.toFixed(0)} vs partite precedenti
+                    {profile.trends.gpm.value > 0 ? '+' : ''}{profile.trends.gpm.value.toFixed(0)} vs media 5 partite precedenti
                   </p>
                 </div>
                 {profile.trends.xpm && (
@@ -355,7 +355,7 @@ export default function ProfilingPage() {
                     </div>
                     <p className="text-2xl font-bold">{profile.trends.xpm.label}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {profile.trends.xpm.value > 0 ? '+' : ''}{profile.trends.xpm.value.toFixed(0)} vs partite precedenti
+                      {profile.trends.xpm.value > 0 ? '+' : ''}{profile.trends.xpm.value.toFixed(0)} vs media 5 partite precedenti
                     </p>
                   </div>
                 )}
@@ -379,7 +379,7 @@ export default function ProfilingPage() {
                   </div>
                   <p className="text-2xl font-bold">{profile.trends.kda.label}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs partite precedenti
+                    {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs media 5 partite precedenti
                   </p>
                 </div>
                 <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
@@ -402,7 +402,7 @@ export default function ProfilingPage() {
                   </div>
                   <p className="text-2xl font-bold">{profile.trends.winrate.label}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {profile.trends.winrate.value > 0 ? '+' : ''}{profile.trends.winrate.value.toFixed(1)}% vs partite precedenti
+                    {profile.trends.winrate.value > 0 ? '+' : ''}{profile.trends.winrate.value.toFixed(1)}% vs media 5 partite precedenti
                   </p>
                 </div>
               </div>

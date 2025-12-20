@@ -480,18 +480,32 @@ export default function DashboardPage() {
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="text-gray-400">GPM: </span>
-                    <span className="font-bold text-yellow-400">{(stats.farm?.gpm?.last5 ?? 0).toFixed(0)}</span>
-                    <span className="text-gray-500 ml-2">/ {(stats.farm?.gpm?.last10 ?? 0).toFixed(0)}</span>
+                  <div className="space-y-1">
+                    <div>
+                      <span className="text-gray-400">Ultime 5 partite: </span>
+                      <span className="font-bold text-yellow-400">{(stats.farm?.gpm?.last5 ?? 0).toFixed(0)}</span>
+                      <span className="text-gray-500 text-xs ml-1">GPM</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Ultime 10 partite: </span>
+                      <span className="font-bold text-gray-300">{(stats.farm?.gpm?.last10 ?? 0).toFixed(0)}</span>
+                      <span className="text-gray-500 text-xs ml-1">GPM</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-400">XPM: </span>
-                    <span className="font-bold text-blue-400">{(stats.farm?.xpm?.last5 ?? 0).toFixed(0)}</span>
-                    <span className="text-gray-500 ml-2">/ {(stats.farm?.xpm?.last10 ?? 0).toFixed(0)}</span>
+                  <div className="space-y-1 pt-2 border-t border-gray-700">
+                    <div>
+                      <span className="text-gray-400">Ultime 5 partite: </span>
+                      <span className="font-bold text-blue-400">{(stats.farm?.xpm?.last5 ?? 0).toFixed(0)}</span>
+                      <span className="text-gray-500 text-xs ml-1">XPM</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Ultime 10 partite: </span>
+                      <span className="font-bold text-gray-300">{(stats.farm?.xpm?.last10 ?? 0).toFixed(0)}</span>
+                      <span className="text-gray-500 text-xs ml-1">XPM</span>
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-4">Media ultime 5/10 partite (di 20 totali)</p>
+                <p className="text-xs text-gray-500 mt-4">Media calcolata su ultime 5/10 partite (su 20 totali analizzate)</p>
               </div>
 
               {/* Insight Automatico Card */}
