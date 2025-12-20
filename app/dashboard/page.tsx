@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -52,6 +52,8 @@ export default function DashboardPage() {
   const { playerId } = usePlayerIdContext()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [playerProfile, setPlayerProfile] = useState<{ avatar?: string; personaname?: string; rankTier?: number; rankMedalUrl?: string; soloMMR?: number | string | null } | null>(null)
+  const [fullProfile, setFullProfile] = useState<{ recommendations?: string[]; phaseAnalysis?: { early: { score: number; strength: string }; mid: { score: number; strength: string }; late: { score: number; strength: string } } } | null>(null)
+  const [benchmarks, setBenchmarks] = useState<{ percentiles?: { gpm?: { percentile: number; label: string }; xpm?: { percentile: number; label: string }; kda?: { percentile: number; label: string } }; calculatedPercentiles?: { gpm: { value: number; percentile: number; label: string }; xpm: { value: number; percentile: number; label: string }; kda: { value: number; percentile: number; label: string } }; source?: string } | null>(null)
   const [winLoss, setWinLoss] = useState<{ win: number; lose: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -71,11 +73,12 @@ export default function DashboardPage() {
       setLoading(true)
       setError(null)
 
-      const [statsResponse, advancedResponse, profileResponse, wlResponse] = await Promise.all([
+      const [statsResponse, advancedResponse, profileResponse, wlResponse, benchmarksResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
         fetch(`/api/player/${playerId}/advanced-stats`),
         fetch(`/api/player/${playerId}/profile`).catch(() => null), // Non bloccare se fallisce
-        fetch(`/api/player/${playerId}/wl`).catch(() => null) // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/wl`).catch(() => null), // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
       ])
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
@@ -84,6 +87,7 @@ export default function DashboardPage() {
       const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
       const profileData = profileResponse?.ok ? await profileResponse.json() : null
       const wlData = wlResponse?.ok ? await wlResponse.json() : null
+      const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
 
       // Enhance stats with advanced data if available
       if (advancedData?.stats) {
@@ -104,6 +108,17 @@ export default function DashboardPage() {
           rankMedalUrl: profileData.rankMedalUrl || null,
           soloMMR: profileData.soloMMR || null,
         })
+        
+        // Store full profile for recommendations and phase analysis
+        setFullProfile({
+          recommendations: profileData.recommendations || null,
+          phaseAnalysis: profileData.phaseAnalysis || null
+        })
+      }
+
+      // Set benchmarks if available
+      if (benchmarksData) {
+        setBenchmarks(benchmarksData)
       }
 
       // Set win/loss global stats
@@ -564,6 +579,166 @@ export default function DashboardPage() {
                                 )}
                               </div>
                             )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Benchmarks Compatti */}
+                  {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                        <Award className="w-5 h-5 text-blue-400" />
+                        Benchmark & Percentili
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {/* GPM Percentile */}
+                        {(benchmarks.percentiles?.gpm || benchmarks.calculatedPercentiles?.gpm) && (
+                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                            <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                              <div className="text-2xl font-bold text-yellow-400">
+                                {benchmarks.percentiles?.gpm ? (stats?.farm?.gpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.gpm.value.toFixed(0) ?? '0'}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-sm font-bold ${
+                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* XPM Percentile */}
+                        {(benchmarks.percentiles?.xpm || benchmarks.calculatedPercentiles?.xpm) && (
+                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                            <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                              <div className="text-2xl font-bold text-blue-400">
+                                {benchmarks.percentiles?.xpm ? (stats?.farm?.xpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.xpm.value.toFixed(0) ?? '0'}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-sm font-bold ${
+                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* KDA Percentile */}
+                        {(benchmarks.percentiles?.kda || benchmarks.calculatedPercentiles?.kda) && (
+                          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                            <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                              <div className="text-2xl font-bold text-red-400">
+                                {benchmarks.percentiles?.kda ? (stats?.kda?.last10 ?? 0).toFixed(2) : benchmarks.calculatedPercentiles?.kda.value.toFixed(2) ?? '0.00'}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-sm font-bold ${
+                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {benchmarks.source === 'calculated' && (
+                        <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                          <Info className="w-3 h-3" />
+                          Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Quick Recommendations */}
+                  {fullProfile?.recommendations && fullProfile.recommendations.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xl font-semibold flex items-center gap-2">
+                          <Lightbulb className="w-5 h-5 text-yellow-400" />
+                          Raccomandazioni Rapide
+                        </h3>
+                        <Link
+                          href="/dashboard/profiling"
+                          className="text-sm text-red-400 hover:text-red-300"
+                        >
+                          Vedi tutte →
+                        </Link>
+                      </div>
+                      <div className="bg-gradient-to-r from-yellow-900/20 to-gray-800 border border-yellow-700/50 rounded-lg p-5">
+                        <ul className="space-y-3">
+                          {fullProfile.recommendations.slice(0, 3).map((rec, idx) => (
+                            <li key={idx} className="flex items-start gap-3">
+                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-500/20 border border-yellow-500/50 flex items-center justify-center mt-0.5">
+                                <span className="text-yellow-400 text-xs font-bold">{idx + 1}</span>
+                              </div>
+                              <p className="text-gray-200 text-sm flex-1">{rec}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phase Analysis */}
+                  {fullProfile?.phaseAnalysis && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-purple-400" />
+                        Fase del Gioco Preferita
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {/* Early Game */}
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <div className="text-sm text-gray-400 mb-2">Early Game</div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl font-bold text-green-400">{fullProfile.phaseAnalysis.early.score}</div>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500 mb-1">Score</div>
+                              <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.early.strength}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Mid Game */}
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <div className="text-sm text-gray-400 mb-2">Mid Game</div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl font-bold text-blue-400">{fullProfile.phaseAnalysis.mid.score}</div>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500 mb-1">Score</div>
+                              <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.mid.strength}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Late Game */}
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <div className="text-sm text-gray-400 mb-2">Late Game</div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl font-bold text-purple-400">{fullProfile.phaseAnalysis.late.score}</div>
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-500 mb-1">Score</div>
+                              <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.late.strength}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
