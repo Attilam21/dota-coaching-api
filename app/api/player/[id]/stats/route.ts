@@ -1,4 +1,4 @@
-testiamo
+
 import { NextRequest, NextResponse } from 'next/server'
 
 interface OpenDotaMatch {
@@ -211,4 +211,3 @@ export async function GET(
     )
   }
 }
-
