@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2 } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const { playerId } = usePlayerIdContext()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [playerProfile, setPlayerProfile] = useState<{ avatar?: string; personaname?: string; rankTier?: number; rankMedalUrl?: string; soloMMR?: number | string | null } | null>(null)
+  const [winLoss, setWinLoss] = useState<{ win: number; lose: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
@@ -70,10 +71,11 @@ export default function DashboardPage() {
       setLoading(true)
       setError(null)
 
-      const [statsResponse, advancedResponse, profileResponse] = await Promise.all([
+      const [statsResponse, advancedResponse, profileResponse, wlResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
         fetch(`/api/player/${playerId}/advanced-stats`),
-        fetch(`/api/player/${playerId}/profile`).catch(() => null) // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/profile`).catch(() => null), // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/wl`).catch(() => null) // Non bloccare se fallisce
       ])
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
@@ -81,6 +83,7 @@ export default function DashboardPage() {
       const statsData = await statsResponse.json()
       const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
       const profileData = profileResponse?.ok ? await profileResponse.json() : null
+      const wlData = wlResponse?.ok ? await wlResponse.json() : null
 
       // Enhance stats with advanced data if available
       if (advancedData?.stats) {
@@ -100,6 +103,14 @@ export default function DashboardPage() {
           rankTier: profileData.rankTier || 0,
           rankMedalUrl: profileData.rankMedalUrl || null,
           soloMMR: profileData.soloMMR || null,
+        })
+      }
+
+      // Set win/loss global stats
+      if (wlData && (wlData.win !== undefined || wlData.lose !== undefined)) {
+        setWinLoss({
+          win: wlData.win || 0,
+          lose: wlData.lose || 0
         })
       }
     } catch (err) {
@@ -465,6 +476,100 @@ export default function DashboardPage() {
                   </div>
                   </div>
 
+                  {/* Statistiche Globali */}
+                  {winLoss && (winLoss.win > 0 || winLoss.lose > 0) && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-yellow-400" />
+                        Statistiche Globali
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {/* Winrate Globale Card */}
+                        <div className="bg-gradient-to-br from-green-900/30 to-gray-800 border border-green-700/50 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-green-300">Winrate Globale</h4>
+                            <Trophy className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-3xl font-bold text-white">
+                              {((winLoss.win / (winLoss.win + winLoss.lose)) * 100).toFixed(1)}%
+                            </div>
+                            <div className="flex items-center gap-4 text-sm">
+                              <div>
+                                <span className="text-gray-400">Vittorie: </span>
+                                <span className="font-semibold text-green-400">{winLoss.win.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Sconfitte: </span>
+                                <span className="font-semibold text-red-400">{winLoss.lose.toLocaleString()}</span>
+                              </div>
+                            </div>
+                            <div className="pt-2">
+                              <span className="text-gray-400 text-xs">Totale partite: </span>
+                              <span className="font-semibold text-white">{(winLoss.win + winLoss.lose).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Vittorie Card */}
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-lg font-semibold">Vittorie Totali</h4>
+                            <TrendingUp className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-3xl font-bold text-green-400">
+                              {winLoss.win.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {winLoss.win > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 bg-gray-700 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full" 
+                                      style={{ width: `${(winLoss.win / (winLoss.win + winLoss.lose)) * 100}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs">
+                                    {((winLoss.win / (winLoss.win + winLoss.lose)) * 100).toFixed(1)}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Confronto Trend Card */}
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                          <h4 className="text-lg font-semibold mb-3">Confronto Trend</h4>
+                          <div className="space-y-3 text-sm">
+                            {stats.winrate && (
+                              <div>
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-gray-400">Winrate Globale:</span>
+                                  <span className="font-semibold text-white">
+                                    {((winLoss.win / (winLoss.win + winLoss.lose)) * 100).toFixed(1)}%
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-gray-400">Winrate Recente (10):</span>
+                                  <span className={`font-semibold ${stats.winrate.last10 >= (winLoss.win / (winLoss.win + winLoss.lose)) * 100 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {stats.winrate.last10.toFixed(1)}%
+                                  </span>
+                                </div>
+                                {stats.winrate.last10 >= (winLoss.win / (winLoss.win + winLoss.lose)) * 100 ? (
+                                  <p className="text-xs text-green-400 mt-2">✓ In miglioramento rispetto alla media</p>
+                                ) : (
+                                  <p className="text-xs text-red-400 mt-2">↓ In calo rispetto alla media</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Profilo Giocatore */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                     <div className="flex items-center justify-between">
@@ -479,6 +584,12 @@ export default function DashboardPage() {
                             <span className="text-gray-400">Partite analizzate: </span>
                             <span className="font-semibold">{stats.matches?.length ?? 0}</span>
                           </div>
+                          {winLoss && (winLoss.win > 0 || winLoss.lose > 0) && (
+                            <div>
+                              <span className="text-gray-400">Partite totali: </span>
+                              <span className="font-semibold">{(winLoss.win + winLoss.lose).toLocaleString()}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Link

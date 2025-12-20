@@ -411,26 +411,39 @@ export default function MatchAnalysisDetailPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <div className="mb-6">
-        <Link href="/dashboard/match-analysis" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
-          ← Torna a Seleziona Partita
-        </Link>
-        <h1 className="text-3xl font-bold mb-2">Analisi Partita #{matchId}</h1>
-        <p className="text-gray-400">
-          Durata: {formatDuration(match.duration)} • {formatDate(match.start_time)}
-        </p>
-      </div>
+      <Link href="/dashboard/match-analysis" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+        ← Torna a Seleziona Partita
+      </Link>
 
-      {/* Match Header */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className={`text-2xl font-bold mb-2 ${match.radiant_win ? 'text-green-400' : 'text-red-400'}`}>
+      {/* Match Header - Improved Design */}
+      <div className={`bg-gradient-to-r ${match.radiant_win ? 'from-green-900/30 to-gray-800' : 'from-red-900/30 to-gray-800'} border ${match.radiant_win ? 'border-green-700' : 'border-red-700'} rounded-lg p-6 mb-6`}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Left Side - Match Info */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <h1 className="text-2xl md:text-3xl font-bold text-white">Analisi Partita</h1>
+              <span className="text-lg md:text-xl text-gray-400 font-mono">#{matchId}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span>Durata: <span className="font-semibold text-white">{formatDuration(match.duration)}</span></span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Timer className="w-4 h-4 text-gray-400" />
+                <span>{formatDate(match.start_time)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Result & Score */}
+          <div className="flex flex-col items-end gap-3">
+            <div className={`px-4 py-2 rounded-lg font-semibold text-lg ${match.radiant_win ? 'bg-green-600/20 text-green-300 border border-green-600' : 'bg-red-600/20 text-red-300 border border-red-600'}`}>
               {match.radiant_win ? 'Radiant Victory' : 'Dire Victory'}
             </div>
-            <div className="flex items-center gap-8 text-3xl font-bold">
+            <div className="flex items-center gap-4 text-4xl font-bold">
               <span className="text-green-400">{match.radiant_score || 0}</span>
-              <span className="text-gray-500">-</span>
+              <span className="text-gray-500 text-2xl">-</span>
               <span className="text-red-400">{match.dire_score || 0}</span>
             </div>
           </div>

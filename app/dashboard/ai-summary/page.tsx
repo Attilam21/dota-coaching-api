@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { Bot, BarChart, Gamepad2, Rocket, FileText } from 'lucide-react'
+import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 
@@ -238,13 +239,21 @@ export default function AISummaryPage() {
               </div>
 
               {summary && (
-                <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
-                  <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
-                    <FileText className="w-6 h-6" />
-                    Riassunto Generato
-                  </h3>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
+                    <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
+                      <FileText className="w-6 h-6" />
+                      Riassunto Generato
+                    </h3>
+                    <div className="prose prose-invert max-w-none">
+                      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">
+                      💡 <strong>Suggerimento:</strong> Questo riassunto è generato con l'intelligenza artificiale basandosi sulle tue performance recenti. 
+                      Per approfondimenti più dettagliati, visita la sezione <Link href="/dashboard/profiling" className="text-red-400 hover:text-red-300 underline">Profilo Completo</Link>.
+                    </p>
                   </div>
                 </div>
               )}
@@ -291,14 +300,24 @@ export default function AISummaryPage() {
               </div>
 
               {summary && (
-                <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
-                  <h3 className="text-2xl font-semibold mb-4 text-green-300 flex items-center gap-2">
-                    <FileText className="w-6 h-6" />
-                    Riassunto Partita
-                  </h3>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-green-900/50 to-blue-900/50 border border-green-700 rounded-lg p-6">
+                    <h3 className="text-2xl font-semibold mb-4 text-green-300 flex items-center gap-2">
+                      <FileText className="w-6 h-6" />
+                      Riassunto Partita
+                    </h3>
+                    <div className="prose prose-invert max-w-none">
+                      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{summary}</p>
+                    </div>
                   </div>
+                  {selectedMatchId && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <p className="text-sm text-gray-400">
+                        💡 <strong>Suggerimento:</strong> Per un'analisi completa di questa partita con grafici e statistiche dettagliate, 
+                        visita la <Link href={`/dashboard/match-analysis/${selectedMatchId}`} className="text-red-400 hover:text-red-300 underline">pagina di analisi match completa</Link>.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
