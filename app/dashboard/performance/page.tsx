@@ -420,7 +420,7 @@ export default function PerformancePage() {
                           position="top-right"
                         />
                       )}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-2 pr-8">
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">KDA</h3>
                         <Sword className="w-5 h-5 text-red-400" />
                       </div>

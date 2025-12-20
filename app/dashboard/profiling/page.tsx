@@ -278,7 +278,7 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h2 className="text-xl font-semibold mb-3">Ruolo Principale</h2>
+              <h2 className="text-xl font-semibold mb-3 pr-8">Ruolo Principale</h2>
               <p className="text-2xl font-bold text-red-400 mb-2">{profile.role}</p>
               <p className="text-sm text-gray-300">
                 Confidenza: <span className={`font-semibold ${
@@ -298,7 +298,7 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h2 className="text-xl font-semibold mb-3">Stile di Gioco</h2>
+              <h2 className="text-xl font-semibold mb-3 pr-8">Stile di Gioco</h2>
               <p className="text-2xl font-bold text-blue-400">{profile.playstyle}</p>
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function ProfilingPage() {
                     playerId={playerId || ''}
                     position="top-right"
                   />
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 pr-8">
                     <span className="text-sm text-gray-400">GPM Trend</span>
                     <span className={`text-lg font-bold ${
                       profile.trends.gpm.direction === 'up' ? 'text-green-400' :
@@ -343,7 +343,7 @@ export default function ProfilingPage() {
                       playerId={playerId || ''}
                       position="top-right"
                     />
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-2 pr-8">
                       <span className="text-sm text-gray-400">XPM Trend</span>
                       <span className={`text-lg font-bold ${
                         profile.trends.xpm.direction === 'up' ? 'text-green-400' :
@@ -367,7 +367,7 @@ export default function ProfilingPage() {
                     playerId={playerId || ''}
                     position="top-right"
                   />
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 pr-8">
                     <span className="text-sm text-gray-400">KDA Trend</span>
                     <span className={`text-lg font-bold ${
                       profile.trends.kda.direction === 'up' ? 'text-green-400' :
@@ -390,7 +390,7 @@ export default function ProfilingPage() {
                     playerId={playerId || ''}
                     position="top-right"
                   />
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 pr-8">
                     <span className="text-sm text-gray-400">Winrate Trend</span>
                     <span className={`text-lg font-bold ${
                       profile.trends.winrate.direction === 'up' ? 'text-green-400' :
@@ -609,7 +609,7 @@ export default function ProfilingPage() {
                 playerId={playerId || ''}
                 position="top-right"
               />
-              <h3 className="text-2xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">
+              <h3 className="text-2xl font-semibold mb-4 text-indigo-300 flex items-center gap-2 pr-8">
                 <BarChartIcon className="w-6 h-6" />
                 Analisi Comparativa - {profile.role}
               </h3>

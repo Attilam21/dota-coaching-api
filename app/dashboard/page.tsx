@@ -415,7 +415,7 @@ export default function DashboardPage() {
                     position="top-right"
                   />
                 )}
-                <h4 className="text-lg font-semibold mb-2">Winrate Trend</h4>
+                <h4 className="text-lg font-semibold mb-2 pr-8">Winrate Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
                     {winrateTrend.label}
@@ -451,7 +451,7 @@ export default function DashboardPage() {
                     position="top-right"
                   />
                 )}
-                <h4 className="text-lg font-semibold mb-2">KDA Trend</h4>
+                <h4 className="text-lg font-semibold mb-2 pr-8">KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
                     {kdaTrend.label}

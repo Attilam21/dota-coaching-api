@@ -403,6 +403,54 @@ export const pageGuides: Record<string, PageGuide> = {
         content: 'Suggerimenti pratici per usare al meglio la piattaforma: usa sempre il pulsante Help in ogni pagina, configura il Player ID prima di iniziare, le analisi sono basate sulle ultime 20 partite (i trend confrontano le ultime 5 e 10), puoi riprendere il tour quando vuoi.'
       }
     ]
+  },
+  '/dashboard/games': {
+    title: 'Giochi Anti-Tilt',
+    description: 'Mini-giochi divertenti per rilassarsi e sfogarsi tra una partita e l\'altra, ideali per gestire il tilt e mantenere la concentrazione.',
+    sections: [
+      {
+        title: 'Smash The Ancient',
+        content: 'Distruggi l\'Ancient nemico cliccando il più velocemente possibile! Crea combo incredibili per ottenere bonus punti. Il gioco dura 30 secondi. Il punteggio finale è calcolato considerando i click totali, le combo e la velocità (CPS - Clicks Per Second).'
+      },
+      {
+        title: 'Hero Matchup',
+        content: 'Metti alla prova la tua conoscenza dei matchups di Dota 2! Indovina quale eroe batte l\'avversario mostrato. Hai 4 opzioni tra cui scegliere. Ogni risposta corretta ti dà punti e crea uno streak. Rispondi correttamente per 30 secondi per ottenere il miglior punteggio possibile.'
+      },
+      {
+        title: 'Come funzionano',
+        content: 'Entrambi i giochi sono progettati per aiutarti a rilassarti e distrarti tra le partite. Usa questi mini-giochi quando ti senti tiltato o stressato. Non richiedono concentrazione estrema e ti permettono di "resettare" la mente prima della prossima partita.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nei giochi troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere suggerimenti personalizzati basati sulle tue performance di gioco. I suggerimenti AI analizzano i tuoi dati e ti forniscono consigli pratici per migliorare il tuo gameplay, anche mentre ti rilassi con i mini-giochi.'
+      }
+    ]
+  },
+  '/dashboard/anti-tilt': {
+    title: 'Anti-Tilt',
+    description: 'Sistema intelligente per identificare e gestire il tilt, con analisi dei pattern negativi e suggerimenti per il recupero.',
+    sections: [
+      {
+        title: 'Rilevamento Tilt',
+        content: 'Il sistema analizza automaticamente le tue ultime partite per identificare segnali di tilt: serie di sconfitte consecutive, winrate in calo, performance peggiorate. Quando viene rilevato il tilt, vedrai un avviso con statistiche dettagliate sulla tua situazione attuale.'
+      },
+      {
+        title: 'Pattern Negativi',
+        content: 'L\'analisi identifica i pattern che portano a performance negative: orari del giorno con winrate basso, giorni della settimana problematici, eroi con cui performi peggio quando sei tiltato. Questi pattern ti aiutano a capire quando e come evitare di giocare in condizioni subottimali.'
+      },
+      {
+        title: 'Statistiche di Recupero',
+        content: 'Visualizza statistiche sul tuo recupero: tempo medio per recuperare da una serie di sconfitte, migliori winstreak dopo un tilt, winrate durante il recupero. Queste statistiche ti aiutano a capire quanto tempo serve tipicamente per tornare in forma.'
+      },
+      {
+        title: 'Suggerimenti Personalizzati',
+        content: 'Ricevi suggerimenti specifici basati sui tuoi pattern: quando prendere una pausa, quali eroi evitare quando sei tiltato, come migliorare il winrate in determinati orari. I suggerimenti sono personalizzati per il tuo profilo di gioco.'
+      },
+      {
+        title: '💡 Lampadine Interattive (Suggerimenti AI)',
+        content: 'Nelle card delle statistiche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sui tuoi pattern di tilt e recupero. Il suggerimento analizza la tua situazione specifica (serie di sconfitte, pattern negativi, statistiche di recupero) e ti fornisce consigli pratici e concreti per gestire il tilt e migliorare le tue performance.'
+      }
+    ]
   }
 }
 
