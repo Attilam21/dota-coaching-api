@@ -11,6 +11,7 @@ interface OptimalTeam {
     games: number
     winrate: number
     role?: string
+    avatar?: string
   }>
   predictedWinrate: number
   teamScore: number
@@ -126,8 +127,10 @@ export default function OptimalTeams({ playerId }: OptimalTeamsProps) {
                 <div key={player.account_id} className="flex items-center gap-2 bg-gray-700/50 rounded p-2">
                   <PlayerAvatar
                     accountId={player.account_id}
+                    avatarUrl={player.avatar}
                     playerName={player.name}
                     size="sm"
+                    tooltipText={player.name}
                   />
                   <div className="flex-1">
                     <p className="text-sm text-white">{player.name}</p>

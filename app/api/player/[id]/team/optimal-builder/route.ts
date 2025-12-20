@@ -5,6 +5,7 @@ interface Peer {
   games: number
   win: number
   personaname?: string
+  avatarfull?: string
 }
 
 interface OptimalTeam {
@@ -56,7 +57,8 @@ export async function GET(
       .map(p => ({
         ...p,
         winrate: (p.win / p.games) * 100,
-        name: p.personaname || `Player ${p.account_id}`
+        name: p.personaname || `Player ${p.account_id}`,
+        avatarfull: p.avatarfull || undefined
       }))
       .sort((a, b) => b.winrate - a.winrate)
       .slice(0, 15)
@@ -198,12 +200,25 @@ export async function GET(
               }
               
               optimalTeams.push({
-                players: team.map(t => ({
-                  account_id: t.account_id,
-                  name: t.name,
-                  games: t.games,
-                  winrate: t.winrate
-                })),
+                players: team.map(t => {
+                  // Se è il giocatore principale, non ha avatar (è "Tu")
+                  if (t.account_id === parseInt(id)) {
+                    return {
+                      account_id: t.account_id,
+                      name: t.name,
+                      games: t.games,
+                      winrate: t.winrate
+                    }
+                  }
+                  // Altrimenti include l'avatar dal peer
+                  return {
+                    account_id: t.account_id,
+                    name: t.name,
+                    games: t.games,
+                    winrate: t.winrate,
+                    avatar: (t as any).avatarfull || undefined
+                  }
+                }),
                 predictedWinrate: Math.round(predictedWinrate * 10) / 10,
                 teamScore: Math.round(teamScore * 10) / 10,
                 strengths,
