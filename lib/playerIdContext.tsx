@@ -43,7 +43,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       if (dataStr) {
         const data: PlayerData = JSON.parse(dataStr)
         return {
-          playerId: data.playerId,
+          playerId: data.playerId ? data.playerId.trim() : null,
           verified: data.verified || false,
           verifiedAt: data.verifiedAt || null,
           verificationMethod: data.verificationMethod || null
@@ -54,7 +54,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       const oldPlayerId = localStorage.getItem(PLAYER_ID_KEY)
       if (oldPlayerId) {
         return {
-          playerId: oldPlayerId,
+          playerId: oldPlayerId.trim(),
           verified: false,
           verifiedAt: null,
           verificationMethod: null
