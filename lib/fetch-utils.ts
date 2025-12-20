@@ -9,6 +9,7 @@ interface FetchOptions extends RequestInit {
 /**
  * Fetch with timeout support using AbortController
  * Prevents hanging requests that can cause disconnections
+ * For internal API calls, adds bypass headers to avoid Vercel Deployment Protection
  */
 export async function fetchWithTimeout(
   url: string,
@@ -16,12 +17,34 @@ export async function fetchWithTimeout(
 ): Promise<Response> {
   const { timeout = 10000, ...fetchOptions } = options // Default 10 seconds
 
+  // Check if this is an internal API call (server-side and same origin)
+  const isInternalCall = typeof window === 'undefined' && 
+    (url.startsWith('/api/') || 
+     url.includes(process.env.VERCEL_URL || '') ||
+     url.includes('localhost') ||
+     url.includes('127.0.0.1'))
+
+  // Add bypass headers for internal server-to-server calls
+  const headers = new Headers(fetchOptions.headers)
+  if (isInternalCall) {
+    // Add internal call identifier to bypass Vercel protection
+    headers.set('x-internal-call', 'true')
+    // If we have a bypass token from env, use it
+    const bypassToken = process.env.VERCEL_PROTECTION_BYPASS_TOKEN
+    if (bypassToken) {
+      headers.set('x-vercel-protection-bypass', bypassToken)
+    }
+    // Also add user-agent to identify as internal call
+    headers.set('user-agent', 'Internal-API-Call/1.0')
+  }
+
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
 
   try {
     const response = await fetch(url, {
       ...fetchOptions,
+      headers,
       signal: controller.signal,
     })
     clearTimeout(timeoutId)

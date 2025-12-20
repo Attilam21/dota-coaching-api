@@ -19,16 +19,26 @@ export async function GET(
     const playerId = id.trim()
     
     // Fetch both basic and advanced stats + OpenDota player data for avatar/rank
-    // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    // Add timeout to prevent hanging requests (15 seconds for internal, 10 for external)
+    // Use absolute URL with internal call header to bypass Vercel Deployment Protection
+    // The middleware will recognize x-internal-call header and allow the request
+    const baseUrl = request.nextUrl.origin
+    
     const [statsResponse, advancedStatsResponse, opendotaResponse] = await Promise.allSettled([
-      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/stats`, {
+      fetchWithTimeout(`${baseUrl}/api/player/${playerId}/stats`, {
         timeout: 15000,
-        next: { revalidate: 3600 }
+        next: { revalidate: 3600 },
+        headers: {
+          'x-internal-call': 'true',
+          'user-agent': 'Internal-API-Call/1.0',
+        }
       }),
-      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/advanced-stats`, {
+      fetchWithTimeout(`${baseUrl}/api/player/${playerId}/advanced-stats`, {
         timeout: 15000,
-        next: { revalidate: 3600 }
+        next: { revalidate: 3600 },
+        headers: {
+          'x-internal-call': 'true',
+          'user-agent': 'Internal-API-Call/1.0',
+        }
       }),
       fetchWithTimeout(`https://api.opendota.com/api/players/${playerId}`, {
         timeout: 10000,

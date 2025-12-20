@@ -80,18 +80,33 @@ export async function GET(
     const playerId = id.trim()
 
     // Fetch profile and stats with timeout to prevent hanging
+    // Use absolute URL with internal call header to bypass Vercel Deployment Protection
+    const baseUrl = request.nextUrl.origin
+    
     const [profileResponse, statsResponse, advancedResponse] = await Promise.allSettled([
-      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/profile`, {
+      fetchWithTimeout(`${baseUrl}/api/player/${playerId}/profile`, {
         timeout: 15000,
-        next: { revalidate: 3600 }
+        next: { revalidate: 3600 },
+        headers: {
+          'x-internal-call': 'true',
+          'user-agent': 'Internal-API-Call/1.0',
+        }
       }),
-      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/stats`, {
+      fetchWithTimeout(`${baseUrl}/api/player/${playerId}/stats`, {
         timeout: 15000,
-        next: { revalidate: 3600 }
+        next: { revalidate: 3600 },
+        headers: {
+          'x-internal-call': 'true',
+          'user-agent': 'Internal-API-Call/1.0',
+        }
       }),
-      fetchWithTimeout(`${request.nextUrl.origin}/api/player/${playerId}/advanced-stats`, {
+      fetchWithTimeout(`${baseUrl}/api/player/${playerId}/advanced-stats`, {
         timeout: 15000,
-        next: { revalidate: 3600 }
+        next: { revalidate: 3600 },
+        headers: {
+          'x-internal-call': 'true',
+          'user-agent': 'Internal-API-Call/1.0',
+        }
       }).catch(() => null),
     ])
 
