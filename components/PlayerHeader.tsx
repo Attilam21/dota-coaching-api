@@ -78,8 +78,8 @@ export default function PlayerHeader({
   }
 
   return (
-    <div className={`relative bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-xl p-4 lg:p-5 shadow-lg ${className}`}>
-      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-5">
+    <div className={`relative ${className}`}>
+      <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
         {/* Left: Avatar Section */}
         <div className="flex-shrink-0">
           <div className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-full border-2 border-gray-600 overflow-hidden bg-gray-700 shadow-md">
@@ -100,7 +100,7 @@ export default function PlayerHeader({
           </div>
         </div>
 
-        {/* Center: Player Info Card */}
+        {/* Center: Player Info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
             <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function PlayerHeader({
             </div>
           </div>
 
-          {/* Rank Badge - Enterprise Design */}
+          {/* Rank Badge */}
           <div className="flex items-center gap-2 flex-wrap">
             <div 
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${rankInfo.color} shadow-sm`}
@@ -154,44 +154,44 @@ export default function PlayerHeader({
         </div>
 
         {/* Right: Quick Stats Cards */}
-        <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto lg:min-w-[110px]">
+        <div className="flex flex-row lg:flex-col gap-3">
           {/* Winrate Card */}
           {winrate !== undefined && (
-            <div className="flex-1 lg:flex-none bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/50 rounded-md p-2.5 shadow-sm hover:border-green-600/70 transition-colors">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Winrate</span>
+            <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/50 rounded-lg p-3 shadow-sm hover:border-green-600/70 transition-colors min-w-[120px]">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-4 h-4 text-green-400" />
+                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Winrate</span>
               </div>
-              <p className="text-lg font-bold text-green-400 leading-none">{formatWinrate(winrate)}</p>
+              <p className="text-xl font-bold text-green-400 leading-none">{formatWinrate(winrate)}</p>
               {totalMatches && (
-                <p className="text-[10px] text-gray-500 mt-1">{totalMatches} partite</p>
+                <p className="text-xs text-gray-500 mt-1">{totalMatches} partite</p>
               )}
             </div>
           )}
 
           {/* Last Match Card */}
           {lastMatchTime && (
-            <div className="flex-1 lg:flex-none bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/50 rounded-md p-2.5 shadow-sm hover:border-blue-600/70 transition-colors">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <Clock className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Ultima</span>
+            <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/50 rounded-lg p-3 shadow-sm hover:border-blue-600/70 transition-colors min-w-[120px]">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Ultima</span>
               </div>
-              <p className="text-base font-semibold text-blue-400 leading-none">{formatLastMatch(lastMatchTime)}</p>
-              <p className="text-[10px] text-gray-500 mt-1">partita</p>
+              <p className="text-lg font-semibold text-blue-400 leading-none">{formatLastMatch(lastMatchTime)}</p>
+              <p className="text-xs text-gray-500 mt-1">partita</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Settings Link - positioned outside flex container to avoid overlap */}
+      {/* Settings Link */}
       {showSettingsLink && (
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-0 right-0">
           <Link
             href="/dashboard/settings"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
             title="Impostazioni"
           >
-            <Settings className="w-3.5 h-3.5" />
+            <Settings className="w-4 h-4" />
             <span className="hidden sm:inline">Impostazioni</span>
           </Link>
         </div>
