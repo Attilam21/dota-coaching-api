@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, BarChart3 } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -14,7 +14,6 @@ import InsightBadge from '@/components/InsightBadge'
 import InsightBulb from '@/components/InsightBulb'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import ProfileHeaderCard from '@/components/ProfileHeaderCard'
-import KpiCard from '@/components/KpiCard'
 import AdPlaceholder from '@/components/AdPlaceholder'
 import KeyMatchesCard from '@/components/KeyMatchesCard'
 import AnimatedCard from '@/components/AnimatedCard'
@@ -428,55 +427,6 @@ export default function DashboardPage() {
 
       {stats && !loading && (
         <>
-          {/* KPI Snapshot Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-            <KpiCard
-              title="Win Rate"
-              value={(() => {
-                if (!stats.matches || stats.matches.length === 0) return '0%'
-                const last20 = stats.matches.slice(0, 20)
-                const wins = last20.filter(m => m.win).length
-                const winrate20 = last20.length > 0 ? (wins / last20.length) * 100 : 0
-                return `${winrate20.toFixed(0)}%`
-              })()}
-              subtitle="Ultime 20 partite"
-              icon={<BarChart3 className="w-4 h-4" />}
-              valueColor={(() => {
-                if (!stats.matches || stats.matches.length === 0) return 'text-white'
-                const last20 = stats.matches.slice(0, 20)
-                const wins = last20.filter(m => m.win).length
-                const winrate20 = last20.length > 0 ? (wins / last20.length) * 100 : 0
-                return winrate20 >= 50 ? 'text-green-400' : 'text-red-400'
-              })()}
-            />
-            <KpiCard
-              title="KDA Medio"
-              value={(() => {
-                if (!stats.matches || stats.matches.length === 0) return '0.00'
-                const last20 = stats.matches.slice(0, 20)
-                const kdaSum = last20.reduce((sum, m) => sum + (m.kda || 0), 0)
-                const avgKda = last20.length > 0 ? kdaSum / last20.length : 0
-                return avgKda.toFixed(2)
-              })()}
-              subtitle="Ultime 20 partite"
-              icon={<Trophy className="w-4 h-4" />}
-              valueColor="text-white"
-            />
-            <KpiCard
-              title="Farm Medio"
-              value={(() => {
-                if (!stats.matches || stats.matches.length === 0) return '0'
-                const last20 = stats.matches.slice(0, 20)
-                const gpmSum = last20.reduce((sum, m) => sum + (m.gpm || 0), 0)
-                const avgGpm = last20.length > 0 ? gpmSum / last20.length : 0
-                return Math.round(avgGpm).toLocaleString()
-              })()}
-              subtitle="GPM - Ultime 20 partite"
-              icon={<TrendingUp className="w-4 h-4" />}
-              valueColor="text-white"
-            />
-          </div>
-
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-4 mb-1 items-stretch">
             {/* Hero Pool Card */}
@@ -594,46 +544,9 @@ export default function DashboardPage() {
                   {/* Snapshot Stato Forma */}
                   <div>
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Winrate Trend Card */}
-              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <h4 className="text-lg font-semibold mb-2">Winrate Trend</h4>
-                <div className="mb-3">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
-                    {winrateTrend.label}
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-gray-400">Ultime 5 partite: </span>
-                    <span className="font-bold">{(stats.winrate?.last5 ?? 0).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Ultime 10 partite: </span>
-                    <span className="font-bold">{(stats.winrate?.last10 ?? 0).toFixed(1)}%</span>
-                  </div>
-                  <div className="pt-2 border-t border-gray-700">
-                    <span className="text-gray-400">Delta: </span>
-                    {(stats.winrate?.delta ?? 0) > 5 ? (
-                      <motion.span 
-                        className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
-                      </motion.span>
-                    ) : (
-                      <span className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-4">Trend basato su ultime 5/10 partite (di 20 totali)</p>
-              </AnimatedCard>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* KDA Trend Card */}
-              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
@@ -670,7 +583,7 @@ export default function DashboardPage() {
               </AnimatedCard>
 
               {/* Farm Trend Card */}
-              <AnimatedCard index={2} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-2">Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div className="space-y-1">
@@ -814,6 +727,104 @@ export default function DashboardPage() {
                           </div>
                         </AnimatedCard>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Winrate Trend Card - Spostato da Overview */}
+                  <div>
+                    <h3 className="text-xl font-semibold mb-3">Winrate Trend (ultime 20 partite)</h3>
+                    <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold mb-2">Winrate Trend</h4>
+                      <div className="mb-3">
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
+                          {winrateTrend.label}
+                        </span>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-400">Ultime 5 partite: </span>
+                          <span className="font-bold">{(stats.winrate?.last5 ?? 0).toFixed(1)}%</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Ultime 10 partite: </span>
+                          <span className="font-bold">{(stats.winrate?.last10 ?? 0).toFixed(1)}%</span>
+                        </div>
+                        <div className="pt-2 border-t border-gray-700">
+                          <span className="text-gray-400">Delta: </span>
+                          {(stats.winrate?.delta ?? 0) > 5 ? (
+                            <motion.span 
+                              className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                              animate={{ scale: [1, 1.05, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            >
+                              {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
+                            </motion.span>
+                          ) : (
+                            <span className={`font-bold ${(stats.winrate?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {(stats.winrate?.delta ?? 0) >= 0 ? '+' : ''}{(stats.winrate?.delta ?? 0).toFixed(1)}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-4">Trend basato su ultime 5/10 partite (di 20 totali)</p>
+                    </AnimatedCard>
+                  </div>
+
+                  {/* Trend Grafico - Spostato da Overview */}
+                  {chartData.length > 0 && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="trend-chart"
+                          elementId="dashboard-trend-chart"
+                          contextData={{ trends: { winrate: stats.winrate ?? {}, kda: stats.kda ?? {}, farm: stats.farm ?? {} }, data: chartData }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold mb-3">Trend Ultime 20 Partite</h3>
+                        <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
+                      </div>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis dataKey="match" stroke="#9CA3AF" />
+                          <YAxis stroke="#9CA3AF" />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                            }}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="kda"
+                            stroke="#F59E0B"
+                            strokeWidth={2}
+                            name="KDA"
+                            dot={{ fill: '#F59E0B' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="gpm"
+                            stroke="#10B981"
+                            strokeWidth={2}
+                            name="GPM"
+                            dot={{ fill: '#10B981' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="winrate"
+                            stroke="#3B82F6"
+                            strokeWidth={2}
+                            name="Winrate %"
+                            dot={{ fill: '#3B82F6' }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   )}
 
@@ -1099,64 +1110,6 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  {/* Trend Ultime 10 Partite */}
-                  {chartData.length > 0 && (
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
-                      {playerId && (
-                        <InsightBadge
-                          elementType="trend-chart"
-                          elementId="dashboard-trend-chart"
-                          contextData={{ trends: { winrate: stats.winrate ?? {}, kda: stats.kda ?? {}, farm: stats.farm ?? {} }, data: chartData }}
-                          playerId={playerId}
-                          position="top-right"
-                        />
-                      )}
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold mb-3">Trend Ultime 20 Partite</h3>
-                        <span className="text-sm text-gray-400">{chartData.length} partite analizzate</span>
-                      </div>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="match" stroke="#9CA3AF" />
-                          <YAxis stroke="#9CA3AF" />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: '#1F2937',
-                              border: '1px solid #374151',
-                              borderRadius: '8px',
-                            }}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="kda"
-                            stroke="#F59E0B"
-                            strokeWidth={2}
-                            name="KDA"
-                            dot={{ fill: '#F59E0B' }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="gpm"
-                            stroke="#10B981"
-                            strokeWidth={2}
-                            name="GPM"
-                            dot={{ fill: '#10B981' }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="winrate"
-                            stroke="#3B82F6"
-                            strokeWidth={2}
-                            name="Winrate %"
-                            dot={{ fill: '#3B82F6' }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-
                   {/* Quick Stats Cards */}
                   {stats.advanced && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -1203,44 +1156,17 @@ export default function DashboardPage() {
               {/* Matches Tab */}
               {activeTab === 'matches' && (
                 <div className="space-y-4">
-                  {/* Recent Matches Grid */}
+                  {/* Link to Full Matches Page */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
-                        <Link
-                          href="/dashboard/matches"
-                          className="text-sm text-red-400 hover:text-red-300"
-                        >
-                          Vedi tutte →
-                        </Link>
-                      </div>
-                      <div className="grid md:grid-cols-5 gap-4">
-                        {(stats.matches || []).slice(0, 5).map((match, idx) => (
-                          <Link
-                            key={match.match_id}
-                            href={`/analysis/match/${match.match_id}`}
-                            className="bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition-colors"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-gray-400">Match {idx + 1}</span>
-                              <span className={`text-xs px-2 py-1 rounded ${match.win ? 'bg-green-600' : 'bg-red-600'} text-white`}>
-                                {match.win ? 'V' : 'S'}
-                              </span>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">KDA:</span>
-                                <span className="font-bold">{match.kda.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-400">GPM:</span>
-                                <span className="font-bold">{match.gpm}</span>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+                      <h3 className="text-xl font-semibold mb-3">Partite</h3>
+                      <p className="text-gray-400 mb-4">Visualizza tutte le tue partite con analisi dettagliate</p>
+                      <Link
+                        href="/dashboard/matches"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        Vedi tutte le partite →
+                      </Link>
                     </div>
                   )}
 
