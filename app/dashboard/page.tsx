@@ -394,15 +394,15 @@ export default function DashboardPage() {
       )}
 
       {loading && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Header Skeleton */}
-          <div className="mb-8">
+          <div className="mb-4">
             <div className="h-8 bg-gray-700 rounded w-1/3 mb-2 animate-pulse" />
             <div className="h-4 bg-gray-700 rounded w-1/4 animate-pulse" />
           </div>
 
           {/* Snapshot Cards Skeleton */}
-          <div className="mb-8">
+          <div className="mb-4">
             <div className="h-6 bg-gray-700 rounded w-1/4 mb-4 animate-pulse" />
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -415,7 +415,7 @@ export default function DashboardPage() {
           <ChartSkeleton />
 
           {/* Recent Matches Skeleton */}
-          <div className="mb-8">
+          <div className="mb-4">
             <div className="h-6 bg-gray-700 rounded w-1/3 mb-4 animate-pulse" />
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -429,7 +429,7 @@ export default function DashboardPage() {
       {stats && !loading && (
         <>
           {/* KPI Snapshot Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
             <KpiCard
               title="Win Rate"
               value={(() => {
@@ -478,36 +478,36 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Heroes / Key Matches - 2 Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2 items-start">
             {/* Hero Pool Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-              <h3 className="text-base font-semibold text-white mb-4">Hero Pool</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-3">
+              <h3 className="text-base font-semibold text-white mb-2">Hero Pool</h3>
               {topHeroes.length > 0 ? (
                 <>
                   {/* Heroes Grid - Compact horizontal layout */}
-                  <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-2 gap-1.5 mb-2">
                     {topHeroes.slice(0, 8).map((hero) => (
                       <div
                         key={hero.hero_id}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
+                        className="flex items-center gap-1.5 p-1.5 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
                       >
                         {heroes[hero.hero_id] ? (
                           <HeroIcon
                             heroId={hero.hero_id}
                             heroName={heroes[hero.hero_id].name}
-                            size={40}
+                            size={36}
                             className="rounded flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                          <div className="w-9 h-9 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
                             <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-medium text-white truncate mb-0.5">
+                          <div className="text-xs font-medium text-white truncate">
                             {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
                           </div>
-                          <div className="flex items-center gap-2 text-[10px]">
+                          <div className="flex items-center gap-1.5 text-[10px]">
                             <span className={`font-semibold ${
                               hero.winrate >= 60 ? 'text-green-400' : 
                               hero.winrate >= 50 ? 'text-yellow-400' : 
@@ -564,7 +564,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Tabs */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-3">
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -587,10 +587,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-4">
               {/* Overview Tab */}
               {activeTab === 'overview' && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Snapshot Stato Forma */}
                   <div>
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
@@ -722,7 +722,7 @@ export default function DashboardPage() {
 
               {/* Trends & Stats Tab */}
               {activeTab === 'trends' && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Statistiche Globali */}
                   {winLoss && (winLoss.win > 0 || winLoss.lose > 0) && (
                     <div>
@@ -1040,7 +1040,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Legend */}
-                      <div className="flex items-center gap-4 mb-6">
+                      <div className="flex items-center gap-4 mb-4">
                         <span className="text-sm text-gray-400">Legenda:</span>
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 bg-red-600 rounded"></div>
@@ -1101,7 +1101,7 @@ export default function DashboardPage() {
 
                   {/* Trend Ultime 10 Partite */}
                   {chartData.length > 0 && (
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
                       {playerId && (
                         <InsightBadge
                           elementType="trend-chart"
@@ -1202,10 +1202,10 @@ export default function DashboardPage() {
 
               {/* Matches Tab */}
               {activeTab === 'matches' && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Recent Matches Grid */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-semibold mb-3">Ultime Partite</h3>
                         <Link
