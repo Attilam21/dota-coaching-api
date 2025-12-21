@@ -18,14 +18,9 @@ export async function fetchWithTimeout(
   const { timeout = 10000, ...fetchOptions } = options // Default 10 seconds
 
   // Check if this is an internal API call (server-side and same origin)
-  // Fix: Only check VERCEL_URL if it's actually defined and not empty
-  // Previously: url.includes(process.env.VERCEL_URL || '') was always true when VERCEL_URL is undefined
-  // because url.includes('') returns true for any string, causing all external API calls
-  // (OpenDota, OpenAI, Gemini) to receive internal call headers incorrectly
-  const vercelUrl = process.env.VERCEL_URL
   const isInternalCall = typeof window === 'undefined' && 
     (url.startsWith('/api/') || 
-     (vercelUrl && vercelUrl.trim() !== '' && url.includes(vercelUrl)) ||
+     url.includes(process.env.VERCEL_URL || '') ||
      url.includes('localhost') ||
      url.includes('127.0.0.1'))
 

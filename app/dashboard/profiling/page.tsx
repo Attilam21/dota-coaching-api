@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
+import PlayerHeader from '@/components/PlayerHeader'
 import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartTabIcon, Activity, Eye } from 'lucide-react'
 
 interface PlayerProfile {
@@ -140,27 +141,27 @@ export default function ProfilingPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/75 via-blue-900/65 to-slate-900/75 -z-10"></div>
       
       <div className="relative z-10">
-        <div className="flex items-center gap-4 mb-6">
-          {profile && (
-            <PlayerAvatar
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2 text-white">Profilazione AttilaLAB</h1>
+          <p className="text-gray-400">Analisi completa del tuo profilo di giocatore basata sulle performance reali</p>
+        </div>
+
+        {/* Enterprise Player Header */}
+        {profile && (
+          <div className="mb-6">
+            <PlayerHeader
+              playerId={playerId || undefined}
               avatarUrl={profile.avatar}
               playerName={profile.personaname}
               rankTier={profile.rankTier}
               rankMedalUrl={profile.rankMedalUrl}
               soloMMR={profile.soloMMR}
-              size="lg"
-              showRank={true}
+              winrate={profile.metrics?.winrate ? parseFloat(profile.metrics.winrate) : undefined}
+              showSettingsLink={true}
             />
-          )}
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Profilazione AttilaLAB</h1>
-            {profile?.personaname ? (
-              <p className="text-gray-300 mb-1">{profile.personaname}{profile.soloMMR ? ` • ${profile.soloMMR} MMR` : ''}</p>
-            ) : (
-              <p className="text-gray-300 mb-1">Il tuo profilo di giocatore completo basato sulle performance reali</p>
-            )}
           </div>
-        </div>
+        )}
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">

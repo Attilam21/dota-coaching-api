@@ -12,6 +12,7 @@ import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
+import PlayerHeader from '@/components/PlayerHeader'
 import AdPlaceholder from '@/components/AdPlaceholder'
 import AnimatedCard from '@/components/AnimatedCard'
 import { motion } from 'framer-motion'
@@ -270,41 +271,41 @@ export default function DashboardPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-             {/* Header */}
-             <div className="mb-8" data-tour="dashboard-overview">
-                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                 <div className="flex items-center gap-4">
-                   <PlayerAvatar
-                     avatarUrl={playerProfile?.avatar}
-                     playerName={playerProfile?.personaname}
-                     rankTier={playerProfile?.rankTier}
-                     rankMedalUrl={playerProfile?.rankMedalUrl}
-                     soloMMR={playerProfile?.soloMMR}
-                     size="lg"
-                     showRank={true}
-                   />
-                   <div>
-                     <h1 className="text-2xl sm:text-3xl font-bold mb-2">PRO DOTA ANALISI - AttilaLAB</h1>
-                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                       {playerProfile?.personaname ? (
-                         <p className="text-gray-300 font-medium">{playerProfile.personaname}</p>
-                       ) : (
-                         <p className="text-gray-400">Player #{playerId}</p>
-                       )}
-                       {playerProfile?.soloMMR && (
-                         <span className="text-sm text-gray-500">• {playerProfile.soloMMR} MMR</span>
-                       )}
-                     </div>
-                   </div>
-                 </div>
-                 <Link
-                   href="/dashboard/settings"
-                   className="text-sm text-gray-400 hover:text-white self-start sm:self-auto"
-                 >
-                   Modifica Profilo
-                 </Link>
-               </div>
-             </div>
+      
+      {/* Enterprise Player Header */}
+      <div className="mb-8" data-tour="dashboard-overview">
+        <div className="mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">PRO DOTA ANALISI - AttilaLAB</h1>
+          <p className="text-sm text-gray-400">Dashboard completo con analisi avanzate e performance tracking</p>
+        </div>
+        
+        {playerProfile && stats && (
+          <PlayerHeader
+            playerId={playerId || undefined}
+            avatarUrl={playerProfile.avatar}
+            playerName={playerProfile.personaname}
+            rankTier={playerProfile.rankTier}
+            rankMedalUrl={playerProfile.rankMedalUrl}
+            soloMMR={playerProfile.soloMMR}
+            winrate={stats.winrate?.last10}
+            totalMatches={stats.matches?.length}
+            lastMatchTime={stats.matches?.[0]?.start_time}
+            showSettingsLink={true}
+          />
+        )}
+        
+        {playerProfile && !stats && (
+          <PlayerHeader
+            playerId={playerId || undefined}
+            avatarUrl={playerProfile.avatar}
+            playerName={playerProfile.personaname}
+            rankTier={playerProfile.rankTier}
+            rankMedalUrl={playerProfile.rankMedalUrl}
+            soloMMR={playerProfile.soloMMR}
+            showSettingsLink={true}
+          />
+        )}
+      </div>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
