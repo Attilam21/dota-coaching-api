@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import DashboardLayout from '@/components/DashboardLayout'
 import HelpButton from '@/components/HelpButton'
+import HeroIcon from '@/components/HeroIcon'
 import Link from 'next/link'
 
 interface PlayerData {
@@ -308,7 +309,19 @@ export default function PlayerAnalysisPage() {
                           {match.match_id}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{getHeroName(match.hero_id)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {heroes[match.hero_id] && (
+                            <HeroIcon
+                              heroId={match.hero_id}
+                              heroName={heroes[match.hero_id].name}
+                              size={32}
+                              className="rounded"
+                            />
+                          )}
+                          <span className="text-sm text-gray-300">{getHeroName(match.hero_id)}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">
                         {match.kills}/{match.deaths}/{match.assists}
                       </td>

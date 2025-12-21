@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
+import HeroIcon from '@/components/HeroIcon'
 
 interface Match {
   match_id: number
@@ -118,30 +119,14 @@ export default function KeyMatchesCard({
                 
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {match.hero_id && heroes[match.hero_id] && (() => {
-                      // Clean hero name: remove "npc_dota_hero_" prefix if present
-                      let imageName = heroes[match.hero_id].name.toLowerCase().replace(/^npc_dota_hero_/, '')
-                      // Clean up any remaining invalid characters
-                      imageName = imageName.replace(/[^a-z0-9_]/g, '')
-                      const imageUrl = `https://cdn.dota2.com/apps/dota2/images/heroes/${imageName}_sb.png`
-                      
-                      return (
-                        <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          <img
-                            src={imageUrl}
-                            alt={heroes[match.hero_id].localized_name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.currentTarget as HTMLImageElement
-                              target.style.display = 'none'
-                              if (target.parentElement) {
-                                target.parentElement.innerHTML = `<span class="text-xs text-gray-400 font-bold">${match.hero_id}</span>`
-                              }
-                            }}
-                          />
-                        </div>
-                      )
-                    })()}
+                    {match.hero_id && heroes[match.hero_id] && (
+                      <HeroIcon
+                        heroId={match.hero_id}
+                        heroName={heroes[match.hero_id].name}
+                        size={28}
+                        className="rounded"
+                      />
+                    )}
                     <span className="text-gray-300 truncate">{heroName}</span>
                   </div>
                   <div className="flex items-center gap-3 ml-2">

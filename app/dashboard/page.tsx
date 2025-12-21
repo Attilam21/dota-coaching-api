@@ -18,6 +18,7 @@ import KpiCard from '@/components/KpiCard'
 import AdPlaceholder from '@/components/AdPlaceholder'
 import KeyMatchesCard from '@/components/KeyMatchesCard'
 import AnimatedCard from '@/components/AnimatedCard'
+import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 
 interface PlayerStats {
@@ -496,32 +497,18 @@ export default function DashboardPage() {
                       className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
                       style={{ minHeight: '44px', maxHeight: '48px' }}
                     >
-                      <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {heroes[hero.hero_id] ? (() => {
-                          // Clean hero name: remove "npc_dota_hero_" prefix if present
-                          let imageName = heroes[hero.hero_id].name.toLowerCase().replace(/^npc_dota_hero_/, '')
-                          // Clean up any remaining invalid characters
-                          imageName = imageName.replace(/[^a-z0-9_]/g, '')
-                          const imageUrl = `https://cdn.dota2.com/apps/dota2/images/heroes/${imageName}_sb.png`
-                          
-                          return (
-                            <img
-                              src={imageUrl}
-                              alt={heroes[hero.hero_id].localized_name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.currentTarget as HTMLImageElement
-                                target.style.display = 'none'
-                                if (target.parentElement) {
-                                  target.parentElement.innerHTML = `<span class="text-xs text-gray-400 font-bold">${hero.hero_id}</span>`
-                                }
-                              }}
-                            />
-                          )
-                        })() : (
+                      {heroes[hero.hero_id] ? (
+                        <HeroIcon
+                          heroId={hero.hero_id}
+                          heroName={heroes[hero.hero_id].name}
+                          size={28}
+                          className="rounded"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-white truncate">
                           {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}

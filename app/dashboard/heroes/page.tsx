@@ -9,6 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
+import HeroIcon from '@/components/HeroIcon'
 import { BarChart as BarChartIcon, Table } from 'lucide-react'
 
 interface HeroStats {
@@ -335,11 +336,14 @@ export default function HeroesPage() {
                           <tr key={hero.hero_id} className="hover:bg-gray-700/50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
-                                <HeroCard
-                                  heroId={hero.hero_id}
-                                  heroName={heroes[hero.hero_id]?.name || ''}
-                                  size="sm"
-                                />
+                                {heroes[hero.hero_id] && (
+                                  <HeroIcon
+                                    heroId={hero.hero_id}
+                                    heroName={heroes[hero.hero_id].name}
+                                    size={40}
+                                    className="rounded"
+                                  />
+                                )}
                                 <span className="text-white font-medium">{hero.hero_name}</span>
                               </div>
                             </td>

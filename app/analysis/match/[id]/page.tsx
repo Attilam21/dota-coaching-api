@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useParams } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import DashboardLayout from '@/components/DashboardLayout'
+import HeroIcon from '@/components/HeroIcon'
 
 interface MatchData {
   match_id: number
@@ -280,7 +281,19 @@ export default function MatchAnalysisPage() {
               <tbody className="text-sm">
                 {match.players.slice(0, 5).map((player, idx) => (
                   <tr key={idx} className="border-t border-green-800/50">
-                    <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                    <td className="py-2">
+                      <div className="flex items-center gap-2">
+                        {heroes[player.hero_id] && (
+                          <HeroIcon
+                            heroId={player.hero_id}
+                            heroName={heroes[player.hero_id].name}
+                            size={32}
+                            className="rounded"
+                          />
+                        )}
+                        <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
+                      </div>
+                    </td>
                     <td className="py-2 font-semibold text-gray-300">
                       {player.kills}/{player.deaths}/{player.assists}
                     </td>
@@ -313,7 +326,19 @@ export default function MatchAnalysisPage() {
               <tbody className="text-sm">
                 {match.players.slice(5, 10).map((player, idx) => (
                   <tr key={idx} className="border-t border-red-800/50">
-                    <td className="py-2 font-medium text-white">{getHeroName(player.hero_id)}</td>
+                    <td className="py-2">
+                      <div className="flex items-center gap-2">
+                        {heroes[player.hero_id] && (
+                          <HeroIcon
+                            heroId={player.hero_id}
+                            heroName={heroes[player.hero_id].name}
+                            size={32}
+                            className="rounded"
+                          />
+                        )}
+                        <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
+                      </div>
+                    </td>
                     <td className="py-2 font-semibold text-gray-300">
                       {player.kills}/{player.deaths}/{player.assists}
                     </td>

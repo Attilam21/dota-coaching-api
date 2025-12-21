@@ -32,6 +32,7 @@ export default function PlayerAvatar({
   tooltipText
 }: PlayerAvatarProps) {
   const [rankImageError, setRankImageError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -85,16 +86,15 @@ export default function PlayerAvatar({
     >
       {/* Avatar Image */}
       <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gray-700 rounded-full border border-gray-600 overflow-hidden flex-shrink-0`}>
-        {avatarUrl ? (
+        {avatarUrl && !avatarError ? (
           <Image
             src={avatarUrl}
             alt={playerName || `Player ${accountId || ''}`}
             fill
             className="object-cover"
             unoptimized
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement
-              target.style.display = 'none'
+            onError={() => {
+              setAvatarError(true)
             }}
           />
         ) : (
