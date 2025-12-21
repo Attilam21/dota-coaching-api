@@ -468,6 +468,46 @@ export default function RoleAnalysisPage() {
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h3 className="text-sm text-gray-400 mb-2">Ruoli Giocati</h3>
+                      <p className="text-2xl font-bold text-white">{analysis.summary.totalRolesPlayed}</p>
+                      <p className="text-xs text-gray-500 mt-1">Ruoli diversi</p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h3 className="text-sm text-gray-400 mb-2">Ruolo Più Giocato</h3>
+                      <p className="text-lg font-bold text-blue-400 capitalize">{analysis.summary.mostPlayedRole}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {analysis.roles[analysis.summary.mostPlayedRole]?.games || 0} partite
+                      </p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h3 className="text-sm text-gray-400 mb-2">Ruolo Migliore</h3>
+                      <p className="text-lg font-bold text-green-400 capitalize">{analysis.summary.bestRole}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {analysis.roles[analysis.summary.bestRole]?.winrate ? 
+                          `${analysis.roles[analysis.summary.bestRole].winrate.toFixed(1)}% winrate` : 
+                          'N/A'}
+                      </p>
+                    </div>
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h3 className="text-sm text-gray-400 mb-2">Versatilità</h3>
+                      <p className={`text-2xl font-bold ${
+                        analysis.summary.totalRolesPlayed >= 3 ? 'text-green-400' :
+                        analysis.summary.totalRolesPlayed >= 2 ? 'text-yellow-400' :
+                        'text-red-400'
+                      }`}>
+                        {analysis.summary.totalRolesPlayed >= 3 ? 'Alta' :
+                         analysis.summary.totalRolesPlayed >= 2 ? 'Media' : 'Bassa'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {analysis.summary.totalRolesPlayed >= 3 ? 'Pool versatile' :
+                         analysis.summary.totalRolesPlayed >= 2 ? 'Diversifica di più' : 'Focus su 1-2 ruoli'}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Preferred Role */}
                   {analysis.preferredRole && (
                     <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6 relative">
@@ -504,10 +544,13 @@ export default function RoleAnalysisPage() {
 
                   {/* Role Performance Cards */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      Performance per Ruolo
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Users className="w-5 h-5" />
+                        Performance per Ruolo
+                      </h3>
+                      <span className="text-xs text-gray-500">Clicca su una card per vedere l'analisi dettagliata</span>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(analysis.roles)
                         .filter(([_, perf]) => perf.games > 0)
@@ -520,11 +563,12 @@ export default function RoleAnalysisPage() {
                           return (
                             <div
                               key={role}
-                              className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors cursor-pointer"
+                              className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 hover:bg-gray-800 transition-all cursor-pointer group"
                               onClick={() => {
                                 setSelectedRole(role)
                                 setActiveTab('improvement')
                               }}
+                              title="Clicca per vedere l'analisi dettagliata"
                             >
                               <div className="mb-3">
                                 <span className="font-semibold text-white capitalize text-sm">{role}</span>
@@ -572,12 +616,194 @@ export default function RoleAnalysisPage() {
                                     <span className="text-xs text-yellow-400">{weaknesses.length} da migliorare</span>
                                   </div>
                                 )}
+                                <div className="mt-2 flex items-center gap-1 text-xs text-gray-500 group-hover:text-blue-400 transition-colors">
+                                  <ArrowRight className="w-3 h-3" />
+                                  <span>Vedi dettagli</span>
+                                </div>
                               </div>
                             </div>
                           )
                         })}
                     </div>
                   </div>
+
+                  {/* Role Comparison & Insights */}
+                  {Object.entries(analysis.roles).filter(([_, perf]) => perf.games > 0).length >= 2 && (() => {
+                    const rolesWithGames = Object.entries(analysis.roles)
+                      .filter(([_, perf]) => perf.games >= 5)
+                      .sort((a, b) => b[1].winrate - a[1].winrate)
+                    
+                    if (rolesWithGames.length < 2) return null
+
+                    const bestRole = rolesWithGames[0]
+                    const worstRole = rolesWithGames[rolesWithGames.length - 1]
+                    const winrateDiff = bestRole[1].winrate - worstRole[1].winrate
+
+                    return (
+                      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-5 h-5" />
+                          Confronto Ruoli
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                            <h4 className="text-sm text-gray-400 mb-2">Ruolo con Miglior Winrate</h4>
+                            <p className="text-2xl font-bold text-green-400 capitalize">{bestRole[0]}</p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              {bestRole[1].winrate.toFixed(1)}% su {bestRole[1].games} partite
+                            </p>
+                            {bestRole[1].heroes.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-green-700/50">
+                                <p className="text-xs text-gray-400 mb-2">Top Heroes:</p>
+                                <div className="flex gap-2 flex-wrap">
+                                  {bestRole[1].heroes.slice(0, 3).map((hero) => (
+                                    heroes[hero.hero_id] ? (
+                                      <div key={hero.hero_id} className="flex items-center gap-1">
+                                        <HeroCard
+                                          heroId={hero.hero_id}
+                                          heroName={heroes[hero.hero_id].name}
+                                          size="sm"
+                                        />
+                                        <span className="text-xs text-gray-300">{hero.winrate.toFixed(0)}%</span>
+                                      </div>
+                                    ) : null
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          {worstRole[0] !== bestRole[0] && (
+                            <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                              <h4 className="text-sm text-gray-400 mb-2">Ruolo da Migliorare</h4>
+                              <p className="text-2xl font-bold text-yellow-400 capitalize">{worstRole[0]}</p>
+                              <p className="text-sm text-gray-400 mt-1">
+                                {worstRole[1].winrate.toFixed(1)}% su {worstRole[1].games} partite
+                              </p>
+                              {winrateDiff > 10 && (
+                                <p className="text-xs text-yellow-300 mt-2">
+                                  ⚠️ Differenza di {winrateDiff.toFixed(1)}% rispetto al tuo ruolo migliore
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Top Heroes per Ruolo Preview */}
+                  {Object.entries(analysis.roles)
+                    .filter(([_, perf]) => perf.games > 0 && perf.heroes.length > 0)
+                    .length > 0 && (
+                    <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <Target className="w-5 h-5" />
+                        Top Heroes per Ruolo
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(analysis.roles)
+                          .filter(([_, perf]) => perf.games > 0 && perf.heroes.length > 0)
+                          .sort((a, b) => b[1].games - a[1].games)
+                          .slice(0, 4)
+                          .map(([role, perf]) => (
+                            <div key={role} className="bg-gray-700/50 rounded-lg p-4">
+                              <h4 className="text-sm font-semibold text-white capitalize mb-3">{role}</h4>
+                              <div className="space-y-2">
+                                {perf.heroes.slice(0, 3).map((hero) => (
+                                  <div key={hero.hero_id} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {heroes[hero.hero_id] && (
+                                        <HeroCard
+                                          heroId={hero.hero_id}
+                                          heroName={heroes[hero.hero_id].name}
+                                          size="sm"
+                                        />
+                                      )}
+                                      <span className="text-sm text-white">{hero.hero_name}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-gray-400">{hero.games}p</span>
+                                      <span className={`text-xs font-semibold ${
+                                        hero.winrate >= 50 ? 'text-green-400' : 'text-red-400'
+                                      }`}>
+                                        {hero.winrate.toFixed(0)}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Action Items */}
+                  {(() => {
+                    const rolesWithGames = Object.entries(analysis.roles)
+                      .filter(([_, perf]) => perf.games >= 5)
+                    const weakRoles = rolesWithGames.filter(([_, perf]) => perf.winrate < 45)
+                    const strongRoles = rolesWithGames.filter(([_, perf]) => perf.winrate >= 55)
+                    const needsDiversity = analysis.summary.totalRolesPlayed < 2
+
+                    if (weakRoles.length === 0 && strongRoles.length === 0 && !needsDiversity) return null
+
+                    return (
+                      <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-purple-200 flex items-center gap-2">
+                          <Target className="w-5 h-5" />
+                          Quick Actions
+                        </h3>
+                        <div className="space-y-3">
+                          {strongRoles.length > 0 && (
+                            <div className="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                              <div className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-semibold text-green-300 mb-1">
+                                    Continua a giocare: {strongRoles.map(([role]) => role).join(', ')}
+                                  </p>
+                                  <p className="text-xs text-green-400">
+                                    Stai performando molto bene in questi ruoli. Mantieni questo livello!
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {weakRoles.length > 0 && (
+                            <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-semibold text-yellow-300 mb-1">
+                                    Focus su: {weakRoles.map(([role]) => role).join(', ')}
+                                  </p>
+                                  <p className="text-xs text-yellow-400">
+                                    Winrate basso in questi ruoli. Clicca sulle card per vedere come migliorare.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {needsDiversity && (
+                            <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3">
+                              <div className="flex items-start gap-2">
+                                <Users className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-sm font-semibold text-blue-300 mb-1">
+                                    Diversifica il tuo pool
+                                  </p>
+                                  <p className="text-xs text-blue-400">
+                                    Stai giocando principalmente un solo ruolo. Prova altri ruoli per migliorare la comprensione del gioco.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
 
                   {/* Recommendations */}
                   {analysis.recommendations.length > 0 && (
