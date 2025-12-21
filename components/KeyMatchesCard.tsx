@@ -122,8 +122,8 @@ export default function KeyMatchesCard({
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col h-full">
-      <h3 className="text-base font-semibold text-white mb-3 flex-shrink-0">Partite Chiave</h3>
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col h-full">
+      <h3 className="text-sm font-semibold text-white mb-2 flex-shrink-0">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
         <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -138,10 +138,10 @@ export default function KeyMatchesCard({
             return (
               <div
                 key={`${item.label}-${match.match_id}`}
-                className={`border rounded-lg p-2.5 ${item.borderColor} ${item.bgColor} flex-1 flex flex-col`}
+                className={`border rounded-lg p-2 ${item.borderColor} ${item.bgColor} flex-1 flex flex-col`}
               >
                 {/* Header: Label + Win/Loss */}
-                <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
                   <div className="flex items-center gap-1.5">
                     <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
                     <span className={`text-xs font-semibold ${item.color}`}>{item.label}</span>
@@ -154,25 +154,25 @@ export default function KeyMatchesCard({
                 </div>
 
                 {/* Hero Icon + KDA */}
-                <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 mb-1.5 flex-shrink-0">
                   {match.hero_id && heroes[match.hero_id] && (
                     <HeroIcon
                       heroId={match.hero_id}
                       heroName={heroes[match.hero_id].name}
-                      size={32}
+                      size={28}
                       className="rounded flex-shrink-0"
                     />
                   )}
                   <div className="flex-1">
-                    <div className="text-[10px] text-gray-300 mb-0.5">{heroName}</div>
-                    <div className="text-sm font-bold text-white">
+                    <div className="text-[10px] text-gray-300 mb-0.5 leading-tight">{heroName}</div>
+                    <div className="text-xs font-bold text-white leading-tight">
                       KDA: {match.kda.toFixed(2)}
                     </div>
                   </div>
                 </div>
 
                 {/* Insight Bulb */}
-                <div className="mb-2 flex-shrink-0">
+                <div className="mb-1.5 flex-shrink-0">
                   <InsightBulb
                     title={insight.title}
                     reason={insight.reason}
