@@ -164,8 +164,8 @@ export default function FarmEconomyPage() {
         <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
           ← Torna alle Analisi Avanzate
         </Link>
-        <h1 className="text-3xl font-bold mb-2">Farm & Economy</h1>
-        <p className="text-gray-400">Analisi dettagliata di farm efficiency, gold utilization e economy management</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Farm & Economy</h1>
+        <p className="text-gray-400 mb-6">Analisi dettagliata di farm efficiency, gold utilization e economy management</p>
       </div>
 
       {error && (
@@ -206,13 +206,13 @@ export default function FarmEconomyPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-6 space-y-6">
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Overview Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
               <p className="text-3xl font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</p>
               <p className="text-xs text-gray-500 mt-2">Gold per minuto</p>
@@ -236,7 +236,7 @@ export default function FarmEconomyPage() {
                   
                   {/* Phase Analysis */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Analisi per Fase di Gioco</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Analisi per Fase di Gioco</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-700/50 rounded-lg p-4">
                 <h3 className="text-sm text-gray-400 mb-2">Early Game (0-15min)</h3>
@@ -262,7 +262,7 @@ export default function FarmEconomyPage() {
                   {/* Detailed Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4">Statistiche Farm & Economy</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Farm & Economy</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-400">GPM Medio</span>
@@ -296,7 +296,7 @@ export default function FarmEconomyPage() {
                     </div>
 
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4">Insights</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4">Insights</h3>
                       <div className="space-y-2 text-sm">
                         {stats.farm.goldUtilization < 80 && (
                           <p className="text-yellow-400 flex items-center gap-2">
@@ -339,7 +339,7 @@ export default function FarmEconomyPage() {
                 <div className="space-y-6">
                   {/* GPM/XPM Trend Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Trend GPM & XPM</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Trend GPM & XPM</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={gpmXpmData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -361,7 +361,7 @@ export default function FarmEconomyPage() {
 
                   {/* Net Worth Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Net Worth per Partita</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Net Worth per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={netWorthData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

@@ -10,6 +10,7 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
 import AttributeIcon from '@/components/AttributeIcon'
+import Link from 'next/link'
 import { BarChart as BarChartIcon, Target, Table, Swords } from 'lucide-react'
 
 interface HeroStat {
@@ -193,7 +194,10 @@ export default function HeroAnalysisPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <h1 className="text-3xl font-bold mb-4">Hero Analysis</h1>
+      <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+        ← Torna a Dashboard
+      </Link>
+      <h1 className="text-2xl md:text-3xl font-bold mb-2">Hero Analysis</h1>
       <p className="text-gray-400 mb-6">Analisi approfondita delle tue performance per hero</p>
 
       {error && (
@@ -236,13 +240,13 @@ export default function HeroAnalysisPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-6 space-y-6">
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Overall Stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
               {playerId && (
                 <InsightBadge
                   elementType="metric-card"
@@ -255,16 +259,16 @@ export default function HeroAnalysisPage() {
               <h3 className="text-sm text-gray-400 mb-2">Partite Totali</h3>
               <p className="text-3xl font-bold">{analysis.overall.totalGames}</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Winrate Globale</h3>
               <p className="text-3xl font-bold text-green-400">{analysis.overall.overallWinrate}%</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Hero Pool</h3>
               <p className="text-3xl font-bold text-blue-400">{analysis.overall.diverseHeroes}</p>
               <p className="text-xs text-gray-500 mt-1">Heroes con 5+ partite</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Hero Più Giocato</h3>
               <p className="text-lg font-bold">{analysis.mostPlayed?.hero_name || 'N/A'}</p>
               <p className="text-sm text-gray-500 mt-1">{analysis.mostPlayed?.games || 0} partite</p>
@@ -274,7 +278,7 @@ export default function HeroAnalysisPage() {
                   {/* Best & Worst Heroes */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-green-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-green-400">🏆 Heroes Migliori</h3>
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-green-400">🏆 Heroes Migliori</h3>
               {analysis.bestHeroes.length > 0 ? (
                 <div className="space-y-3">
                   {analysis.bestHeroes.map((hero) => (
@@ -296,7 +300,7 @@ export default function HeroAnalysisPage() {
             </div>
 
             <div className="bg-gray-800 border border-red-700 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4 text-red-400">⚠️ Heroes da Migliorare</h3>
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-red-400">⚠️ Heroes da Migliorare</h3>
               {analysis.worstHeroes.length > 0 ? (
                 <div className="space-y-3">
                   {analysis.worstHeroes.map((hero) => (
@@ -321,7 +325,7 @@ export default function HeroAnalysisPage() {
                   {/* Insights */}
                   {analysis.insights.length > 0 && (
                     <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4 text-blue-200">💡 Insights</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4 text-blue-200">💡 Insights</h3>
                       <ul className="space-y-2">
                         {analysis.insights.map((insight, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-blue-300">
@@ -341,7 +345,7 @@ export default function HeroAnalysisPage() {
                   {/* Winrate Chart */}
                   {winrateChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Winrate Top 10 Heroes</h2>
+              <h2 className="text-xl md:text-2xl font-semibold mb-4">Winrate Top 10 Heroes</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={winrateChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -364,7 +368,7 @@ export default function HeroAnalysisPage() {
                   {/* Role Performance */}
                   {roleChartData.length > 0 && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Performance per Ruolo</h2>
+              <h2 className="text-xl md:text-2xl font-semibold mb-4">Performance per Ruolo</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={roleChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -390,27 +394,27 @@ export default function HeroAnalysisPage() {
               {/* Stats Tab */}
               {activeTab === 'stats' && (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-700">
-              <h2 className="text-2xl font-semibold">Tutti i Heroes</h2>
+            <div className="px-6 py-4 border-b border-gray-700 bg-gray-700">
+              <h2 className="text-xl md:text-2xl font-semibold">Tutti i Heroes</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Rating</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">Rating</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
                   {analysis.heroStats.map((hero) => (
                     <tr key={hero.hero_id} className="hover:bg-gray-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                           {heroes[hero.hero_id] && (
                             <HeroCard
                               heroId={hero.hero_id}
@@ -460,7 +464,7 @@ export default function HeroAnalysisPage() {
               {activeTab === 'matchup' && (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold">Matchup Analysis (Hero vs Hero)</h2>
+              <h2 className="text-xl md:text-2xl font-semibold">Matchup Analysis (Hero vs Hero)</h2>
               {matchupLoading && (
                 <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
               )}
@@ -472,7 +476,7 @@ export default function HeroAnalysisPage() {
             {matchupData && matchupData.matchups.length > 0 ? (
               <div className="space-y-6">
                 {/* Matchup Summary */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gray-700/50 rounded-lg p-4">
                     <h3 className="text-sm text-gray-400 mb-1">Partite Analizzate</h3>
                     <p className="text-2xl font-bold">{matchupData.summary.totalMatches}</p>
@@ -490,7 +494,7 @@ export default function HeroAnalysisPage() {
                 {/* Matchup Insights */}
                 {matchupData.insights.length > 0 && (
                   <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-2 text-purple-200">Matchup Insights</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2 text-purple-200">Matchup Insights</h3>
                     <ul className="space-y-1">
                       {matchupData.insights.map((insight, idx) => (
                         <li key={idx} className="text-purple-300 text-sm">• {insight}</li>
@@ -501,7 +505,7 @@ export default function HeroAnalysisPage() {
 
                 {/* Hero Selector */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Seleziona Hero per vedere i Matchup</h3>
+                  <h3 className="text-lg md:text-xl font-semibold mb-3">Seleziona Hero per vedere i Matchup</h3>
                   <div className="flex flex-wrap gap-2">
                     {matchupData.matchups.map((matchup) => (
                       <button
@@ -542,23 +546,23 @@ export default function HeroAnalysisPage() {
 
                       return (
                         <>
-                          <h3 className="text-xl font-semibold mb-4">
+                          <h3 className="text-lg md:text-xl font-semibold mb-4">
                             Matchup per {selectedMatchup.playerHeroName}
                           </h3>
                           <div className="overflow-x-auto">
                             <table className="w-full">
                               <thead className="bg-gray-600">
                                 <tr>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">
                                     Eroe Nemico
                                   </th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">
                                     Partite
                                   </th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">
                                     Vittorie
                                   </th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">
+                                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase">
                                     Winrate
                                   </th>
                                 </tr>
@@ -566,8 +570,8 @@ export default function HeroAnalysisPage() {
                               <tbody className="divide-y divide-gray-600">
                                 {sortedMatchups.map((matchup) => (
                                   <tr key={matchup.enemyHeroId} className="hover:bg-gray-600/50">
-                                    <td className="px-4 py-3">
-                                      <div className="flex items-center gap-3">
+                                    <td className="px-6 py-4">
+                                      <div className="flex items-center gap-2">
                                         <HeroCard
                                           heroId={matchup.enemyHeroId}
                                           heroName={matchup.enemyHeroInternalName}
@@ -578,9 +582,9 @@ export default function HeroAnalysisPage() {
                                         </span>
                                       </div>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-300">{matchup.games}</td>
-                                    <td className="px-4 py-3 text-gray-300">{matchup.wins}</td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-6 py-4 text-gray-300">{matchup.games}</td>
+                                    <td className="px-6 py-4 text-gray-300">{matchup.wins}</td>
+                                    <td className="px-6 py-4">
                                       <span
                                         className={`font-semibold ${
                                           matchup.winrate >= 60

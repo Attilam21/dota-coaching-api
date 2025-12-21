@@ -137,8 +137,8 @@ export default function FightsDamagePage() {
         <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
           ← Torna alle Analisi Avanzate
         </Link>
-        <h1 className="text-3xl font-bold mb-2">Fights & Damage</h1>
-        <p className="text-gray-400">Analisi del contributo ai fight, damage output e teamfight impact</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Fights & Damage</h1>
+        <p className="text-gray-400 mb-6">Analisi del contributo ai fight, damage output e teamfight impact</p>
       </div>
 
       {error && (
@@ -179,13 +179,13 @@ export default function FightsDamagePage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-6 space-y-6">
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Overview Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Kill Participation</h3>
               <p className="text-3xl font-bold text-green-400">{stats.fights.killParticipation.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-2">Partecipazione ai kill</p>
@@ -229,7 +229,7 @@ export default function FightsDamagePage() {
                   {/* Detailed Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4">Statistiche Fight</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Fight</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-400">Kills Medio</span>
@@ -251,7 +251,7 @@ export default function FightsDamagePage() {
                     </div>
 
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4">Insights</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4">Insights</h3>
                       <div className="space-y-2 text-sm">
                         {stats.fights.killParticipation < 50 && (
                           <p className="text-yellow-400 flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function FightsDamagePage() {
                 <div className="space-y-6">
                   {/* Radar Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Profilo Fight Contribution</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Profilo Fight Contribution</h2>
             <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={radarData}>
                 <PolarGrid />
@@ -319,7 +319,7 @@ export default function FightsDamagePage() {
 
                   {/* Damage Breakdown Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Damage Breakdown per Partita</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Damage Breakdown per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={damageData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

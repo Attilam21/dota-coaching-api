@@ -130,8 +130,8 @@ export default function VisionControlPage() {
         <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
           ← Torna alle Analisi Avanzate
         </Link>
-        <h1 className="text-3xl font-bold mb-2">Vision & Map Control</h1>
-        <p className="text-gray-400">Analisi di visione, wards e controllo mappa</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Vision & Map Control</h1>
+        <p className="text-gray-400 mb-6">Analisi di visione, wards e controllo mappa</p>
       </div>
 
       {error && (
@@ -172,13 +172,13 @@ export default function VisionControlPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-6 space-y-6">
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Overview Cards */}
-                  <div className="grid md:grid-cols-4 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Observer Placed</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.vision.avgObserverPlaced.toFixed(1)}</p>
               <p className="text-xs text-gray-500 mt-2">Observer wards per partita</p>
@@ -201,7 +201,7 @@ export default function VisionControlPage() {
                 </div>
                   
                   {/* Support Stats */}
-                  <div className="grid md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-sm text-gray-400 mb-2">Camps Stacked</h3>
               <p className="text-2xl font-bold text-cyan-400">{stats.vision.avgCampsStacked}</p>
@@ -227,7 +227,7 @@ export default function VisionControlPage() {
                   {/* Detailed Stats & Insights */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-400">Sentry Placed</span>
@@ -265,7 +265,7 @@ export default function VisionControlPage() {
                     </div>
 
                     <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-                      <h3 className="text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
+                      <h3 className="text-xl md:text-2xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
                         <Lightbulb className="w-6 h-6" />
                         Insights Vision & Map Control
                       </h3>
@@ -329,7 +329,7 @@ export default function VisionControlPage() {
                 <div className="space-y-6">
                   {/* Wards Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Observer Wards per Partita</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Observer Wards per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={wardData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -351,7 +351,7 @@ export default function VisionControlPage() {
 
                   {/* Pie Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                    <h2 className="text-2xl font-semibold mb-4">Distribuzione Wards</h2>
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4">Distribuzione Wards</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie

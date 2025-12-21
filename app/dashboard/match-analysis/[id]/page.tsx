@@ -457,7 +457,7 @@ export default function MatchAnalysisDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                 activeTab === tab.id
                   ? 'bg-gray-700 text-white border-b-2 border-red-500'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
@@ -470,13 +470,13 @@ export default function MatchAnalysisDetailPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-6 space-y-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Confronto con Media - NEW FEATURE */}
               {currentPlayer && playerStats && (
                 <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
-                  <h3 className="text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-blue-300 flex items-center gap-2">
                     <TrendingUp className="w-6 h-6" />
                     Confronto con la Tua Media
                   </h3>
@@ -511,28 +511,28 @@ export default function MatchAnalysisDetailPage() {
               {/* Players Table */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
                 <div className="px-6 py-4 bg-gray-700 border-b border-gray-600">
-                  <h2 className="text-xl font-semibold text-white">Performance Giocatori</h2>
+                  <h2 className="text-xl md:text-2xl font-semibold text-white">Performance Giocatori</h2>
                 </div>
                 
                 {/* Radiant Team */}
                 <div className="p-6 bg-green-900/20">
-                  <h3 className="font-semibold text-green-400 mb-3">Radiant</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-green-400 mb-3">Radiant</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
                       <thead>
                         <tr className="text-left text-sm text-gray-400">
-                          <th className="pb-2">Hero</th>
-                          <th className="pb-2">K/D/A</th>
-                          <th className="pb-2">LH/D</th>
-                          <th className="pb-2">GPM</th>
-                          <th className="pb-2">XPM</th>
-                          {match.players[0]?.net_worth && <th className="pb-2">Net Worth</th>}
+                          <th className="px-6 py-4">Hero</th>
+                          <th className="px-6 py-4">K/D/A</th>
+                          <th className="px-6 py-4">LH/D</th>
+                          <th className="px-6 py-4">GPM</th>
+                          <th className="px-6 py-4">XPM</th>
+                          {match.players[0]?.net_worth && <th className="px-6 py-4">Net Worth</th>}
                         </tr>
                       </thead>
                       <tbody className="text-sm">
                         {match.players.slice(0, 5).map((player, idx) => (
                           <tr key={idx} className="border-t border-green-800/50">
-                            <td className="py-2">
+                            <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 {heroes[player.hero_id] && (
                                   <HeroCard
@@ -560,23 +560,23 @@ export default function MatchAnalysisDetailPage() {
 
                 {/* Dire Team */}
                 <div className="p-6 bg-red-900/20">
-                  <h3 className="font-semibold text-red-400 mb-3">Dire</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-red-400 mb-3">Dire</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
                       <thead>
                         <tr className="text-left text-sm text-gray-400">
-                          <th className="pb-2">Hero</th>
-                          <th className="pb-2">K/D/A</th>
-                          <th className="pb-2">LH/D</th>
-                          <th className="pb-2">GPM</th>
-                          <th className="pb-2">XPM</th>
-                          {match.players[5]?.net_worth && <th className="pb-2">Net Worth</th>}
+                          <th className="px-6 py-4">Hero</th>
+                          <th className="px-6 py-4">K/D/A</th>
+                          <th className="px-6 py-4">LH/D</th>
+                          <th className="px-6 py-4">GPM</th>
+                          <th className="px-6 py-4">XPM</th>
+                          {match.players[5]?.net_worth && <th className="px-6 py-4">Net Worth</th>}
                         </tr>
                       </thead>
                       <tbody className="text-sm">
                         {match.players.slice(5, 10).map((player, idx) => (
                           <tr key={idx} className="border-t border-red-800/50">
-                            <td className="py-2">
+                            <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 {heroes[player.hero_id] && (
                                   <HeroCard
@@ -588,13 +588,13 @@ export default function MatchAnalysisDetailPage() {
                                 <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
                               </div>
                             </td>
-                            <td className="py-2 font-semibold text-gray-300">
+                            <td className="px-6 py-4 font-semibold text-gray-300">
                               {player.kills}/{player.deaths}/{player.assists}
                             </td>
-                            <td className="py-2 text-gray-300">{player.last_hits}/{player.denies}</td>
-                            <td className="py-2 text-gray-300">{player.gold_per_min}</td>
-                            <td className="py-2 text-gray-300">{player.xp_per_min}</td>
-                            {player.net_worth && <td className="py-2 text-gray-300">{player.net_worth.toLocaleString()}</td>}
+                            <td className="px-6 py-4 text-gray-300">{player.last_hits}/{player.denies}</td>
+                            <td className="px-6 py-4 text-gray-300">{player.gold_per_min}</td>
+                            <td className="px-6 py-4 text-gray-300">{player.xp_per_min}</td>
+                            {player.net_worth && <td className="px-6 py-4 text-gray-300">{player.net_worth.toLocaleString()}</td>}
                           </tr>
                         ))}
                       </tbody>
@@ -606,7 +606,7 @@ export default function MatchAnalysisDetailPage() {
               {/* Timeline Chart */}
               {timeline && timeline.timeline && timeline.timeline.length > 0 && (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-white">Timeline Partita - Gold & XP Advantage</h3>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-white">Timeline Partita - Gold & XP Advantage</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={timeline.timeline}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
@@ -709,7 +709,7 @@ export default function MatchAnalysisDetailPage() {
               {/* Statistics Charts */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-white">Gold & Experience per Minute</h3>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-white">Gold & Experience per Minute</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={gpmData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
@@ -727,7 +727,7 @@ export default function MatchAnalysisDetailPage() {
                 </div>
 
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-white">Kills, Deaths & Assists</h3>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-white">Kills, Deaths & Assists</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={kdaData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
@@ -749,7 +749,7 @@ export default function MatchAnalysisDetailPage() {
               {/* AI Analysis Section */}
               {analysis && (
                 <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
-                  <h3 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
+                  <h3 className="text-xl md:text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
                     🤖 AI Analysis & Insights
                   </h3>
                   <p className="text-blue-200 mb-4">{analysis.overview}</p>
@@ -777,7 +777,7 @@ export default function MatchAnalysisDetailPage() {
           {activeTab === 'phases' && (
             <div className="space-y-6">
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-white">Analisi Fase per Fase</h2>
+                <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Analisi Fase per Fase</h2>
                 <p className="text-gray-400 mb-6">
                   Analisi dettagliata delle performance divise in Early Game (0-10min), Mid Game (10-25min), e Late Game (25+min)
                 </p>
@@ -813,7 +813,7 @@ export default function MatchAnalysisDetailPage() {
                     {/* Player Phase Performance */}
                     {phasesData.playerPhases && phasesData.playerPhases.length > 0 && (
                       <div className="space-y-4">
-                        <h3 className="text-xl font-semibold text-white">Performance per Fase</h3>
+                        <h3 className="text-lg md:text-xl font-semibold text-white">Performance per Fase</h3>
                         {phasesData.playerPhases.map((playerPhase: any, idx: number) => {
                           const player = match?.players.find(p => p.player_slot === playerPhase.player_slot)
                           if (!player) return null
@@ -910,7 +910,7 @@ export default function MatchAnalysisDetailPage() {
           {activeTab === 'items' && (
             <div className="space-y-6">
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-white">Item Timing Analysis</h2>
+                <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Item Timing Analysis</h2>
                 <p className="text-gray-400 mb-6">
                   Analisi dei tempi di acquisto degli item e confronto con timing ottimali
                 </p>
@@ -939,7 +939,7 @@ export default function MatchAnalysisDetailPage() {
                                   size="sm"
                                 />
                               )}
-                              <h3 className="text-xl font-semibold text-white">
+                              <h3 className="text-lg md:text-xl font-semibold text-white">
                                 {heroes[playerTiming.hero_id]?.localized_name || `Hero ${playerTiming.hero_id}`}
                               </h3>
                             </div>
@@ -1030,7 +1030,7 @@ export default function MatchAnalysisDetailPage() {
           {activeTab === 'teamfights' && (
             <div className="space-y-6">
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4 text-white">Teamfight Analysis</h2>
+                <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Teamfight Analysis</h2>
                 <p className="text-gray-400 mb-6">
                   Analisi dettagliata dei teamfight: partecipazione, outcome, e performance individuali
                 </p>
