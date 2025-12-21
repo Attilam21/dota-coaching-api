@@ -10,7 +10,7 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
-import { BarChart as BarChartIcon, Table, Target, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react'
+import { BarChart as BarChartIcon, Table, Target, TrendingUp, Users, CheckCircle, AlertCircle, Grid3x3, List, ArrowUpDown } from 'lucide-react'
 import { PieChart, Pie, Cell } from 'recharts'
 
 interface HeroStats {
@@ -55,6 +55,8 @@ export default function HeroesPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('chart')
+  const [statsView, setStatsView] = useState<'grid' | 'table'>('grid')
+  const [sortBy, setSortBy] = useState<'games' | 'winrate' | 'kda'>('games')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -667,60 +669,189 @@ export default function HeroesPage() {
 
               {/* Stats Tab */}
               {activeTab === 'stats' && (
-                <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-                  <div className="p-6 border-b border-gray-700">
-                    <h2 className="text-2xl font-semibold">Statistiche Heroes</h2>
+                <div className="space-y-4">
+                  {/* Header con controlli */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <h2 className="text-xl md:text-2xl font-semibold">Statistiche Heroes</h2>
+                    <div className="flex items-center gap-2">
+                      {/* Sort */}
+                      <div className="flex items-center gap-2 bg-gray-700 rounded-lg p-1">
+                        <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value as 'games' | 'winrate' | 'kda')}
+                          className="bg-transparent text-sm text-white border-none outline-none cursor-pointer"
+                        >
+                          <option value="games">Ordina per Partite</option>
+                          <option value="winrate">Ordina per Winrate</option>
+                          <option value="kda">Ordina per KDA</option>
+                        </select>
+                      </div>
+                      {/* View Toggle */}
+                      <div className="flex items-center gap-1 bg-gray-700 rounded-lg p-1">
+                        <button
+                          onClick={() => setStatsView('grid')}
+                          className={`p-2 rounded transition-colors ${
+                            statsView === 'grid' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'
+                          }`}
+                          title="Vista griglia"
+                        >
+                          <Grid3x3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setStatsView('table')}
+                          className={`p-2 rounded transition-colors ${
+                            statsView === 'table' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'
+                          }`}
+                          title="Vista tabella"
+                        >
+                          <List className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-700">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">XPM</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-700">
-                        {heroStats.map((hero) => (
-                          <tr key={hero.hero_id} className="hover:bg-gray-700/50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-3">
-                                {heroes[hero.hero_id] && (
-                                  <HeroIcon
-                                    heroId={hero.hero_id}
-                                    heroName={heroes[hero.hero_id].name}
-                                    size={40}
-                                    className="rounded"
-                                  />
-                                )}
-                                <span className="text-white font-medium">{hero.hero_name}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.games}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">{hero.wins}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`font-semibold ${hero.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+
+                  {/* Grid View - Compatto */}
+                  {statsView === 'grid' && (() => {
+                    const allHeroes = analysisData?.heroStats || heroStats
+                    const sortedHeroes = [...allHeroes].sort((a, b) => {
+                      if (sortBy === 'games') return b.games - a.games
+                      if (sortBy === 'winrate') return b.winrate - a.winrate
+                      if (sortBy === 'kda') {
+                        const aKda = parseFloat(a.kda || '0')
+                        const bKda = parseFloat(b.kda || '0')
+                        return bKda - aKda
+                      }
+                      return 0
+                    })
+
+                    return (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {sortedHeroes.map((hero) => (
+                          <div
+                            key={hero.hero_id}
+                            className="bg-gray-700/50 border border-gray-600 rounded-lg p-3 hover:border-gray-500 hover:bg-gray-700/70 transition-all group"
+                          >
+                            {/* Hero Icon + Name */}
+                            <div className="flex flex-col items-center gap-2 mb-2">
+                              {heroes[hero.hero_id] && (
+                                <HeroIcon
+                                  heroId={hero.hero_id}
+                                  heroName={heroes[hero.hero_id].name}
+                                  size={48}
+                                  className="rounded"
+                                />
+                              )}
+                              <span className="text-white font-medium text-xs text-center leading-tight">
+                                {hero.hero_name}
+                              </span>
+                            </div>
+                            
+                            {/* Winrate - Principale */}
+                            <div className="text-center mb-2">
+                              <span className={`text-lg font-bold ${
+                                hero.winrate >= 60 ? 'text-green-400' :
+                                hero.winrate >= 50 ? 'text-yellow-400' :
+                                'text-red-400'
+                              }`}>
                                 {hero.winrate.toFixed(1)}%
                               </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                              <span className="font-medium">{hero.kda || 'N/A'}</span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                              <span className="font-medium text-yellow-400">{hero.avg_gpm || 'N/A'}</span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                              <span className="font-medium text-blue-400">{hero.avg_xpm || 'N/A'}</span>
-                            </td>
-                          </tr>
+                            </div>
+
+                            {/* Stats compatte */}
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between text-gray-400">
+                                <span>Partite:</span>
+                                <span className="text-white font-medium">{hero.games}</span>
+                              </div>
+                              <div className="flex justify-between text-gray-400">
+                                <span>KDA:</span>
+                                <span className="text-white font-medium">{hero.kda || 'N/A'}</span>
+                              </div>
+                              {hero.avg_gpm && (
+                                <div className="flex justify-between text-gray-400">
+                                  <span>GPM:</span>
+                                  <span className="text-yellow-400 font-medium">{hero.avg_gpm}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Table View - Compatta */}
+                  {statsView === 'table' && (() => {
+                    const allHeroes = analysisData?.heroStats || heroStats
+                    const sortedHeroes = [...allHeroes].sort((a, b) => {
+                      if (sortBy === 'games') return b.games - a.games
+                      if (sortBy === 'winrate') return b.winrate - a.winrate
+                      if (sortBy === 'kda') {
+                        const aKda = parseFloat(a.kda || '0')
+                        const bKda = parseFloat(b.kda || '0')
+                        return bKda - aKda
+                      }
+                      return 0
+                    })
+
+                    return (
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-700">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">XPM</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                              {sortedHeroes.map((hero) => (
+                                <tr key={hero.hero_id} className="hover:bg-gray-700/50">
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    <div className="flex items-center gap-2">
+                                      {heroes[hero.hero_id] && (
+                                        <HeroIcon
+                                          heroId={hero.hero_id}
+                                          heroName={heroes[hero.hero_id].name}
+                                          size={32}
+                                          className="rounded"
+                                        />
+                                      )}
+                                      <span className="text-white font-medium text-sm">{hero.hero_name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-300 text-sm">{hero.games}</td>
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    <span className={`font-semibold text-sm ${
+                                      hero.winrate >= 60 ? 'text-green-400' :
+                                      hero.winrate >= 50 ? 'text-yellow-400' :
+                                      'text-red-400'
+                                    }`}>
+                                      {hero.winrate.toFixed(1)}%
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-300 text-sm">
+                                    <span className="font-medium">{hero.kda || 'N/A'}</span>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-300 text-sm">
+                                    <span className="font-medium text-yellow-400">{hero.avg_gpm || 'N/A'}</span>
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap text-gray-300 text-sm">
+                                    <span className="font-medium text-blue-400">{hero.avg_xpm || 'N/A'}</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               )}
             </div>
