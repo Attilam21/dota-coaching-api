@@ -771,72 +771,96 @@ export default function DashboardPage() {
                   {/* Benchmarks + Phase Analysis - In una riga */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Benchmarks Compatti */}
-                    {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
-                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <Award className="w-4 h-4 text-blue-400" />
-                          Benchmark & Percentili
-                        </h3>
-                        <div className="grid grid-cols-3 gap-3">
-                          {/* GPM Percentile */}
-                          {(benchmarks.percentiles?.gpm || benchmarks.calculatedPercentiles?.gpm) && (
-                            <div className="text-center">
-                              <div className="text-lg font-bold text-yellow-400 mb-1">
-                                {benchmarks.percentiles?.gpm ? (stats?.farm?.gpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.gpm.value.toFixed(0) ?? '0'}
-                              </div>
-                              <div className="text-xs text-gray-400 mb-1">GPM</div>
-                              <div className={`text-xs font-semibold ${
-                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                'text-gray-400'
-                              }`}>
-                                {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
-                              </div>
-                            </div>
-                          )}
+                    {(() => {
+                      const hasGpm = benchmarks?.percentiles?.gpm || benchmarks?.calculatedPercentiles?.gpm
+                      const hasXpm = benchmarks?.percentiles?.xpm || benchmarks?.calculatedPercentiles?.xpm
+                      const hasKda = benchmarks?.percentiles?.kda || benchmarks?.calculatedPercentiles?.kda
+                      const hasAnyPercentile = hasGpm || hasXpm || hasKda
+                      
+                      return (
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <Award className="w-4 h-4 text-blue-400" />
+                            Benchmark & Percentili
+                          </h3>
+                          {hasAnyPercentile ? (
+                            <>
+                              <div className="grid grid-cols-3 gap-3">
+                                {/* GPM Percentile */}
+                                {hasGpm ? (
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-yellow-400 mb-1">
+                                      {benchmarks.percentiles?.gpm ? (stats?.farm?.gpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.gpm.value.toFixed(0) ?? '0'}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mb-1">GPM</div>
+                                    <div className={`text-xs font-semibold ${
+                                      (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                      (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                      'text-gray-400'
+                                    }`}>
+                                      {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center text-xs text-gray-500">-</div>
+                                )}
 
-                          {/* XPM Percentile */}
-                          {(benchmarks.percentiles?.xpm || benchmarks.calculatedPercentiles?.xpm) && (
-                            <div className="text-center">
-                              <div className="text-lg font-bold text-blue-400 mb-1">
-                                {benchmarks.percentiles?.xpm ? (stats?.farm?.xpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.xpm.value.toFixed(0) ?? '0'}
-                              </div>
-                              <div className="text-xs text-gray-400 mb-1">XPM</div>
-                              <div className={`text-xs font-semibold ${
-                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                'text-gray-400'
-                              }`}>
-                                {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
-                              </div>
-                            </div>
-                          )}
+                                {/* XPM Percentile */}
+                                {hasXpm ? (
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-blue-400 mb-1">
+                                      {benchmarks.percentiles?.xpm ? (stats?.farm?.xpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.xpm.value.toFixed(0) ?? '0'}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mb-1">XPM</div>
+                                    <div className={`text-xs font-semibold ${
+                                      (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                      (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                      'text-gray-400'
+                                    }`}>
+                                      {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center text-xs text-gray-500">-</div>
+                                )}
 
-                          {/* KDA Percentile */}
-                          {(benchmarks.percentiles?.kda || benchmarks.calculatedPercentiles?.kda) && (
-                            <div className="text-center">
-                              <div className="text-lg font-bold text-red-400 mb-1">
-                                {benchmarks.percentiles?.kda ? (stats?.kda?.last10 ?? 0).toFixed(2) : benchmarks.calculatedPercentiles?.kda.value.toFixed(2) ?? '0.00'}
+                                {/* KDA Percentile */}
+                                {hasKda ? (
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-red-400 mb-1">
+                                      {benchmarks.percentiles?.kda ? (stats?.kda?.last10 ?? 0).toFixed(2) : benchmarks.calculatedPercentiles?.kda.value.toFixed(2) ?? '0.00'}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mb-1">KDA</div>
+                                    <div className={`text-xs font-semibold ${
+                                      (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                      (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                      'text-gray-400'
+                                    }`}>
+                                      {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center text-xs text-gray-500">-</div>
+                                )}
                               </div>
-                              <div className="text-xs text-gray-400 mb-1">KDA</div>
-                              <div className={`text-xs font-semibold ${
-                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                'text-gray-400'
-                              }`}>
-                                {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
-                              </div>
+                              {benchmarks?.source === 'calculated' && (
+                                <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                                  <Info className="w-3 h-3" />
+                                  Percentili calcolati su standard Dota 2
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-gray-400 mb-2">Dati percentili non disponibili</p>
+                              <p className="text-xs text-gray-500">
+                                Assicurati che il tuo profilo OpenDota sia pubblico per visualizzare i percentili
+                              </p>
                             </div>
                           )}
                         </div>
-                        {benchmarks.source === 'calculated' && (
-                          <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
-                            <Info className="w-3 h-3" />
-                            Percentili calcolati su standard Dota 2
-                          </p>
-                        )}
-                      </div>
-                    )}
+                      )
+                    })()}
 
                     {/* Phase Analysis - Compatto */}
                     {fullProfile?.phaseAnalysis && (
