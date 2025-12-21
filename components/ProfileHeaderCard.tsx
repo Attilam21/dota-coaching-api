@@ -88,11 +88,12 @@ export default function ProfileHeaderCard({
           <div className="flex-shrink-0">
             <div className="relative w-14 h-14 rounded-full border border-gray-600 overflow-hidden bg-gray-700">
               {avatarUrl && !avatarError ? (
-                // Use native <img> tag for Steam avatars (more reliable than Next.js Image)
-                <img
+                <Image
                   src={avatarUrl}
                   alt={playerName || `Player ${playerId || ''}`}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                   onError={() => setAvatarError(true)}
                 />
               ) : (
