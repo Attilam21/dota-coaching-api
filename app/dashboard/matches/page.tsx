@@ -559,6 +559,12 @@ export default function MatchesPage() {
                           placeholder="Cerca Match ID..."
                           value={searchMatchId}
                           onChange={(e) => setSearchMatchId(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchMatchId.trim() && !filteredMatches.some(m => m.match_id.toString() === searchMatchId.trim())) {
+                              e.preventDefault()
+                              router.push(`/dashboard/match-analysis/${searchMatchId.trim()}`)
+                            }
+                          }}
                           className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
                         />
                       </div>

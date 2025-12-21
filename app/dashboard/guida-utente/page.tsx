@@ -61,9 +61,9 @@ export default function GuidaUtentePage() {
     },
     {
       title: 'Analisi Partite',
-      description: 'Analizza singole partite in dettaglio con tabs per Overview, Fasi, Item Timing e Teamfight.',
+      description: 'Visualizza e analizza le tue partite con Overview, Insights e analisi dettagliate.',
       icon: Zap,
-      href: '/dashboard/match-analysis',
+      href: '/dashboard/matches',
       color: 'bg-yellow-900/30 border-yellow-700',
     },
     {

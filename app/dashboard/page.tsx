@@ -951,14 +951,14 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
                       </Link>
                       <Link
-                        href="/dashboard/match-analysis"
+                        href="/dashboard/matches"
                         className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Gamepad2 className="w-8 h-8 text-green-400" />
                           <h4 className="font-semibold">Analizza Partita</h4>
                         </div>
-                        <p className="text-xs text-gray-400">Analisi dettagliata singola partita con IA</p>
+                        <p className="text-xs text-gray-400">Visualizza e analizza le tue partite</p>
                       </Link>
                     </div>
                   </div>

@@ -378,8 +378,8 @@ export default function MatchAnalysisDetailPage() {
         <div className="bg-red-900/50 border border-red-700 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-red-200 mb-2">Errore nel caricamento</h2>
           <p className="text-red-300 mb-4">{error || 'Partita non trovata'}</p>
-          <Link href="/dashboard/match-analysis" className="inline-block text-red-400 hover:text-red-300">
-            ← Torna a Seleziona Partita
+          <Link href="/dashboard/matches" className="inline-block text-red-400 hover:text-red-300">
+            ← Torna a Partite
           </Link>
         </div>
       </div>
@@ -411,8 +411,8 @@ export default function MatchAnalysisDetailPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <Link href="/dashboard/match-analysis" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
-        ← Torna a Seleziona Partita
+      <Link href="/dashboard/matches" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+        ← Torna a Partite
       </Link>
 
       {/* Match Header - Improved Design */}

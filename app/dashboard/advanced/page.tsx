@@ -118,9 +118,9 @@ export default function AdvancedPage() {
           <div className="flex gap-4">
             <AnimatedButton
               variant="primary"
-              onClick={() => window.location.href = '/dashboard/match-analysis'}
+              onClick={() => window.location.href = '/dashboard/matches'}
             >
-              Analisi Partita Singola
+              Visualizza Partite
             </AnimatedButton>
             <AnimatedButton
               variant="secondary"
