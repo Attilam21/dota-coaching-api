@@ -122,74 +122,76 @@ export default function KeyMatchesCard({
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-2.5 flex flex-col">
-      <h3 className="text-sm font-semibold text-white mb-2 flex-shrink-0">Partite Chiave</h3>
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col h-full">
+      <h3 className="text-sm font-semibold text-white mb-2.5 flex-shrink-0">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
-        <div className="space-y-1.5 flex-1 min-h-0">
-          {keyMatches.map((item) => {
-            const match = item.match
-            const heroName = match.hero_id && heroes[match.hero_id] 
-              ? heroes[match.hero_id].localized_name 
-              : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'
-            
-            const insight = getInsight(match, item.type)
+        <div className="flex-1 flex flex-col justify-between min-h-0">
+          <div className="space-y-2">
+            {keyMatches.map((item) => {
+              const match = item.match
+              const heroName = match.hero_id && heroes[match.hero_id] 
+                ? heroes[match.hero_id].localized_name 
+                : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'
+              
+              const insight = getInsight(match, item.type)
 
-            return (
-              <div
-                key={`${item.label}-${match.match_id}`}
-                className={`border rounded-lg p-2 ${item.borderColor} ${item.bgColor} flex-shrink-0`}
-              >
-                {/* Header: Label + Win/Loss */}
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-                    <span className={`text-xs font-semibold ${item.color}`}>{item.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                      match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                    }`}>
-                      {match.win ? 'Win' : 'Loss'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Hero Icon + KDA */}
-                <div className="flex items-center gap-2 mb-1.5">
-                  {match.hero_id && heroes[match.hero_id] && (
-                    <HeroIcon
-                      heroId={match.hero_id}
-                      heroName={heroes[match.hero_id].name}
-                      size={32}
-                      className="rounded flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="text-[10px] text-gray-300 mb-0.5">{heroName}</div>
-                    <div className="text-sm font-bold text-white">
-                      KDA: {match.kda.toFixed(2)}
+              return (
+                <div
+                  key={`${item.label}-${match.match_id}`}
+                  className={`border rounded-lg p-2.5 ${item.borderColor} ${item.bgColor} flex-shrink-0`}
+                >
+                  {/* Header: Label + Win/Loss */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
+                      <span className={`text-xs font-semibold ${item.color}`}>{item.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                        match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                      }`}>
+                        {match.win ? 'Win' : 'Loss'}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Insight Bulb */}
-                <div className="mb-1.5">
-                  <InsightBulb
-                    title={insight.title}
-                    reason={insight.reason}
-                    className="p-2"
-                  />
-                </div>
+                  {/* Hero Icon + KDA */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {match.hero_id && heroes[match.hero_id] && (
+                      <HeroIcon
+                        heroId={match.hero_id}
+                        heroName={heroes[match.hero_id].name}
+                        size={32}
+                        className="rounded flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <div className="text-[10px] text-gray-300 mb-0.5">{heroName}</div>
+                      <div className="text-sm font-bold text-white">
+                        KDA: {match.kda.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
 
-                {/* CTA Button */}
-                <Link
-                  href={`/analysis/match/${match.match_id}`}
-                  className="block w-full text-center text-[10px] font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-1 transition-colors"
-                >
-                  Vai all'analisi
-                </Link>
-              </div>
-            )
-          })}
+                  {/* Insight Bulb */}
+                  <div className="mb-2">
+                    <InsightBulb
+                      title={insight.title}
+                      reason={insight.reason}
+                      className="p-2"
+                    />
+                  </div>
+
+                  {/* CTA Button */}
+                  <Link
+                    href={`/analysis/match/${match.match_id}`}
+                    className="block w-full text-center text-[10px] font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-1 transition-colors"
+                  >
+                    Vai all'analisi
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
         </div>
       ) : (
         <p className="text-sm text-gray-500 py-4">Nessuna partita chiave disponibile</p>

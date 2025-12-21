@@ -480,7 +480,7 @@ export default function DashboardPage() {
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-4 mb-1 items-stretch">
             {/* Hero Pool Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col h-full">
               <h3 className="text-base font-semibold text-white mb-3 flex-shrink-0">Hero Pool</h3>
               {topHeroes.length > 0 ? (
                 <div className="flex-1 flex flex-col min-h-0">
