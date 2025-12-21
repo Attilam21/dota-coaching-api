@@ -33,13 +33,11 @@ export default function HeroCard({
     
     // Use _sb.png for small icons (more efficient), _lg.png for larger ones
     const imageFormat = size === 'sm' ? '_sb.png' : '_lg.png'
-    // For small size, use cdn.dota2.com with native <img> tag (same as panoramica)
-    // For medium/large, use cloudflare with Next.js Image
-    const cdn = size === 'sm' ? 'cdn.dota2.com' : 'cdn.cloudflare.steamstatic.com'
+    // Use cdn.dota2.com for hero images (works with next/image)
+    const cdn = 'cdn.dota2.com'
     
     return {
-      url: `https://${cdn}/apps/dota2/images/heroes/${imageName}${imageFormat}`,
-      useNativeImg: size === 'sm' // Use native <img> for small size (like panoramica)
+      url: `https://${cdn}/apps/dota2/images/heroes/${imageName}${imageFormat}`
     }
   }
 
@@ -72,54 +70,33 @@ export default function HeroCard({
         {/* Hero Image */}
         <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gray-800 rounded border border-gray-600 overflow-hidden`}>
           {imageData ? (
-            imageData.useNativeImg ? (
-              // Use native <img> tag for small size with cdn.dota2.com (same as panoramica - works!)
-              <img
-                src={imageData.url}
-                alt={displayName}
-                className="w-full h-full object-contain p-1"
-                onError={(e) => {
-                  // Fallback: hide image and show hero ID number (same as panoramica)
-                  const target = e.currentTarget as HTMLImageElement
-                  target.style.display = 'none'
-                  const parent = target.parentElement
-                  if (parent && !parent.querySelector('.hero-placeholder')) {
-                    const placeholder = document.createElement('span')
-                    placeholder.className = 'text-xs text-gray-400 font-bold'
-                    placeholder.textContent = heroId.toString()
-                    parent.appendChild(placeholder)
-                  }
-                }}
-              />
-            ) : (
-              // Use Next.js Image for medium/large sizes with cloudflare CDN
-              <Image
-                src={imageData.url}
-                alt={displayName}
-                fill
-                className="object-contain p-1"
-                unoptimized
-                onError={(e) => {
-                  // Fallback: hide image and show hero ID number
-                  const target = e.currentTarget as HTMLImageElement
-                  target.style.display = 'none'
-                  const parent = target.parentElement
-                  if (parent && !parent.querySelector('.hero-placeholder')) {
-                    const placeholder = document.createElement('span')
-                    placeholder.className = 'text-xs text-gray-400 font-bold absolute inset-0 flex items-center justify-center'
-                    placeholder.textContent = heroId.toString()
-                    parent.appendChild(placeholder)
-                  }
-                }}
-                onLoad={() => {
-                  // Remove placeholder if image loads successfully
-                  const placeholder = document.querySelector('.hero-placeholder')
-                  if (placeholder) {
-                    placeholder.remove()
-                  }
-                }}
-              />
-            )
+            <Image
+              src={imageData.url}
+              alt={displayName}
+              fill
+              className="object-contain p-1"
+              unoptimized
+              onError={(e) => {
+                // Fallback: hide image and show hero ID number
+                const target = e.currentTarget as HTMLImageElement
+                target.style.display = 'none'
+                const parent = target.parentElement
+                if (parent && !parent.querySelector('.hero-placeholder')) {
+                  const placeholder = document.createElement('span')
+                  placeholder.className = 'text-xs text-gray-400 font-bold absolute inset-0 flex items-center justify-center hero-placeholder'
+                  placeholder.textContent = heroId.toString()
+                  parent.appendChild(placeholder)
+                }
+              }}
+              onLoad={(e) => {
+                // Remove placeholder if image loads successfully
+                const target = e.currentTarget as HTMLImageElement
+                const placeholder = target.parentElement?.querySelector('.hero-placeholder')
+                if (placeholder) {
+                  placeholder.remove()
+                }
+              }}
+            />
           ) : (
             <span className="text-xs text-gray-400 font-bold absolute inset-0 flex items-center justify-center">
               {heroId}
