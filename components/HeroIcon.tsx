@@ -20,21 +20,36 @@ export default function HeroIcon({
   className = ''
 }: HeroIconProps) {
   // Generate image URL from hero name
+  // OpenDota API returns hero.name as "npc_dota_hero_antimage"
+  // Dota 2 CDN expects just "antimage" for the image filename
   const getImageUrl = () => {
     if (!heroName) return null
     
     // Remove "npc_dota_hero_" prefix if present
     let imageName = heroName.toLowerCase().replace(/^npc_dota_hero_/, '')
     
-    // Clean up any remaining invalid characters
+    // Special cases: some heroes have different names in the file system
+    // Map known special cases
+    const heroNameMap: Record<string, string> = {
+      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend
+      'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
+      'windrunner': 'windranger', // Windrunner was renamed to Windranger
+    }
+    
+    // Check if we need to map the name
+    if (heroNameMap[imageName]) {
+      imageName = heroNameMap[imageName]
+    }
+    
+    // Clean up any remaining invalid characters (keep underscores)
     imageName = imageName.replace(/[^a-z0-9_]/g, '')
     
     if (!imageName) return null
     
     // Use _sb.png for small icons (more efficient)
-    // Try cdn.dota2.com first (original working CDN), fallback to cloudflare if needed
-    // Note: cdn.dota2.com may have SSL issues, but images load correctly
-    return `https://cdn.dota2.com/apps/dota2/images/heroes/${imageName}_sb.png`
+    // Try cdn.cloudflare.steamstatic.com first (better SSL support with next/image)
+    // Fallback to cdn.dota2.com if needed
+    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${imageName}_sb.png`
   }
 
   const imageUrl = getImageUrl()

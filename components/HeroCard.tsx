@@ -26,15 +26,28 @@ export default function HeroCard({
     // Remove "npc_dota_hero_" prefix if present
     let imageName = heroName.toLowerCase().replace(/^npc_dota_hero_/, '')
     
-    // Clean up any remaining invalid characters
+    // Special cases: some heroes have different names in the file system
+    // Map known special cases
+    const heroNameMap: Record<string, string> = {
+      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend
+      'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
+      'windrunner': 'windranger', // Windrunner was renamed to Windranger
+    }
+    
+    // Check if we need to map the name
+    if (heroNameMap[imageName]) {
+      imageName = heroNameMap[imageName]
+    }
+    
+    // Clean up any remaining invalid characters (keep underscores)
     imageName = imageName.replace(/[^a-z0-9_]/g, '')
     
     if (!imageName) return null
     
     // Use _sb.png for small icons (more efficient), _lg.png for larger ones
     const imageFormat = size === 'sm' ? '_sb.png' : '_lg.png'
-    // Use cdn.dota2.com for hero images (works with next/image)
-    const cdn = 'cdn.dota2.com'
+    // Use cdn.cloudflare.steamstatic.com for better SSL support with next/image
+    const cdn = 'cdn.cloudflare.steamstatic.com'
     
     return {
       url: `https://${cdn}/apps/dota2/images/heroes/${imageName}${imageFormat}`
