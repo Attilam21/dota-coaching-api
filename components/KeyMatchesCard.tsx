@@ -49,10 +49,11 @@ export default function KeyMatchesCard({
   const avgKda = last20.reduce((sum, m) => sum + (m.kda || 0), 0) / last20.length
   const avgGpm = last20.reduce((sum, m) => sum + (m.gpm || 0), 0) / last20.length
   
-  // Trova BEST match (highest KDA tra le vittorie)
+  // Trova BEST match (highest KDA tra le vittorie, o highest KDA overall se non ci sono vittorie)
   const bestMatch = [...last20]
     .filter(m => m.win)
     .sort((a, b) => (b.kda || 0) - (a.kda || 0))[0]
+    || [...last20].sort((a, b) => (b.kda || 0) - (a.kda || 0))[0]
 
   // Trova WORST match (lowest KDA tra le sconfitte, o peggiore KDA overall se non ci sono sconfitte)
   const worstMatch = [...last20]
@@ -121,11 +122,11 @@ export default function KeyMatchesCard({
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3">
-      <h3 className="text-base font-semibold text-white mb-3">Partite Chiave</h3>
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col">
+      <h3 className="text-base font-semibold text-white mb-3 flex-shrink-0">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2 flex-1 min-h-0">
           {keyMatches.map((item) => {
             const match = item.match
             const heroName = match.hero_id && heroes[match.hero_id] 
@@ -137,7 +138,7 @@ export default function KeyMatchesCard({
             return (
               <div
                 key={`${item.label}-${match.match_id}`}
-                className={`border rounded-lg p-2.5 ${item.borderColor} ${item.bgColor}`}
+                className={`border rounded-lg p-2.5 ${item.borderColor} ${item.bgColor} flex-shrink-0`}
               >
                 {/* Header: Label + Win/Loss */}
                 <div className="flex items-center justify-between mb-2">
