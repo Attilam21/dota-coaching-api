@@ -450,119 +450,112 @@ export default function HeroesPage() {
                 <div className="space-y-6">
                   {/* Diversity & Role Coverage */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6 flex items-center gap-2">
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
                       <Users className="w-5 h-5" />
                       Diversità & Copertura Ruoli
                     </h2>
                     {Object.keys(analysisData.roleStats).length > 0 ? (
-                      <div className="space-y-6">
-                        {/* Role Distribution Chart - Centrato e più pulito */}
-                        <div className="bg-gray-700/30 rounded-lg p-4">
-                          <h3 className="text-base font-semibold mb-4 text-center">Distribuzione Partite per Ruolo</h3>
-                          <div className="flex justify-center">
-                            <ResponsiveContainer width="100%" height={280}>
-                              <PieChart>
-                                <Pie
-                                  data={Object.entries(analysisData.roleStats)
-                                    .sort((a, b) => b[1].games - a[1].games)
-                                    .map(([role, stats]) => ({
-                                      name: role.charAt(0).toUpperCase() + role.slice(1),
-                                      value: stats.games,
-                                      winrate: stats.winrate,
-                                      role: role,
-                                    }))}
-                                  cx="50%"
-                                  cy="50%"
-                                  labelLine={false}
-                                  label={false}
-                                  outerRadius={100}
-                                  fill="#8884d8"
-                                  dataKey="value"
-                                >
-                                  {Object.entries(analysisData.roleStats)
-                                    .sort((a, b) => b[1].games - a[1].games)
-                                    .map((_, index) => {
-                                      const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
-                                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                                    })}
-                                </Pie>
-                                <Tooltip
-                                  contentStyle={{
-                                    backgroundColor: '#1F2937',
-                                    border: '1px solid #374151',
-                                    borderRadius: '8px',
-                                  }}
-                                  formatter={(value: any, name: string, props: any) => [
-                                    `${value} partite (WR: ${props.payload.winrate.toFixed(1)}%)`,
-                                    props.payload.name
-                                  ]}
-                                />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                        
-                        {/* Role Stats - Tabella compatta e allineata */}
+                      <div className="space-y-4">
+                        {/* Performance per Ruolo - Tabella in stile coerente con altre pagine */}
                         <div>
-                          <h3 className="text-base font-semibold mb-3">Performance per Ruolo</h3>
-                          <div className="bg-gray-700/30 rounded-lg overflow-hidden">
-                            <div className="grid grid-cols-1 divide-y divide-gray-600">
-                              {Object.entries(analysisData.roleStats)
-                                .sort((a, b) => b[1].games - a[1].games)
-                                .map(([role, stats], index) => {
-                                  const heroesInRole = analysisData.heroStats.filter(h => 
-                                    h.roles && h.roles.includes(role) && h.games >= 5
-                                  ).length
-                                  const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
-                                  const roleColor = colors[index % colors.length]
-                                  const totalGames = Object.values(analysisData.roleStats).reduce((sum, s) => sum + s.games, 0)
-                                  const percentage = ((stats.games / totalGames) * 100).toFixed(1)
-                                  
-                                  return (
-                                    <div key={role} className="p-3 hover:bg-gray-700/50 transition-colors">
-                                      <div className="flex items-center justify-between gap-4">
-                                        {/* Ruolo con colore */}
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                          <div 
-                                            className="w-3 h-3 rounded-full flex-shrink-0" 
-                                            style={{ backgroundColor: roleColor }}
-                                          />
-                                          <span className="font-semibold text-white capitalize text-sm">{role}</span>
-                                        </div>
-                                        
-                                        {/* Statistiche allineate */}
-                                        <div className="flex items-center gap-4 flex-shrink-0">
-                                          <div className="text-right">
-                                            <div className="text-xs text-gray-400">Partite</div>
-                                            <div className="text-sm font-medium text-white">{stats.games}</div>
-                                            <div className="text-xs text-gray-500">{percentage}%</div>
-                                          </div>
-                                          
-                                          <div className="text-right">
-                                            <div className="text-xs text-gray-400">Winrate</div>
-                                            <div className={`text-sm font-bold ${
-                                              stats.winrate >= 55 ? 'text-green-400' :
-                                              stats.winrate >= 50 ? 'text-blue-400' :
-                                              'text-red-400'
-                                            }`}>
-                                              {stats.winrate.toFixed(1)}%
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="text-right">
-                                            <div className="text-xs text-gray-400">Heroes</div>
-                                            <div className="text-sm font-medium text-white">{heroesInRole}</div>
-                                            {heroesInRole < 4 && (
-                                              <div className="text-xs text-yellow-400">⚠</div>
-                                            )}
-                                          </div>
+                          <h3 className="text-lg font-semibold mb-3">Performance per Ruolo</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {Object.entries(analysisData.roleStats)
+                              .sort((a, b) => b[1].games - a[1].games)
+                              .map(([role, stats], index) => {
+                                const heroesInRole = analysisData.heroStats.filter(h => 
+                                  h.roles && h.roles.includes(role) && h.games >= 5
+                                ).length
+                                const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+                                const roleColor = colors[index % colors.length]
+                                const totalGames = Object.values(analysisData.roleStats).reduce((sum, s) => sum + s.games, 0)
+                                const percentage = ((stats.games / totalGames) * 100).toFixed(1)
+                                
+                                return (
+                                  <div key={role} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <div 
+                                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                                        style={{ backgroundColor: roleColor }}
+                                      />
+                                      <span className="font-semibold text-white capitalize">{role}</span>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-400">Partite</span>
+                                        <span className="text-sm font-medium text-white">{stats.games} <span className="text-gray-500">({percentage}%)</span></span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-400">Winrate</span>
+                                        <span className={`text-sm font-bold ${
+                                          stats.winrate >= 55 ? 'text-green-400' :
+                                          stats.winrate >= 50 ? 'text-blue-400' :
+                                          'text-red-400'
+                                        }`}>
+                                          {stats.winrate.toFixed(1)}%
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-400">Heroes (5+ partite)</span>
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-sm font-medium text-white">{heroesInRole}</span>
+                                          {heroesInRole < 4 && (
+                                            <span className="text-xs text-yellow-400" title="Considera di espandere il pool per questo ruolo">⚠</span>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
-                                  )
-                                })}
-                            </div>
+                                  </div>
+                                )
+                              })}
                           </div>
+                        </div>
+                        
+                        {/* Role Distribution Chart - Compatto e in fondo */}
+                        <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                          <h3 className="text-base font-semibold mb-3">Distribuzione Partite per Ruolo</h3>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={Object.entries(analysisData.roleStats)
+                                  .sort((a, b) => b[1].games - a[1].games)
+                                  .map(([role, stats]) => ({
+                                    name: role.charAt(0).toUpperCase() + role.slice(1),
+                                    value: stats.games,
+                                    winrate: stats.winrate,
+                                    role: role,
+                                  }))}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={false}
+                                outerRadius={70}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {Object.entries(analysisData.roleStats)
+                                  .sort((a, b) => b[1].games - a[1].games)
+                                  .map((_, index) => {
+                                    const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+                                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                  })}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                }}
+                                formatter={(value: any, name: string, props: any) => [
+                                  `${value} partite (WR: ${props.payload.winrate.toFixed(1)}%)`,
+                                  props.payload.name
+                                ]}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
                         </div>
                       </div>
                     ) : (
