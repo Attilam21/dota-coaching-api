@@ -768,127 +768,106 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  {/* Benchmarks + Phase Analysis - In una riga */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Benchmarks Compatti */}
-                    {(() => {
-                      const hasGpm = benchmarks?.percentiles?.gpm || benchmarks?.calculatedPercentiles?.gpm
-                      const hasXpm = benchmarks?.percentiles?.xpm || benchmarks?.calculatedPercentiles?.xpm
-                      const hasKda = benchmarks?.percentiles?.kda || benchmarks?.calculatedPercentiles?.kda
-                      const hasAnyPercentile = hasGpm || hasXpm || hasKda
-                      
-                      return (
-                        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                            <Award className="w-4 h-4 text-blue-400" />
-                            Benchmark & Percentili
-                          </h3>
-                          {hasAnyPercentile ? (
-                            <>
-                              <div className="grid grid-cols-3 gap-3">
-                                {/* GPM Percentile */}
-                                {hasGpm ? (
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold text-yellow-400 mb-1">
-                                      {benchmarks.percentiles?.gpm ? (stats?.farm?.gpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.gpm.value.toFixed(0) ?? '0'}
-                                    </div>
-                                    <div className="text-xs text-gray-400 mb-1">GPM</div>
-                                    <div className={`text-xs font-semibold ${
-                                      (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                      (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                      'text-gray-400'
-                                    }`}>
-                                      {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-center text-xs text-gray-500">-</div>
-                                )}
-
-                                {/* XPM Percentile */}
-                                {hasXpm ? (
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold text-blue-400 mb-1">
-                                      {benchmarks.percentiles?.xpm ? (stats?.farm?.xpm?.last10 ?? 0).toFixed(0) : benchmarks.calculatedPercentiles?.xpm.value.toFixed(0) ?? '0'}
-                                    </div>
-                                    <div className="text-xs text-gray-400 mb-1">XPM</div>
-                                    <div className={`text-xs font-semibold ${
-                                      (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                      (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                      'text-gray-400'
-                                    }`}>
-                                      {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-center text-xs text-gray-500">-</div>
-                                )}
-
-                                {/* KDA Percentile */}
-                                {hasKda ? (
-                                  <div className="text-center">
-                                    <div className="text-lg font-bold text-red-400 mb-1">
-                                      {benchmarks.percentiles?.kda ? (stats?.kda?.last10 ?? 0).toFixed(2) : benchmarks.calculatedPercentiles?.kda.value.toFixed(2) ?? '0.00'}
-                                    </div>
-                                    <div className="text-xs text-gray-400 mb-1">KDA</div>
-                                    <div className={`text-xs font-semibold ${
-                                      (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 75 ? 'text-green-400' :
-                                      (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 50 ? 'text-blue-400' :
-                                      'text-gray-400'
-                                    }`}>
-                                      {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-center text-xs text-gray-500">-</div>
-                                )}
-                              </div>
-                              {benchmarks?.source === 'calculated' && (
-                                <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
-                                  <Info className="w-3 h-3" />
-                                  Percentili calcolati su standard Dota 2
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <div className="text-center py-4">
-                              <p className="text-sm text-gray-400 mb-2">Dati percentili non disponibili</p>
-                              <p className="text-xs text-gray-500">
-                                Assicurati che il tuo profilo OpenDota sia pubblico per visualizzare i percentili
-                              </p>
+                  {/* Benchmarks Section - Allineato a Performance Page */}
+                  {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
+                    <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
+                      <h2 className="text-xl md:text-2xl font-semibold text-blue-300 mb-2 flex items-center gap-2">
+                        <Award className="w-5 h-5 md:w-6 md:h-6" />
+                        Come ti posizioni rispetto alla comunità Dota 2
+                      </h2>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Benchmark & Percentili
+                      </p>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {/* GPM Percentile */}
+                        {(benchmarks.percentiles?.gpm || benchmarks.calculatedPercentiles?.gpm) && (
+                          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
+                            <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-xl md:text-2xl font-bold ${
+                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.gpm?.percentile ?? benchmarks.calculatedPercentiles?.gpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.gpm?.label ?? benchmarks.calculatedPercentiles?.gpm.label ?? 'N/A'}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      )
-                    })()}
+                            <p className="text-xs text-gray-500">Posizionamento rispetto alla community</p>
+                          </div>
+                        )}
 
-                    {/* Phase Analysis - Compatto */}
-                    {fullProfile?.phaseAnalysis && (
-                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-purple-400" />
-                          Fase del Gioco Preferita
-                        </h3>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="text-center">
-                            <div className="text-xl font-bold text-green-400 mb-1">{Math.round(fullProfile.phaseAnalysis.early.score)}</div>
-                            <div className="text-xs text-gray-400 mb-1">Early</div>
-                            <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.early.strength}</div>
+                        {/* XPM Percentile */}
+                        {(benchmarks.percentiles?.xpm || benchmarks.calculatedPercentiles?.xpm) && (
+                          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
+                            <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-xl md:text-2xl font-bold ${
+                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.xpm?.percentile ?? benchmarks.calculatedPercentiles?.xpm.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.xpm?.label ?? benchmarks.calculatedPercentiles?.xpm.label ?? 'N/A'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500">Posizionamento rispetto alla community</p>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xl font-bold text-blue-400 mb-1">{Math.round(fullProfile.phaseAnalysis.mid.score)}</div>
-                            <div className="text-xs text-gray-400 mb-1">Mid</div>
-                            <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.mid.strength}</div>
+                        )}
+
+                        {/* KDA Percentile */}
+                        {(benchmarks.percentiles?.kda || benchmarks.calculatedPercentiles?.kda) && (
+                          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
+                            <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-500">Percentile:</span>
+                              <span className={`text-xl md:text-2xl font-bold ${
+                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 75 ? 'text-green-400' :
+                                (benchmarks.percentiles?.kda?.percentile ?? benchmarks.calculatedPercentiles?.kda.percentile ?? 0) >= 50 ? 'text-blue-400' :
+                                'text-gray-400'
+                              }`}>
+                                {benchmarks.percentiles?.kda?.label ?? benchmarks.calculatedPercentiles?.kda.label ?? 'N/A'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500">Posizionamento rispetto alla community</p>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xl font-bold text-purple-400 mb-1">{Math.round(fullProfile.phaseAnalysis.late.score)}</div>
-                            <div className="text-xs text-gray-400 mb-1">Late</div>
-                            <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.late.strength}</div>
-                          </div>
+                        )}
+                      </div>
+                      {benchmarks.source === 'calculated' && (
+                        <p className="text-xs text-gray-500 mt-4 flex items-center gap-1">
+                          <Info className="w-3 h-3" />
+                          Percentili calcolati basati su standard Dota 2. Per percentili più accurati, assicurati che il tuo profilo OpenDota sia pubblico.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Phase Analysis - Separato da Benchmarks */}
+                  {fullProfile?.phaseAnalysis && (
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-purple-400" />
+                        Fase del Gioco Preferita
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="text-center">
+                          <div className="text-xl font-bold text-green-400 mb-1">{Math.round(fullProfile.phaseAnalysis.early.score)}</div>
+                          <div className="text-xs text-gray-400 mb-1">Early</div>
+                          <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.early.strength}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl font-bold text-blue-400 mb-1">{Math.round(fullProfile.phaseAnalysis.mid.score)}</div>
+                          <div className="text-xs text-gray-400 mb-1">Mid</div>
+                          <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.mid.strength}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl font-bold text-purple-400 mb-1">{Math.round(fullProfile.phaseAnalysis.late.score)}</div>
+                          <div className="text-xs text-gray-400 mb-1">Late</div>
+                          <div className="text-xs text-gray-300">{fullProfile.phaseAnalysis.late.strength}</div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Quick Recommendations - Compatto */}
                   {fullProfile?.recommendations && fullProfile.recommendations.length > 0 && (
@@ -935,22 +914,22 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  {/* Quick Links to Deep Analysis */}
+                  {/* Quick Links - Semplificato, solo link essenziali */}
                   <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-6">
                     <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                       <Search className="w-5 h-5" />
                       Analisi Approfondite
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Link
                         href="/dashboard/performance"
                         className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Zap className="w-8 h-8 text-yellow-400" />
-                          <h4 className="font-semibold">Performance</h4>
+                          <h4 className="font-semibold">Performance & Stile</h4>
                         </div>
-                        <p className="text-xs text-gray-400">Stile di gioco e profilo performance</p>
+                        <p className="text-xs text-gray-400">Stile di gioco, benchmarks e percentili</p>
                       </Link>
                       <Link
                         href="/dashboard/profiling"
@@ -960,7 +939,7 @@ export default function DashboardPage() {
                           <Target className="w-8 h-8 text-purple-400" />
                           <h4 className="font-semibold">Profilazione AttilaLAB</h4>
                         </div>
-                        <p className="text-xs text-gray-400">Profilo completo con IA</p>
+                        <p className="text-xs text-gray-400">Profilo completo con analisi IA</p>
                       </Link>
                       <Link
                         href="/dashboard/advanced"
@@ -973,14 +952,14 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-400">Lane, Farm, Fight, Vision</p>
                       </Link>
                       <Link
-                        href="/dashboard/coaching"
+                        href="/dashboard/match-analysis"
                         className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <BookOpen className="w-8 h-8 text-indigo-400" />
-                          <h4 className="font-semibold">Coaching</h4>
+                          <Gamepad2 className="w-8 h-8 text-green-400" />
+                          <h4 className="font-semibold">Analizza Partita</h4>
                         </div>
-                        <p className="text-xs text-gray-400">Task e raccomandazioni</p>
+                        <p className="text-xs text-gray-400">Analisi dettagliata singola partita con IA</p>
                       </Link>
                     </div>
                   </div>
