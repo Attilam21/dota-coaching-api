@@ -78,7 +78,7 @@ export default function PlayerHeader({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative mb-6 ${className}`}>
       <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
         {/* Left: Avatar Section */}
         <div className="flex-shrink-0">
@@ -185,7 +185,7 @@ export default function PlayerHeader({
 
       {/* Settings Link */}
       {showSettingsLink && (
-        <div className="absolute top-0 right-0">
+        <div className="absolute top-2 right-2 lg:top-3 lg:right-3">
           <Link
             href="/dashboard/settings"
             className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
