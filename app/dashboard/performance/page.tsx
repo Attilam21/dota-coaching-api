@@ -662,70 +662,209 @@ export default function PerformancePage() {
                       Le 3 aree su cui concentrarti per massimizzare il tuo impatto
                     </p>
                   
-                  {/* Calcola priorità basate su metriche */}
+                  {/* Calcola priorità basate su metriche - sempre mostra le 3 più importanti */}
                   {(() => {
-                    const focusAreas: Array<{ area: string; priority: number; current: number; target: number; action: string; icon: any }> = []
+                    const allAreas: Array<{ area: string; priority: number; current: number; target: number; action: string; icon: any; score: number }> = []
                     
-                    // 1. Deaths (alta priorità se > 6)
-                    if (stats.avgDeaths > 6) {
-                      focusAreas.push({
+                    // 1. Deaths (alta priorità se > 5, critico se > 7)
+                    if (stats.avgDeaths > 5) {
+                      const severity = stats.avgDeaths > 7 ? 100 : stats.avgDeaths > 6 ? 80 : 60
+                      allAreas.push({
                         area: 'Survival',
                         priority: 1,
                         current: stats.avgDeaths,
                         target: 5,
                         action: 'Riduci morti migliorando positioning e mappa awareness',
-                        icon: Shield
+                        icon: Shield,
+                        score: severity
                       })
                     }
                     
-                    // 2. Farm Efficiency (priorità se < 70%)
-                    if (stats.farmEfficiency < 70) {
-                      focusAreas.push({
+                    // 2. Farm Efficiency (priorità se < 75%, critico se < 60%)
+                    if (stats.farmEfficiency < 75) {
+                      const severity = stats.farmEfficiency < 60 ? 90 : stats.farmEfficiency < 70 ? 70 : 50
+                      allAreas.push({
                         area: 'Farm Efficiency',
-                        priority: focusAreas.length + 1,
+                        priority: 2,
                         current: stats.farmEfficiency,
                         target: 80,
                         action: stats.advanced && stats.advanced.farm.goldUtilization < 85 
                           ? 'Spendi gold più velocemente in item utili'
                           : 'Ottimizza percorsi di farm per massimizzare GPM',
-                        icon: Coins
+                        icon: Coins,
+                        score: severity
                       })
                     }
                     
-                    // 3. Teamfight Participation (priorità se < 60%)
-                    if (stats.teamfightParticipation < 60) {
-                      focusAreas.push({
+                    // 3. Teamfight Participation (priorità se < 65%, critico se < 50%)
+                    if (stats.teamfightParticipation < 65) {
+                      const severity = stats.teamfightParticipation < 50 ? 85 : stats.teamfightParticipation < 60 ? 65 : 45
+                      allAreas.push({
                         area: 'Teamfight Impact',
-                        priority: focusAreas.length + 1,
+                        priority: 3,
                         current: stats.teamfightParticipation,
                         target: 70,
                         action: 'Partecipa di più ai teamfight principali per aumentare impatto',
-                        icon: Sword
+                        icon: Sword,
+                        score: severity
                       })
                     }
                     
-                    // 4. KDA (priorità se < 2.0)
-                    if (stats.avgKDA < 2.0 && focusAreas.length < 3) {
-                      focusAreas.push({
+                    // 4. KDA (priorità se < 2.2)
+                    if (stats.avgKDA < 2.2) {
+                      const severity = stats.avgKDA < 1.5 ? 95 : stats.avgKDA < 2.0 ? 75 : 55
+                      allAreas.push({
                         area: 'KDA Ratio',
-                        priority: focusAreas.length + 1,
+                        priority: 4,
                         current: stats.avgKDA,
                         target: 2.5,
                         action: 'Bilancia kills, assist e morti per migliorare KDA',
-                        icon: Target
+                        icon: Target,
+                        score: severity
                       })
                     }
                     
-                    // Ordina per priorità
-                    focusAreas.sort((a, b) => a.priority - b.priority)
+                    // 5. Gold Utilization (se disponibile e < 85%)
+                    if (stats.advanced && stats.advanced.farm.goldUtilization < 85) {
+                      const severity = stats.advanced.farm.goldUtilization < 70 ? 70 : 50
+                      allAreas.push({
+                        area: 'Gold Utilization',
+                        priority: 5,
+                        current: stats.advanced.farm.goldUtilization,
+                        target: 90,
+                        action: 'Spendi gold più velocemente in item utili invece di accumularlo',
+                        icon: Coins,
+                        score: severity
+                      })
+                    }
+                    
+                    // 6. Vision/Warding (solo se support o vision bassa)
+                    if (stats.advanced && stats.advanced.vision && stats.advanced.vision.avgObserverPlaced < 5) {
+                      const severity = stats.advanced.vision.avgObserverPlaced < 3 ? 75 : 55
+                      allAreas.push({
+                        area: 'Vision Control',
+                        priority: 6,
+                        current: stats.advanced.vision.avgObserverPlaced,
+                        target: 6,
+                        action: 'Aumenta warding per migliorare visione e controllo mappa',
+                        icon: Eye,
+                        score: severity
+                      })
+                    }
+                    
+                    // 7. GPM basso (se < 400, indipendentemente da farmEfficiency)
+                    if (stats.avgGPM < 400) {
+                      const severity = stats.avgGPM < 350 ? 80 : 60
+                      allAreas.push({
+                        area: 'GPM',
+                        priority: 7,
+                        current: stats.avgGPM,
+                        target: 450,
+                        action: 'Migliora farming patterns e timing per aumentare gold per minuto',
+                        icon: Coins,
+                        score: severity
+                      })
+                    }
+                    
+                    // Se abbiamo meno di 3 aree, aggiungi aree "migliorabili" anche se non critiche
+                    if (allAreas.length < 3) {
+                      // Aggiungi GPM se non presente e < 500 (non critico ma migliorabile)
+                      if (!allAreas.find(a => a.area === 'GPM') && stats.avgGPM < 500 && stats.avgGPM >= 400) {
+                        allAreas.push({
+                          area: 'GPM',
+                          priority: 7,
+                          current: stats.avgGPM,
+                          target: 500,
+                          action: 'Migliora farming per raggiungere 500+ GPM',
+                          icon: Coins,
+                          score: 40
+                        })
+                      }
+                      
+                      // Aggiungi Teamfight se non presente e < 70% (migliorabile)
+                      if (!allAreas.find(a => a.area === 'Teamfight Impact') && stats.teamfightParticipation < 70 && stats.teamfightParticipation >= 65) {
+                        allAreas.push({
+                          area: 'Teamfight Impact',
+                          priority: 3,
+                          current: stats.teamfightParticipation,
+                          target: 75,
+                          action: 'Aumenta partecipazione ai teamfight per massimizzare impatto',
+                          icon: Sword,
+                          score: 35
+                        })
+                      }
+                      
+                      // Aggiungi Farm Efficiency se non presente e < 80% (migliorabile)
+                      if (!allAreas.find(a => a.area === 'Farm Efficiency') && stats.farmEfficiency < 80 && stats.farmEfficiency >= 75) {
+                        allAreas.push({
+                          area: 'Farm Efficiency',
+                          priority: 2,
+                          current: stats.farmEfficiency,
+                          target: 85,
+                          action: 'Ottimizza farm per raggiungere efficienza superiore',
+                          icon: Coins,
+                          score: 30
+                        })
+                      }
+                      
+                      // Aggiungi KDA se non presente e < 2.5 (migliorabile)
+                      if (!allAreas.find(a => a.area === 'KDA Ratio') && stats.avgKDA < 2.5 && stats.avgKDA >= 2.2) {
+                        allAreas.push({
+                          area: 'KDA Ratio',
+                          priority: 4,
+                          current: stats.avgKDA,
+                          target: 2.8,
+                          action: 'Migliora KDA bilanciando kills, assist e morti',
+                          icon: Target,
+                          score: 25
+                        })
+                      }
+                    }
+                    
+                    // Ordina per score (severità) decrescente, poi per priorità
+                    allAreas.sort((a, b) => {
+                      if (b.score !== a.score) return b.score - a.score
+                      return a.priority - b.priority
+                    })
+                    
+                    // Prendi le top 3
+                    const focusAreas = allAreas.slice(0, 3)
                     
                     return focusAreas.length > 0 ? (
                       <div className="space-y-4">
                         {focusAreas.slice(0, 3).map((area, idx) => {
-                          const progress = area.area === 'Survival' 
-                            ? Math.max(0, ((area.target - area.current) / area.target) * 100)
-                            : (area.current / area.target) * 100
-                          const isGood = progress >= 80
+                          // Per Survival: progress inverso (meno morti = meglio)
+                          // Per altri: progress basato su valore corrente vs target
+                          let progress: number
+                          let progressLabel: string
+                          
+                          if (area.area === 'Survival') {
+                            // Survival: meno morti = meglio, quindi progress inverso
+                            const gap = area.current - area.target
+                            const maxGap = Math.max(area.current, area.target * 1.5) // worst case realistico
+                            progress = maxGap > 0 ? Math.max(0, ((maxGap - gap) / maxGap) * 100) : 100
+                            progressLabel = `${area.current.toFixed(1)} → ${area.target}`
+                          } else if (area.area === 'KDA Ratio') {
+                            // KDA: progress basato su valore corrente vs target
+                            progress = (area.current / area.target) * 100
+                            progressLabel = `${area.current.toFixed(2)} → ${area.target}`
+                          } else if (area.area === 'GPM') {
+                            // GPM: mostra valore corrente, target come riferimento
+                            progress = (area.current / area.target) * 100
+                            progressLabel = `${area.current.toFixed(0)} → ${area.target}`
+                          } else if (area.area === 'Vision Control') {
+                            // Vision: mostra valore corrente (wards per game)
+                            progress = (area.current / area.target) * 100
+                            progressLabel = `${area.current.toFixed(1)} → ${area.target}`
+                          } else {
+                            // Percentuali (Farm Efficiency, Teamfight Impact, Gold Utilization): mostra valore corrente
+                            progress = area.current // Valore corrente come percentuale
+                            progressLabel = `${area.current.toFixed(1)}%`
+                          }
+                          
+                          const isGood = area.area === 'Survival' 
+                            ? area.current <= area.target
+                            : area.current >= area.target * 0.9 // 90% del target = buono
                           
                           return (
                             <div key={idx} className="bg-gray-800/50 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors">
@@ -743,20 +882,26 @@ export default function PerformancePage() {
                                 </div>
                                 <div className="text-right">
                                   <div className="text-2xl font-bold text-white">
-                                    {area.area === 'Survival' 
-                                      ? `${area.current.toFixed(1)} → ${area.target}`
-                                      : `${area.current.toFixed(1)}%`}
+                                    {progressLabel}
                                   </div>
-                                  <div className="text-xs text-gray-500">Target: {area.target}{area.area !== 'Survival' ? '%' : ''}</div>
+                                  <div className="text-xs text-gray-500">Target: {area.target}{area.area !== 'Survival' && area.area !== 'KDA Ratio' && area.area !== 'GPM' && area.area !== 'Vision Control' ? '%' : ''}</div>
                                 </div>
                               </div>
-                              <div className="w-full bg-gray-700 rounded-full h-2 mt-3">
+                              <div className="w-full bg-gray-700 rounded-full h-2 mt-3 relative">
                                 <div
                                   className={`h-2 rounded-full transition-all ${
                                     isGood ? 'bg-green-600' : 'bg-red-600'
                                   }`}
-                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                  style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
                                 ></div>
+                                {/* Target indicator line - solo per percentuali */}
+                                {area.area !== 'Survival' && area.area !== 'KDA Ratio' && area.area !== 'GPM' && area.area !== 'Vision Control' && (
+                                  <div
+                                    className="absolute top-0 h-2 w-0.5 bg-yellow-400 opacity-60"
+                                    style={{ left: `${Math.min(area.target, 100)}%` }}
+                                    title={`Target: ${area.target}%`}
+                                  ></div>
+                                )}
                               </div>
                             </div>
                           )
