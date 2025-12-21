@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchWithTimeout } from '@/lib/fetch-utils'
 
 /**
  * API endpoint per recuperare benchmarks e percentili del giocatore
@@ -42,29 +43,71 @@ export async function GET(
     }
     
     // Fetch basic stats per calcolare percentili manuali se ratings non disponibili
+    // Usa match completi per GPM/XPM accurati (come fa /stats endpoint)
     let basicStats: any = null
     try {
-      const statsResponse = await fetch(
+      const matchesResponse = await fetchWithTimeout(
         `https://api.opendota.com/api/players/${id}/matches?limit=20`,
-        { next: { revalidate: 3600 } }
+        { timeout: 10000, next: { revalidate: 3600 } }
       )
       
-      if (statsResponse.ok) {
-        const matches = await statsResponse.json()
+      if (matchesResponse.ok) {
+        const matches = await matchesResponse.json()
         if (matches && matches.length > 0) {
-          // Calcola medie per confronto
-          const avgGPM = matches.reduce((acc: number, m: any) => acc + (m.gold_per_min || 0), 0) / matches.length
-          const avgXPM = matches.reduce((acc: number, m: any) => acc + (m.xp_per_min || 0), 0) / matches.length
-          const avgKDA = matches.reduce((acc: number, m: any) => {
-            const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
-            return acc + kda
-          }, 0) / matches.length
+          // Fetch full match details per GPM/XPM accurati (come fa /stats)
+          const fullMatchesPromises = matches.slice(0, 20).map((m: any) =>
+            fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
+              timeout: 8000,
+              next: { revalidate: 3600 }
+            })
+              .then(res => res.ok ? res.json() : null)
+              .catch(() => null)
+          )
           
-          basicStats = {
-            avgGPM,
-            avgXPM,
-            avgKDA,
-            totalMatches: matches.length
+          const fullMatchesResults = await Promise.allSettled(fullMatchesPromises)
+          const fullMatches = fullMatchesResults
+            .map(result => result.status === 'fulfilled' ? result.value : null)
+            .filter(Boolean)
+          
+          // Calcola medie usando dati accurati dai match completi
+          let totalGPM = 0
+          let totalXPM = 0
+          let totalKDA = 0
+          let validMatches = 0
+          
+          matches.forEach((match: any, idx: number) => {
+            if (idx < fullMatches.length && fullMatches[idx]) {
+              const fullMatch = fullMatches[idx]
+              const playerInMatch = fullMatch.players?.find((p: any) => 
+                p.player_slot === match.player_slot
+              )
+              
+              if (playerInMatch) {
+                // Usa GPM/XPM dal match completo (più accurato)
+                const gpm = playerInMatch.gold_per_min || 0
+                const xpm = playerInMatch.xp_per_min || 0
+                const kills = playerInMatch.kills || 0
+                const deaths = playerInMatch.deaths || 0
+                const assists = playerInMatch.assists || 0
+                
+                // Conta solo match con dati validi
+                if (gpm > 0 || xpm > 0) {
+                  totalGPM += gpm
+                  totalXPM += xpm
+                  totalKDA += (kills + assists) / Math.max(deaths, 1)
+                  validMatches++
+                }
+              }
+            }
+          })
+          
+          if (validMatches > 0) {
+            basicStats = {
+              avgGPM: totalGPM / validMatches,
+              avgXPM: totalXPM / validMatches,
+              avgKDA: totalKDA / validMatches,
+              totalMatches: validMatches
+            }
           }
         }
       }
@@ -147,27 +190,30 @@ export async function GET(
     }
     
     // Se abbiamo basic stats e (non abbiamo ratings o ratings non ha percentili validi), calcola percentili approssimativi
-    if (basicStats && (!ratings || !benchmarks.percentiles)) {
-      benchmarks.calculatedPercentiles = {
-        gpm: {
-          value: basicStats.avgGPM,
-          percentile: calculatePercentile(basicStats.avgGPM, 'gpm'),
-          label: getPercentileLabel(calculatePercentile(basicStats.avgGPM, 'gpm'))
-        },
-        xpm: {
-          value: basicStats.avgXPM,
-          percentile: calculatePercentile(basicStats.avgXPM, 'xpm'),
-          label: getPercentileLabel(calculatePercentile(basicStats.avgXPM, 'xpm'))
-        },
-        kda: {
-          value: basicStats.avgKDA,
-          percentile: calculatePercentile(basicStats.avgKDA, 'kda'),
-          label: getPercentileLabel(calculatePercentile(basicStats.avgKDA, 'kda'))
+    if (basicStats && basicStats.totalMatches > 0 && (!ratings || !benchmarks.percentiles)) {
+      // Calcola percentili solo se abbiamo valori validi
+      if (basicStats.avgGPM > 0 || basicStats.avgXPM > 0 || basicStats.avgKDA > 0) {
+        benchmarks.calculatedPercentiles = {
+          gpm: {
+            value: basicStats.avgGPM,
+            percentile: calculatePercentile(basicStats.avgGPM, 'gpm'),
+            label: getPercentileLabel(calculatePercentile(basicStats.avgGPM, 'gpm'))
+          },
+          xpm: {
+            value: basicStats.avgXPM,
+            percentile: calculatePercentile(basicStats.avgXPM, 'xpm'),
+            label: getPercentileLabel(calculatePercentile(basicStats.avgXPM, 'xpm'))
+          },
+          kda: {
+            value: basicStats.avgKDA,
+            percentile: calculatePercentile(basicStats.avgKDA, 'kda'),
+            label: getPercentileLabel(calculatePercentile(basicStats.avgKDA, 'kda'))
+          }
         }
-      }
-      // Se non avevamo ratings, aggiorna source
-      if (!ratings) {
-        benchmarks.source = 'calculated'
+        // Se non avevamo ratings, aggiorna source
+        if (!ratings) {
+          benchmarks.source = 'calculated'
+        }
       }
     }
     
