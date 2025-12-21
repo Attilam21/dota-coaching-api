@@ -182,17 +182,6 @@ export default function ProfileHeaderCard({
             </div>
           )}
 
-          {/* Win-Loss Trend (optional) */}
-          {winLoss && (
-            <div className="bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 min-w-[80px]">
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Trend</span>
-              <p className="text-sm font-semibold text-white leading-none">
-                <span className="text-green-400">{winLoss.win}W</span>
-                {' '}-{' '}
-                <span className="text-red-400">{winLoss.lose}L</span>
-              </p>
-            </div>
-          )}
         </div>
       </div>
 

@@ -11,10 +11,12 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulb from '@/components/InsightBulb'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import ProfileHeaderCard from '@/components/ProfileHeaderCard'
 import KpiCard from '@/components/KpiCard'
 import AdPlaceholder from '@/components/AdPlaceholder'
+import KeyMatchesCard from '@/components/KeyMatchesCard'
 import AnimatedCard from '@/components/AnimatedCard'
 import { motion } from 'framer-motion'
 
@@ -211,15 +213,24 @@ export default function DashboardPage() {
   }
 
   const getInsight = () => {
-    if (!stats) return ''
+    if (!stats) return null
     const winrateDelta = stats.winrate.delta
+    // Mostra insight solo se c'è un delta significativo (>= 10% o <= -10%)
     if (winrateDelta < -10) {
-      return 'Trend in calo: il winrate nelle ultime 5 partite è inferiore rispetto alle ultime 10 partite. Potrebbe indicare un momento di forma negativo.'
+      return {
+        title: 'Trend in calo',
+        reason: `Winrate ultime 5 partite: ${stats.winrate.last5.toFixed(1)}% vs ultime 10: ${stats.winrate.last10.toFixed(1)}% (delta: ${winrateDelta.toFixed(1)}%)`,
+        suggestion: 'Considera di fare una pausa o analizzare le partite perse per identificare pattern negativi.'
+      }
     }
     if (winrateDelta > 10) {
-      return 'Trend positivo: il winrate nelle ultime 5 partite è migliorato rispetto alle ultime 10 partite.'
+      return {
+        title: 'Trend positivo',
+        reason: `Winrate ultime 5 partite: ${stats.winrate.last5.toFixed(1)}% vs ultime 10: ${stats.winrate.last10.toFixed(1)}% (delta: +${winrateDelta.toFixed(1)}%)`,
+        suggestion: 'Continua così! Mantieni lo stesso approccio e stile di gioco.'
+      }
     }
-    return 'Le performance sono stabili: il winrate delle ultime 5 partite è simile a quello delle ultime 10 partite.'
+    return null // Non mostrare insight se il trend è stabile
   }
 
   // Calculate heatmap data (day of week x hour of day)
@@ -284,8 +295,7 @@ export default function DashboardPage() {
     if (!stats?.matches) return []
     const heroMap = new Map<number, { wins: number; games: number }>()
     
-    // Limit to last 20 matches for consistency with KPI cards
-    stats.matches.slice(0, 20).forEach(match => {
+    stats.matches.forEach(match => {
       if (match.hero_id) {
         const current = heroMap.get(match.hero_id) || { wins: 0, games: 0 }
         heroMap.set(match.hero_id, {
@@ -357,15 +367,17 @@ export default function DashboardPage() {
             soloMMR={playerProfile.soloMMR}
             winrate={(() => {
               if (!stats?.matches || stats.matches.length === 0) return undefined
-              const wins = stats.matches.filter(m => m.win).length
-              return (wins / stats.matches.length) * 100
+              const last20 = stats.matches.slice(0, 20)
+              const wins = last20.filter(m => m.win).length
+              return last20.length > 0 ? (wins / last20.length) * 100 : undefined
             })()}
-            totalMatches={stats?.matches?.length}
+            totalMatches={stats?.matches ? Math.min(stats.matches.length, 20) : undefined}
             lastMatchTime={stats?.matches?.[0]?.start_time}
             winLoss={(() => {
               if (!stats?.matches || stats.matches.length === 0) return null
-              const wins = stats.matches.filter(m => m.win).length
-              const losses = stats.matches.length - wins
+              const last20 = stats.matches.slice(0, 20)
+              const wins = last20.filter(m => m.win).length
+              const losses = last20.length - wins
               return { win: wins, lose: losses }
             })()}
             showSettingsLink={true}
@@ -420,41 +432,50 @@ export default function DashboardPage() {
               title="Win Rate"
               value={(() => {
                 if (!stats.matches || stats.matches.length === 0) return '0%'
-                const wins = stats.matches.filter(m => m.win).length
-                const winrate20 = (wins / stats.matches.length) * 100
+                const last20 = stats.matches.slice(0, 20)
+                const wins = last20.filter(m => m.win).length
+                const winrate20 = last20.length > 0 ? (wins / last20.length) * 100 : 0
                 return `${winrate20.toFixed(0)}%`
               })()}
               subtitle="Ultime 20 partite"
               icon={<BarChart3 className="w-4 h-4" />}
               valueColor={(() => {
                 if (!stats.matches || stats.matches.length === 0) return 'text-white'
-                const wins = stats.matches.filter(m => m.win).length
-                const winrate20 = (wins / stats.matches.length) * 100
+                const last20 = stats.matches.slice(0, 20)
+                const wins = last20.filter(m => m.win).length
+                const winrate20 = last20.length > 0 ? (wins / last20.length) * 100 : 0
                 return winrate20 >= 50 ? 'text-green-400' : 'text-red-400'
               })()}
             />
             <KpiCard
-              title="Matches Played"
-              value={stats.matches?.length || 0}
-              subtitle="Ultime 20 partite analizzate"
+              title="KDA Medio"
+              value={(() => {
+                if (!stats.matches || stats.matches.length === 0) return '0.00'
+                const last20 = stats.matches.slice(0, 20)
+                const kdaSum = last20.reduce((sum, m) => sum + (m.kda || 0), 0)
+                const avgKda = last20.length > 0 ? kdaSum / last20.length : 0
+                return avgKda.toFixed(2)
+              })()}
+              subtitle="Ultime 20 partite"
               icon={<Trophy className="w-4 h-4" />}
               valueColor="text-white"
             />
             <KpiCard
-              title="Recent Trend"
+              title="Farm Medio"
               value={(() => {
-                if (!stats.matches || stats.matches.length === 0) return 'N/A'
-                const wins = stats.matches.filter(m => m.win).length
-                const losses = stats.matches.length - wins
-                return `${wins}W - ${losses}L`
+                if (!stats.matches || stats.matches.length === 0) return '0'
+                const last20 = stats.matches.slice(0, 20)
+                const gpmSum = last20.reduce((sum, m) => sum + (m.gpm || 0), 0)
+                const avgGpm = last20.length > 0 ? gpmSum / last20.length : 0
+                return Math.round(avgGpm).toLocaleString()
               })()}
-              subtitle="Ultime 20 partite"
+              subtitle="GPM - Ultime 20 partite"
               icon={<TrendingUp className="w-4 h-4" />}
               valueColor="text-white"
             />
           </div>
 
-          {/* Top Heroes / Recent Matches - 2 Columns */}
+          {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Top Heroes Card */}
             <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 max-h-[280px] overflow-hidden flex flex-col">
@@ -515,56 +536,13 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Recent Matches Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 max-h-[280px] overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-semibold text-white">Recent Matches</h3>
-                <Link
-                  href="/dashboard/matches"
-                  className="text-xs text-red-400 hover:text-red-300"
-                >
-                  Vedi tutto →
-                </Link>
-              </div>
-              {stats.matches && stats.matches.length > 0 ? (
-                <div className="space-y-1.5 flex-1 overflow-hidden relative">
-                  {stats.matches.slice(0, 4).map((match) => (
-                    <Link
-                      key={match.match_id}
-                      href={`/analysis/match/${match.match_id}`}
-                      className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ minHeight: '44px', maxHeight: '48px' }}
-                    >
-                      <div className="text-[10px] text-gray-500 w-20 flex-shrink-0">
-                        {formatMatchDate(match.start_time)}
-                      </div>
-                      <div className="flex-shrink-0">
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                          match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                        }`}>
-                          {match.win ? 'V' : 'S'}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0 text-[10px] text-gray-400 truncate">
-                        {match.hero_id && heroes[match.hero_id] 
-                          ? heroes[match.hero_id].localized_name 
-                          : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'}
-                      </div>
-                      <div className="text-[10px] text-gray-300 font-medium flex-shrink-0">
-                        {match.kills ?? 0}/{match.deaths ?? 0}/{match.assists ?? 0}
-                      </div>
-                      <div className="text-[10px] text-gray-500 w-14 text-right flex-shrink-0">
-                        {formatDuration(match.duration)}
-                      </div>
-                    </Link>
-                  ))}
-                  {/* Fade gradient at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-800 to-transparent pointer-events-none" />
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 py-4">Nessuna partita recente</div>
-              )}
-            </div>
+            {/* Key Matches Card */}
+            <KeyMatchesCard
+              matches={stats.matches || []}
+              heroes={heroes}
+              formatMatchDate={formatMatchDate}
+              formatDuration={formatDuration}
+            />
           </div>
 
           {/* Tabs */}
@@ -592,11 +570,6 @@ export default function DashboardPage() {
 
             {/* Tab Content */}
             <div className="p-6">
-              {/* Ad Placeholder - In-Content (Always visible in tabs) */}
-              <div className="mb-6">
-                <AdPlaceholder position="in-content" />
-              </div>
-
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
@@ -605,17 +578,8 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {/* Winrate Trend Card */}
-              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="trend-winrate"
-                    elementId="dashboard-winrate-trend"
-                    contextData={{ direction: (stats.winrate?.delta ?? 0) >= 0 ? 'up' : 'down', value: stats.winrate?.delta ?? 0, label: winrateTrend.label, last5: stats.winrate?.last5 ?? 0, last10: stats.winrate?.last10 ?? 0 }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
-                <h4 className="text-lg font-semibold mb-2 pr-8">Winrate Trend</h4>
+              <AnimatedCard index={0} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-lg font-semibold mb-2">Winrate Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${winrateTrend.color} text-white`}>
                     {winrateTrend.label}
@@ -651,17 +615,8 @@ export default function DashboardPage() {
               </AnimatedCard>
 
               {/* KDA Trend Card */}
-              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="trend-kda"
-                    elementId="dashboard-kda-trend"
-                    contextData={{ direction: (stats.kda?.delta ?? 0) >= 0 ? 'up' : 'down', value: stats.kda?.delta ?? 0, label: kdaTrend.label, last5: stats.kda?.last5 ?? 0, last10: stats.kda?.last10 ?? 0 }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
-                <h4 className="text-lg font-semibold mb-2 pr-8">KDA Trend</h4>
+              <AnimatedCard index={1} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-lg font-semibold mb-2">KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
                     {kdaTrend.label}
@@ -728,13 +683,22 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500 mt-4">Media calcolata su ultime 5/10 partite (su 20 totali analizzate)</p>
               </AnimatedCard>
 
-              {/* Insight Automatico Card */}
-              <AnimatedCard index={3} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-lg font-semibold mb-2">Insight Automatico</h4>
-                <p className="text-sm text-gray-300">{getInsight()}</p>
-              </AnimatedCard>
                   </div>
                   </div>
+                  
+                  {/* Insight Bulb - Solo se c'è un trend significativo */}
+                  {(() => {
+                    const insight = getInsight()
+                    return insight ? (
+                      <div className="mt-4">
+                        <InsightBulb
+                          title={insight.title}
+                          reason={insight.reason}
+                          suggestion={insight.suggestion}
+                        />
+                      </div>
+                    ) : null
+                  })()}
                 </div>
               )}
 
@@ -746,7 +710,7 @@ export default function DashboardPage() {
                     <div>
                       <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                         <Trophy className="w-5 h-5 text-yellow-400" />
-                        Statistiche Globali
+                        Statistiche Globali (Storico Totale)
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {/* Winrate Globale Card */}

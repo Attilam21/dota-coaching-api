@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
-import AdPlaceholder from './AdPlaceholder'
 import { 
   BarChart, 
   Zap, 
@@ -44,70 +43,51 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigation: Array<{ title: string; colorClass: string; items: NavItem[]; highlight?: boolean }> = [
     {
-      title: 'GUIDA',
-      colorClass: 'text-red-400',
-      highlight: true,
-      items: [
-        { name: 'Guida', href: '/dashboard/guida-utente', icon: GraduationCap },
-      ],
-    },
-    {
-      title: 'GIOCHI ANTI-TILT',
-      colorClass: 'text-yellow-400',
-      highlight: true,
-      items: [
-        { name: 'Giochi Anti-Tilt', href: '/dashboard/games', icon: Gamepad2 },
-      ],
-    },
-    {
-      title: 'STATISTICHE GIOCATORE',
+      title: 'PANORAMICA',
       colorClass: 'text-blue-400',
       items: [
         { name: 'Panoramica', href: '/dashboard', icon: BarChart },
+      ],
+    },
+    {
+      title: 'ANALISI',
+      colorClass: 'text-green-400',
+      items: [
         { name: 'Performance & Stile', href: '/dashboard/performance', icon: Zap },
         { name: 'Hero Pool', href: '/dashboard/heroes', icon: Theater },
         { name: 'Analisi Eroi', href: '/dashboard/hero-analysis', icon: Search },
         { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: Target },
-      ],
-    },
-    {
-      title: 'TEAM & PARTITE',
-      colorClass: 'text-green-400',
-      items: [
         { name: 'I Tuoi Compagni', href: '/dashboard/teammates', icon: Users },
         { name: 'Storico Partite', href: '/dashboard/matches', icon: Gamepad2 },
-      ],
-    },
-    {
-      title: 'ANALISI PARTITA',
-      colorClass: 'text-yellow-400',
-      items: [
         { name: 'Seleziona Partita', href: '/dashboard/match-analysis', icon: Search },
-      ],
-    },
-    {
-      title: 'COACHING & PROFILO',
-      colorClass: 'text-purple-400',
-      items: [
-        { name: 'Coaching & Meta', href: '/dashboard/coaching', icon: BookOpen },
-        { name: 'Profilo AttilaLAB', href: '/dashboard/profiling', icon: Target },
-        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
-        { name: 'Anti-Tilt', href: '/dashboard/anti-tilt', icon: Shield },
-      ],
-    },
-    {
-      title: 'ANALISI TECNICHE',
-      colorClass: 'text-orange-400',
-      items: [
         { name: 'Analisi Avanzate', href: '/dashboard/advanced', icon: FlaskConical },
         { name: 'Build & Items', href: '/dashboard/builds', icon: Shield },
       ],
     },
     {
-      title: 'IMPOSTAZIONI',
+      title: 'COACHING',
+      colorClass: 'text-purple-400',
+      items: [
+        { name: 'Coaching & Meta', href: '/dashboard/coaching', icon: BookOpen },
+        { name: 'Profilo AttilaLAB', href: '/dashboard/profiling', icon: Target },
+        { name: 'Anti-Tilt', href: '/dashboard/anti-tilt', icon: Shield },
+      ],
+    },
+    {
+      title: 'CONFIGURAZIONE',
       colorClass: 'text-gray-400',
       items: [
         { name: 'Impostazioni Account', href: '/dashboard/settings', icon: Settings },
+      ],
+    },
+    // Accessori in fondo
+    {
+      title: 'ACCESSORI',
+      colorClass: 'text-gray-500',
+      items: [
+        { name: 'Guida', href: '/dashboard/guida-utente', icon: GraduationCap },
+        { name: 'Giochi Anti-Tilt', href: '/dashboard/games', icon: Gamepad2 },
+        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
       ],
     },
   ]
@@ -142,12 +122,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         href={item.href}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                           isActive(item.href)
-                            ? section.highlight 
-                              ? 'bg-red-600 text-white font-semibold'
-                              : 'bg-gray-700 text-white'
-                            : section.highlight
-                              ? 'text-red-300 hover:bg-red-900/30 hover:text-red-200 border border-red-700/30'
-                              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                            ? 'bg-gray-700 text-white'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                         }`}
                       >
                         <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -160,11 +136,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           ))}
         </nav>
-
-        {/* Ad Placeholder - Sidebar (sticky) */}
-        <div className="p-4 border-t border-gray-700">
-          <AdPlaceholder position="sidebar" className="mb-4" />
-        </div>
 
         {/* User info at bottom */}
         <div className="p-4 border-t border-gray-700">
