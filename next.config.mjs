@@ -9,6 +9,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'cdn.dota2.com',
+        pathname: '/apps/dota2/images/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'avatars.steamstatic.com',
         pathname: '/**',
       },

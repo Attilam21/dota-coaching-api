@@ -19,6 +19,7 @@ export default function HeroCard({
 }: HeroCardProps) {
   // Generate image URL from hero name
   // OpenDota format: "npc_dota_hero_antimage" -> "antimage"
+  // Use _sb.png for small size (more efficient), _lg.png for medium/large
   const getImageUrl = () => {
     if (!heroName) return null
     
@@ -30,7 +31,12 @@ export default function HeroCard({
     
     if (!imageName) return null
     
-    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${imageName}_lg.png`
+    // Use _sb.png for small icons (more efficient), _lg.png for larger ones
+    const imageFormat = size === 'sm' ? '_sb.png' : '_lg.png'
+    // Use cdn.dota2.com for _sb.png (more reliable for small icons), cloudflare for _lg.png
+    const cdn = size === 'sm' ? 'cdn.dota2.com' : 'cdn.cloudflare.steamstatic.com'
+    
+    return `https://${cdn}/apps/dota2/images/heroes/${imageName}${imageFormat}`
   }
 
   const imageUrl = getImageUrl()
