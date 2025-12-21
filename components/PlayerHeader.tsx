@@ -78,11 +78,11 @@ export default function PlayerHeader({
   }
 
   return (
-    <div className={`bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-xl p-6 shadow-lg ${className}`}>
-      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+    <div className={`relative bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-xl p-4 lg:p-5 shadow-lg ${className}`}>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-5">
         {/* Left: Avatar Section */}
         <div className="flex-shrink-0">
-          <div className="relative w-20 h-20 lg:w-24 lg:h-24 rounded-full border-2 border-gray-600 overflow-hidden bg-gray-700 shadow-md">
+          <div className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-full border-2 border-gray-600 overflow-hidden bg-gray-700 shadow-md">
             {avatarUrl && !avatarError ? (
               <Image
                 src={avatarUrl}
@@ -94,7 +94,7 @@ export default function PlayerHeader({
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <User className="w-10 h-10 lg:w-12 lg:h-12 text-gray-400" />
+                <User className="w-8 h-8 lg:w-10 lg:h-10 text-gray-400" />
               </div>
             )}
           </div>
@@ -102,9 +102,9 @@ export default function PlayerHeader({
 
         {/* Center: Player Info Card */}
         <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl lg:text-3xl font-bold text-white truncate">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl lg:text-2xl font-bold text-white truncate">
                 {playerName || `Player ${playerId || ''}`}
               </h1>
               {playerName && (
@@ -116,13 +116,13 @@ export default function PlayerHeader({
           </div>
 
           {/* Rank Badge - Enterprise Design */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <div 
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${rankInfo.color} shadow-sm`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${rankInfo.color} shadow-sm`}
               title={rankTier > 0 ? `${rankInfo.name}${soloMMR ? ` - ${soloMMR} MMR` : ''}` : 'Unranked'}
             >
               {rankMedalUrl && rankTier > 0 && !rankImageError ? (
-                <div className="relative w-5 h-5">
+                <div className="relative w-4 h-4">
                   <Image
                     src={rankMedalUrl}
                     alt={`Rank ${rankTier}`}
@@ -133,15 +133,15 @@ export default function PlayerHeader({
                   />
                 </div>
               ) : (
-                <Award className={`w-4 h-4 ${rankTier > 0 ? 'text-current' : 'text-gray-400'}`} />
+                <Award className={`w-3.5 h-3.5 ${rankTier > 0 ? 'text-current' : 'text-gray-400'}`} />
               )}
-              <span className="text-sm font-semibold">{rankInfo.name}</span>
+              <span className="text-xs font-semibold">{rankInfo.name}</span>
             </div>
 
             {soloMMR && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-700/50 border border-gray-600 text-gray-200">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm font-medium">{soloMMR} MMR</span>
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-700/50 border border-gray-600 text-gray-200">
+                <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+                <span className="text-xs font-medium">{soloMMR} MMR</span>
               </div>
             )}
 
@@ -154,48 +154,48 @@ export default function PlayerHeader({
         </div>
 
         {/* Right: Quick Stats Cards */}
-        <div className="flex flex-row lg:flex-col gap-3 w-full lg:w-auto lg:min-w-[140px]">
+        <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto lg:min-w-[110px]">
           {/* Winrate Card */}
           {winrate !== undefined && (
-            <div className="flex-1 lg:flex-none bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/50 rounded-lg p-3 shadow-sm hover:border-green-600/70 transition-colors">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wider">Winrate</span>
+            <div className="flex-1 lg:flex-none bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/50 rounded-md p-2.5 shadow-sm hover:border-green-600/70 transition-colors">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Winrate</span>
               </div>
-              <p className="text-xl font-bold text-green-400">{formatWinrate(winrate)}</p>
+              <p className="text-lg font-bold text-green-400 leading-none">{formatWinrate(winrate)}</p>
               {totalMatches && (
-                <p className="text-xs text-gray-500 mt-1">{totalMatches} partite</p>
+                <p className="text-[10px] text-gray-500 mt-1">{totalMatches} partite</p>
               )}
             </div>
           )}
 
           {/* Last Match Card */}
           {lastMatchTime && (
-            <div className="flex-1 lg:flex-none bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/50 rounded-lg p-3 shadow-sm hover:border-blue-600/70 transition-colors">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-blue-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wider">Ultima</span>
+            <div className="flex-1 lg:flex-none bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/50 rounded-md p-2.5 shadow-sm hover:border-blue-600/70 transition-colors">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Clock className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Ultima</span>
               </div>
-              <p className="text-lg font-semibold text-blue-400">{formatLastMatch(lastMatchTime)}</p>
-              <p className="text-xs text-gray-500 mt-1">partita</p>
+              <p className="text-base font-semibold text-blue-400 leading-none">{formatLastMatch(lastMatchTime)}</p>
+              <p className="text-[10px] text-gray-500 mt-1">partita</p>
             </div>
           )}
         </div>
-
-        {/* Settings Link */}
-        {showSettingsLink && (
-          <div className="absolute top-4 right-4">
-            <Link
-              href="/dashboard/settings"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
-              title="Modifica Profilo"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Impostazioni</span>
-            </Link>
-          </div>
-        )}
       </div>
+
+      {/* Settings Link - positioned outside flex container to avoid overlap */}
+      {showSettingsLink && (
+        <div className="absolute top-3 right-3">
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors"
+            title="Impostazioni"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Impostazioni</span>
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
