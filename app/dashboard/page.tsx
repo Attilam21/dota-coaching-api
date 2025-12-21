@@ -291,7 +291,7 @@ export default function DashboardPage() {
   }
 
   // Calculate values only when stats is available
-  // Calculate top heroes from matches
+  // Calculate top heroes from matches (filter out heroes with < 2 games)
   const getTopHeroes = () => {
     if (!stats?.matches) return []
     const heroMap = new Map<number, { wins: number; games: number }>()
@@ -313,8 +313,9 @@ export default function DashboardPage() {
         wins: data.wins,
         winrate: data.games > 0 ? (data.wins / data.games) * 100 : 0
       }))
-      .sort((a, b) => b.games - a.games)
-      .slice(0, 5)
+      .filter(hero => hero.games >= 2) // Remove heroes with < 2 games
+      .sort((a, b) => b.winrate - a.winrate || b.games - a.games) // Sort by winrate first, then games
+      .slice(0, 8) // Max 8 heroes
   }
 
   const topHeroes = stats ? getTopHeroes() : []
@@ -478,54 +479,76 @@ export default function DashboardPage() {
 
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            {/* Top Heroes Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 max-h-[280px] overflow-hidden flex flex-col">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-semibold text-white">Top Heroes</h3>
-                <Link
-                  href="/dashboard/heroes"
-                  className="text-xs text-red-400 hover:text-red-300"
-                >
-                  Vedi tutto →
-                </Link>
-              </div>
+            {/* Hero Pool Card */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+              <h3 className="text-base font-semibold text-white mb-4">Hero Pool</h3>
               {topHeroes.length > 0 ? (
-                <div className="space-y-1.5 flex-1 overflow-hidden relative">
-                  {topHeroes.slice(0, 4).map((hero, idx) => (
-                    <div
-                      key={hero.hero_id}
-                      className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ minHeight: '44px', maxHeight: '48px' }}
-                    >
-                      {heroes[hero.hero_id] ? (
-                        <HeroIcon
-                          heroId={hero.hero_id}
-                          heroName={heroes[hero.hero_id].name}
-                          size={28}
-                          className="rounded"
-                        />
-                      ) : (
-                        <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-white truncate">
-                          {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
-                        </div>
-                        {hero.games < 3 && (
-                          <div className="text-[10px] text-gray-500">campione ridotto</div>
+                <>
+                  {/* Heroes Grid - Compact horizontal layout */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {topHeroes.slice(0, 8).map((hero) => (
+                      <div
+                        key={hero.hero_id}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
+                      >
+                        {heroes[hero.hero_id] ? (
+                          <HeroIcon
+                            heroId={hero.hero_id}
+                            heroName={heroes[hero.hero_id].name}
+                            size={40}
+                            className="rounded flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
+                          </div>
                         )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-white truncate mb-0.5">
+                            {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px]">
+                            <span className={`font-semibold ${
+                              hero.winrate >= 60 ? 'text-green-400' : 
+                              hero.winrate >= 50 ? 'text-yellow-400' : 
+                              'text-red-400'
+                            }`}>
+                              {hero.winrate.toFixed(0)}%
+                            </span>
+                            <span className="text-gray-500">{hero.games}p</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-xs font-semibold text-white">{hero.winrate.toFixed(0)}%</div>
-                        <div className="text-[10px] text-gray-500">{hero.games} partite</div>
-                      </div>
-                    </div>
-                  ))}
-                  {/* Fade gradient at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-800 to-transparent pointer-events-none" />
-                </div>
+                    ))}
+                  </div>
+                  
+                  {/* Insight Bulb for Hero Pool */}
+                  {(() => {
+                    const avgWinrate = topHeroes.reduce((sum, h) => sum + h.winrate, 0) / topHeroes.length
+                    const highWinrateHeroes = topHeroes.filter(h => h.winrate >= 60).length
+                    const poolSize = topHeroes.length
+                    
+                    let insightTitle = 'Pool Eroe'
+                    let insightReason = ''
+                    
+                    if (poolSize < 5) {
+                      insightReason = `Hai giocato solo ${poolSize} eroi diversi. Considera di espandere il pool per maggiore adattabilità.`
+                    } else if (highWinrateHeroes >= 3) {
+                      insightReason = `${highWinrateHeroes} eroi con winrate >60%. Focus su questi per massimizzare le vittorie.`
+                    } else if (avgWinrate >= 55) {
+                      insightReason = `Winrate medio ${avgWinrate.toFixed(0)}% sul pool. Prestazioni solide, continua così.`
+                    } else {
+                      insightReason = `Winrate medio ${avgWinrate.toFixed(0)}%. Valuta di praticare di più gli eroi con winrate basso.`
+                    }
+                    
+                    return (
+                      <InsightBulb
+                        title={insightTitle}
+                        reason={insightReason}
+                      />
+                    )
+                  })()}
+                </>
               ) : (
                 <div className="text-sm text-gray-500 py-4">Nessun dato hero disponibile</div>
               )}
