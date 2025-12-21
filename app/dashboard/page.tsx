@@ -478,28 +478,28 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Heroes / Key Matches - 2 Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-4 mb-1 items-start">
             {/* Hero Pool Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-3">
-              <h3 className="text-base font-semibold text-white mb-2">Hero Pool</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+              <h3 className="text-base font-semibold text-white mb-3">Hero Pool</h3>
               {topHeroes.length > 0 ? (
                 <>
                   {/* Heroes Grid - Compact horizontal layout */}
-                  <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  <div className="grid grid-cols-2 gap-2 mb-3">
                     {topHeroes.slice(0, 8).map((hero) => (
                       <div
                         key={hero.hero_id}
-                        className="flex items-center gap-1.5 p-1.5 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
+                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
                       >
                         {heroes[hero.hero_id] ? (
                           <HeroIcon
                             heroId={hero.hero_id}
                             heroName={heroes[hero.hero_id].name}
-                            size={36}
+                            size={40}
                             className="rounded flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-9 h-9 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
                             <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
                           </div>
                         )}
@@ -564,7 +564,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Tabs */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-3">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-2">
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },

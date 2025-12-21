@@ -121,11 +121,11 @@ export default function KeyMatchesCard({
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-      <h3 className="text-base font-semibold text-white mb-4">Partite Chiave</h3>
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3">
+      <h3 className="text-base font-semibold text-white mb-3">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {keyMatches.map((item) => {
             const match = item.match
             const heroName = match.hero_id && heroes[match.hero_id] 
@@ -137,10 +137,10 @@ export default function KeyMatchesCard({
             return (
               <div
                 key={`${item.label}-${match.match_id}`}
-                className={`border rounded-lg p-3 ${item.borderColor} ${item.bgColor}`}
+                className={`border rounded-lg p-2.5 ${item.borderColor} ${item.bgColor}`}
               >
                 {/* Header: Label + Win/Loss */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <item.icon className={`w-4 h-4 ${item.color}`} />
                     <span className={`text-sm font-semibold ${item.color}`}>{item.label}</span>
@@ -153,25 +153,25 @@ export default function KeyMatchesCard({
                 </div>
 
                 {/* Hero Icon + KDA */}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2.5 mb-2">
                   {match.hero_id && heroes[match.hero_id] && (
                     <HeroIcon
                       heroId={match.hero_id}
                       heroName={heroes[match.hero_id].name}
-                      size={40}
+                      size={36}
                       className="rounded flex-shrink-0"
                     />
                   )}
                   <div className="flex-1">
-                    <div className="text-sm text-gray-300 mb-1">{heroName}</div>
-                    <div className="text-lg font-bold text-white">
+                    <div className="text-xs text-gray-300 mb-0.5">{heroName}</div>
+                    <div className="text-base font-bold text-white">
                       KDA: {match.kda.toFixed(2)}
                     </div>
                   </div>
                 </div>
 
                 {/* Insight Bulb */}
-                <div className="mb-3">
+                <div className="mb-2">
                   <InsightBulb
                     title={insight.title}
                     reason={insight.reason}
@@ -181,7 +181,7 @@ export default function KeyMatchesCard({
                 {/* CTA Button */}
                 <Link
                   href={`/analysis/match/${match.match_id}`}
-                  className="block w-full text-center text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-2 transition-colors"
+                  className="block w-full text-center text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-1.5 transition-colors"
                 >
                   Vai all'analisi
                 </Link>
