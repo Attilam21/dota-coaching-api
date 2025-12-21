@@ -284,7 +284,8 @@ export default function DashboardPage() {
     if (!stats?.matches) return []
     const heroMap = new Map<number, { wins: number; games: number }>()
     
-    stats.matches.forEach(match => {
+    // Limit to last 20 matches for consistency with KPI cards
+    stats.matches.slice(0, 20).forEach(match => {
       if (match.hero_id) {
         const current = heroMap.get(match.hero_id) || { wins: 0, games: 0 }
         heroMap.set(match.hero_id, {
