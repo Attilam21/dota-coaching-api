@@ -87,17 +87,20 @@ export default function ProfileHeaderCard({
           {/* Avatar */}
           <div className="flex-shrink-0">
             <div className="relative w-14 h-14 rounded-full border border-gray-600 overflow-hidden bg-gray-700">
-              {avatarUrl && !avatarError ? (
+              {avatarUrl ? (
                 <Image
                   src={avatarUrl}
                   alt={playerName || `Player ${playerId || ''}`}
                   fill
                   className="object-cover"
                   unoptimized
-                  onError={() => setAvatarError(true)}
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-700">
                   <User className="w-7 h-7 text-gray-400" />
                 </div>
               )}
