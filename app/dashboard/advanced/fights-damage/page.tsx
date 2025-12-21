@@ -190,17 +190,17 @@ export default function FightsDamagePage() {
               <p className="text-3xl font-bold text-green-400">{stats.fights.killParticipation.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-2">Partecipazione ai kill</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Damage per Minuto</h3>
               <p className="text-3xl font-bold text-red-400">{stats.fights.damagePerMinute}</p>
               <p className="text-xs text-gray-500 mt-2">Hero damage al minuto</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Deaths per Minuto</h3>
               <p className="text-3xl font-bold text-orange-400">{stats.fights.deathsPerMinute}</p>
               <p className="text-xs text-gray-500 mt-2">Morti al minuto</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Teamfight Participation</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.fights.teamfightParticipation}</p>
               <p className="text-xs text-gray-500 mt-2">Partecipazione ai teamfight</p>
@@ -209,17 +209,17 @@ export default function FightsDamagePage() {
                   
                   {/* Additional Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Hero Damage Medio</h3>
               <p className="text-2xl font-bold text-red-400">{Math.round(stats.fights.avgHeroDamage).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Damage ai nemici</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Tower Damage Medio</h3>
               <p className="text-2xl font-bold text-yellow-400">{Math.round(stats.fights.avgTowerDamage).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Damage alle torri</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Damage Efficiency</h3>
               <p className="text-2xl font-bold text-purple-400">{Math.round(stats.fights.damageEfficiency).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-2">Dmg / Death</p>
