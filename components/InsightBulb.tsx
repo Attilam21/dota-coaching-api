@@ -5,7 +5,7 @@ import { Lightbulb } from 'lucide-react'
 interface InsightBulbProps {
   title: string
   reason: string
-  suggestion: string
+  suggestion?: string
   className?: string
 }
 
@@ -28,7 +28,7 @@ export default function InsightBulb({
         <div className="flex-1 space-y-1">
           <p className="text-sm font-semibold text-white">{title}</p>
           <p className="text-xs text-gray-400">{reason}</p>
-          <p className="text-xs text-gray-300">{suggestion}</p>
+          {suggestion && <p className="text-xs text-gray-300">{suggestion}</p>}
         </div>
       </div>
     </div>

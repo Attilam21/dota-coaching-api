@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
 import HeroIcon from '@/components/HeroIcon'
+import InsightBulb from '@/components/InsightBulb'
 
 interface Match {
   match_id: number
@@ -25,8 +26,8 @@ interface KeyMatchesCardProps {
 }
 
 /**
- * Mostra 3-4 partite chiave: BEST, WORST, OUTLIER
- * Invece di semplicemente le ultime partite
+ * Mostra 3 partite chiave: BEST, WORST, OUTLIER
+ * Ogni card mostra: icona eroe, Win/Loss, KDA, InsightBulb, CTA
  */
 export default function KeyMatchesCard({
   matches,
@@ -67,88 +68,124 @@ export default function KeyMatchesCard({
     return currentDeviation > outlierDeviation ? match : outlier
   }, last20[0])
 
+  // Genera insight per ogni match
+  const getInsight = (match: Match, type: 'best' | 'worst' | 'outlier') => {
+    const kdaDelta = match.kda ? ((match.kda - avgKda) / avgKda * 100) : 0
+    
+    if (type === 'best') {
+      return {
+        title: 'Prestazione Eccellente',
+        reason: `KDA ${kdaDelta > 0 ? '+' : ''}${kdaDelta.toFixed(0)}% rispetto alla media. Partita dominante.`
+      }
+    } else if (type === 'worst') {
+      return {
+        title: 'Prestazione da Migliorare',
+        reason: `KDA ${kdaDelta.toFixed(0)}% sotto la media. Analizza gli errori per migliorare.`
+      }
+    } else {
+      return {
+        title: 'Partita Atipica',
+        reason: `Metriche molto diverse dalla media. Valuta cosa è andato diversamente.`
+      }
+    }
+  }
+
   const keyMatches = [
-    { match: bestMatch, label: 'BEST', icon: TrendingUp, color: 'text-green-400', bgColor: 'bg-green-900/20', borderColor: 'border-green-700/50' },
-    { match: worstMatch, label: 'WORST', icon: TrendingDown, color: 'text-red-400', bgColor: 'bg-red-900/20', borderColor: 'border-red-700/50' },
-    { match: outlierMatch, label: 'OUTLIER', icon: AlertCircle, color: 'text-yellow-400', bgColor: 'bg-yellow-900/20', borderColor: 'border-yellow-700/50' }
+    { 
+      match: bestMatch, 
+      label: 'Best Match', 
+      type: 'best' as const,
+      icon: TrendingUp, 
+      color: 'text-green-400', 
+      bgColor: 'bg-green-900/20', 
+      borderColor: 'border-green-700/50' 
+    },
+    { 
+      match: worstMatch, 
+      label: 'Worst Match', 
+      type: 'worst' as const,
+      icon: TrendingDown, 
+      color: 'text-red-400', 
+      bgColor: 'bg-red-900/20', 
+      borderColor: 'border-red-700/50' 
+    },
+    { 
+      match: outlierMatch, 
+      label: 'Match Outlier', 
+      type: 'outlier' as const,
+      icon: AlertCircle, 
+      color: 'text-yellow-400', 
+      bgColor: 'bg-yellow-900/20', 
+      borderColor: 'border-yellow-700/50' 
+    }
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-base font-semibold text-white">Partite Chiave</h3>
-        <Link
-          href="/dashboard/matches"
-          className="text-xs text-red-400 hover:text-red-300"
-        >
-          Vedi tutto →
-        </Link>
-      </div>
+      <h3 className="text-base font-semibold text-white mb-4">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
-        <div className="space-y-2">
-          {keyMatches.map((item, idx) => {
+        <div className="space-y-3">
+          {keyMatches.map((item) => {
             const match = item.match
             const heroName = match.hero_id && heroes[match.hero_id] 
               ? heroes[match.hero_id].localized_name 
               : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'
             
-            const kdaDelta = match.kda ? ((match.kda - avgKda) / avgKda * 100) : 0
-            const gpmDelta = match.gpm ? ((match.gpm - avgGpm) / avgGpm * 100) : 0
+            const insight = getInsight(match, item.type)
 
             return (
-              <Link
+              <div
                 key={`${item.label}-${match.match_id}`}
-                href={`/analysis/match/${match.match_id}`}
-                className={`block border rounded-lg p-2.5 hover:opacity-80 transition-opacity ${item.borderColor} ${item.bgColor}`}
+                className={`border rounded-lg p-3 ${item.borderColor} ${item.bgColor}`}
               >
-                <div className="flex items-center justify-between mb-1">
+                {/* Header: Label + Win/Loss */}
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <item.icon className={`w-4 h-4 ${item.color}`} />
-                    <span className={`text-xs font-semibold ${item.color}`}>{item.label}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${
+                    <span className={`text-sm font-semibold ${item.color}`}>{item.label}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
                       match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                     }`}>
-                      {match.win ? 'V' : 'S'}
+                      {match.win ? 'Win' : 'Loss'}
                     </span>
                   </div>
-                  <span className="text-[10px] text-gray-500">
-                    {formatMatchDate(match.start_time)}
-                  </span>
                 </div>
-                
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {match.hero_id && heroes[match.hero_id] && (
-                      <HeroIcon
-                        heroId={match.hero_id}
-                        heroName={heroes[match.hero_id].name}
-                        size={28}
-                        className="rounded"
-                      />
-                    )}
-                    <span className="text-gray-300 truncate">{heroName}</span>
-                  </div>
-                  <div className="flex items-center gap-3 ml-2">
-                    <div className="text-right">
-                      <div className="text-white font-semibold">
-                        {match.kills ?? 0}/{match.deaths ?? 0}/{match.assists ?? 0}
-                      </div>
-                      {kdaDelta !== 0 && (
-                        <div className={`text-[10px] ${kdaDelta > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {kdaDelta > 0 ? '+' : ''}{kdaDelta.toFixed(0)}% vs media
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right text-gray-400">
-                      <div>{match.gpm?.toLocaleString() || 0} GPM</div>
-                      {match.duration && (
-                        <div className="text-[10px]">{formatDuration(match.duration)}</div>
-                      )}
+
+                {/* Hero Icon + KDA */}
+                <div className="flex items-center gap-3 mb-3">
+                  {match.hero_id && heroes[match.hero_id] && (
+                    <HeroIcon
+                      heroId={match.hero_id}
+                      heroName={heroes[match.hero_id].name}
+                      size={40}
+                      className="rounded flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-300 mb-1">{heroName}</div>
+                    <div className="text-lg font-bold text-white">
+                      KDA: {match.kda.toFixed(2)}
                     </div>
                   </div>
                 </div>
-              </Link>
+
+                {/* Insight Bulb */}
+                <div className="mb-3">
+                  <InsightBulb
+                    title={insight.title}
+                    reason={insight.reason}
+                  />
+                </div>
+
+                {/* CTA Button */}
+                <Link
+                  href={`/analysis/match/${match.match_id}`}
+                  className="block w-full text-center text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-2 transition-colors"
+                >
+                  Vai all'analisi
+                </Link>
+              </div>
             )
           })}
         </div>

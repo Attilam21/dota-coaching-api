@@ -254,10 +254,28 @@ export async function GET(
     const avgHealing = validMatches.reduce((acc, m) => acc + (m.hero_healing || 0), 0) / matchCount
     const avgDeaths = validMatches.reduce((acc, m) => acc + m.deaths, 0) / matchCount
 
-    // Kill participation (semplicificato: (kills + assists) / (kills + assists + deaths) * 100)
-    const totalKA = totalKills + totalAssists
-    const totalKAD = totalKA + validMatches.reduce((acc, m) => acc + m.deaths, 0)
-    const killParticipation = totalKAD > 0 ? (totalKA / totalKAD) * 100 : 0
+    // Kill participation - CORRECT formula: (kills + assists) / team_total_kills * 100
+    // Calculate per match using full match data, then average
+    let totalKillParticipation = 0
+    let validKPMatches = 0
+    validMatches.forEach((match: any, idx: number) => {
+      const fullMatch = idx < fullMatchesData.length ? fullMatchesData[idx] : null
+      if (fullMatch?.players) {
+        // Determine team (Radiant: slots 0-4, Dire: slots 128-132)
+        const playerTeam = match.player_slot < 128
+          ? fullMatch.players.filter((p: any) => p.player_slot < 128)
+          : fullMatch.players.filter((p: any) => p.player_slot >= 128)
+        
+        const teamTotalKills = playerTeam.reduce((sum: number, p: any) => sum + (p.kills || 0), 0)
+        if (teamTotalKills > 0) {
+          const playerKA = match.kills + match.assists
+          const kp = (playerKA / teamTotalKills) * 100
+          totalKillParticipation += kp
+          validKPMatches++
+        }
+      }
+    })
+    const killParticipation = validKPMatches > 0 ? totalKillParticipation / validKPMatches : 0
 
     // Death efficiency: deaths per minute
     const avgDurationMinutes = avgDuration / 60
