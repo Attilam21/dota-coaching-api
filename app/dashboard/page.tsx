@@ -430,74 +430,87 @@ export default function DashboardPage() {
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-4 mb-1 items-stretch">
             {/* Hero Pool Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex flex-col h-full">
-              <h3 className="text-base font-semibold text-white mb-3 flex-shrink-0">Hero Pool</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col h-full">
+              <h3 className="text-sm font-semibold text-white mb-2 flex-shrink-0">Hero Pool</h3>
               {topHeroes.length > 0 ? (
-                <div className="flex-1 flex flex-col min-h-0">
-                  {/* Heroes Grid - Compact horizontal layout */}
-                  <div className="grid grid-cols-2 gap-2 mb-3 flex-shrink-0">
-                    {topHeroes.slice(0, 8).map((hero) => (
-                      <div
-                        key={hero.hero_id}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
-                      >
-                        {heroes[hero.hero_id] ? (
-                          <HeroIcon
-                            heroId={hero.hero_id}
-                            heroName={heroes[hero.hero_id].name}
-                            size={40}
-                            className="rounded flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-medium text-white truncate">
-                            {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[10px]">
-                            <span className={`font-semibold ${
-                              hero.winrate >= 60 ? 'text-green-400' : 
-                              hero.winrate >= 50 ? 'text-yellow-400' : 
-                              'text-red-400'
-                            }`}>
-                              {hero.winrate.toFixed(0)}%
-                            </span>
-                            <span className="text-gray-500">{hero.games}p</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Insight Bulb for Hero Pool */}
-                  {(() => {
-                    const avgWinrate = topHeroes.reduce((sum, h) => sum + h.winrate, 0) / topHeroes.length
-                    const highWinrateHeroes = topHeroes.filter(h => h.winrate >= 60).length
-                    const poolSize = topHeroes.length
+                <div className="flex-1 flex flex-col justify-between min-h-0">
+                  {topHeroes.slice(0, 5).map((hero) => {
+                    const heroName = heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`
+                    const winrateColor = hero.winrate >= 60 ? 'text-green-400' : hero.winrate >= 50 ? 'text-yellow-400' : 'text-red-400'
+                    const bgColor = hero.winrate >= 60 ? 'bg-green-900/20' : hero.winrate >= 50 ? 'bg-yellow-900/20' : 'bg-red-900/20'
+                    const borderColor = hero.winrate >= 60 ? 'border-green-700/50' : hero.winrate >= 50 ? 'border-yellow-700/50' : 'border-red-700/50'
                     
-                    let insightTitle = 'Pool Eroe'
+                    // Insight per ogni hero
+                    let insightTitle = hero.winrate >= 60 ? 'Eroe Forte' : hero.winrate >= 50 ? 'Eroe Solido' : 'Eroe da Migliorare'
                     let insightReason = ''
-                    
-                    if (poolSize < 5) {
-                      insightReason = `Hai giocato solo ${poolSize} eroi diversi. Considera di espandere il pool per maggiore adattabilità.`
-                    } else if (highWinrateHeroes >= 3) {
-                      insightReason = `${highWinrateHeroes} eroi con winrate >60%. Focus su questi per massimizzare le vittorie.`
-                    } else if (avgWinrate >= 55) {
-                      insightReason = `Winrate medio ${avgWinrate.toFixed(0)}% sul pool. Prestazioni solide, continua così.`
+                    if (hero.winrate >= 60) {
+                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Continua a giocarlo.`
+                    } else if (hero.winrate >= 50) {
+                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Potenziale di crescita.`
                     } else {
-                      insightReason = `Winrate medio ${avgWinrate.toFixed(0)}%. Valuta di praticare di più gli eroi con winrate basso.`
+                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Analizza le partite per migliorare.`
                     }
                     
                     return (
-                      <InsightBulb
-                        title={insightTitle}
-                        reason={insightReason}
-                      />
+                      <div
+                        key={hero.hero_id}
+                        className={`border rounded-lg p-2 ${borderColor} ${bgColor} flex-1 flex flex-col`}
+                      >
+                        {/* Header: Hero Name + Winrate Badge */}
+                        <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-xs font-semibold ${winrateColor}`}>{heroName}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                              hero.winrate >= 60 ? 'bg-green-600 text-white' : 
+                              hero.winrate >= 50 ? 'bg-yellow-600 text-white' : 
+                              'bg-red-600 text-white'
+                            }`}>
+                              {hero.winrate.toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Hero Icon + Stats */}
+                        <div className="flex items-center gap-1.5 mb-1.5 flex-shrink-0">
+                          {heroes[hero.hero_id] ? (
+                            <HeroIcon
+                              heroId={hero.hero_id}
+                              heroName={heroes[hero.hero_id].name}
+                              size={28}
+                              className="rounded flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[10px] text-gray-400 font-bold">{hero.hero_id}</span>
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div className="text-[10px] text-gray-300 mb-0.5 leading-tight">{heroName}</div>
+                            <div className="text-xs font-bold text-white leading-tight">
+                              {hero.games}p • {hero.wins}W / {hero.games - hero.wins}L
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Insight Bulb */}
+                        <div className="mb-1.5 flex-shrink-0">
+                          <InsightBulb
+                            title={insightTitle}
+                            reason={insightReason}
+                            className="p-2"
+                          />
+                        </div>
+
+                        {/* CTA Button */}
+                        <Link
+                          href={`/dashboard/heroes`}
+                          className="block w-full text-center text-[10px] font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-1 transition-colors flex-shrink-0 mt-auto"
+                        >
+                          Vedi analisi
+                        </Link>
+                      </div>
                     )
-                  })()}
+                  })}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 py-4">Nessun dato hero disponibile</div>
