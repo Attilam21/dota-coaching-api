@@ -556,11 +556,11 @@ export default function MatchesPage() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                           type="text"
-                          placeholder="Cerca Match ID..."
+                          placeholder="Cerca Match ID... (Premi Enter per analizzare)"
                           value={searchMatchId}
                           onChange={(e) => setSearchMatchId(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchMatchId.trim() && !filteredMatches.some(m => m.match_id.toString() === searchMatchId.trim())) {
+                            if (e.key === 'Enter' && searchMatchId.trim()) {
                               e.preventDefault()
                               router.push(`/dashboard/match-analysis/${searchMatchId.trim()}`)
                             }
