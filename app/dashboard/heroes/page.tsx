@@ -10,7 +10,8 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
-import { BarChart as BarChartIcon, Table } from 'lucide-react'
+import { BarChart as BarChartIcon, Table, Target, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react'
+import { PieChart, Pie, Cell } from 'recharts'
 
 interface HeroStats {
   hero_id: number
@@ -21,15 +22,35 @@ interface HeroStats {
   avg_gpm?: string
   avg_xpm?: string
   kda?: string
+  roles?: string[]
+  primary_attr?: string
+  rating?: string
 }
 
-type TabType = 'chart' | 'stats'
+interface HeroAnalysisData {
+  heroStats: HeroStats[]
+  bestHeroes: HeroStats[]
+  worstHeroes: HeroStats[]
+  overall: {
+    totalGames: number
+    totalWins: number
+    overallWinrate: string
+    diverseHeroes: number
+    totalHeroesPlayed: number
+  }
+  mostPlayed: HeroStats | null
+  roleStats: Record<string, { games: number; wins: number; winrate: number }>
+  insights: string[]
+}
+
+type TabType = 'chart' | 'stats' | 'analysis'
 
 export default function HeroesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const [heroStats, setHeroStats] = useState<HeroStats[]>([])
+  const [analysisData, setAnalysisData] = useState<HeroAnalysisData | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,8 +88,27 @@ export default function HeroesPage() {
       if (!response.ok) throw new Error('Failed to fetch hero stats')
 
       const data = await response.json()
+      
+      // Save full analysis data
+      setAnalysisData({
+        heroStats: data.heroStats || [],
+        bestHeroes: data.bestHeroes || [],
+        worstHeroes: data.worstHeroes || [],
+        overall: data.overall || {
+          totalGames: 0,
+          totalWins: 0,
+          overallWinrate: '0',
+          diverseHeroes: 0,
+          totalHeroesPlayed: 0,
+        },
+        mostPlayed: data.mostPlayed || null,
+        roleStats: data.roleStats || {},
+        insights: data.insights || [],
+      })
+      
+      // Keep existing heroStats for backward compatibility (top 10)
       const stats: HeroStats[] = (data.heroStats || [])
-        .map((h: { hero_id: number; games: number; wins: number; winrate: number; hero_name: string; avg_gpm?: string; avg_xpm?: string; kda?: string }) => ({
+        .map((h: any) => ({
           hero_id: h.hero_id,
           hero_name: h.hero_name,
           games: h.games,
@@ -77,6 +117,9 @@ export default function HeroesPage() {
           avg_gpm: h.avg_gpm,
           avg_xpm: h.avg_xpm,
           kda: h.kda,
+          roles: h.roles,
+          primary_attr: h.primary_attr,
+          rating: h.rating,
         }))
         .sort((a: HeroStats, b: HeroStats) => b.games - a.games)
         .slice(0, 10)
@@ -153,9 +196,96 @@ export default function HeroesPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Heroes Totali</h3>
-              <p className="text-2xl font-bold text-white">{heroStats.length}</p>
+              <p className="text-2xl font-bold text-white">{analysisData?.overall.totalHeroesPlayed || heroStats.length}</p>
               <p className="text-xs text-gray-500 mt-1">Heroes giocati</p>
             </div>
+            {analysisData && (
+              <>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">Heroes per Ruolo</h3>
+                  <p className="text-2xl font-bold text-blue-400">{Object.keys(analysisData.roleStats).length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Ruoli diversi giocati</p>
+                </div>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">Ruolo Preferito</h3>
+                  <p className="text-lg font-bold text-yellow-400">
+                    {(() => {
+                      const roleEntries = Object.entries(analysisData.roleStats)
+                      if (roleEntries.length === 0) return 'N/A'
+                      const mostPlayedRole = roleEntries.sort((a, b) => b[1].games - a[1].games)[0]
+                      return mostPlayedRole[0].charAt(0).toUpperCase() + mostPlayedRole[0].slice(1)
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Più giocato</p>
+                </div>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">Pool Completo?</h3>
+                  <p className={`text-2xl font-bold ${
+                    analysisData.overall.diverseHeroes >= 12 ? 'text-green-400' :
+                    analysisData.overall.diverseHeroes >= 8 ? 'text-yellow-400' :
+                    'text-red-400'
+                  }`}>
+                    {analysisData.overall.diverseHeroes >= 12 ? '✓' : analysisData.overall.diverseHeroes >= 8 ? '~' : '✗'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{analysisData.overall.diverseHeroes} heroes con 5+ partite</p>
+                </div>
+              </>
+            )}
+            {!analysisData && (
+              <>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">KDA Medio</h3>
+                  <p className="text-2xl font-bold text-red-400">
+                    {(() => {
+                      const validKDA = heroStats.filter(h => {
+                        if (!h.kda) return false
+                        const kdaValue = parseFloat(h.kda)
+                        return !isNaN(kdaValue) && kdaValue > 0 && h.kda !== '0.00'
+                      })
+                      if (validKDA.length === 0) return '0.00'
+                      const count = validKDA.length
+                      const avg = count > 0 ? validKDA.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / count : 0
+                      return isNaN(avg) ? '0.00' : avg.toFixed(2)
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                </div>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">GPM Medio</h3>
+                  <p className="text-2xl font-bold text-yellow-400">
+                    {(() => {
+                      const validGPM = heroStats.filter(h => {
+                        if (!h.avg_gpm) return false
+                        const gpmValue = parseFloat(h.avg_gpm)
+                        return !isNaN(gpmValue) && gpmValue > 0 && h.avg_gpm !== '0'
+                      })
+                      if (validGPM.length === 0) return 'N/A'
+                      const count = validGPM.length
+                      const avg = count > 0 ? validGPM.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / count : 0
+                      return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                </div>
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {(() => {
+                      const validXPM = heroStats.filter(h => {
+                        if (!h.avg_xpm) return false
+                        const xpmValue = parseFloat(h.avg_xpm)
+                        return !isNaN(xpmValue) && xpmValue > 0 && h.avg_xpm !== '0'
+                      })
+                      if (validXPM.length === 0) return 'N/A'
+                      const count = validXPM.length
+                      const avg = count > 0 ? validXPM.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / count : 0
+                      return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                </div>
+              </>
+            )}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">KDA Medio</h3>
               <p className="text-2xl font-bold text-red-400">
@@ -215,6 +345,7 @@ export default function HeroesPage() {
               {[
                 { id: 'chart' as TabType, name: 'Grafico', icon: BarChartIcon },
                 { id: 'stats' as TabType, name: 'Statistiche', icon: Table },
+                { id: 'analysis' as TabType, name: 'Pool Analysis', icon: Target },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -308,6 +439,228 @@ export default function HeroesPage() {
                         <Bar dataKey="kda" fill="#EF4444" name="KDA" />
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Pool Analysis Tab */}
+              {activeTab === 'analysis' && analysisData && (
+                <div className="space-y-6">
+                  {/* Diversity & Role Coverage */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Diversità & Copertura Ruoli
+                    </h2>
+                    {Object.keys(analysisData.roleStats).length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Role Distribution Chart */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Distribuzione per Ruolo</h3>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <PieChart>
+                              <Pie
+                                data={Object.entries(analysisData.roleStats).map(([role, stats]) => ({
+                                  name: role.charAt(0).toUpperCase() + role.slice(1),
+                                  value: stats.games,
+                                  winrate: stats.winrate,
+                                }))}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {Object.entries(analysisData.roleStats).map((_, index) => {
+                                  const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                                  return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                })}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                }}
+                                formatter={(value: any, name: string, props: any) => [
+                                  `${value} partite (WR: ${props.payload.winrate.toFixed(1)}%)`,
+                                  'Partite'
+                                ]}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                        
+                        {/* Role Stats Table */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Performance per Ruolo</h3>
+                          <div className="space-y-2">
+                            {Object.entries(analysisData.roleStats)
+                              .sort((a, b) => b[1].games - a[1].games)
+                              .map(([role, stats]) => {
+                                const heroesInRole = analysisData.heroStats.filter(h => 
+                                  h.roles && h.roles.includes(role) && h.games >= 5
+                                ).length
+                                return (
+                                  <div key={role} className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="font-semibold text-white capitalize">{role}</span>
+                                      <span className={`text-sm font-bold ${
+                                        stats.winrate >= 55 ? 'text-green-400' :
+                                        stats.winrate >= 50 ? 'text-yellow-400' :
+                                        'text-red-400'
+                                      }`}>
+                                        {stats.winrate.toFixed(1)}%
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-gray-400">
+                                      <span>{stats.games} partite</span>
+                                      <span>{heroesInRole} heroes (5+ partite)</span>
+                                    </div>
+                                    {heroesInRole < 4 && (
+                                      <div className="mt-2 text-xs text-yellow-400 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        Considera di espandere il pool per questo ruolo
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400">Nessun dato ruolo disponibile</p>
+                    )}
+                  </div>
+
+                  {/* Specialization Analysis */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5" />
+                      Analisi Specializzazione
+                    </h2>
+                    {Object.keys(analysisData.roleStats).length > 0 && (() => {
+                      const roleEntries = Object.entries(analysisData.roleStats)
+                      const bestWinrateRole = roleEntries.sort((a, b) => b[1].winrate - a[1].winrate)[0]
+                      const mostPlayedRole = roleEntries.sort((a, b) => b[1].games - a[1].games)[0]
+                      
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                            <h3 className="text-sm text-gray-400 mb-2">Ruolo con Miglior Winrate</h3>
+                            <p className="text-2xl font-bold text-green-400 capitalize">{bestWinrateRole[0]}</p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              {bestWinrateRole[1].winrate.toFixed(1)}% su {bestWinrateRole[1].games} partite
+                            </p>
+                          </div>
+                          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+                            <h3 className="text-sm text-gray-400 mb-2">Ruolo Più Giocato</h3>
+                            <p className="text-2xl font-bold text-blue-400 capitalize">{mostPlayedRole[0]}</p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              {mostPlayedRole[1].games} partite ({((mostPlayedRole[1].games / analysisData.overall.totalGames) * 100).toFixed(1)}% del totale)
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })()}
+                    {analysisData.overall.diverseHeroes < 12 && (
+                      <div className="mt-4 bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                        <p className="text-yellow-300 text-sm">
+                          💡 <strong>Suggerimento:</strong> Hai {analysisData.overall.diverseHeroes} heroes con 5+ partite. 
+                          Per un pool completo, considera di avere almeno 4-5 heroes per ruolo principale.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recommendations */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Raccomandazioni
+                    </h2>
+                    
+                    {/* Best Heroes to Play More */}
+                    {analysisData.bestHeroes.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          Heroes da Giocare di Più
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {analysisData.bestHeroes.slice(0, 6).map((hero) => (
+                            <div key={hero.hero_id} className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                {heroes[hero.hero_id] && (
+                                  <HeroIcon
+                                    heroId={hero.hero_id}
+                                    heroName={heroes[hero.hero_id].name}
+                                    size={32}
+                                    className="rounded"
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
+                                  <p className="text-xs text-gray-400">{hero.games} partite</p>
+                                </div>
+                                <span className="text-green-400 font-bold">{hero.winrate.toFixed(1)}%</span>
+                              </div>
+                              <p className="text-xs text-green-300">Winrate eccellente - continua a giocarlo!</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Heroes to Avoid */}
+                    {analysisData.worstHeroes.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-red-400 mb-3 flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          Heroes da Evitare o Praticare
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {analysisData.worstHeroes.slice(0, 6).map((hero) => (
+                            <div key={hero.hero_id} className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                {heroes[hero.hero_id] && (
+                                  <HeroIcon
+                                    heroId={hero.hero_id}
+                                    heroName={heroes[hero.hero_id].name}
+                                    size={32}
+                                    className="rounded"
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
+                                  <p className="text-xs text-gray-400">{hero.games} partite</p>
+                                </div>
+                                <span className="text-red-400 font-bold">{hero.winrate.toFixed(1)}%</span>
+                              </div>
+                              <p className="text-xs text-red-300">Winrate bassa - pratica o evita in ranked</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Insights */}
+                    {analysisData.insights.length > 0 && (
+                      <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-blue-200 mb-3">💡 Insights</h3>
+                        <ul className="space-y-2">
+                          {analysisData.insights.map((insight, idx) => (
+                            <li key={idx} className="text-blue-300 text-sm flex items-start gap-2">
+                              <span className="text-blue-400 mt-1">→</span>
+                              {insight}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

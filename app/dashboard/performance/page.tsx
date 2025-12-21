@@ -875,7 +875,7 @@ export default function PerformancePage() {
                                   </div>
                                   <div>
                                     <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                      #{area.priority} {area.area}
+                                      #{idx + 1} {area.area}
                                     </h3>
                                     <p className="text-sm text-gray-400 mt-1">{area.action}</p>
                                   </div>
