@@ -376,9 +376,8 @@ export default function DashboardPage() {
             lastMatchTime={stats?.matches?.[0]?.start_time}
             winLoss={(() => {
               if (!stats?.matches || stats.matches.length === 0) return null
-              const last20 = stats.matches.slice(0, 20)
-              const wins = last20.filter(m => m.win).length
-              const losses = last20.length - wins
+              const wins = stats.matches.filter(m => m.win).length
+              const losses = stats.matches.length - wins
               return { win: wins, lose: losses }
             })()}
             showSettingsLink={true}
