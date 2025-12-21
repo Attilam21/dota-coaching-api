@@ -196,6 +196,11 @@ export async function GET(
         gpm: m.gold_per_min || 0,
         xpm: m.xp_per_min || 0,
         start_time: m.start_time,
+        hero_id: m.hero_id,
+        duration: m.duration,
+        kills: m.kills,
+        deaths: m.deaths,
+        assists: m.assists,
       })),
     }
 

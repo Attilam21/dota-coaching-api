@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, BarChart3 } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -12,8 +12,7 @@ import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
-import ProfileHeaderCard from '@/components/ProfileHeaderCard'
-import KpiCard from '@/components/KpiCard'
+import PlayerHeader from '@/components/PlayerHeader'
 import AdPlaceholder from '@/components/AdPlaceholder'
 import AnimatedCard from '@/components/AnimatedCard'
 import { motion } from 'framer-motion'
@@ -40,11 +39,6 @@ interface PlayerStats {
     gpm: number
     xpm: number
     start_time: number
-    hero_id?: number
-    duration?: number
-    kills?: number
-    deaths?: number
-    assists?: number
   }>
   advanced?: {
     lane: { avgLastHits: number; avgDenies: number; firstBloodInvolvement: number }
@@ -68,7 +62,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
-  const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -76,22 +69,6 @@ export default function DashboardPage() {
       return
     }
   }, [user, authLoading, router])
-
-  // Load heroes data
-  useEffect(() => {
-    fetch('/api/opendota/heroes')
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (data) {
-          const heroesMap: Record<number, { name: string; localized_name: string }> = {}
-          data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
-          })
-          setHeroes(heroesMap)
-        }
-      })
-      .catch(console.error)
-  }, [])
 
   const fetchStats = useCallback(async () => {
     if (!playerId) return
@@ -279,34 +256,6 @@ export default function DashboardPage() {
   }
 
   // Calculate values only when stats is available
-  // Calculate top heroes from matches
-  const getTopHeroes = () => {
-    if (!stats?.matches) return []
-    const heroMap = new Map<number, { wins: number; games: number }>()
-    
-    stats.matches.forEach(match => {
-      if (match.hero_id) {
-        const current = heroMap.get(match.hero_id) || { wins: 0, games: 0 }
-        heroMap.set(match.hero_id, {
-          wins: current.wins + (match.win ? 1 : 0),
-          games: current.games + 1
-        })
-      }
-    })
-    
-    return Array.from(heroMap.entries())
-      .map(([hero_id, data]) => ({
-        hero_id,
-        games: data.games,
-        wins: data.wins,
-        winrate: data.games > 0 ? (data.wins / data.games) * 100 : 0
-      }))
-      .sort((a, b) => b.games - a.games)
-      .slice(0, 5)
-  }
-
-  const topHeroes = stats ? getTopHeroes() : []
-
   const chartData = (stats?.matches && Array.isArray(stats.matches) && stats.matches.length > 0)
     ? stats.matches.map((m, idx) => ({
         match: `Match ${idx + 1}`,
@@ -319,45 +268,40 @@ export default function DashboardPage() {
   const winrateTrend = stats ? getWinrateTrend() : { label: 'N/A', color: 'bg-gray-500' }
   const kdaTrend = stats ? getKDATrend() : { label: 'N/A', color: 'bg-gray-500' }
 
-  // Format match duration
-  const formatDuration = (seconds?: number): string => {
-    if (!seconds) return 'N/A'
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
-  // Format match date
-  const formatMatchDate = (timestamp: number): string => {
-    const date = new Date(timestamp * 1000)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return 'Oggi'
-    if (diffDays === 1) return 'Ieri'
-    if (diffDays < 7) return `${diffDays} giorni fa`
-    return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
-  }
-
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
       
-      {/* Profile Header Card */}
-      <div className="mb-6" data-tour="dashboard-overview">
-        {playerProfile && (
-          <ProfileHeaderCard
+      {/* Enterprise Player Header */}
+      <div className="mb-8" data-tour="dashboard-overview">
+        <div className="mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">PRO DOTA ANALISI - AttilaLAB</h1>
+          <p className="text-sm text-gray-400">Dashboard completo con analisi avanzate e performance tracking</p>
+        </div>
+        
+        {playerProfile && stats && (
+          <PlayerHeader
             playerId={playerId || undefined}
             avatarUrl={playerProfile.avatar}
             playerName={playerProfile.personaname}
             rankTier={playerProfile.rankTier}
             rankMedalUrl={playerProfile.rankMedalUrl}
             soloMMR={playerProfile.soloMMR}
-            winrate={stats?.winrate?.last10}
-            totalMatches={stats?.matches?.length}
-            lastMatchTime={stats?.matches?.[0]?.start_time}
-            winLoss={winLoss}
+            winrate={stats.winrate?.last10}
+            totalMatches={stats.matches?.length}
+            lastMatchTime={stats.matches?.[0]?.start_time}
+            showSettingsLink={true}
+          />
+        )}
+        
+        {playerProfile && !stats && (
+          <PlayerHeader
+            playerId={playerId || undefined}
+            avatarUrl={playerProfile.avatar}
+            playerName={playerProfile.personaname}
+            rankTier={playerProfile.rankTier}
+            rankMedalUrl={playerProfile.rankMedalUrl}
+            soloMMR={playerProfile.soloMMR}
             showSettingsLink={true}
           />
         )}
@@ -404,134 +348,23 @@ export default function DashboardPage() {
 
       {stats && !loading && (
         <>
-          {/* KPI Snapshot Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <KpiCard
-              title="Win Rate"
-              value={`${stats.winrate?.last10?.toFixed(0) || 0}%`}
-              subtitle="Ultime 20 partite"
-              icon={<BarChart3 className="w-4 h-4" />}
-              valueColor={stats.winrate?.last10 && stats.winrate.last10 >= 50 ? 'text-green-400' : 'text-red-400'}
-            />
-            <KpiCard
-              title="Matches Played"
-              value={stats.matches?.length || 0}
-              subtitle="Partite analizzate"
-              icon={<Trophy className="w-4 h-4" />}
-              valueColor="text-white"
-            />
-            <KpiCard
-              title="Recent Trend"
-              value={winLoss ? `${winLoss.win}W - ${winLoss.lose}L` : 'N/A'}
-              subtitle="Ultime partite"
-              icon={<TrendingUp className="w-4 h-4" />}
-              valueColor="text-white"
-            />
+          {/* Ad Placeholder - Top (Only when content is available) */}
+          <div className="mb-6">
+            <AdPlaceholder position="top" />
           </div>
 
-          {/* Top Heroes / Recent Matches - 2 Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            {/* Top Heroes Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white">Top Heroes</h3>
-                <Link
-                  href="/dashboard/heroes"
-                  className="text-sm text-red-400 hover:text-red-300"
-                >
-                  Vedi tutto →
-                </Link>
-              </div>
-              {topHeroes.length > 0 ? (
-                <div className="space-y-2">
-                  {topHeroes.map((hero, idx) => (
-                    <div
-                      key={hero.hero_id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ height: '44px' }}
-                    >
-                      <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {heroes[hero.hero_id] ? (
-                          <img
-                            src={`https://cdn.dota2.com/apps/dota2/images/heroes/${heroes[hero.hero_id].name}_sb.png`}
-                            alt={heroes[hero.hero_id].localized_name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.currentTarget as HTMLImageElement
-                              target.style.display = 'none'
-                              if (target.parentElement) {
-                                target.parentElement.innerHTML = `<span class="text-xs text-gray-400 font-bold">${hero.hero_id}</span>`
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">
-                          {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-sm font-semibold text-white">{hero.winrate.toFixed(0)}%</div>
-                        <div className="text-xs text-gray-500">{hero.games} partite</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 py-4">Nessun dato hero disponibile</div>
-              )}
-            </div>
-
-            {/* Recent Matches Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white">Recent Matches</h3>
-                <Link
-                  href="/dashboard/matches"
-                  className="text-sm text-red-400 hover:text-red-300"
-                >
-                  Vedi tutto →
-                </Link>
-              </div>
-              {stats.matches && stats.matches.length > 0 ? (
-                <div className="space-y-2">
-                  {stats.matches.slice(0, 5).map((match) => (
-                    <Link
-                      key={match.match_id}
-                      href={`/analysis/match/${match.match_id}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ height: '44px' }}
-                    >
-                      <div className="text-xs text-gray-500 w-20 flex-shrink-0">
-                        {formatMatchDate(match.start_time)}
-                      </div>
-                      <div className="flex-shrink-0">
-                        <span className={`text-xs px-2 py-1 rounded font-semibold ${
-                          match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                        }`}>
-                          {match.win ? 'V' : 'S'}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0 text-xs text-gray-400">
-                        {match.hero_id && heroes[match.hero_id] 
-                          ? heroes[match.hero_id].localized_name 
-                          : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'}
-                      </div>
-                      <div className="text-xs text-gray-300 font-medium flex-shrink-0">
-                        {match.kills ?? 0}/{match.deaths ?? 0}/{match.assists ?? 0}
-                      </div>
-                      <div className="text-xs text-gray-500 w-16 text-right flex-shrink-0">
-                        {formatDuration(match.duration)}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 py-4">Nessuna partita recente</div>
-              )}
+          {/* Panoramica Section - Always visible */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold mb-4">Panoramica</h2>
+            
+            {/* Analysis info box */}
+            <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
+              <p className="text-green-200">
+                Analisi basata sul tuo storico recente (ultime 20 partite) – Valori medi/aggregati
+              </p>
+              <p className="text-green-300 text-sm mt-2">
+                Questa sezione mostra valori medi e aggregati sulle ultime 20 partite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Per analizzare una singola partita in dettaglio, vai alla sezione &apos;Analisi partita&apos;.
+              </p>
             </div>
           </div>
 
