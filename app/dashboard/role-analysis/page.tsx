@@ -480,23 +480,23 @@ export default function RoleAnalysisPage() {
                           position="top-right"
                         />
                       )}
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
                           <h2 className="text-xl md:text-2xl font-semibold mb-2">Ruolo Preferito</h2>
-                          <p className="text-3xl font-bold text-red-400 capitalize">{analysis.preferredRole.role}</p>
+                          <div className="flex items-center gap-4 flex-wrap">
+                            <p className="text-3xl font-bold text-red-400 capitalize">{analysis.preferredRole.role}</p>
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                              analysis.preferredRole.confidence === 'high' ? 'bg-green-600' :
+                              analysis.preferredRole.confidence === 'medium' ? 'bg-yellow-600' :
+                              'bg-gray-600'
+                            }`}>
+                              Confidenza: {analysis.preferredRole.confidence === 'high' ? 'Alta' :
+                                          analysis.preferredRole.confidence === 'medium' ? 'Media' : 'Bassa'}
+                            </span>
+                          </div>
                           <p className="text-sm text-gray-400 mt-2">
                             {analysis.preferredRole.games} partite • Winrate: {analysis.preferredRole.winrate.toFixed(1)}%
                           </p>
-                        </div>
-                        <div className="text-right">
-                          <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                            analysis.preferredRole.confidence === 'high' ? 'bg-green-600' :
-                            analysis.preferredRole.confidence === 'medium' ? 'bg-yellow-600' :
-                            'bg-gray-600'
-                          }`}>
-                            Confidenza: {analysis.preferredRole.confidence === 'high' ? 'Alta' :
-                                        analysis.preferredRole.confidence === 'medium' ? 'Media' : 'Bassa'}
-                          </span>
                         </div>
                       </div>
                     </div>
@@ -508,7 +508,7 @@ export default function RoleAnalysisPage() {
                       <Users className="w-5 h-5" />
                       Performance per Ruolo
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(analysis.roles)
                         .filter(([_, perf]) => perf.games > 0)
                         .sort((a, b) => b[1].games - a[1].games)
