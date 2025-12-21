@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line } from 'recharts'
+import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
@@ -52,7 +53,7 @@ interface Benchmarks {
   source: string
 }
 
-type TabType = 'overview' | 'charts' | 'analysis'
+type TabType = 'overview' | 'charts' | 'focus'
 
 export default function PerformancePage() {
   const { user, loading: authLoading } = useAuth()
@@ -112,6 +113,18 @@ export default function PerformancePage() {
       const killParticipation = advanced?.fights?.killParticipation || 0
       const goldUtilization = advanced?.farm?.goldUtilization || 0
       
+      // Calculate farmEfficiency: use advanced-stats definition if available, otherwise fallback to GPM-based
+      // Advanced-stats: (avgLastHits + avgDenies) / (avgDuration / 60) = CS per minute
+      // For percentage: normalize to reasonable max (e.g., 8 CS/min = 100%)
+      const farmEfficiencyFromAdvanced = advanced?.farm?.farmEfficiency || 0
+      const farmEfficiency = farmEfficiencyFromAdvanced > 0
+        ? Math.min((farmEfficiencyFromAdvanced / 8) * 100, 100) // Normalize CS/min to percentage (8 CS/min = 100%)
+        : Math.min((avgGPM / 600) * 100, 100) // Fallback: GPM-based
+      
+      // teamfightParticipation: use killParticipation (percentage) as it's more meaningful than raw count
+      // Note: advanced-stats has teamfightParticipation as raw number, but killParticipation is more useful
+      const teamfightParticipation = killParticipation
+      
       // Determine playstyle with advanced data
       let playstyle = 'Bilanciato'
       if (avgGPM > 600 && goldUtilization > 90) playstyle = 'Farm Focus - Late Game'
@@ -128,8 +141,8 @@ export default function PerformancePage() {
         avgDeaths,
         avgAssists,
         playstyle,
-        farmEfficiency: Math.min((avgGPM / 600) * 100, 100),
-        teamfightParticipation: killParticipation,
+        farmEfficiency,
+        teamfightParticipation,
         matches: matches.slice(0, 20),
         advanced: advanced || undefined,
       })
@@ -203,7 +216,7 @@ export default function PerformancePage() {
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
                 { id: 'charts' as TabType, name: 'Grafici', icon: Activity },
-                { id: 'analysis' as TabType, name: 'Analisi', icon: Eye },
+                { id: 'focus' as TabType, name: 'Focus Areas', icon: Target },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -637,152 +650,136 @@ export default function PerformancePage() {
                 </div>
               )}
 
-              {/* Analysis Tab */}
-              {activeTab === 'analysis' && (
+              {/* Focus Areas Tab - Risponde a "Cosa devo migliorare PRIMA?" */}
+              {activeTab === 'focus' && (
                 <div className="space-y-6">
-                  {/* Performance Metrics - Compact */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-semibold">Efficienza Farm</h3>
-                        <span className="text-sm font-bold text-red-400">{stats.farmEfficiency.toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-3">
-                        <div
-                          className="bg-red-600 h-3 rounded-full transition-all"
-                          style={{ width: `${stats.farmEfficiency}%` }}
-                        ></div>
-                      </div>
-                      {stats.advanced && (
-                        <div className="mt-2 text-xs text-gray-400">
-                          Gold Utilization: {stats.advanced.farm.goldUtilization.toFixed(1)}%
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-semibold">Partecipazione Teamfight</h3>
-                        <span className="text-sm font-bold text-blue-400">{stats.teamfightParticipation.toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-3">
-                        <div
-                          className="bg-blue-600 h-3 rounded-full transition-all"
-                          style={{ width: `${stats.teamfightParticipation}%` }}
-                        ></div>
-                      </div>
-                      {stats.advanced && (
-                        <div className="mt-2 text-xs text-gray-400">
-                          Hero Damage medio: {Math.round(stats.advanced.fights.avgHeroDamage).toLocaleString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Playstyle-Specific Recommendations */}
-                  <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-700 rounded-lg p-6">
-                    <h3 className="text-2xl font-semibold mb-4 text-purple-300 flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-700 rounded-lg p-6">
+                    <h2 className="text-2xl font-semibold text-red-300 mb-2 flex items-center gap-2">
                       <Target className="w-6 h-6" />
-                      Suggerimenti per il Tuo Stile di Gioco
-                    </h3>
-                    <div className="space-y-3">
-              {stats.playstyle.includes('Farm Focus') && (
-                <>
-                  <p className="text-sm text-purple-200 flex items-center gap-2">
-                    <Coins className="w-4 h-4" />
-                    <strong>Farm Focus:</strong> Il tuo stile è orientato al farm. Per migliorare:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
-                    <li>Ottimizza i percorsi di farm per massimizzare GPM</li>
-                    <li>Valuta meglio i timing degli item per essere efficace nei teamfight</li>
-                    {stats.teamfightParticipation < 60 && (
-                      <li>Partecipa di più ai teamfight quando hai item chiave completati</li>
-                    )}
-                    {stats.advanced && stats.advanced.farm.goldUtilization < 85 && (
-                      <li>Spendi il gold più velocemente in item utili invece di accumularlo</li>
-                    )}
-                  </ul>
-                </>
-              )}
-              {(stats.playstyle.includes('Aggressivo') || stats.playstyle.includes('Teamfight')) && (
-                <>
-                  <p className="text-sm text-purple-200 flex items-center gap-2">
-                    <Sword className="w-4 h-4" />
-                    <strong>Aggressivo/Teamfight Focus:</strong> Sei un giocatore da teamfight. Per migliorare:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
-                    <li>Continua a partecipare attivamente ai teamfight</li>
-                    {stats.avgGPM < 500 && (
-                      <li>Bilancia la partecipazione ai fight con il farm per non rimanere indietro negli item</li>
-                    )}
-                    {stats.avgDeaths > 6 && (
-                      <li>Migliora il positioning per ridurre le morti mantenendo l'impatto nei fight</li>
-                    )}
-                    {stats.advanced && stats.advanced.fights.killParticipation > 80 && (
-                      <li>Ottima kill participation! Continua così, sei un asset fondamentale per la squadra</li>
-                    )}
-                  </ul>
-                </>
-              )}
-              {stats.playstyle.includes('Support') && (
-                <>
-                  <p className="text-sm text-purple-200 flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    <strong>Support/Utility Focus:</strong> Il tuo ruolo è di supporto. Per migliorare:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
-                    {stats.advanced && stats.advanced.vision.avgObserverPlaced < 5 && (
-                      <li>Aumenta il warding per migliorare la visione della squadra</li>
-                    )}
-                    {stats.teamfightParticipation < 70 && (
-                      <li>Partecipa di più ai teamfight, il tuo supporto è cruciale</li>
-                    )}
-                    {stats.avgGPM < 350 && (
-                      <li>Trova un equilibrio tra supporto e farm per non rimanere troppo indietro</li>
-                    )}
-                    {stats.avgAssists < 10 && (
-                      <li>Migliora il positioning per aumentare gli assist nei teamfight</li>
-                    )}
-                  </ul>
-                </>
-              )}
-              {stats.playstyle === 'Bilanciato' && (
-                <>
-                  <p className="text-sm text-purple-200 flex items-center gap-2">
-                    <Scale className="w-4 h-4" />
-                    <strong>Bilanciato:</strong> Hai uno stile equilibrato. Per migliorare:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
-                    {stats.avgGPM < 450 && (
-                      <li>Migliora l'efficienza di farm per aumentare il GPM</li>
-                    )}
-                    {stats.teamfightParticipation < 60 && (
-                      <li>Aumenta la partecipazione ai teamfight per avere più impatto</li>
-                    )}
-                    {stats.avgDeaths > 5 && (
-                      <li>Riduci le morti migliorando il positioning e la mappa awareness</li>
-                    )}
-                    <li>Continua a bilanciare farm e teamfight per mantenere un impatto costante</li>
-                  </ul>
-                </>
-              )}
-              {stats.playstyle.includes('Team Player') && (
-                <>
-                  <p className="text-sm text-purple-200">
-                    🤝 <strong>Team Player:</strong> Sei un giocatore di squadra. Per migliorare:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-200 ml-4 space-y-1">
-                    <li>Ottima kill participation! Continua a supportare la squadra</li>
-                    {stats.avgGPM < 500 && (
-                      <li>Non trascurare il farm personale, anche i team player hanno bisogno di item</li>
-                    )}
-                    {stats.advanced && stats.advanced.fights.avgHeroDamage < 15000 && (
-                      <li>Aumenta il damage output nei teamfight per massimizzare l'impatto</li>
-                    )}
-                  </ul>
-                </>
-              )}
-            </div>
+                      Focus Areas - Priorità di Miglioramento
+                    </h2>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Le 3 aree su cui concentrarti per massimizzare il tuo impatto
+                    </p>
+                  
+                  {/* Calcola priorità basate su metriche */}
+                  {(() => {
+                    const focusAreas: Array<{ area: string; priority: number; current: number; target: number; action: string; icon: any }> = []
+                    
+                    // 1. Deaths (alta priorità se > 6)
+                    if (stats.avgDeaths > 6) {
+                      focusAreas.push({
+                        area: 'Survival',
+                        priority: 1,
+                        current: stats.avgDeaths,
+                        target: 5,
+                        action: 'Riduci morti migliorando positioning e mappa awareness',
+                        icon: Shield
+                      })
+                    }
+                    
+                    // 2. Farm Efficiency (priorità se < 70%)
+                    if (stats.farmEfficiency < 70) {
+                      focusAreas.push({
+                        area: 'Farm Efficiency',
+                        priority: focusAreas.length + 1,
+                        current: stats.farmEfficiency,
+                        target: 80,
+                        action: stats.advanced && stats.advanced.farm.goldUtilization < 85 
+                          ? 'Spendi gold più velocemente in item utili'
+                          : 'Ottimizza percorsi di farm per massimizzare GPM',
+                        icon: Coins
+                      })
+                    }
+                    
+                    // 3. Teamfight Participation (priorità se < 60%)
+                    if (stats.teamfightParticipation < 60) {
+                      focusAreas.push({
+                        area: 'Teamfight Impact',
+                        priority: focusAreas.length + 1,
+                        current: stats.teamfightParticipation,
+                        target: 70,
+                        action: 'Partecipa di più ai teamfight principali per aumentare impatto',
+                        icon: Sword
+                      })
+                    }
+                    
+                    // 4. KDA (priorità se < 2.0)
+                    if (stats.avgKDA < 2.0 && focusAreas.length < 3) {
+                      focusAreas.push({
+                        area: 'KDA Ratio',
+                        priority: focusAreas.length + 1,
+                        current: stats.avgKDA,
+                        target: 2.5,
+                        action: 'Bilancia kills, assist e morti per migliorare KDA',
+                        icon: Target
+                      })
+                    }
+                    
+                    // Ordina per priorità
+                    focusAreas.sort((a, b) => a.priority - b.priority)
+                    
+                    return focusAreas.length > 0 ? (
+                      <div className="space-y-4">
+                        {focusAreas.slice(0, 3).map((area, idx) => {
+                          const progress = area.area === 'Survival' 
+                            ? Math.max(0, ((area.target - area.current) / area.target) * 100)
+                            : (area.current / area.target) * 100
+                          const isGood = progress >= 80
+                          
+                          return (
+                            <div key={idx} className="bg-gray-800/50 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-lg ${isGood ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
+                                    <area.icon className={`w-5 h-5 ${isGood ? 'text-green-400' : 'text-red-400'}`} />
+                                  </div>
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                      #{area.priority} {area.area}
+                                    </h3>
+                                    <p className="text-sm text-gray-400 mt-1">{area.action}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-white">
+                                    {area.area === 'Survival' 
+                                      ? `${area.current.toFixed(1)} → ${area.target}`
+                                      : `${area.current.toFixed(1)}%`}
+                                  </div>
+                                  <div className="text-xs text-gray-500">Target: {area.target}{area.area !== 'Survival' ? '%' : ''}</div>
+                                </div>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2 mt-3">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    isGood ? 'bg-green-600' : 'bg-red-600'
+                                  }`}
+                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Target className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                        <p className="text-green-300 font-semibold mb-2">Ottime performance!</p>
+                        <p className="text-gray-400 text-sm">Tutte le metriche principali sono in buono stato. Continua così!</p>
+                      </div>
+                    )
+                  })()}
+                  </div>
+                  
+                  {/* Link a Profiling per analisi dettagliata */}
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <p className="text-sm text-gray-400">
+                      💡 Per un'analisi completa con raccomandazioni dettagliate, visita la sezione{' '}
+                      <Link href="/dashboard/profiling" className="text-red-400 hover:text-red-300 underline">
+                        Profilazione AttilaLAB
+                      </Link>
+                    </p>
                   </div>
                 </div>
               )}
