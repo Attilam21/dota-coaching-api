@@ -214,12 +214,12 @@ export default function DashboardPage() {
     if (!stats) return ''
     const winrateDelta = stats.winrate.delta
     if (winrateDelta < -10) {
-      return 'Il winrate recente è peggiorato rispetto al tuo storico. Potrebbe indicare un momento di forma negativo.'
+      return 'Trend in calo: il winrate nelle ultime 5 partite è inferiore rispetto alle ultime 10 partite. Potrebbe indicare un momento di forma negativo.'
     }
     if (winrateDelta > 10) {
-      return 'Ottimo momento di forma! Il winrate recente è migliorato significativamente.'
+      return 'Trend positivo: il winrate nelle ultime 5 partite è migliorato rispetto alle ultime 10 partite.'
     }
-    return 'Le tue performance sono stabili rispetto al tuo storico recente.'
+    return 'Le performance sono stabili: il winrate delle ultime 5 partite è simile a quello delle ultime 10 partite.'
   }
 
   // Calculate heatmap data (day of week x hour of day)
@@ -354,10 +354,19 @@ export default function DashboardPage() {
             rankTier={playerProfile.rankTier}
             rankMedalUrl={playerProfile.rankMedalUrl}
             soloMMR={playerProfile.soloMMR}
-            winrate={stats?.winrate?.last10}
+            winrate={(() => {
+              if (!stats?.matches || stats.matches.length === 0) return undefined
+              const wins = stats.matches.filter(m => m.win).length
+              return (wins / stats.matches.length) * 100
+            })()}
             totalMatches={stats?.matches?.length}
             lastMatchTime={stats?.matches?.[0]?.start_time}
-            winLoss={winLoss}
+            winLoss={(() => {
+              if (!stats?.matches || stats.matches.length === 0) return null
+              const wins = stats.matches.filter(m => m.win).length
+              const losses = stats.matches.length - wins
+              return { win: wins, lose: losses }
+            })()}
             showSettingsLink={true}
           />
         )}
@@ -405,52 +414,67 @@ export default function DashboardPage() {
       {stats && !loading && (
         <>
           {/* KPI Snapshot Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <KpiCard
               title="Win Rate"
-              value={`${stats.winrate?.last10?.toFixed(0) || 0}%`}
+              value={(() => {
+                if (!stats.matches || stats.matches.length === 0) return '0%'
+                const wins = stats.matches.filter(m => m.win).length
+                const winrate20 = (wins / stats.matches.length) * 100
+                return `${winrate20.toFixed(0)}%`
+              })()}
               subtitle="Ultime 20 partite"
               icon={<BarChart3 className="w-4 h-4" />}
-              valueColor={stats.winrate?.last10 && stats.winrate.last10 >= 50 ? 'text-green-400' : 'text-red-400'}
+              valueColor={(() => {
+                if (!stats.matches || stats.matches.length === 0) return 'text-white'
+                const wins = stats.matches.filter(m => m.win).length
+                const winrate20 = (wins / stats.matches.length) * 100
+                return winrate20 >= 50 ? 'text-green-400' : 'text-red-400'
+              })()}
             />
             <KpiCard
               title="Matches Played"
               value={stats.matches?.length || 0}
-              subtitle="Partite analizzate"
+              subtitle="Ultime 20 partite analizzate"
               icon={<Trophy className="w-4 h-4" />}
               valueColor="text-white"
             />
             <KpiCard
               title="Recent Trend"
-              value={winLoss ? `${winLoss.win}W - ${winLoss.lose}L` : 'N/A'}
-              subtitle="Ultime partite"
+              value={(() => {
+                if (!stats.matches || stats.matches.length === 0) return 'N/A'
+                const wins = stats.matches.filter(m => m.win).length
+                const losses = stats.matches.length - wins
+                return `${wins}W - ${losses}L`
+              })()}
+              subtitle="Ultime 20 partite"
               icon={<TrendingUp className="w-4 h-4" />}
               valueColor="text-white"
             />
           </div>
 
           {/* Top Heroes / Recent Matches - 2 Columns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Top Heroes Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white">Top Heroes</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 max-h-[280px] overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-white">Top Heroes</h3>
                 <Link
                   href="/dashboard/heroes"
-                  className="text-sm text-red-400 hover:text-red-300"
+                  className="text-xs text-red-400 hover:text-red-300"
                 >
                   Vedi tutto →
                 </Link>
               </div>
               {topHeroes.length > 0 ? (
-                <div className="space-y-2">
-                  {topHeroes.map((hero, idx) => (
+                <div className="space-y-1.5 flex-1 overflow-hidden relative">
+                  {topHeroes.slice(0, 4).map((hero, idx) => (
                     <div
                       key={hero.hero_id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ height: '44px' }}
+                      className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
+                      style={{ minHeight: '44px', maxHeight: '48px' }}
                     >
-                      <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {heroes[hero.hero_id] ? (
                           <img
                             src={`https://cdn.dota2.com/apps/dota2/images/heroes/${heroes[hero.hero_id].name}_sb.png`}
@@ -469,16 +493,21 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-xs font-medium text-white truncate">
                           {heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`}
                         </div>
+                        {hero.games < 3 && (
+                          <div className="text-[10px] text-gray-500">campione ridotto</div>
+                        )}
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <div className="text-sm font-semibold text-white">{hero.winrate.toFixed(0)}%</div>
-                        <div className="text-xs text-gray-500">{hero.games} partite</div>
+                        <div className="text-xs font-semibold text-white">{hero.winrate.toFixed(0)}%</div>
+                        <div className="text-[10px] text-gray-500">{hero.games} partite</div>
                       </div>
                     </div>
                   ))}
+                  {/* Fade gradient at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-800 to-transparent pointer-events-none" />
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 py-4">Nessun dato hero disponibile</div>
@@ -486,48 +515,50 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Matches Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white">Recent Matches</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 max-h-[280px] overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold text-white">Recent Matches</h3>
                 <Link
                   href="/dashboard/matches"
-                  className="text-sm text-red-400 hover:text-red-300"
+                  className="text-xs text-red-400 hover:text-red-300"
                 >
                   Vedi tutto →
                 </Link>
               </div>
               {stats.matches && stats.matches.length > 0 ? (
-                <div className="space-y-2">
-                  {stats.matches.slice(0, 5).map((match) => (
+                <div className="space-y-1.5 flex-1 overflow-hidden relative">
+                  {stats.matches.slice(0, 4).map((match) => (
                     <Link
                       key={match.match_id}
                       href={`/analysis/match/${match.match_id}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
-                      style={{ height: '44px' }}
+                      className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
+                      style={{ minHeight: '44px', maxHeight: '48px' }}
                     >
-                      <div className="text-xs text-gray-500 w-20 flex-shrink-0">
+                      <div className="text-[10px] text-gray-500 w-20 flex-shrink-0">
                         {formatMatchDate(match.start_time)}
                       </div>
                       <div className="flex-shrink-0">
-                        <span className={`text-xs px-2 py-1 rounded font-semibold ${
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
                           match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                         }`}>
                           {match.win ? 'V' : 'S'}
                         </span>
                       </div>
-                      <div className="flex-1 min-w-0 text-xs text-gray-400">
+                      <div className="flex-1 min-w-0 text-[10px] text-gray-400 truncate">
                         {match.hero_id && heroes[match.hero_id] 
                           ? heroes[match.hero_id].localized_name 
                           : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'}
                       </div>
-                      <div className="text-xs text-gray-300 font-medium flex-shrink-0">
+                      <div className="text-[10px] text-gray-300 font-medium flex-shrink-0">
                         {match.kills ?? 0}/{match.deaths ?? 0}/{match.assists ?? 0}
                       </div>
-                      <div className="text-xs text-gray-500 w-16 text-right flex-shrink-0">
+                      <div className="text-[10px] text-gray-500 w-14 text-right flex-shrink-0">
                         {formatDuration(match.duration)}
                       </div>
                     </Link>
                   ))}
+                  {/* Fade gradient at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-800 to-transparent pointer-events-none" />
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 py-4">Nessuna partita recente</div>

@@ -149,7 +149,7 @@ export default function ProfileHeaderCard({
               {/* Total Matches */}
               {totalMatches !== undefined && (
                 <span className="text-xs text-gray-500 opacity-60">
-                  {totalMatches} partite analizzate
+                  {totalMatches} partite
                 </span>
               )}
             </div>
