@@ -37,7 +37,7 @@ interface Match {
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B']
 
-type TabType = 'overview' | 'charts'
+type TabType = 'statistics' | 'trends'
 
 export default function VisionControlPage() {
   const { user, loading: authLoading } = useAuth()
@@ -47,7 +47,7 @@ export default function VisionControlPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const [activeTab, setActiveTab] = useState<TabType>('statistics')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -153,8 +153,8 @@ export default function VisionControlPage() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
-                { id: 'overview' as TabType, name: 'Overview', icon: Target },
-                { id: 'charts' as TabType, name: 'Grafici', icon: BarChartIcon },
+                { id: 'statistics' as TabType, name: 'Statistiche', icon: Target },
+                { id: 'trends' as TabType, name: 'Trend', icon: BarChartIcon },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -173,8 +173,8 @@ export default function VisionControlPage() {
 
             {/* Tab Content */}
             <div className="p-6 space-y-6">
-              {/* Overview Tab */}
-              {activeTab === 'overview' && (
+              {/* Statistics Tab */}
+              {activeTab === 'statistics' && (
                 <div className="space-y-6">
                   {/* Overview Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -324,11 +324,15 @@ export default function VisionControlPage() {
                 </div>
               )}
 
-              {/* Charts Tab */}
-              {activeTab === 'charts' && (
+              {/* Trends Tab */}
+              {activeTab === 'trends' && (
                 <div className="space-y-6">
-                  {/* Wards Chart */}
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                  {/* Grafici Section */}
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">Grafici</h2>
+                    <div className="space-y-6">
+                      {/* Wards Chart */}
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h2 className="text-xl md:text-2xl font-semibold mb-4">Observer Wards per Partita</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={wardData}>
@@ -349,8 +353,8 @@ export default function VisionControlPage() {
                   </ResponsiveContainer>
                 </div>
 
-                  {/* Pie Chart */}
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                      {/* Pie Chart */}
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">Distribuzione Wards</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -372,6 +376,8 @@ export default function VisionControlPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
