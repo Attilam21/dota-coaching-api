@@ -49,7 +49,7 @@ export default function PlayerHeader({
     if (tier <= 20) return { name: 'Archon', color: 'bg-blue-600 border-blue-500 text-blue-100' }
     if (tier <= 25) return { name: 'Legend', color: 'bg-violet-600 border-violet-500 text-violet-100' }
     if (tier <= 30) return { name: 'Ancient', color: 'bg-red-600 border-red-500 text-red-100' }
-    if (tier <= 35 || tier <= 40) return { name: 'Divine', color: 'bg-orange-600 border-orange-500 text-orange-100' }
+    if (tier <= 40) return { name: 'Divine', color: 'bg-orange-600 border-orange-500 text-orange-100' }
     if (tier >= 41) return { name: 'Immortal', color: 'bg-amber-500 border-amber-400 text-amber-50' }
     return { name: 'Unknown', color: 'bg-gray-600 border-gray-500 text-gray-200' }
   }
