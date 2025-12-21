@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: 'avatars.steamstatic.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'steamcdn-a.akamaihd.net',
+        pathname: '/**',
+      },
     ],
   },
   typescript: {
