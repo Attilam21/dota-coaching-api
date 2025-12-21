@@ -632,13 +632,15 @@ export default function MatchesPage() {
                         const kda = getKDA(match)
                         
                         return (
-                          <Link
+                          <div
                             key={match.match_id}
-                            href={`/dashboard/match-analysis/${match.match_id}`}
-                            className="block bg-gray-800 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition cursor-pointer"
+                            className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition"
                           >
                             <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <Link
+                                href={`/dashboard/match-analysis/${match.match_id}`}
+                                className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                              >
                                 {match.hero_id && heroes[match.hero_id] && (
                                   <HeroIcon
                                     heroId={match.hero_id}
@@ -664,16 +666,28 @@ export default function MatchesPage() {
                                     <span>{formatDuration(match.duration)}</span>
                                   </div>
                                 </div>
-                              </div>
+                              </Link>
                               
-                              <div className="text-right flex-shrink-0">
-                                <p className="text-xs text-gray-500 mb-1">{formatDate(match.start_time)}</p>
-                                <span className="text-red-400 hover:text-red-300 text-sm font-semibold">
-                                  Analisi →
-                                </span>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="text-right mr-2">
+                                  <p className="text-xs text-gray-500 mb-1">{formatDate(match.start_time)}</p>
+                                  <Link
+                                    href={`/dashboard/match-analysis/${match.match_id}`}
+                                    className="text-red-400 hover:text-red-300 text-sm font-semibold"
+                                  >
+                                    Analisi →
+                                  </Link>
+                                </div>
+                                <Link
+                                  href={`/dashboard/match-advice/${match.match_id}`}
+                                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-xs font-semibold text-white transition-colors whitespace-nowrap"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Analisi Tommaso
+                                </Link>
                               </div>
                             </div>
-                          </Link>
+                          </div>
                         )
                       })}
                     </div>
