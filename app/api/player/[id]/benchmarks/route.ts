@@ -121,8 +121,33 @@ export async function GET(
       source: ratings ? 'opendota_ratings' : 'calculated'
     }
     
-    // Se abbiamo basic stats ma non ratings, calcola percentili approssimativi
-    if (basicStats && !ratings) {
+    // Se abbiamo ratings da OpenDota, usali (più accurati)
+    if (ratings) {
+      const hasGpm = ratings.gold_per_min && ratings.gold_per_min.percentile !== undefined
+      const hasXpm = ratings.xp_per_min && ratings.xp_per_min.percentile !== undefined
+      const hasKda = ratings.kda && ratings.kda.percentile !== undefined
+      
+      // Solo se abbiamo almeno un percentile valido, crea l'oggetto percentiles
+      if (hasGpm || hasXpm || hasKda) {
+        benchmarks.percentiles = {
+          gpm: hasGpm ? {
+            percentile: ratings.gold_per_min.percentile || 50,
+            label: getPercentileLabel(ratings.gold_per_min.percentile || 50)
+          } : null,
+          xpm: hasXpm ? {
+            percentile: ratings.xp_per_min.percentile || 50,
+            label: getPercentileLabel(ratings.xp_per_min.percentile || 50)
+          } : null,
+          kda: hasKda ? {
+            percentile: ratings.kda.percentile || 50,
+            label: getPercentileLabel(ratings.kda.percentile || 50)
+          } : null
+        }
+      }
+    }
+    
+    // Se abbiamo basic stats e (non abbiamo ratings o ratings non ha percentili validi), calcola percentili approssimativi
+    if (basicStats && (!ratings || !benchmarks.percentiles)) {
       benchmarks.calculatedPercentiles = {
         gpm: {
           value: basicStats.avgGPM,
@@ -140,24 +165,20 @@ export async function GET(
           label: getPercentileLabel(calculatePercentile(basicStats.avgKDA, 'kda'))
         }
       }
+      // Se non avevamo ratings, aggiorna source
+      if (!ratings) {
+        benchmarks.source = 'calculated'
+      }
     }
     
-    // Se abbiamo ratings da OpenDota, usali (più accurati)
-    if (ratings) {
-      benchmarks.percentiles = {
-        gpm: ratings.gold_per_min ? {
-          percentile: ratings.gold_per_min.percentile || 50,
-          label: getPercentileLabel(ratings.gold_per_min.percentile || 50)
-        } : null,
-        xpm: ratings.xp_per_min ? {
-          percentile: ratings.xp_per_min.percentile || 50,
-          label: getPercentileLabel(ratings.xp_per_min.percentile || 50)
-        } : null,
-        kda: ratings.kda ? {
-          percentile: ratings.kda.percentile || 50,
-          label: getPercentileLabel(ratings.kda.percentile || 50)
-        } : null
-      }
+    // Se non abbiamo né percentiles né calculatedPercentiles, restituisci null
+    // per evitare di mostrare una card vuota nel frontend
+    if (!benchmarks.percentiles && !benchmarks.calculatedPercentiles) {
+      return NextResponse.json(null, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
+        },
+      })
     }
     
     return NextResponse.json(benchmarks, {
