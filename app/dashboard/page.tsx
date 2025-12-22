@@ -453,13 +453,13 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={hero.hero_id}
-                        className={`border rounded-lg p-2 ${borderColor} ${bgColor} flex-1 flex flex-col`}
+                        className={`border rounded-lg p-2.5 ${borderColor} ${bgColor} flex-1 flex flex-col`}
                       >
                         {/* Header: Hero Name + Winrate Badge */}
                         <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
                           <div className="flex items-center gap-1.5">
-                            <span className={`text-xs font-semibold ${winrateColor}`}>{heroName}</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                            <span className={`text-sm font-semibold ${winrateColor}`}>{heroName}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
                               hero.winrate >= 60 ? 'bg-green-600 text-white' : 
                               hero.winrate >= 50 ? 'bg-yellow-600 text-white' : 
                               'bg-red-600 text-white'
@@ -469,32 +469,32 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        {/* Hero Icon + Stats - Compact */}
-                        <div className="flex items-center gap-1.5 mb-1.5 flex-shrink-0">
+                        {/* Hero Icon + Stats */}
+                        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
                           {heroes[hero.hero_id] ? (
                             <HeroIcon
                               heroId={hero.hero_id}
                               heroName={heroes[hero.hero_id].name}
-                              size={24}
+                              size={32}
                               className="rounded flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-6 h-6 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
-                              <span className="text-[9px] text-gray-400 font-bold">{hero.hero_id}</span>
+                            <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="text-[9px] text-gray-300 mb-0.5 leading-tight truncate">{heroName}</div>
-                            <div className="text-[10px] font-bold text-white leading-tight">
+                            <div className="text-xs text-gray-300 mb-0.5 leading-tight truncate">{heroName}</div>
+                            <div className="text-sm font-bold text-white leading-tight">
                               {hero.games}p • {hero.wins}W/{hero.games - hero.wins}L
                             </div>
                           </div>
                         </div>
 
-                        {/* CTA Button - Compact */}
+                        {/* CTA Button */}
                         <Link
                           href={`/dashboard/heroes`}
-                          className="block w-full text-center text-[9px] font-medium text-white bg-red-600 hover:bg-red-700 rounded py-0.5 transition-colors flex-shrink-0 mt-auto"
+                          className="block w-full text-center text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded py-1.5 transition-colors flex-shrink-0 mt-auto"
                         >
                           Analisi
                         </Link>
