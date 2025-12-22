@@ -581,14 +581,12 @@ export default function HeroesPage() {
                           {analysisData.bestHeroes.slice(0, 6).map((hero) => (
                             <div key={hero.hero_id} className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
                               <div className="flex items-center gap-2 mb-2">
-                                {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
-                                  <HeroIcon
-                                    heroId={hero.hero_id}
-                                    heroName={heroes[hero.hero_id].name}
-                                    size={32}
-                                    className="rounded"
-                                  />
-                                )}
+                                <HeroIcon
+                                  heroId={hero.hero_id}
+                                  heroName={heroes[hero.hero_id]?.name}
+                                  size={32}
+                                  className="rounded"
+                                />
                                 <div className="flex-1">
                                   <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
                                   <p className="text-xs text-gray-400">{hero.games} partite</p>
@@ -613,14 +611,12 @@ export default function HeroesPage() {
                           {analysisData.worstHeroes.slice(0, 6).map((hero) => (
                             <div key={hero.hero_id} className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
                               <div className="flex items-center gap-2 mb-2">
-                                {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
-                                  <HeroIcon
-                                    heroId={hero.hero_id}
-                                    heroName={heroes[hero.hero_id].name}
-                                    size={32}
-                                    className="rounded"
-                                  />
-                                )}
+                                <HeroIcon
+                                  heroId={hero.hero_id}
+                                  heroName={heroes[hero.hero_id]?.name}
+                                  size={32}
+                                  className="rounded"
+                                />
                                 <div className="flex-1">
                                   <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
                                   <p className="text-xs text-gray-400">{hero.games} partite</p>
@@ -719,14 +715,12 @@ export default function HeroesPage() {
                           >
                             {/* Hero Icon + Name */}
                             <div className="flex flex-col items-center gap-2 mb-2">
-                              {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
-                                <HeroIcon
-                                  heroId={hero.hero_id}
-                                  heroName={heroes[hero.hero_id].name}
-                                  size={48}
-                                  className="rounded"
-                                />
-                              )}
+                              <HeroIcon
+                                heroId={hero.hero_id}
+                                heroName={heroes[hero.hero_id]?.name}
+                                size={48}
+                                className="rounded"
+                              />
                               <span className="text-white font-medium text-xs text-center leading-tight">
                                 {hero.hero_name}
                               </span>
@@ -799,14 +793,12 @@ export default function HeroesPage() {
                                 <tr key={hero.hero_id} className="hover:bg-gray-700/50">
                                   <td className="px-3 py-2 whitespace-nowrap">
                                     <div className="flex items-center gap-2">
-                                      {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
-                                        <HeroIcon
-                                          heroId={hero.hero_id}
-                                          heroName={heroes[hero.hero_id].name}
-                                          size={32}
-                                          className="rounded"
-                                        />
-                                      )}
+                                      <HeroIcon
+                                        heroId={hero.hero_id}
+                                        heroName={heroes[hero.hero_id]?.name}
+                                        size={32}
+                                        className="rounded"
+                                      />
                                       <span className="text-white font-medium text-sm">{hero.hero_name}</span>
                                     </div>
                                   </td>

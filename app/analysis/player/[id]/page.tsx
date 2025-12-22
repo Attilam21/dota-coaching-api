@@ -323,14 +323,12 @@ export default function PlayerAnalysisPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {heroes[match.hero_id] && heroes[match.hero_id].name && (
-                            <HeroIcon
-                              heroId={match.hero_id}
-                              heroName={heroes[match.hero_id].name}
-                              size={32}
-                              className="rounded"
-                            />
-                          )}
+                          <HeroIcon
+                            heroId={match.hero_id}
+                            heroName={heroes[match.hero_id]?.name}
+                            size={32}
+                            className="rounded"
+                          />
                           <span className="text-sm text-gray-300">{getHeroName(match.hero_id)}</span>
                         </div>
                       </td>

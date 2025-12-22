@@ -295,14 +295,12 @@ export default function MatchAnalysisPage() {
                   <tr key={idx} className="border-t border-green-800/50">
                     <td className="py-2">
                       <div className="flex items-center gap-2">
-                        {heroes[player.hero_id] && heroes[player.hero_id].name && (
-                          <HeroIcon
-                            heroId={player.hero_id}
-                            heroName={heroes[player.hero_id].name}
-                            size={32}
-                            className="rounded"
-                          />
-                        )}
+                        <HeroIcon
+                          heroId={player.hero_id}
+                          heroName={heroes[player.hero_id]?.name}
+                          size={32}
+                          className="rounded"
+                        />
                         <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
                       </div>
                     </td>
@@ -340,14 +338,12 @@ export default function MatchAnalysisPage() {
                   <tr key={idx} className="border-t border-red-800/50">
                     <td className="py-2">
                       <div className="flex items-center gap-2">
-                        {heroes[player.hero_id] && heroes[player.hero_id].name && (
-                          <HeroIcon
-                            heroId={player.hero_id}
-                            heroName={heroes[player.hero_id].name}
-                            size={32}
-                            className="rounded"
-                          />
-                        )}
+                        <HeroIcon
+                          heroId={player.hero_id}
+                          heroName={heroes[player.hero_id]?.name}
+                          size={32}
+                          className="rounded"
+                        />
                         <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
                       </div>
                     </td>

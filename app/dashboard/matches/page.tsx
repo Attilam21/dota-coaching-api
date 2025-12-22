@@ -658,10 +658,10 @@ export default function MatchesPage() {
                                 href={`/dashboard/match-analysis/${match.match_id}`}
                                 className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                               >
-                                {match.hero_id && heroes[match.hero_id] && heroes[match.hero_id].name && (
+                                {match.hero_id && (
                                   <HeroIcon
                                     heroId={match.hero_id}
-                                    heroName={heroes[match.hero_id].name}
+                                    heroName={heroes[match.hero_id]?.name}
                                     size={40}
                                     className="rounded flex-shrink-0"
                                   />
