@@ -577,23 +577,23 @@ export default function HeroesPage() {
                           <CheckCircle className="w-4 h-4" />
                           Heroes da Giocare di Più
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           {analysisData.bestHeroes.slice(0, 6).map((hero) => (
-                            <div key={hero.hero_id} className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-2">
+                            <div key={hero.hero_id} className="bg-green-900/20 border border-green-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between">
+                              <div className="flex items-center gap-3 mb-3">
                                 <HeroIcon
                                   heroId={hero.hero_id}
                                   heroName={heroes[hero.hero_id]?.name}
-                                  size={32}
-                                  className="rounded"
+                                  size={52}
+                                  className="rounded flex-shrink-0"
                                 />
-                                <div className="flex-1">
-                                  <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
-                                  <p className="text-xs text-gray-400">{hero.games} partite</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-white text-base leading-tight">{hero.hero_name}</p>
+                                  <p className="text-sm text-gray-400 mt-0.5">{hero.games} partite</p>
                                 </div>
-                                <span className="text-green-400 font-bold">{hero.winrate.toFixed(1)}%</span>
+                                <span className="text-green-400 font-bold text-lg flex-shrink-0">{hero.winrate.toFixed(1)}%</span>
                               </div>
-                              <p className="text-xs text-green-300">Winrate eccellente - continua a giocarlo!</p>
+                              <p className="text-sm text-green-300">Winrate eccellente - continua a giocarlo!</p>
                             </div>
                           ))}
                         </div>
@@ -607,23 +607,23 @@ export default function HeroesPage() {
                           <AlertCircle className="w-4 h-4" />
                           Heroes da Evitare o Praticare
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           {analysisData.worstHeroes.slice(0, 6).map((hero) => (
-                            <div key={hero.hero_id} className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-2">
+                            <div key={hero.hero_id} className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between">
+                              <div className="flex items-center gap-3 mb-3">
                                 <HeroIcon
                                   heroId={hero.hero_id}
                                   heroName={heroes[hero.hero_id]?.name}
-                                  size={32}
-                                  className="rounded"
+                                  size={52}
+                                  className="rounded flex-shrink-0"
                                 />
-                                <div className="flex-1">
-                                  <p className="font-semibold text-white text-sm">{hero.hero_name}</p>
-                                  <p className="text-xs text-gray-400">{hero.games} partite</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-white text-base leading-tight">{hero.hero_name}</p>
+                                  <p className="text-sm text-gray-400 mt-0.5">{hero.games} partite</p>
                                 </div>
-                                <span className="text-red-400 font-bold">{hero.winrate.toFixed(1)}%</span>
+                                <span className="text-red-400 font-bold text-lg flex-shrink-0">{hero.winrate.toFixed(1)}%</span>
                               </div>
-                              <p className="text-xs text-red-300">Winrate bassa - pratica o evita in ranked</p>
+                              <p className="text-sm text-red-300">Winrate bassa - pratica o evita in ranked</p>
                             </div>
                           ))}
                         </div>
