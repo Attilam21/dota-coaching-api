@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, CheckCircle2, AlertTriangle, ArrowRight, ExternalLink } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -314,7 +314,7 @@ export default function DashboardPage() {
       }))
       .filter(hero => hero.games >= 2) // Remove heroes with < 2 games
       .sort((a, b) => b.winrate - a.winrate || b.games - a.games) // Sort by winrate first, then games
-      .slice(0, 8) // Max 8 heroes
+      .slice(0, 6) // Top 6 heroes per dashboard
   }
 
   const topHeroes = stats ? getTopHeroes() : []
@@ -430,10 +430,10 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-4 mb-1 items-stretch">
             {/* Hero Pool Card */}
             <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col h-full">
-              <h3 className="text-sm font-semibold text-white mb-2 flex-shrink-0">Hero Pool</h3>
+              <h3 className="text-sm font-semibold text-white mb-3 flex-shrink-0">Hero Pool (Top 6)</h3>
               {topHeroes.length > 0 ? (
-                <div className="flex-1 flex flex-col justify-between min-h-0">
-                  {topHeroes.slice(0, 5).map((hero) => {
+                <div className="flex-1 grid grid-cols-2 gap-2 min-h-0">
+                  {topHeroes.slice(0, 6).map((hero) => {
                     const heroName = heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`
                     const winrateColor = hero.winrate >= 60 ? 'text-green-400' : hero.winrate >= 50 ? 'text-yellow-400' : 'text-red-400'
                     const bgColor = hero.winrate >= 60 ? 'bg-green-900/20' : hero.winrate >= 50 ? 'bg-yellow-900/20' : 'bg-red-900/20'
@@ -469,43 +469,34 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        {/* Hero Icon + Stats */}
+                        {/* Hero Icon + Stats - Compact */}
                         <div className="flex items-center gap-1.5 mb-1.5 flex-shrink-0">
                           {heroes[hero.hero_id] ? (
                             <HeroIcon
                               heroId={hero.hero_id}
                               heroName={heroes[hero.hero_id].name}
-                              size={28}
+                              size={24}
                               className="rounded flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
-                              <span className="text-[10px] text-gray-400 font-bold">{hero.hero_id}</span>
+                            <div className="w-6 h-6 rounded bg-gray-700 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[9px] text-gray-400 font-bold">{hero.hero_id}</span>
                             </div>
                           )}
-                          <div className="flex-1">
-                            <div className="text-[10px] text-gray-300 mb-0.5 leading-tight">{heroName}</div>
-                            <div className="text-xs font-bold text-white leading-tight">
-                              {hero.games}p • {hero.wins}W / {hero.games - hero.wins}L
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[9px] text-gray-300 mb-0.5 leading-tight truncate">{heroName}</div>
+                            <div className="text-[10px] font-bold text-white leading-tight">
+                              {hero.games}p • {hero.wins}W/{hero.games - hero.wins}L
                             </div>
                           </div>
                         </div>
 
-                        {/* Insight Bulb */}
-                        <div className="mb-1.5 flex-shrink-0">
-                          <InsightBulb
-                            title={insightTitle}
-                            reason={insightReason}
-                            className="p-2"
-                          />
-                        </div>
-
-                        {/* CTA Button */}
+                        {/* CTA Button - Compact */}
                         <Link
                           href={`/dashboard/heroes`}
-                          className="block w-full text-center text-[10px] font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg py-1 transition-colors flex-shrink-0 mt-auto"
+                          className="block w-full text-center text-[9px] font-medium text-white bg-red-600 hover:bg-red-700 rounded py-0.5 transition-colors flex-shrink-0 mt-auto"
                         >
-                          Vedi analisi
+                          Analisi
                         </Link>
                       </div>
                     )
@@ -642,6 +633,185 @@ export default function DashboardPage() {
                       </div>
                     ) : null
                   })()}
+
+                  {/* Benchmark Comparison & Recent Activity - 2 Columns */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                    {/* Benchmark Comparison Card */}
+                    {benchmarks && benchmarks.percentiles && benchmarks.source === 'opendota_ratings' && (
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChartIcon className="w-5 h-5 text-blue-400" />
+                          <h3 className="text-lg font-semibold">Confronto con Meta</h3>
+                          <span className="text-xs px-2 py-0.5 bg-blue-600/20 border border-blue-600 rounded text-blue-400">
+                            OpenDota
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          {benchmarks.percentiles.gpm && (
+                            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-yellow-400" />
+                                <span className="text-sm font-medium text-gray-300">GPM</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-400">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.gpm.percentile >= 50 ? 'text-yellow-400' :
+                                  'text-red-400'
+                                }`}>
+                                  {benchmarks.percentiles.gpm.label}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {benchmarks.percentiles.xpm && (
+                            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-blue-400" />
+                                <span className="text-sm font-medium text-gray-300">XPM</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-400">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.xpm.percentile >= 50 ? 'text-yellow-400' :
+                                  'text-red-400'
+                                }`}>
+                                  {benchmarks.percentiles.xpm.label}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {benchmarks.percentiles.kda && (
+                            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <Target className="w-4 h-4 text-purple-400" />
+                                <span className="text-sm font-medium text-gray-300">KDA</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-400">Percentile:</span>
+                                <span className={`text-sm font-bold ${
+                                  benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
+                                  benchmarks.percentiles.kda.percentile >= 50 ? 'text-yellow-400' :
+                                  'text-red-400'
+                                }`}>
+                                  {benchmarks.percentiles.kda.label}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <Link
+                          href="/dashboard/coaching-insights?tab=meta"
+                          className="mt-4 block text-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          Vedi Analisi Completa →
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Recent Activity Feed */}
+                    {stats.matches && stats.matches.length > 0 && (
+                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Clock className="w-5 h-5 text-green-400" />
+                          <h3 className="text-lg font-semibold">Attività Recente</h3>
+                        </div>
+                        <div className="space-y-2">
+                          {stats.matches.slice(0, 5).map((match) => {
+                            const heroName = match.hero_id && heroes[match.hero_id] 
+                              ? heroes[match.hero_id].localized_name 
+                              : match.hero_id ? `Hero ${match.hero_id}` : 'N/A'
+                            
+                            return (
+                              <Link
+                                key={match.match_id}
+                                href={`/dashboard/match-analysis/${match.match_id}`}
+                                className="flex items-center gap-3 p-2 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors group"
+                              >
+                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                  match.win ? 'bg-green-500' : 'bg-red-500'
+                                }`} />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <span className={`text-xs font-semibold ${
+                                      match.win ? 'text-green-400' : 'text-red-400'
+                                    }`}>
+                                      {match.win ? 'Vittoria' : 'Sconfitta'}
+                                    </span>
+                                    <span className="text-xs text-gray-400">•</span>
+                                    <span className="text-xs text-gray-300 truncate">{heroName}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                                    <span>KDA: {match.kda.toFixed(2)}</span>
+                                    <span>•</span>
+                                    <span>GPM: {match.gpm.toFixed(0)}</span>
+                                    <span>•</span>
+                                    <span>{formatMatchDate(match.start_time)}</span>
+                                  </div>
+                                </div>
+                                <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors flex-shrink-0" />
+                              </Link>
+                            )
+                          })}
+                        </div>
+                        <Link
+                          href="/dashboard/matches"
+                          className="mt-4 block text-center text-sm text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          Vedi Tutte le Partite →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Zap className="w-5 h-5 text-yellow-400" />
+                      <h3 className="text-lg font-semibold">Azioni Rapide</h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {stats.matches && stats.matches.length > 0 && stats.matches[0] && (
+                        <Link
+                          href={`/dashboard/match-analysis/${stats.matches[0].match_id}`}
+                          className="flex flex-col items-center gap-2 p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                        >
+                          <Gamepad2 className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                          <span className="text-xs font-medium text-center">Analizza Ultima Partita</span>
+                        </Link>
+                      )}
+                      <Link
+                        href="/dashboard/coaching-insights"
+                        className="flex flex-col items-center gap-2 p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                      >
+                        <Lightbulb className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-medium text-center">Coaching & Insights</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/heroes"
+                        className="flex flex-col items-center gap-2 p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                      >
+                        <Sword className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-medium text-center">Analizza Hero Pool</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/matches"
+                        className="flex flex-col items-center gap-2 p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                      >
+                        <BarChartIcon className="w-5 h-5 text-green-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-medium text-center">Storico Partite</span>
+                      </Link>
+                      <Link
+                        href="/dashboard/performance"
+                        className="flex flex-col items-center gap-2 p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors group"
+                      >
+                        <Activity className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-medium text-center">Performance & Stile</span>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               )}
 
