@@ -7,7 +7,6 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import InsightBadge from '@/components/InsightBadge'
 import InsightBulbs from '@/components/InsightBulbs'
 import { buildBuildsInsights } from '@/lib/insight-utils'
 import ItemCard from '@/components/ItemCard'
@@ -416,12 +415,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Item Più Utilizzati</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="top-items"
-                  contextData={{ topItems: buildData.topItems.slice(0, 10) }}
-                  playerId={playerId}
-                />
               </div>
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                 {buildData.topItems.slice(0, 20).map((item) => (
@@ -444,12 +437,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Build Più Comuni</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="build-patterns"
-                  contextData={{ patterns: buildData.buildPatterns.slice(0, 5) }}
-                  playerId={playerId}
-                />
               </div>
               <div className="space-y-4">
                 {buildData.buildPatterns.slice(0, 10).map((build, idx) => (
@@ -719,12 +706,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Item Sottoutilizzati</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="underutilized"
-                  contextData={{ items: itemStats.underutilizedItems }}
-                  playerId={playerId}
-                />
               </div>
               <p className="text-gray-400 text-sm mb-4">
                 Item con winrate alto ma bassa frequenza d'uso - considera di usarli più spesso
@@ -749,12 +730,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Item Overpurchased</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="overpurchased"
-                  contextData={{ items: itemStats.overpurchasedItems }}
-                  playerId={playerId}
-                />
               </div>
               <p className="text-gray-400 text-sm mb-4">
                 Item acquistati spesso ma con winrate basso - valuta alternative
@@ -779,12 +754,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Efficienza Item</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="efficiency"
-                  contextData={{ items: itemStats.itemEfficiency }}
-                  playerId={playerId}
-                />
               </div>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={itemStats.itemEfficiency}>
@@ -811,12 +780,6 @@ export default function BuildsPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Confronto Build</h2>
-                <InsightBadge
-                  elementType="builds"
-                  elementId="comparison"
-                  contextData={{ patterns: buildData.buildPatterns }}
-                  playerId={playerId}
-                />
               </div>
               <p className="text-gray-400 text-sm mb-4">
                 Confronto tra build più comuni e loro efficacia

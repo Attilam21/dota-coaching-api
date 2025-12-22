@@ -7,7 +7,6 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import InsightBadge from '@/components/InsightBadge'
 import InsightBulbs from '@/components/InsightBulbs'
 import { buildHeroesInsights } from '@/lib/insight-utils'
 import HeroCard from '@/components/HeroCard'
@@ -372,15 +371,6 @@ export default function HeroesPage() {
                 <div className="space-y-6">
                   {/* Winrate Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-                    {playerId && (
-                      <InsightBadge
-                        elementType="trend-chart"
-                        elementId="heroes-chart"
-                        contextData={{ heroes: heroStats.slice(0, 10), totalHeroes: heroStats.length }}
-                        playerId={playerId}
-                        position="top-right"
-                      />
-                    )}
                     <h2 className="text-2xl font-semibold mb-4">Winrate per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={chartData}>

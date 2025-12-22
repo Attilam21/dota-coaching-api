@@ -10,7 +10,6 @@ import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
-import InsightBadge from '@/components/InsightBadge'
 import InsightBulb from '@/components/InsightBulb'
 import InsightBulbs from '@/components/InsightBulbs'
 import { buildDashboardInsights } from '@/lib/insight-utils'
@@ -882,15 +881,6 @@ export default function DashboardPage() {
                   {/* Trend Grafico - Ridotto */}
                   {chartData.length > 0 && (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
-                      {playerId && (
-                        <InsightBadge
-                          elementType="trend-chart"
-                          elementId="dashboard-trend-chart"
-                          contextData={{ trends: { winrate: stats.winrate ?? {}, kda: stats.kda ?? {}, farm: stats.farm ?? {} }, data: chartData }}
-                          playerId={playerId}
-                          position="top-right"
-                        />
-                      )}
                       <div className="flex justify-between items-center mb-3">
                         <h3 className="text-lg font-semibold">Trend Ultime 20 Partite</h3>
                         <span className="text-xs text-gray-400">{chartData.length} partite</span>

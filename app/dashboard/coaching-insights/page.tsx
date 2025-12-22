@@ -7,7 +7,6 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import PlayerHeader from '@/components/PlayerHeader'
-import InsightBadge from '@/components/InsightBadge'
 import InsightBulbs from '@/components/InsightBulbs'
 import AISuggestionCard from '@/components/AISuggestionCard'
 import { buildBulbInsights, buildAISuggestion } from '@/lib/insight-utils'
@@ -328,13 +327,6 @@ export default function CoachingInsightsPage() {
 
       {profile && profile.fzthScore !== undefined && (
         <div className="mb-6 bg-gradient-to-r from-red-900/80 to-blue-900/80 border-2 border-red-600 rounded-lg p-6 backdrop-blur-sm relative">
-          <InsightBadge
-            elementType="fzth-score"
-            elementId="fzth-score"
-            contextData={{ score: profile.fzthScore, role: profile.role }}
-            playerId={playerId || ''}
-            position="top-right"
-          />
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-white">AttilaLAB Score</h2>
@@ -428,14 +420,7 @@ export default function CoachingInsightsPage() {
                   {/* Profile Overview */}
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
-                      <InsightBadge
-                        elementType="role"
-                        elementId="role"
-                        contextData={{ role: profile.role, confidence: profile.roleConfidence }}
-                        playerId={playerId || ''}
-                        position="top-right"
-                      />
-                      <h2 className="text-xl font-semibold mb-3 pr-8">Ruolo Principale</h2>
+                      <h2 className="text-xl font-semibold mb-3">Ruolo Principale</h2>
                       <p className="text-2xl font-bold text-red-400 mb-2">{profile.role}</p>
                       <p className="text-sm text-gray-300">
                         Confidenza: <span className={`font-semibold ${
@@ -448,14 +433,7 @@ export default function CoachingInsightsPage() {
                       </p>
                     </div>
                     <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
-                      <InsightBadge
-                        elementType="playstyle"
-                        elementId="playstyle"
-                        contextData={{ playstyle: profile.playstyle }}
-                        playerId={playerId || ''}
-                        position="top-right"
-                      />
-                      <h2 className="text-xl font-semibold mb-3 pr-8">Stile di Gioco</h2>
+                      <h2 className="text-xl font-semibold mb-3">Stile di Gioco</h2>
                       <p className="text-2xl font-bold text-blue-400">{profile.playstyle}</p>
                     </div>
                   </div>
