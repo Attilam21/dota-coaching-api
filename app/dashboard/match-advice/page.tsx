@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
-import { Target, ArrowRight, Gamepad2 } from 'lucide-react'
+import { Target, ArrowRight, Gamepad2, ExternalLink } from 'lucide-react'
 
 export default function MatchAdvicePage() {
   const { user, loading: authLoading } = useAuth()
@@ -53,6 +53,27 @@ export default function MatchAdvicePage() {
         <HelpButton />
       </div>
 
+      {playerId && (
+        <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-400 font-semibold mb-1">💡 Accesso Rapido</p>
+              <p className="text-sm text-gray-300">
+                Vai alla pagina <strong>Storico Partite</strong> per selezionare una partita e accedere direttamente all'Analisi Tommaso senza inserire l'ID manualmente.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/matches"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm font-semibold whitespace-nowrap ml-4"
+            >
+              <Gamepad2 className="w-4 h-4" />
+              Vai a Storico Partite
+              <ExternalLink className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 mb-6">
         <div className="flex items-center gap-3 mb-4">
           <Target className="w-6 h-6 text-blue-400" />
@@ -60,7 +81,10 @@ export default function MatchAdvicePage() {
         </div>
         
         <p className="text-gray-300 mb-6">
-          Inserisci il Match ID per ricevere consigli personalizzati su:
+          {playerId 
+            ? "Inserisci il Match ID manualmente oppure usa il link sopra per selezionare una partita:"
+            : "Inserisci il Match ID per ricevere consigli personalizzati su:"
+          }
         </p>
 
         <ul className="space-y-2 mb-6 text-sm text-gray-300">
