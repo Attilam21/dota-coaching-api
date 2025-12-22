@@ -33,7 +33,7 @@ export default function HeroCard({
       'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
       'windrunner': 'windranger', // Windrunner was renamed to Windranger
       'shredder': 'timbersaw', // Shredder is Timbersaw
-      'furion': 'nature\'s_prophet', // Furion is Nature's Prophet
+      'furion': 'natures_prophet', // Furion is Nature's Prophet (CDN uses natures_prophet without apostrophe)
       'magnataur': 'magnus', // Magnataur is Magnus
       'obsidian_destroyer': 'outworld_destroyer', // Obsidian Destroyer renamed
       'rattletrap': 'clockwerk', // Rattletrap is Clockwerk
@@ -55,6 +55,7 @@ export default function HeroCard({
     }
     
     // Clean up any remaining invalid characters (keep underscores)
+    // Note: CDN uses underscores and lowercase letters/numbers only
     imageName = imageName.replace(/[^a-z0-9_]/g, '')
     
     if (!imageName) return null
