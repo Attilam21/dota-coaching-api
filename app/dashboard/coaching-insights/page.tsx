@@ -140,13 +140,15 @@ export default function CoachingInsightsPage() {
 
     try {
       setLoadingWinConditions(true)
+      setError(null)
+
       const response = await fetch(`/api/player/${playerId}/win-conditions`)
-      if (response.ok) {
-        const data = await response.json()
-        setWinConditions(data)
-      }
+      if (!response.ok) throw new Error('Failed to fetch win conditions data')
+
+      const data = await response.json()
+      setWinConditions(data)
     } catch (err) {
-      console.error('Failed to fetch win conditions:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load win conditions data')
     } finally {
       setLoadingWinConditions(false)
     }
