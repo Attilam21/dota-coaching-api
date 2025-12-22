@@ -142,7 +142,7 @@ export default function KeyMatchesCard({
                 title={`${insight.title}: ${insight.reason}`}
               >
                 {/* Hero Icon */}
-                {match.hero_id && heroes[match.hero_id] && (
+                {match.hero_id && heroes[match.hero_id] && heroes[match.hero_id].name && (
                   <HeroIcon
                     heroId={match.hero_id}
                     heroName={heroes[match.hero_id].name}

@@ -89,7 +89,10 @@ export default function DashboardPage() {
         if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            // Only save heroes with valid name and localized_name
+            if (hero.name && hero.localized_name) {
+              heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            }
           })
           setHeroes(heroesMap)
         }
@@ -542,7 +545,7 @@ export default function DashboardPage() {
                       >
                         {/* Hero Icon + Name + Winrate */}
                         <div className="flex flex-col items-center gap-1.5 mb-1.5">
-                          {heroData ? (
+                          {heroData && heroData.name ? (
                             <HeroIcon
                               heroId={hero.hero_id}
                               heroName={heroData.name}

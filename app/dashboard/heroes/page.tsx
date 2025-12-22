@@ -74,7 +74,10 @@ export default function HeroesPage() {
         if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            // Only save heroes with valid name and localized_name
+            if (hero.name && hero.localized_name) {
+              heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            }
           })
           setHeroes(heroesMap)
         }
@@ -578,7 +581,7 @@ export default function HeroesPage() {
                           {analysisData.bestHeroes.slice(0, 6).map((hero) => (
                             <div key={hero.hero_id} className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
                               <div className="flex items-center gap-2 mb-2">
-                                {heroes[hero.hero_id] && (
+                                {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
                                   <HeroIcon
                                     heroId={hero.hero_id}
                                     heroName={heroes[hero.hero_id].name}
@@ -610,7 +613,7 @@ export default function HeroesPage() {
                           {analysisData.worstHeroes.slice(0, 6).map((hero) => (
                             <div key={hero.hero_id} className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
                               <div className="flex items-center gap-2 mb-2">
-                                {heroes[hero.hero_id] && (
+                                {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
                                   <HeroIcon
                                     heroId={hero.hero_id}
                                     heroName={heroes[hero.hero_id].name}
@@ -716,7 +719,7 @@ export default function HeroesPage() {
                           >
                             {/* Hero Icon + Name */}
                             <div className="flex flex-col items-center gap-2 mb-2">
-                              {heroes[hero.hero_id] && (
+                              {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
                                 <HeroIcon
                                   heroId={hero.hero_id}
                                   heroName={heroes[hero.hero_id].name}
@@ -796,7 +799,7 @@ export default function HeroesPage() {
                                 <tr key={hero.hero_id} className="hover:bg-gray-700/50">
                                   <td className="px-3 py-2 whitespace-nowrap">
                                     <div className="flex items-center gap-2">
-                                      {heroes[hero.hero_id] && (
+                                      {heroes[hero.hero_id] && heroes[hero.hero_id].name && (
                                         <HeroIcon
                                           heroId={hero.hero_id}
                                           heroName={heroes[hero.hero_id].name}

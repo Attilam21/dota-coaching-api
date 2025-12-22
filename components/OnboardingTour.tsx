@@ -36,8 +36,15 @@ const tourSteps: TourStep[] = [
   {
     id: 'help',
     title: 'Pulsante Help',
-    description: 'In ogni pagina troverai un pulsante Help in alto a destra. Cliccalo per vedere una guida specifica sulla pagina corrente con spiegazioni dettagliate.',
+    description: 'In ogni pagina troverai un pulsante Help in alto a sinistra. Cliccalo per vedere una guida specifica sulla pagina corrente con spiegazioni dettagliate.',
     target: '[data-tour="help-button"]',
+    position: 'bottom',
+  },
+  {
+    id: 'refresh',
+    title: 'Aggiornamento Automatico Dati',
+    description: 'Il bottone rosso "Aggiorna" al centro della dashboard ti permette di aggiornare manualmente i tuoi dati. Il sistema controlla automaticamente ogni 20 minuti se ci sono nuove partite e ti mostra un badge verde quando disponibili. Vedi il timestamp per sapere quando è stato fatto l\'ultimo aggiornamento.',
+    target: '[data-tour="refresh-button"]',
     position: 'bottom',
   },
   {

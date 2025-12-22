@@ -62,7 +62,10 @@ export default function MatchesPage() {
         if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            // Only save heroes with valid name and localized_name
+            if (hero.name && hero.localized_name) {
+              heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            }
           })
           setHeroes(heroesMap)
         }
@@ -655,7 +658,7 @@ export default function MatchesPage() {
                                 href={`/dashboard/match-analysis/${match.match_id}`}
                                 className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                               >
-                                {match.hero_id && heroes[match.hero_id] && (
+                                {match.hero_id && heroes[match.hero_id] && heroes[match.hero_id].name && (
                                   <HeroIcon
                                     heroId={match.hero_id}
                                     heroName={heroes[match.hero_id].name}

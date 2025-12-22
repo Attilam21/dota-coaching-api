@@ -10,9 +10,11 @@
 ### Documenti Principali
 1. **[README.md](./README.md)** - Quick start e overview
 2. **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Stato attuale del progetto
-3. **[TODO_NOW.md](./TODO_NOW.md)** - Cosa fare adesso (in sviluppo)
+3. **[TODO_NOW.md](./TODO_NOW.md)** - ⚠️ **LEGGI QUESTO** - Cosa fare adesso (in sviluppo)
 4. **[DEPLOY_CHECKLIST.md](./DEPLOY_CHECKLIST.md)** - Checklist per deploy
 5. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architettura sistema
+6. **[ERRORI_BUILD.md](./ERRORI_BUILD.md)** - Errori e warning build (non critici)
+7. **[SPIEGAZIONE_RATE_LIMITING.md](./SPIEGAZIONE_RATE_LIMITING.md)** - Come funziona rate limiting con API key a pagamento
 
 ### Setup & Configurazione
 6. **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Setup database Supabase
@@ -133,10 +135,12 @@ dota-coaching-api/
 - ✅ Linting 0 errori
 
 ### Warning Non Critici
-- ⚠️ Route di test generano warning (normale)
-- ⚠️ Console.log in produzione (da sistemare)
+- ⚠️ Route di test generano warning "Dynamic server usage" (5 route, non critici)
+- ⚠️ 219 console.log in produzione (da sostituire con logger)
 
-**Dettagli**: Vedi [TODO_NOW.md](./TODO_NOW.md)
+**Dettagli**: 
+- Warning build: [ERRORI_BUILD.md](./ERRORI_BUILD.md)
+- Console.log: [TODO_NOW.md](./TODO_NOW.md)
 
 ---
 

@@ -8,21 +8,42 @@
 ## 🔴 PROBLEMI CRITICI DA RISOLVERE PRIMA DEL LANCIO
 
 ### 1. ⚠️ Rate Limiting OpenDota API
-**Priorità**: CRITICA  
-**Rischio**: Ban temporaneo da OpenDota, errori 429
+**Priorità**: MEDIA (meno critico grazie a cache + API key a pagamento)  
+**Rischio**: Errori 429 se si supera limite API key (solo con molti utenti simultanei)
 
-**Problema**: 
-- Nessun rate limiting implementato
-- OpenDota ha limiti: ~1 req/sec senza API key
-- Con molti utenti → ban temporaneo
+**Situazione Attuale**:
+- ✅ **API key a pagamento**: Limiti più alti rispetto a free tier
+- ✅ **Cache server-side**: `revalidate: 3600` (1 ora) su tutte le route API
+- ✅ **Cache HTTP**: `Cache-Control: public, s-maxage=3600` (1 ora)
+- ✅ **localStorage**: Usato per `last_match_id` (non per cache dati)
+- ⚠️ **Polling**: Ogni 20 minuti (non troppo frequente)
 
-**Soluzione**:
-- Implementare rate limiting lato server
-- Cache più aggressiva
-- Queue system per richieste
+**Come Funziona**:
+- **Rate limiting PER API KEY** (non per IP utente)
+- Tutte le richieste dal server Vercel usano la STESSA API key
+- Se 10 utenti aprono lo stesso player ID → **1 sola chiamata** (cache)
+- Se 10 utenti aprono player ID diversi → **10 chiamate** (tutte con la tua API key)
 
-**Tempo**: 1-2 giorni  
+**Quando Diventa Critico**:
+- Con 50+ utenti simultanei che aprono dashboard per player ID diversi
+- Durante picchi di traffico (tutti aprono nello stesso secondo)
+- Se limite API key è basso (es. 10 req/sec) e traffico alto
+
+**Soluzione** (Opzionale, implementare solo se necessario):
+- Verificare limiti della tua API key OpenDota (documentazione)
+- Rate limiting lato server (queue system) se limite basso
+- Cache più aggressiva (aumentare a 2-4 ore) se dati non devono essere super freschi
+
+**Tempo**: 1-2 giorni (solo se necessario)  
 **File**: `lib/rate-limiter.ts`, middleware
+
+**Nota**: 
+- ⚠️ **IMPORTANTE**: Ogni utente ha il SUO player ID → cache non aiuta tra utenti diversi
+- ⚠️ **IMPORTANTE**: Ogni pagina fa 3-5 chiamate API → 10 utenti = 30-50 req/sec
+- Con API key a pagamento e cache di 1 ora, probabilmente OK per < 10 utenti simultanei
+- Con 10-20 utenti simultanei → attenzione (60-100 req/sec)
+- Con > 20 utenti simultanei → rate limiting lato server OBBLIGATORIO
+- Vedi `SPIEGAZIONE_RATE_LIMITING.md` per dettagli completi
 
 ---
 
@@ -50,17 +71,21 @@
 **Rischio**: Performance, sicurezza, informazioni esposte
 
 **Problema**:
-- 160+ `console.log/error/warn` nel codice
+- **219 `console.log/error/warn`** nel codice (200 in `app/`, 19 in `lib/`)
 - Eseguiti anche in produzione
 - Espongono informazioni sensibili
+- Impatto performance (soprattutto su mobile)
 
 **Soluzione**:
-- Creare logger centralizzato
-- Sostituire tutti i console.*
-- Log solo in sviluppo, errori in produzione
+- Creare logger centralizzato (`lib/logger.ts`)
+- Sostituire tutti i `console.*` con logger condizionale
+- Log solo in sviluppo (`NODE_ENV === 'development'`)
+- Errori critici sempre loggati (anche in produzione)
 
-**Tempo**: 1 giorno  
-**File**: `lib/logger.ts`, sostituire in tutti i file
+**Tempo**: 1-2 giorni  
+**File**: 
+- `lib/logger.ts` (creare)
+- Sostituire in tutti i file `app/` e `lib/`
 
 ---
 
@@ -140,10 +165,10 @@
 ## 📋 CHECKLIST SVILUPPO
 
 ### Durante lo Sviluppo (ORA)
-- [x] Build funziona
+- [x] Build funziona (con warning non critici su route test)
 - [x] TypeScript strict mode
 - [x] Linting 0 errori
-- [ ] Logger centralizzato
+- [ ] Logger centralizzato (219 console.* da sostituire)
 - [ ] Error tracking
 - [ ] Rate limiting
 - [ ] Validazione input
@@ -177,24 +202,25 @@ npx tsc --noEmit
 ## 📝 NOTE IMPORTANTI
 
 ### Durante lo Sviluppo
-- ✅ **Mantieni i console.log** per debug
+- ✅ **Mantieni i console.log** per debug (219 totali)
 - ✅ **Testa localmente** prima di push
 - ✅ **Verifica build** dopo ogni modifica importante
+- ⚠️ **Warning build**: Route test generano warning "Dynamic server usage" (non critici, sono route di test)
 
 ### Prima del Deploy
-- ⚠️ **Rimuovi/sostituisci console.log** con logger
-- ⚠️ **Aggiungi error tracking**
-- ⚠️ **Implementa rate limiting**
-- ⚠️ **Valida tutti gli input**
+- ⚠️ **Rimuovi/sostituisci 219 console.log** con logger centralizzato
+- ⚠️ **Aggiungi error tracking** (Sentry o Vercel Analytics)
+- ⚠️ **Implementa rate limiting** (OpenDota API)
+- ⚠️ **Valida tutti gli input** (Zod su tutte le API)
 
 ---
 
 ## 🎯 PRIORITÀ IMMEDIATE
 
-1. **Logger centralizzato** (oggi)
-2. **Error tracking** (domani)
-3. **Rate limiting** (dopo)
-4. **Validazione input** (dopo)
+1. **Logger centralizzato** (oggi) - 219 console.* da sostituire
+2. **Error tracking** (domani) - Sentry o Vercel Analytics
+3. **Validazione input** (dopo) - Zod su tutte le API
+4. **Rate limiting** (opzionale) - Solo se molti utenti simultanei (>10)
 
 ---
 

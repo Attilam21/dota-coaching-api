@@ -80,7 +80,10 @@ export default function PlayerAnalysisPage() {
           if (Array.isArray(heroesData)) {
             const heroesMap: Record<number, { name: string; localized_name: string }> = {}
             heroesData.forEach((hero: { id: number; name: string; localized_name: string }) => {
-              heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+              // Only save heroes with valid name and localized_name
+              if (hero.name && hero.localized_name) {
+                heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+              }
             })
             setHeroes(heroesMap)
           }
@@ -320,7 +323,7 @@ export default function PlayerAnalysisPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          {heroes[match.hero_id] && (
+                          {heroes[match.hero_id] && heroes[match.hero_id].name && (
                             <HeroIcon
                               heroId={match.hero_id}
                               heroName={heroes[match.hero_id].name}

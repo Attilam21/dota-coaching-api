@@ -90,7 +90,10 @@ export default function RoleAnalysisPage() {
         if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            // Only save heroes with valid name and localized_name
+            if (hero.name && hero.localized_name) {
+              heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+            }
           })
           setHeroes(heroesMap)
         }

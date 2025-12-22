@@ -67,12 +67,29 @@
 - ✅ `VERCEL_SETUP.md` - Setup Vercel
 
 ### Nuovi
-- ✅ `TODO_NOW.md` - Cosa fare adesso
-- ✅ `DOCUMENTAZIONE_MASTER.md` - Indice documentazione
-- ✅ `FILE_OBSOLETI.md` - Lista file rimossi
+- ✅ `TODO_NOW.md` - Cosa fare adesso (aggiornato con dati esatti)
+- ✅ `DOCUMENTAZIONE_MASTER.md` - Indice documentazione (aggiornato)
+- ✅ `FILE_OBSOLETI.md` - Lista file rimossi (aggiornato)
+- ✅ `ERRORI_BUILD.md` - Errori e warning build (nuovo)
 
 ### Knowledge Base
 - ✅ `_kb/opendota/*` - Documentazione API OpenDota
+
+---
+
+## 📊 Aggiornamenti Recenti (Gennaio 2025)
+
+### Dati Aggiornati
+- ✅ **Console.log**: 219 totali (200 in `app/`, 19 in `lib/`)
+- ✅ **Build**: Completata con successo (warning non critici su route test)
+- ✅ **Warning build**: 5 route test con "Dynamic server usage" (non critici)
+
+### Nuovi Documenti
+- ✅ `ERRORI_BUILD.md` - Documentazione warning build
+
+### Documenti Aggiornati
+- ✅ `TODO_NOW.md` - Dati esatti su console.log e build
+- ✅ `DOCUMENTAZIONE_MASTER.md` - Aggiunto ERRORI_BUILD.md
 
 ---
 
@@ -81,6 +98,7 @@
 1. **Leggi TODO_NOW.md** per sapere cosa fare
 2. **Usa DOCUMENTAZIONE_MASTER.md** come indice
 3. **Mantieni solo documenti essenziali**
+4. **Verifica ERRORI_BUILD.md** per warning build (non critici)
 
 ---
 

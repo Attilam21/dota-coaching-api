@@ -98,3 +98,5 @@
 
 **Totale file da rimuovere**: ~35 file
 
+**Nota**: Tutti i file elencati sono stati rimossi durante la pulizia documentazione (Gennaio 2025).
+
