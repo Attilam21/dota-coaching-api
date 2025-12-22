@@ -67,8 +67,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       title: 'COACHING',
       colorClass: 'text-purple-400',
       items: [
-        { name: 'Coaching & Meta', href: '/dashboard/coaching', icon: BookOpen },
-        { name: 'Profilo AttilaLAB', href: '/dashboard/profiling', icon: Target },
+        { name: 'Coaching & Insights', href: '/dashboard/coaching-insights', icon: BookOpen },
         { name: 'Anti-Tilt', href: '/dashboard/anti-tilt', icon: Shield },
       ],
     },

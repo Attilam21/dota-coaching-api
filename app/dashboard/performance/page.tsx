@@ -921,8 +921,8 @@ export default function PerformancePage() {
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                     <p className="text-sm text-gray-400">
                       💡 Per un'analisi completa con raccomandazioni dettagliate, visita la sezione{' '}
-                      <Link href="/dashboard/profiling" className="text-red-400 hover:text-red-300 underline">
-                        Profilazione AttilaLAB
+                      <Link href="/dashboard/coaching-insights" className="text-red-400 hover:text-red-300 underline">
+                        Coaching & Insights
                       </Link>
                     </p>
                   </div>

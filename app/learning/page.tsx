@@ -56,10 +56,10 @@ export default function LearningPage() {
                 Torna al Dashboard
               </Link>
               <Link
-                href="/dashboard/coaching"
+                href="/dashboard/coaching-insights"
                 className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
-                Vai a Coaching
+                Vai a Coaching & Insights
               </Link>
             </div>
           </div>

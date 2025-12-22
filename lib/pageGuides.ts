@@ -202,6 +202,28 @@ export const pageGuides: Record<string, PageGuide> = {
       }
     ]
   },
+  '/dashboard/coaching-insights': {
+    title: 'Coaching & Insights',
+    description: 'Analisi completa del tuo profilo con confronto meta, pattern di vittoria e raccomandazioni personalizzate basate su AI avanzata.',
+    sections: [
+      {
+        title: 'Overview',
+        content: 'Panoramica del tuo profilo: ruolo principale, stile di gioco, AttilaLAB Score e trend delle performance.'
+      },
+      {
+        title: 'Confronto Meta',
+        content: 'Confronto delle tue performance rispetto al meta attuale con percentili, gap e aree di miglioramento prioritario.'
+      },
+      {
+        title: 'Win Conditions',
+        content: 'Analisi dei pattern di vittoria: cosa fai di diverso quando vinci, metriche chiave e insight AI.'
+      },
+      {
+        title: 'Raccomandazioni',
+        content: 'Punti di forza, aree di miglioramento e raccomandazioni personalizzate per migliorare il tuo gameplay.'
+      }
+    ]
+  },
   '/dashboard/coaching': {
     title: 'Coaching & Task',
     description: 'Task personalizzati e raccomandazioni per migliorare le tue performance.',

@@ -877,7 +877,7 @@ export default function DashboardPage() {
                           Raccomandazioni Rapide
                         </h3>
                         <Link
-                          href="/dashboard/profiling"
+                          href="/dashboard/coaching-insights"
                           className="text-xs text-red-400 hover:text-red-300"
                         >
                           Vedi tutte →
