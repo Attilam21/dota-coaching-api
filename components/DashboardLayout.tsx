@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
+import Logo from '@/components/Logo'
 import { 
   BarChart, 
   Zap, 
@@ -105,7 +106,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
         <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold">AttilaLAB Dashboard</h1>
+          <Logo href="/dashboard" size="md" />
         </div>
         
         {/* Guida Utente - In alto con colore evidenziato */}

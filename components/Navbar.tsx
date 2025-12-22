@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
+import Logo from '@/components/Logo'
 
 export default function Navbar() {
   const { user, loading, signOut } = useAuth()
@@ -41,9 +42,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-red-500">
-              PRO DOTA ANALISI
-            </Link>
+            <Logo href="/" size="md" />
           </div>
           
           <div className="hidden md:flex items-center space-x-4">
