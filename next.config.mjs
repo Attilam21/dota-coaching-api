@@ -30,6 +30,25 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/ai-summary',
+        destination: '/dashboard/coaching-insights',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/coaching',
+        destination: '/dashboard/coaching-insights',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/profiling',
+        destination: '/dashboard/coaching-insights',
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
