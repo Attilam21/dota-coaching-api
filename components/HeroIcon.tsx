@@ -30,8 +30,10 @@ export default function HeroIcon({
     
     // Special cases: some heroes have different names in the file system
     // Complete mapping of all hero name variations
+    // OpenDota API returns "npc_dota_hero_xxx" format
+    // CDN uses different format for some heroes
     const heroNameMap: Record<string, string> = {
-      // Note: 'nevermore' stays as 'nevermore' - CDN uses the original name
+      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend (ID 11)
       'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
       'windrunner': 'windranger', // Windrunner was renamed to Windranger
       'shredder': 'timbersaw', // Shredder is Timbersaw
@@ -47,6 +49,8 @@ export default function HeroIcon({
       'queenofpain': 'queen_of_pain', // QueenOfPain is Queen of Pain
       'vengefulspirit': 'vengeful_spirit', // VengefulSpirit is Vengeful Spirit
       'shadow_shaman': 'rhasta', // Shadow Shaman is Rhasta
+      'dragon_knight': 'dragon_knight', // Keep as is
+      'drow_ranger': 'drow_ranger', // Keep as is
     }
     
     // Check if we need to map the name
