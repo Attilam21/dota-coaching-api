@@ -8,6 +8,9 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import PlayerHeader from '@/components/PlayerHeader'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulbs from '@/components/InsightBulbs'
+import AISuggestionCard from '@/components/AISuggestionCard'
+import { buildBulbInsights, buildAISuggestion } from '@/lib/insight-utils'
 import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon, Lightbulb, AlertTriangle } from 'lucide-react'
 
 interface MetaComparison {
@@ -84,6 +87,7 @@ export default function CoachingInsightsPage() {
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [metaData, setMetaData] = useState<MetaComparison | null>(null)
   const [winConditions, setWinConditions] = useState<any>(null)
+  const [playerStats, setPlayerStats] = useState<any>(null)
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [loadingMeta, setLoadingMeta] = useState(false)
   const [loadingWinConditions, setLoadingWinConditions] = useState(false)
@@ -154,9 +158,25 @@ export default function CoachingInsightsPage() {
     }
   }, [playerId])
 
+  const fetchPlayerStats = useCallback(async () => {
+    if (!playerId) return
+
+    try {
+      const response = await fetch(`/api/player/${playerId}/stats`)
+      if (response.ok) {
+        const data = await response.json()
+        setPlayerStats(data.stats)
+      }
+    } catch (err) {
+      // Silently fail - stats are optional for insights
+      console.warn('Failed to fetch player stats for insights:', err)
+    }
+  }, [playerId])
+
   useEffect(() => {
     if (playerId) {
       fetchProfile()
+      fetchPlayerStats() // Always fetch stats for insights
       if (activeTab === 'meta') {
         fetchMetaComparison()
       }
@@ -164,7 +184,7 @@ export default function CoachingInsightsPage() {
         fetchWinConditions()
       }
     }
-  }, [playerId, fetchProfile, activeTab])
+  }, [playerId, fetchProfile, fetchPlayerStats, activeTab])
 
   useEffect(() => {
     if (playerId && activeTab === 'meta' && !metaData && !loadingMeta) {
@@ -547,7 +567,22 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {metaData ? (
                     <>
-                      {/* Strategic Insight */}
+                      {/* Insight Bulbs - Deterministic insights */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-300">Insight Deterministici</h3>
+                        <InsightBulbs
+                          insights={buildBulbInsights(playerStats, metaData)}
+                          isLoading={loadingMeta || !playerStats}
+                        />
+                      </div>
+
+                      {/* AI Suggestion - Structured recommendation */}
+                      <AISuggestionCard
+                        suggestion={buildAISuggestion(playerStats, metaData)}
+                        isLoading={loadingMeta || !playerStats}
+                      />
+
+                      {/* Strategic Insight - Keep existing but make it optional */}
                       {metaData.strategicInsight && (
                         <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-700 rounded-lg p-6">
                           <div className="flex items-center gap-3 mb-4">

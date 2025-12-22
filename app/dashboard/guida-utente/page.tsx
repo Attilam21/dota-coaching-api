@@ -60,8 +60,8 @@ export default function GuidaUtentePage() {
       color: 'bg-green-900/30 border-green-700',
     },
     {
-      title: 'Analisi Partite',
-      description: 'Visualizza e analizza le tue partite con Overview, Insights e analisi dettagliate.',
+      title: 'Storico Partite',
+      description: 'Visualizza tutte le tue partite con Overview (statistiche e trend), Lista (filtri e ricerca), e Insights (pattern e raccomandazioni).',
       icon: Zap,
       href: '/dashboard/matches',
       color: 'bg-yellow-900/30 border-yellow-700',
@@ -164,46 +164,123 @@ export default function GuidaUtentePage() {
         <div className="space-y-4">
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-blue-400 mb-2">📊 Statistiche Giocatore</h3>
-            <p className="text-gray-300 text-sm mb-2">
-              <strong>Panoramica:</strong> Dashboard principale con Hero Pool (Top 6), Partite Chiave, Benchmark OpenDota, Attività Recente e Azioni Rapide. 
-              <strong>Performance & Stile:</strong> Analisi approfondita con Focus Areas e raccomandazioni. 
-              <strong>Il Mio Pool:</strong> Analisi completa del tuo hero pool con diversità, specializzazione e raccomandazioni. 
-              <strong>Matchup & Counter:</strong> Analisi matchup e counter picks per decisioni draft. 
-              <strong>Analisi Ruolo:</strong> Performance per ruolo con miglioramenti specifici. 
-              Queste sezioni ti mostrano le tue statistiche aggregate e ti aiutano a capire il tuo stile di gioco.
-            </p>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Panoramica:</strong> Dashboard principale con Hero Pool (Top 6 eroi più giocati), Partite Chiave (migliore, peggiore, outlier), 
+                Benchmark OpenDota (percentili GPM, XPM, KDA), Attività Recente (ultime 5 partite) e Azioni Rapide per accesso veloce alle analisi.
+              </p>
+              <p>
+                <strong>Performance & Stile:</strong> Analisi approfondita con Focus Areas (3 aree prioritarie per il miglioramento identificate automaticamente), 
+                metriche di performance, stile di gioco e raccomandazioni personalizzate basate sui tuoi dati.
+              </p>
+              <p>
+                <strong>Il Mio Pool:</strong> Analisi completa del tuo hero pool con tab "Pool Analysis" (diversità, copertura ruoli, specializzazione, raccomandazioni) 
+                e "Statistiche" (visualizzazione grid/table con sorting per winrate, partite, KDA). Identifica i tuoi eroi migliori e le aree di miglioramento.
+              </p>
+              <p>
+                <strong>Matchup & Counter:</strong> Analisi matchup e counter picks per decisioni draft. Tab "Matchup" con winrate vs altri eroi, 
+                "Performance Trend" per vedere l'evoluzione nel tempo, e "Dettagli Eroe" con statistiche complete. Ideale per preparare draft e pick/ban.
+              </p>
+              <p>
+                <strong>Analisi Ruolo:</strong> Performance per ruolo con Overview (ruolo preferito, confidenza, summary cards, confronto ruoli), 
+                "Miglioramento Ruolo" (metriche specifiche, punti di forza/debolezza, raccomandazioni) e "Trend Ruolo" (performance storica per ruolo).
+              </p>
+            </div>
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
-            <h3 className="text-lg font-semibold text-green-400 mb-2">👥 Team & Partite</h3>
-            <p className="text-gray-300 text-sm mb-2">
-              I Tuoi Compagni e Storico Partite. Analizza le sinergie con i tuoi compagni di squadra 
-              e visualizza tutte le tue partite recenti.
-            </p>
+            <h3 className="text-lg font-semibold text-green-400 mb-2">👥 I Tuoi Compagni</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                Analizza le sinergie con i tuoi compagni di squadra più frequenti. Per ogni compagno vedi:
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li>Winrate insieme e numero di partite giocate</li>
+                <li>Ruoli preferiti e combinazioni più efficaci</li>
+                <li>Performance aggregate quando giocate insieme</li>
+                <li>Raccomandazioni per migliorare la coordinazione e le sinergie</li>
+              </ul>
+              <p>
+                Identifica i compagni con cui hai più successo e quelli con cui potresti migliorare la comunicazione.
+              </p>
+            </div>
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
-            <h3 className="text-lg font-semibold text-yellow-400 mb-2">🎮 Analisi Partita</h3>
-            <p className="text-gray-300 text-sm mb-2">
-              Seleziona una partita e analizzala in dettaglio con tabs per Overview, Fasi di Gioco, 
-              Item Timing e Teamfight. Confronta le tue performance con la tua media.
-            </p>
+            <h3 className="text-lg font-semibold text-yellow-400 mb-2">🎮 Storico Partite</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Overview:</strong> Statistiche aggregate (winrate, KDA medio, GPM/XPM), trend performance con grafici delle ultime partite, 
+                distribuzione risultati e performance per eroe/ruolo.
+              </p>
+              <p>
+                <strong>Lista:</strong> Visualizza tutte le tue partite in formato compatto con filtri per risultato (Win/Loss), eroe e ruolo. 
+                Ogni card mostra eroe, risultato, KDA, durata e link diretto all'analisi dettagliata. Puoi anche cercare direttamente un Match ID.
+              </p>
+              <p>
+                <strong>Insights:</strong> Pattern identificati automaticamente (es. "Vinci di più con eroi X", "Perdi quando Y"), 
+                raccomandazioni basate sui pattern e confronto dettagliato Win vs Loss per identificare cosa fai meglio nelle vittorie.
+              </p>
+              <p>
+                <strong>Analisi Dettagliata:</strong> Clicca su una partita per analisi completa con tabs per Overview (statistiche generali), 
+                Fasi di Gioco (early/mid/late), Item Timing (timeline acquisti) e Teamfight (contributo ai fight).
+              </p>
+            </div>
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-purple-400 mb-2">📚 Coaching & Insights</h3>
-            <p className="text-gray-300 text-sm mb-2">
-              <strong>Coaching & Insights:</strong> Sezione consolidata con Overview del profilo, Confronto Meta, Win Conditions e Raccomandazioni personalizzate. 
-              Ricevi insights AI avanzati, confronto con percentili OpenDota e pattern di vittoria identificati automaticamente.
-            </p>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Overview:</strong> Profilo completo con ruolo preferito, playstyle identificato, FZTH Score (metrica composita di performance), 
+                trend delle metriche chiave, punti di forza e debolezze identificati automaticamente, e top eroi per ruolo.
+              </p>
+              <p>
+                <strong>Confronto Meta:</strong> Confronto delle tue metriche con i percentili OpenDota (GPM, XPM, KDA, ecc.) per vedere come ti posizioni rispetto alla community. 
+                Insights AI che identificano aree di miglioramento specifiche e gap rispetto al meta.
+              </p>
+              <p>
+                <strong>Win Conditions:</strong> Pattern di vittoria identificati automaticamente analizzando le tue partite vincenti. 
+                Mostra cosa fai diversamente quando vinci (es. "Vinci quando hai più farm", "Vinci quando giochi eroi X"). 
+                Confronto dettagliato tra partite vinte e perse.
+              </p>
+              <p>
+                <strong>Raccomandazioni:</strong> Suggerimenti personalizzati per il miglioramento basati su tutte le analisi. 
+                Priorità automatiche e roadmap di miglioramento con focus sulle aree più impattanti.
+              </p>
+            </div>
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-orange-400 mb-2">🔬 Analisi Tecniche</h3>
-            <p className="text-gray-300 text-sm mb-2">
-              Analisi Avanzate (Lane, Farm, Fights, Vision) e Build & Items. 
-              Metriche dettagliate per analizzare aspetti specifici del tuo gameplay.
-            </p>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Analisi Avanzate:</strong> Metriche dettagliate divise in 4 categorie:
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li><strong>Lane & Early Game:</strong> CS, XP, lane winrate, first blood involvement, early game impact</li>
+                <li><strong>Farm & Economy:</strong> GPM, XPM, efficienza farm, dead gold, item timing, gold lead</li>
+                <li><strong>Fights & Damage:</strong> Kill participation, damage share, teamfight impact, survivability</li>
+                <li><strong>Vision & Map Control:</strong> Ward placement, map control, vision efficiency</li>
+              </ul>
+              <p>
+                <strong>Build & Items:</strong> Analisi dei tuoi build preferiti, item timing, efficienza degli acquisti e raccomandazioni per ottimizzare i tuoi build.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-red-400 mb-2">🛡️ Anti-Tilt & Benessere</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Anti-Tilt:</strong> Strumenti e strategie per gestire tilt e frustrazione durante le partite. 
+                Analisi dei pattern di tilt, consigli per mantenere la calma e migliorare la mentalità di gioco.
+              </p>
+              <p>
+                <strong>Giochi Anti-Tilt:</strong> Mini-giochi e attività per distrarsi e rilassarsi tra le partite. 
+                Utile per mantenere un approccio positivo e ridurre lo stress legato alle perdite.
+              </p>
+            </div>
           </div>
         </div>
       </div>
