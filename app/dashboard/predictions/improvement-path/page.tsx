@@ -92,7 +92,18 @@ export default function ImprovementPathPage() {
         }
 
         const result = await response.json()
-        setData(result)
+        
+        // Handle API errors gracefully
+        if (result.error) {
+          // If error but we have some data, still show it
+          if (result.steps && result.steps.length > 0) {
+            setData(result)
+          } else {
+            throw new Error(result.error || 'Failed to fetch improvement path')
+          }
+        } else {
+          setData(result)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
@@ -138,12 +149,95 @@ export default function ImprovementPathPage() {
     )
   }
 
-  if (!data || data.steps.length === 0) {
+  if (!data) {
     return (
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <Route className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
           <p className="text-gray-400">Nessun percorso disponibile. Gioca alcune partite per vedere il tuo path to improvement.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (data.steps.length === 0) {
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/dashboard/predictions"
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                <Route className="w-8 h-8 text-cyan-400" />
+                Path to Improvement
+              </h1>
+              <p className="text-gray-400">
+                Percorso step-by-step per raggiungere i tuoi obiettivi
+              </p>
+            </div>
+          </div>
+          <HelpButton />
+        </div>
+
+        {/* Current Stats */}
+        {data.currentStats && (
+          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-cyan-400" />
+              Le Tue Statistiche Attuali
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <div className="text-sm text-gray-400 mb-1">Winrate</div>
+                <div className="text-2xl font-bold text-white">{data.currentStats.winrate}%</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400 mb-1">GPM</div>
+                <div className="text-2xl font-bold text-white">{data.currentStats.gpm}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400 mb-1">KDA</div>
+                <div className="text-2xl font-bold text-white">{data.currentStats.kda}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400 mb-1">Morti</div>
+                <div className="text-2xl font-bold text-white">{data.currentStats.deaths}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-400 mb-1">Ruolo</div>
+                <div className="text-2xl font-bold text-white capitalize">{data.currentStats.role}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State with helpful message */}
+        <div className="bg-gradient-to-r from-green-900/30 to-cyan-900/30 border border-green-500/50 rounded-xl p-8 text-center">
+          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Ottimo Lavoro!</h2>
+          <p className="text-gray-300 mb-4">
+            Le tue statistiche sono già molto buone rispetto al meta. Continua a giocare e monitora le tue performance.
+          </p>
+          <p className="text-sm text-gray-400">
+            Il percorso di miglioramento verrà aggiornato automaticamente quando ci saranno nuove opportunità di ottimizzazione.
+          </p>
+        </div>
+
+        {/* Back Link */}
+        <div className="text-center">
+          <Link 
+            href="/dashboard/predictions"
+            className="text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Torna a Overview Predittivo
+          </Link>
         </div>
       </div>
     )

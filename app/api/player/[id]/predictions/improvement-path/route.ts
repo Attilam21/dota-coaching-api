@@ -138,16 +138,18 @@ export async function GET(
       matchIds: number[]
     }> = []
 
-    // Step 1: GPM improvement
-    if (avgGPM < meta.gpm * 0.9) {
+    // Step 1: GPM improvement (less restrictive - create step if below meta or can optimize)
+    if (avgGPM < meta.gpm) {
       const gap = meta.gpm - avgGPM
       const gapPercent = (gap / meta.gpm) * 100
-      const targetGPM = Math.min(meta.gpm, avgGPM + (gap * 0.5)) // 50% improvement target
+      const targetGPM = avgGPM < meta.gpm * 0.9 
+        ? Math.min(meta.gpm, avgGPM + (gap * 0.5)) // 50% improvement if significantly below
+        : Math.min(meta.gpm * 1.1, avgGPM + (gap * 0.3)) // 30% improvement if close to meta
       const winrateImpact = Math.min(8, gapPercent * 0.4) // Max 8% winrate improvement
 
       steps.push({
         id: 1,
-        title: 'Migliora Farm Rate (GPM)',
+        title: avgGPM < meta.gpm * 0.9 ? 'Migliora Farm Rate (GPM)' : 'Ottimizza Farm Rate (GPM)',
         category: 'farming',
         currentValue: Math.round(avgGPM),
         targetValue: Math.round(targetGPM),
@@ -155,22 +157,26 @@ export async function GET(
         gapPercent: Math.round(gapPercent),
         impact: `+${winrateImpact.toFixed(1)}% winrate previsto`,
         priority: gapPercent > 15 ? 'high' : gapPercent > 8 ? 'medium' : 'low',
-        actionable: 'Focus su last-hitting, stacka campi, ottimizza rotazioni farm',
-        estimatedMatches: Math.ceil(gapPercent / 2), // ~2% improvement per match
+        actionable: avgGPM < meta.gpm * 0.9 
+          ? 'Focus su last-hitting, stacka campi, ottimizza rotazioni farm'
+          : 'Mantieni farm costante, migliora efficienza nelle rotazioni',
+        estimatedMatches: Math.max(1, Math.ceil(gapPercent / 2)), // At least 1 match
         matchIds: playerMatches.slice(0, 5).map(m => m.match_id)
       })
     }
 
-    // Step 2: Deaths reduction
-    if (avgDeaths > meta.deaths * 1.1) {
+    // Step 2: Deaths reduction (less restrictive)
+    if (avgDeaths > meta.deaths) {
       const gap = avgDeaths - meta.deaths
       const gapPercent = (gap / meta.deaths) * 100
-      const targetDeaths = Math.max(meta.deaths, avgDeaths - (gap * 0.4))
+      const targetDeaths = avgDeaths > meta.deaths * 1.1
+        ? Math.max(meta.deaths, avgDeaths - (gap * 0.4))
+        : Math.max(meta.deaths * 0.9, avgDeaths - (gap * 0.3))
       const winrateImpact = Math.min(6, gapPercent * 0.3)
 
       steps.push({
         id: 2,
-        title: 'Riduci Morti',
+        title: avgDeaths > meta.deaths * 1.1 ? 'Riduci Morti' : 'Ottimizza Morti',
         category: 'positioning',
         currentValue: Math.round(avgDeaths * 10) / 10,
         targetValue: Math.round(targetDeaths * 10) / 10,
@@ -178,23 +184,27 @@ export async function GET(
         gapPercent: Math.round(gapPercent),
         impact: `+${winrateImpact.toFixed(1)}% winrate previsto`,
         priority: gapPercent > 20 ? 'high' : gapPercent > 10 ? 'medium' : 'low',
-        actionable: 'Migliora map awareness, posizionamento, evita overextending',
-        estimatedMatches: Math.ceil(gapPercent / 3),
+        actionable: avgDeaths > meta.deaths * 1.1
+          ? 'Migliora map awareness, posizionamento, evita overextending'
+          : 'Mantieni morti basse, migliora decision making in situazioni rischiose',
+        estimatedMatches: Math.max(1, Math.ceil(gapPercent / 3)),
         matchIds: playerMatches.filter(m => m.deaths > meta.deaths).slice(0, 5).map(m => m.match_id)
       })
     }
 
-    // Step 3: KDA improvement
+    // Step 3: KDA improvement (less restrictive)
     const currentKDA = avgKDA
-    if (currentKDA < meta.kda * 0.9) {
+    if (currentKDA < meta.kda) {
       const gap = meta.kda - currentKDA
       const gapPercent = (gap / meta.kda) * 100
-      const targetKDA = Math.min(meta.kda, currentKDA + (gap * 0.5))
+      const targetKDA = currentKDA < meta.kda * 0.9
+        ? Math.min(meta.kda, currentKDA + (gap * 0.5))
+        : Math.min(meta.kda * 1.1, currentKDA + (gap * 0.3))
       const winrateImpact = Math.min(5, gapPercent * 0.25)
 
       steps.push({
         id: 3,
-        title: 'Migliora KDA',
+        title: currentKDA < meta.kda * 0.9 ? 'Migliora KDA' : 'Ottimizza KDA',
         category: 'teamfight',
         currentValue: Math.round(currentKDA * 100) / 100,
         targetValue: Math.round(targetKDA * 100) / 100,
@@ -202,8 +212,10 @@ export async function GET(
         gapPercent: Math.round(gapPercent),
         impact: `+${winrateImpact.toFixed(1)}% winrate previsto`,
         priority: gapPercent > 15 ? 'high' : gapPercent > 8 ? 'medium' : 'low',
-        actionable: 'Partecipa più ai teamfight, migliora positioning, focus su survival',
-        estimatedMatches: Math.ceil(gapPercent / 2.5),
+        actionable: currentKDA < meta.kda * 0.9
+          ? 'Partecipa più ai teamfight, migliora positioning, focus su survival'
+          : 'Mantieni KDA elevato, migliora timing di ingaggio nei teamfight',
+        estimatedMatches: Math.max(1, Math.ceil(gapPercent / 2.5)),
         matchIds: playerMatches.filter(m => {
           const kda = (m.kills + m.assists) / Math.max(m.deaths, 1)
           return kda < meta.kda
@@ -211,15 +223,15 @@ export async function GET(
       })
     }
 
-    // Step 4: Teamfight participation (if support or offlane)
-    if ((role === 'Support' || role === 'Offlane') && avgTeamfightParticipation < 8) {
+    // Step 4: Teamfight participation (if support or offlane, less restrictive)
+    if ((role === 'Support' || role === 'Offlane') && avgTeamfightParticipation < 10) {
       const targetParticipation = 10
       const gap = targetParticipation - avgTeamfightParticipation
       const winrateImpact = Math.min(4, gap * 0.4)
 
       steps.push({
         id: 4,
-        title: 'Aumenta Partecipazione Teamfight',
+        title: avgTeamfightParticipation < 8 ? 'Aumenta Partecipazione Teamfight' : 'Ottimizza Partecipazione Teamfight',
         category: 'teamplay',
         currentValue: Math.round(avgTeamfightParticipation * 10) / 10,
         targetValue: targetParticipation,
@@ -227,20 +239,22 @@ export async function GET(
         gapPercent: Math.round((gap / targetParticipation) * 100),
         impact: `+${winrateImpact.toFixed(1)}% winrate previsto`,
         priority: gap > 3 ? 'high' : gap > 1.5 ? 'medium' : 'low',
-        actionable: 'Sii presente nei teamfight critici, migliora timing di ingaggio',
-        estimatedMatches: Math.ceil(gap / 0.5),
-        matchIds: playerMatches.filter(m => m.teamfight_participations < 8).slice(0, 5).map(m => m.match_id)
+        actionable: avgTeamfightParticipation < 8
+          ? 'Sii presente nei teamfight critici, migliora timing di ingaggio'
+          : 'Mantieni alta partecipazione, migliora qualità degli ingaggi',
+        estimatedMatches: Math.max(1, Math.ceil(gap / 0.5)),
+        matchIds: playerMatches.filter(m => m.teamfight_participations < 10).slice(0, 5).map(m => m.match_id)
       })
     }
 
-    // Step 5: Warding (if support)
-    if (role === 'Support' && avgWards < meta.wards * 0.8) {
+    // Step 5: Warding (if support, less restrictive)
+    if (role === 'Support' && avgWards < meta.wards) {
       const gap = meta.wards - avgWards
       const winrateImpact = Math.min(3, gap * 0.3)
 
       steps.push({
         id: 5,
-        title: 'Aumenta Warding',
+        title: avgWards < meta.wards * 0.8 ? 'Aumenta Warding' : 'Ottimizza Warding',
         category: 'vision',
         currentValue: Math.round(avgWards * 10) / 10,
         targetValue: meta.wards,
@@ -248,10 +262,56 @@ export async function GET(
         gapPercent: Math.round((gap / meta.wards) * 100),
         impact: `+${winrateImpact.toFixed(1)}% winrate previsto`,
         priority: gap > 3 ? 'high' : gap > 1.5 ? 'medium' : 'low',
-        actionable: 'Posiziona più ward, focus su vision control, dewarding',
-        estimatedMatches: Math.ceil(gap / 0.8),
+        actionable: avgWards < meta.wards * 0.8
+          ? 'Posiziona più ward, focus su vision control, dewarding'
+          : 'Mantieni warding costante, migliora posizionamento ward strategiche',
+        estimatedMatches: Math.max(1, Math.ceil(gap / 0.8)),
         matchIds: playerMatches.filter(m => (m.observer_uses + m.sentry_uses) < meta.wards).slice(0, 5).map(m => m.match_id)
       })
+    }
+
+    // If no steps created but player has good stats, create a maintenance/optimization step
+    if (steps.length === 0) {
+      // Check if player is performing well
+      const isPerformingWell = avgGPM >= meta.gpm * 0.95 && 
+                               avgDeaths <= meta.deaths * 1.05 && 
+                               currentKDA >= meta.kda * 0.95
+
+      if (isPerformingWell) {
+        // Add a maintenance step
+        steps.push({
+          id: 1,
+          title: 'Mantieni Performance Attuali',
+          category: 'teamplay',
+          currentValue: Math.round(currentWinrate * 10) / 10,
+          targetValue: Math.round(Math.min(70, currentWinrate + 2) * 10) / 10,
+          gap: 2,
+          gapPercent: 2,
+          impact: '+2.0% winrate previsto',
+          priority: 'low',
+          actionable: 'Mantieni le tue performance attuali, focus su consistenza e minimizzazione errori',
+          estimatedMatches: 5,
+          matchIds: playerMatches.slice(0, 5).map(m => m.match_id)
+        })
+      } else {
+        // Add a general improvement step
+        const avgGap = ((meta.gpm - avgGPM) / meta.gpm + (avgDeaths - meta.deaths) / meta.deaths + (meta.kda - currentKDA) / meta.kda) / 3 * 100
+        
+        steps.push({
+          id: 1,
+          title: 'Miglioramento Generale',
+          category: 'teamplay',
+          currentValue: Math.round(currentWinrate * 10) / 10,
+          targetValue: Math.round(Math.min(70, currentWinrate + Math.max(2, avgGap * 0.1)) * 10) / 10,
+          gap: Math.max(2, avgGap * 0.1),
+          gapPercent: Math.round(avgGap),
+          impact: `+${Math.max(2, avgGap * 0.1).toFixed(1)}% winrate previsto`,
+          priority: avgGap > 10 ? 'medium' : 'low',
+          actionable: 'Focus su miglioramento generale: farm, positioning, e decision making',
+          estimatedMatches: Math.max(3, Math.ceil(avgGap / 3)),
+          matchIds: playerMatches.slice(0, 5).map(m => m.match_id)
+        })
+      }
     }
 
     // Sort by priority and impact
