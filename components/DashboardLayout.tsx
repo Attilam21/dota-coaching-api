@@ -59,7 +59,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: Target },
         { name: 'I Tuoi Compagni', href: '/dashboard/teammates', icon: Users },
         { name: 'Storico Partite', href: '/dashboard/matches', icon: Gamepad2 },
-        { name: 'Analisi Tommaso', href: '/dashboard/match-advice', icon: Target },
         { name: 'Analisi Avanzate', href: '/dashboard/advanced', icon: FlaskConical },
         { name: 'Build & Items', href: '/dashboard/builds', icon: Shield },
       ],
