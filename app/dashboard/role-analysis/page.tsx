@@ -510,6 +510,17 @@ export default function RoleAnalysisPage() {
                     </div>
                   </div>
 
+                  {/* Insight Bulbs - Deterministic insights */}
+                  {analysis && (
+                    <div className="space-y-3 mb-6">
+                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+                      <InsightBulbs
+                        insights={buildRoleAnalysisInsights(analysis)}
+                        isLoading={loading}
+                      />
+                    </div>
+                  )}
+
                   {/* Preferred Role */}
                   {analysis.preferredRole && (
                     <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6 relative">
