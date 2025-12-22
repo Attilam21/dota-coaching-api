@@ -15,7 +15,10 @@ import {
   CheckCircle,
   ArrowRight,
   Lightbulb,
-  RefreshCw
+  RefreshCw,
+  Image as ImageIcon,
+  PlayCircle,
+  Settings
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -80,6 +83,13 @@ export default function GuidaUtentePage() {
       icon: RefreshCw,
       href: '/dashboard',
       color: 'bg-red-900/30 border-red-700',
+    },
+    {
+      title: 'Personalizzazione Dashboard',
+      description: 'Personalizza lo sfondo del dashboard e guarda il video di benvenuto. Scegli tra diversi sfondi disponibili e accedi al video tutorial quando vuoi.',
+      icon: Settings,
+      href: '/dashboard/settings',
+      color: 'bg-pink-900/30 border-pink-700',
     },
   ]
 
@@ -338,6 +348,42 @@ export default function GuidaUtentePage() {
               </p>
             </div>
           </div>
+
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-pink-400 mb-2">🎨 Personalizzazione Dashboard</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Video di Benvenuto:</strong> Al primo accesso al dashboard vedrai automaticamente un video di benvenuto che ti introduce alla piattaforma. 
+                Puoi chiuderlo in qualsiasi momento e non verrà più mostrato automaticamente. Se vuoi rivederlo, clicca sul pulsante <strong>"Video Benvenuto"</strong> nella sidebar (accanto a "Guida Utente").
+              </p>
+              <p>
+                <strong>Sfondo Personalizzato:</strong> Puoi personalizzare lo sfondo del dashboard scegliendo tra diverse opzioni disponibili. 
+                Vai su <strong>Dashboard → Impostazioni → Sfondo Dashboard</strong> per vedere tutte le opzioni disponibili.
+              </p>
+              <p>
+                <strong>Come Cambiare Sfondo:</strong>
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li>Vai su <strong>Impostazioni</strong> (icona ingranaggio nella sidebar)</li>
+                <li>Scorri fino alla sezione <strong>"Sfondo Dashboard"</strong></li>
+                <li>Vedrai le anteprime di tutti gli sfondi disponibili</li>
+                <li>Clicca sullo sfondo che preferisci</li>
+                <li>La modifica viene applicata immediatamente senza bisogno di ricaricare la pagina</li>
+              </ul>
+              <p>
+                <strong>Sfondi Disponibili:</strong> Attualmente puoi scegliere tra:
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li><strong>Dashboard JPG</strong> - Sfondo principale dashboard (formato JPG)</li>
+                <li><strong>Profile JPG</strong> - Sfondo pagina profilazione (formato JPG)</li>
+                <li><strong>Nessuno</strong> - Rimuove lo sfondo per un look più pulito</li>
+              </ul>
+              <p>
+                <strong>Nota:</strong> Se aggiungi nuovi file di sfondo (dashboard-bg.png, profile-bg.png) nella cartella <code className="bg-gray-900 px-1 rounded text-xs">public/</code>, 
+                appariranno automaticamente come opzioni nel selettore. Vedi <code className="bg-gray-900 px-1 rounded text-xs">public/README_SFONDI.md</code> per istruzioni dettagliate.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -415,6 +461,14 @@ export default function GuidaUtentePage() {
           <li className="flex items-start gap-2">
             <CheckCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             <span>Usa il <strong>bottone rosso "Aggiorna"</strong> al centro della dashboard per aggiornare manualmente i dati. Il sistema controlla automaticamente nuove partite ogni 20 minuti.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-5 h-5 text-pink-400 flex-shrink-0 mt-0.5" />
+            <span><strong>Personalizza lo sfondo</strong> del dashboard nelle Impostazioni. Scegli tra diversi sfondi disponibili e vedi l'anteprima prima di applicare.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-5 h-5 text-pink-400 flex-shrink-0 mt-0.5" />
+            <span>Il <strong>Video di Benvenuto</strong> si mostra solo al primo accesso. Puoi rivederlo in qualsiasi momento cliccando "Video Benvenuto" nella sidebar.</span>
           </li>
         </ul>
       </div>
