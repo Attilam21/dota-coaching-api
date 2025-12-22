@@ -157,14 +157,8 @@ export default function CoachingInsightsPage() {
   useEffect(() => {
     if (playerId) {
       fetchProfile()
-      if (activeTab === 'meta') {
-        fetchMetaComparison()
-      }
-      if (activeTab === 'win-conditions') {
-        fetchWinConditions()
-      }
     }
-  }, [playerId, fetchProfile, activeTab])
+  }, [playerId, fetchProfile])
 
   useEffect(() => {
     if (playerId && activeTab === 'meta' && !metaData && !loadingMeta) {
