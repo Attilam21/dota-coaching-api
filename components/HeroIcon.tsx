@@ -29,11 +29,26 @@ export default function HeroIcon({
     let imageName = heroName.toLowerCase().replace(/^npc_dota_hero_/, '')
     
     // Special cases: some heroes have different names in the file system
-    // Map known special cases
+    // Complete mapping of all hero name variations
     const heroNameMap: Record<string, string> = {
-      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend
+      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend (ID 11)
       'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
       'windrunner': 'windranger', // Windrunner was renamed to Windranger
+      'shredder': 'timbersaw', // Shredder is Timbersaw
+      'furion': 'nature\'s_prophet', // Furion is Nature's Prophet
+      'magnataur': 'magnus', // Magnataur is Magnus
+      'obsidian_destroyer': 'outworld_destroyer', // Obsidian Destroyer renamed
+      'rattletrap': 'clockwerk', // Rattletrap is Clockwerk
+      'wisp': 'io', // Wisp is Io
+      'zuus': 'zeus', // Zuus is Zeus
+      'necrophos': 'necrolyte', // Necrophos was Necrolyte
+      'doom_bringer': 'doom', // Doom Bringer is Doom
+      'treant': 'treant_protector', // Treant is Treant Protector
+      'queenofpain': 'queen_of_pain', // QueenOfPain is Queen of Pain
+      'vengefulspirit': 'vengeful_spirit', // VengefulSpirit is Vengeful Spirit
+      'shadow_shaman': 'rhasta', // Shadow Shaman is Rhasta
+      'dragon_knight': 'dragon_knight', // Keep as is
+      'drow_ranger': 'drow_ranger', // Keep as is
     }
     
     // Check if we need to map the name
@@ -42,6 +57,7 @@ export default function HeroIcon({
     }
     
     // Clean up any remaining invalid characters (keep underscores)
+    // Note: apostrophes are handled in the mapping above
     imageName = imageName.replace(/[^a-z0-9_]/g, '')
     
     if (!imageName) return null

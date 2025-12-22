@@ -278,9 +278,25 @@ npm run dev
 - ✅ **Salvataggio Analisi**: Funzionante (Supabase)
 - ✅ **Player ID**: Gestito in localStorage
 - ✅ **Analisi**: Tutte fetchate da OpenDota (backend/frontend)
-- ❌ **Gamification**: Rimossa (semplificazione)
+- ⚠️ **In Sviluppo**: Logger, Error Tracking, Rate Limiting
 
 **Pattern**: OpenDota = source of truth per dati match/player, Supabase = solo autenticazione e analisi salvate
+
+---
+
+## 📚 Documentazione
+
+### Documenti Principali
+- **[TODO_NOW.md](./TODO_NOW.md)** - ⚠️ **LEGGI QUESTO** - Cosa fare adesso (in sviluppo)
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Stato completo del progetto
+- **[DOCUMENTAZIONE_MASTER.md](./DOCUMENTAZIONE_MASTER.md)** - Indice di tutta la documentazione
+- **[DEPLOY_CHECKLIST.md](./DEPLOY_CHECKLIST.md)** - Checklist per deploy produzione
+
+### Setup & Configurazione
+- **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Setup database
+- **[ADSENSE_SETUP.md](./ADSENSE_SETUP.md)** - Setup Google AdSense
+- **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** - Setup deploy Vercel
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architettura sistema
 
 ---
 

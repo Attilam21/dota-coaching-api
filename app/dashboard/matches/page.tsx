@@ -34,6 +34,7 @@ export default function MatchesPage() {
   const { playerId } = usePlayerIdContext()
   const [matches, setMatches] = useState<Match[]>([])
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [heroesLoaded, setHeroesLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
@@ -53,17 +54,31 @@ export default function MatchesPage() {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    // Fetch heroes list
+    // Fetch heroes list - IMPORTANT: Must complete before rendering hero icons
+    let isMounted = true
+    
     fetch('/api/opendota/heroes')
-      .then((res) => res.json())
+      .then((res) => res.ok ? res.json() : null)
       .then((data) => {
-        const heroesMap: Record<number, { name: string; localized_name: string }> = {}
-        data.forEach((hero: { id: number; name: string; localized_name: string }) => {
-          heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
-        })
-        setHeroes(heroesMap)
+        if (data && isMounted) {
+          const heroesMap: Record<number, { name: string; localized_name: string }> = {}
+          data.forEach((hero: { id: number; name: string; localized_name: string }) => {
+            heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
+          })
+          setHeroes(heroesMap)
+          setHeroesLoaded(true)
+        }
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error('Error loading heroes:', error)
+        if (isMounted) {
+          setHeroesLoaded(true) // Set to true even on error to prevent infinite loading
+        }
+      })
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const fetchMatches = useCallback(async () => {

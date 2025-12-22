@@ -71,6 +71,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [heroesLoaded, setHeroesLoaded] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -79,20 +80,32 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router])
 
-  // Load heroes data
+  // Load heroes data - IMPORTANT: Must complete before rendering hero icons
   useEffect(() => {
+    let isMounted = true
+    
     fetch('/api/opendota/heroes')
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
-        if (data) {
+        if (data && isMounted) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
             heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
           })
           setHeroes(heroesMap)
+          setHeroesLoaded(true)
         }
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error('Error loading heroes:', error)
+        if (isMounted) {
+          setHeroesLoaded(true) // Set to true even on error to prevent infinite loading
+        }
+      })
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const fetchStats = useCallback(async () => {
@@ -387,13 +400,13 @@ export default function DashboardPage() {
     <div className="p-4 md:p-6">
       <div className="flex items-center justify-between mb-4 gap-4">
         {/* Help Button a sinistra */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0" data-tour="help-button">
           <HelpButton />
         </div>
         
         {/* Refresh Button centrale con UX curata */}
         {playerId && (
-          <div className="flex-1 flex items-center justify-center gap-3">
+          <div className="flex-1 flex items-center justify-center gap-3" data-tour="refresh-button">
             {/* Badge nuove partite */}
             {hasNewMatches && (
               <motion.div
@@ -518,10 +531,13 @@ export default function DashboardPage() {
             {/* Hero Pool Card */}
             <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col">
               <h3 className="text-sm font-semibold text-white mb-3 flex-shrink-0">Hero Pool (Top 6)</h3>
-              {topHeroes.length > 0 ? (
+              {!heroesLoaded ? (
+                <div className="text-sm text-gray-500 py-4">Caricamento eroi...</div>
+              ) : topHeroes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                   {topHeroes.slice(0, 6).map((hero) => {
-                    const heroName = heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`
+                    const heroData = heroes[hero.hero_id]
+                    const heroName = heroData?.localized_name || `Hero ${hero.hero_id}`
                     const winrateColor = hero.winrate >= 60 ? 'text-green-400' : hero.winrate >= 50 ? 'text-yellow-400' : 'text-red-400'
                     const bgColor = hero.winrate >= 60 ? 'bg-green-900/20' : hero.winrate >= 50 ? 'bg-yellow-900/20' : 'bg-red-900/20'
                     const borderColor = hero.winrate >= 60 ? 'border-green-700/50' : hero.winrate >= 50 ? 'border-yellow-700/50' : 'border-red-700/50'
@@ -533,10 +549,10 @@ export default function DashboardPage() {
                       >
                         {/* Hero Icon + Name + Winrate */}
                         <div className="flex flex-col items-center gap-1.5 mb-1.5">
-                          {heroes[hero.hero_id] ? (
+                          {heroData ? (
                             <HeroIcon
                               heroId={hero.hero_id}
-                              heroName={heroes[hero.hero_id].name}
+                              heroName={heroData.name}
                               size={28}
                               className="rounded"
                             />

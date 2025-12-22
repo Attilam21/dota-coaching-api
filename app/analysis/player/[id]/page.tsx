@@ -60,6 +60,7 @@ export default function PlayerAnalysisPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [heroesLoaded, setHeroesLoaded] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -69,22 +70,33 @@ export default function PlayerAnalysisPage() {
   }, [user, authLoading, router])
 
   useEffect(() => {
+    // Fetch heroes list - IMPORTANT: Must complete before rendering hero icons
+    let isMounted = true
+    
     const fetchHeroes = async () => {
       try {
         const response = await fetch('/api/opendota/heroes')
-        if (response.ok) {
+        if (response.ok && isMounted) {
           const heroesData = await response.json()
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           heroesData.forEach((hero: { id: number; name: string; localized_name: string }) => {
             heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
           })
           setHeroes(heroesMap)
+          setHeroesLoaded(true)
         }
       } catch (err) {
         console.error('Failed to fetch heroes:', err)
+        if (isMounted) {
+          setHeroesLoaded(true) // Set to true even on error to prevent infinite loading
+        }
       }
     }
     fetchHeroes()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useEffect(() => {
