@@ -385,14 +385,15 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4 gap-4">
+        {/* Help Button a sinistra */}
+        <div className="flex-shrink-0">
           <HelpButton />
         </div>
         
-        {/* Refresh Button con UX curata */}
+        {/* Refresh Button centrale con UX curata */}
         {playerId && (
-          <div className="flex items-center gap-3">
+          <div className="flex-1 flex items-center justify-center gap-3">
             {/* Badge nuove partite */}
             {hasNewMatches && (
               <motion.div
@@ -409,12 +410,12 @@ export default function DashboardPage() {
             
             {/* Timestamp ultimo aggiornamento */}
             {lastUpdate && !isRefreshing && (
-              <span className="text-xs text-gray-400 hidden sm:block">
+              <span className="text-xs text-gray-400 hidden md:block">
                 Aggiornato {formatLastUpdate(lastUpdate)}
               </span>
             )}
             
-            {/* Bottone Refresh */}
+            {/* Bottone Refresh Rosso */}
             <button
               onClick={() => {
                 refresh(true)
@@ -423,7 +424,7 @@ export default function DashboardPage() {
                 }
               }}
               disabled={isRefreshing || loading}
-              className="relative flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-red-500 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="relative flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 border border-red-500 hover:border-red-400 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group shadow-lg shadow-red-900/20"
               title={lastUpdate ? `Ultimo aggiornamento: ${formatLastUpdate(lastUpdate)}` : 'Aggiorna dati'}
             >
               <RefreshCw 
@@ -437,6 +438,9 @@ export default function DashboardPage() {
             </button>
           </div>
         )}
+        
+        {/* Spacer a destra per bilanciare */}
+        <div className="flex-shrink-0 w-[60px]"></div>
       </div>
       
       {/* Profile Header Card */}

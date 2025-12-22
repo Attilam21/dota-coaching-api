@@ -14,7 +14,8 @@ import {
   BarChart,
   CheckCircle,
   ArrowRight,
-  Lightbulb
+  Lightbulb,
+  RefreshCw
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -68,10 +69,17 @@ export default function GuidaUtentePage() {
     },
     {
       title: 'Help in ogni pagina',
-      description: 'Clicca il pulsante Help in alto a destra in qualsiasi pagina per vedere una guida specifica.',
+      description: 'Clicca il pulsante Help in alto a sinistra in qualsiasi pagina per vedere una guida specifica.',
       icon: HelpCircle,
       href: null,
       color: 'bg-purple-900/30 border-purple-700',
+    },
+    {
+      title: 'Aggiornamento Automatico Dati',
+      description: 'Il bottone rosso "Aggiorna" al centro della dashboard aggiorna automaticamente i tuoi dati. Il sistema rileva nuove partite e ti notifica quando disponibili.',
+      icon: RefreshCw,
+      href: '/dashboard',
+      color: 'bg-red-900/30 border-red-700',
     },
   ]
 
@@ -162,6 +170,28 @@ export default function GuidaUtentePage() {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-4">Sezioni Principali</h2>
         <div className="space-y-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-red-400 mb-2">🔄 Aggiornamento Automatico Dati</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Bottone Aggiorna:</strong> Il bottone rosso "Aggiorna" al centro della dashboard ti permette di aggiornare manualmente i tuoi dati in qualsiasi momento. 
+                Clicca per forzare un refresh completo delle statistiche.
+              </p>
+              <p>
+                <strong>Aggiornamento Automatico:</strong> Il sistema controlla automaticamente ogni 20 minuti se ci sono nuove partite disponibili. 
+                Quando rileva una nuova partita, vedrai un badge verde "Nuova partita!" accanto al bottone.
+              </p>
+              <p>
+                <strong>Background Sync:</strong> Quando torni sulla pagina dopo essere stato via, il sistema controlla automaticamente se ci sono aggiornamenti disponibili 
+                e aggiorna i dati in background senza interrompere la tua navigazione.
+              </p>
+              <p>
+                <strong>Timestamp:</strong> Accanto al bottone vedrai quando è stato fatto l'ultimo aggiornamento (es. "Aggiornato 5 minuti fa") 
+                per sapere sempre quanto sono aggiornati i tuoi dati.
+              </p>
+            </div>
+          </div>
+
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-blue-400 mb-2">📊 Statistiche Giocatore</h3>
             <div className="text-gray-300 text-sm space-y-2">
@@ -381,6 +411,10 @@ export default function GuidaUtentePage() {
           <li className="flex items-start gap-2">
             <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <span><strong>Clicca sulle lampadine blu</strong> nelle card statistiche per ottenere suggerimenti AI personalizzati</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <span>Usa il <strong>bottone rosso "Aggiorna"</strong> al centro della dashboard per aggiornare manualmente i dati. Il sistema controlla automaticamente nuove partite ogni 20 minuti.</span>
           </li>
         </ul>
       </div>
