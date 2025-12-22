@@ -10,23 +10,39 @@ export interface PageGuide {
 export const pageGuides: Record<string, PageGuide> = {
   '/dashboard': {
     title: 'Panoramica Dashboard',
-    description: 'Vista d\'insieme completa delle tue performance recenti con statistiche chiave, trend e accesso rapido a tutte le analisi.',
+    description: 'Vista d\'insieme completa delle tue performance recenti con statistiche chiave, trend, hero pool, benchmark e accesso rapido a tutte le analisi.',
     sections: [
       {
         title: 'Cosa trovi qui',
-        content: 'Statistiche aggregate delle ultime 20 partite: winrate complessivo e per periodo, KDA medio, GPM/XPM, trend delle performance nel tempo, heatmap attività e link rapidi alle analisi approfondite. I trend sono calcolati confrontando le ultime 5 e 10 partite. Questa pagina è il tuo punto di partenza per monitorare le tue performance generali.'
+        content: 'Dashboard principale con: Hero Pool (Top 6 heroes più giocati), Partite Chiave (Best/Worst/Outlier), Snapshot Stato Forma (KDA e Farm trend), Confronto con Meta (percentili OpenDota), Attività Recente (ultime 5 partite) e Azioni Rapide per accedere velocemente alle analisi. Tutte le statistiche sono basate sulle ultime 20 partite. I trend confrontano le ultime 5 e 10 partite per identificare miglioramenti o peggioramenti.'
       },
       {
-        title: 'Come usarlo',
-        content: 'Usa questa pagina come dashboard principale per avere una visione d\'insieme rapida. Dalle card statistiche puoi accedere direttamente alle sezioni dettagliate. I tabs Overview, Trend & Statistiche e Partite ti permettono di approfondire diversi aspetti delle tue performance.'
+        title: 'Hero Pool (Top 6)',
+        content: 'Visualizza i tuoi 6 heroes più giocati con winrate, statistiche (partite giocate, vittorie/sconfitte) e link diretto all\'analisi completa. Ogni card mostra l\'icona dell\'eroe, il nome, il winrate colorato (verde ≥60%, giallo ≥50%, rosso <50%) e un bottone per vedere l\'analisi dettagliata. Il layout compatto ti permette di vedere rapidamente i tuoi heroes migliori.'
+      },
+      {
+        title: 'Partite Chiave',
+        content: 'Tre partite selezionate automaticamente: Best Match (miglior KDA tra le vittorie), Worst Match (peggior KDA tra le sconfitte) e Match Outlier (partita con metriche molto diverse dalla media). Ogni card mostra l\'eroe giocato, il risultato (W/L), il KDA e un link diretto all\'analisi. Passa il mouse sulla card per vedere l\'insight dettagliato.'
+      },
+      {
+        title: 'Confronto con Meta',
+        content: 'Confronta le tue performance con i percentili OpenDota per GPM, XPM e KDA. I percentili mostrano in quale posizione ti trovi rispetto alla community (es. Top 65%, Top 70%). I colori indicano la performance: verde per percentili ≥75%, giallo per ≥50%, rosso per <50%. Questi dati provengono direttamente da OpenDota quando disponibili.'
+      },
+      {
+        title: 'Attività Recente',
+        content: 'Timeline delle tue ultime 5 partite con: risultato (vittoria/sconfitta), eroe giocato, KDA, GPM e data. Ogni partita è cliccabile per accedere direttamente all\'analisi dettagliata. Il feed ti permette di vedere rapidamente le tue performance recenti e identificare pattern o trend.'
+      },
+      {
+        title: 'Azioni Rapide',
+        content: 'Accesso veloce alle sezioni principali: Analizza Ultima Partita (se disponibile), Coaching & Insights, Analizza Hero Pool, Storico Partite e Performance & Stile. Questi link ti permettono di navigare rapidamente alle analisi più importanti senza dover cercare nel menu.'
+      },
+      {
+        title: 'Tabs Overview, Trend & Statistiche, Partite',
+        content: 'Il tab Overview mostra lo snapshot stato forma, benchmark e attività recente. Il tab Trend & Statistiche mostra grafici e statistiche globali con trend nel tempo. Il tab Partite mostra la lista completa delle ultime partite. Usa questi tabs per approfondire diversi aspetti delle tue performance.'
       },
       {
         title: 'Metriche principali',
-        content: 'Winrate: percentuale di vittorie. KDA: rapporto Kill/Death/Assist. GPM/XPM: Gold e Experience per minuto. Queste metriche vengono confrontate con i tuoi valori medi per mostrare se stai performando meglio o peggio del solito.'
-      },
-      {
-        title: '💡 Lampadine Interattive (Suggerimenti AI)',
-        content: 'In alcune card statistiche troverai delle piccole lampadine blu (icona 💡) in alto a destra o in altri angoli. Queste sono interattive: clicca su una lampadina per ottenere un suggerimento personalizzato generato da AI basato sui tuoi dati specifici. Il suggerimento analizza il contesto della metrica (es. trend winrate, performance eroe, ecc.) e ti fornisce consigli pratici per migliorare. I suggerimenti vengono generati in tempo reale quando clicchi la lampadina.'
+        content: 'Winrate: percentuale di vittorie. KDA: rapporto Kill/Death/Assist. GPM/XPM: Gold e Experience per minuto. Queste metriche vengono confrontate con i tuoi valori medi e con i percentili OpenDota per mostrare se stai performando meglio o peggio del solito e rispetto alla community.'
       }
     ]
   },
@@ -53,42 +69,46 @@ export const pageGuides: Record<string, PageGuide> = {
     ]
   },
   '/dashboard/heroes': {
-    title: 'Hero Pool',
-    description: 'Panoramica completa del tuo pool di eroi con statistiche dettagliate per ogni eroe giocato.',
+    title: 'Il Mio Pool',
+    description: 'Analisi completa del tuo hero pool con diversità, copertura ruoli, specializzazione e raccomandazioni personalizzate.',
     sections: [
       {
-        title: 'Cosa trovi',
-        content: 'Lista completa dei tuoi eroi più giocati con winrate, numero di partite giocate, KDA medio, GPM/XPM medio e statistiche principali per ogni eroe. Gli eroi sono ordinati per numero di partite o winrate per aiutarti a identificare i tuoi eroi più forti.'
+        title: 'Tab Pool Analysis',
+        content: 'Panoramica del tuo hero pool: summary cards con statistiche aggregate, analisi diversità (quanto è vario il tuo pool), analisi copertura ruoli (quali ruoli copri meglio), analisi specializzazione (su quali eroi sei più forte), e raccomandazioni personalizzate per migliorare il tuo pool.'
+      },
+      {
+        title: 'Tab Statistiche',
+        content: 'Statistiche dettagliate per ogni eroe giocato: winrate, numero di partite, KDA medio, GPM/XPM medio. Visualizzazione in grid o tabella compatta con opzioni di ordinamento. Filtra e ordina per identificare i tuoi eroi più forti e quelli su cui migliorare.'
+      },
+      {
+        title: 'Diversità & Copertura Ruoli',
+        content: 'Analisi della diversità del tuo pool: quanti eroi diversi giochi, distribuzione per ruolo (Carry, Mid, Offlane, Support), performance per ruolo con winrate e heroes giocati. Identifica gap nella copertura ruoli e suggerimenti per bilanciare il pool.'
       },
       {
         title: 'Come usarlo',
-        content: 'Usa questa pagina per capire quali eroi giochi di più e con quali hai il miglior winrate. Clicca su un eroe per vedere statistiche più dettagliate. Identifica i tuoi eroi più forti (alto winrate) e quelli su cui devi migliorare (basso winrate).'
-      },
-      {
-        title: '💡 Lampadine Interattive (Suggerimenti AI)',
-        content: 'Nelle card statistiche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sui tuoi eroi e le tue performance. Il suggerimento analizza il tuo hero pool (es. distribuzione winrate, eroi più giocati) e ti fornisce consigli pratici su quali eroi giocare di più o su cui migliorare.'
+        content: 'Usa il tab Pool Analysis per avere una visione d\'insieme del tuo hero pool con raccomandazioni. Usa il tab Statistiche per vedere i dettagli di ogni eroe e identificare su quali concentrarti. Le raccomandazioni ti aiutano a capire come migliorare la diversità e la copertura ruoli.'
       }
     ]
   },
   '/dashboard/hero-analysis': {
-    title: 'Analisi Eroi Dettagliata',
-    description: 'Analisi approfondita delle performance per ogni eroe giocato con statistiche dettagliate e visualizzazioni grafiche.',
+    title: 'Matchup & Counter',
+    description: 'Strumento per decisioni pick/ban con analisi matchup, counter picks e raccomandazioni per draft.',
     sections: [
       {
-        title: 'Statistiche per eroe',
-        content: 'Per ogni eroe vedi: winrate complessivo, KDA medio, GPM/XPM medio, numero di partite giocate, ruolo principale giocato. Grafici interattivi per visualizzare le performance nel tempo e confrontare diversi eroi. Le statistiche sono calcolate sulle tue ultime partite con quell\'eroe.'
+        title: 'Tab Matchup',
+        content: 'Analisi matchup dettagliata: seleziona un eroe per vedere il winrate contro altri eroi, analisi counter (chi batte chi), pick recommendations basate sui tuoi dati e sul meta, e visualizzazione grafica dei matchups più importanti.'
       },
       {
-        title: 'Migliori e peggiori eroi',
-        content: 'Identificazione automatica dei tuoi eroi più forti (alto winrate, buone statistiche) e di quelli su cui devi migliorare (basso winrate, statistiche scarse). Il sistema evidenzia anche eroi sottoutilizzati (poche partite ma alto winrate) che potresti giocare di più.'
+        title: 'Tab Performance Trend',
+        content: 'Trend delle performance nel tempo per ogni eroe: winrate nel tempo, KDA trend, GPM/XPM trend, e identificazione di pattern (es. "questo eroe performa meglio in partite lunghe").'
       },
       {
-        title: 'Confronto eroi',
-        content: 'Confronta le performance di diversi eroi per capire quali si adattano meglio al tuo stile di gioco. I grafici ti permettono di vedere visivamente le differenze in winrate, KDA e altre metriche tra i tuoi eroi.'
+        title: 'Tab Hero Details',
+        content: 'Dettagli completi per ogni eroe: statistiche aggregate, build più efficaci, item più utilizzati, ruoli giocati, e confronto con la tua media per identificare punti di forza e debolezze specifici.'
       },
       {
-        title: '💡 Lampadine Interattive (Suggerimenti AI)',
-        content: 'Nelle card delle metriche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sull\'eroe specifico o sulla metrica visualizzata. Il suggerimento analizza le tue performance con quell\'eroe e ti fornisce consigli pratici per migliorare (es. "Con questo eroe, migliora il tuo GPM" o "Questo eroe non si adatta al tuo stile").'
+        title: 'Come usarlo',
+        content: 'Usa questa pagina durante il draft per prendere decisioni informate. Il tab Matchup ti aiuta a scegliere counter picks efficaci. Il tab Performance Trend ti mostra se stai migliorando con un eroe. Il tab Hero Details ti dà tutte le informazioni per capire come giocare meglio un eroe.'
       }
     ]
   },
@@ -204,89 +224,27 @@ export const pageGuides: Record<string, PageGuide> = {
   },
   '/dashboard/coaching-insights': {
     title: 'Coaching & Insights',
-    description: 'Analisi completa del tuo profilo con confronto meta, pattern di vittoria e raccomandazioni personalizzate basate su AI avanzata.',
+    description: 'Sezione consolidata che combina profilo, confronto meta, pattern di vittoria e raccomandazioni personalizzate basate su AI avanzata.',
     sections: [
       {
-        title: 'Overview',
-        content: 'Panoramica del tuo profilo: ruolo principale, stile di gioco, AttilaLAB Score e trend delle performance.'
+        title: 'Tab Overview',
+        content: 'Panoramica completa del tuo profilo: ruolo principale identificato, stile di gioco, AttilaLAB Score (0-100), trend delle performance (GPM/XPM/KDA), metriche chiave con percentili, punti di forza e debolezze identificati, e raccomandazioni prioritarie per il miglioramento.'
       },
       {
-        title: 'Confronto Meta',
-        content: 'Confronto delle tue performance rispetto al meta attuale con percentili, gap e aree di miglioramento prioritario.'
+        title: 'Tab Meta Comparison',
+        content: 'Confronto dettagliato delle tue performance rispetto al meta attuale: percentili OpenDota per ruolo, gap identificati (dove sei sopra/sotto la media), aree di miglioramento prioritario con insight AI, e confronto metriche chiave (GPM, XPM, KDA, Winrate) con i valori meta.'
       },
       {
-        title: 'Win Conditions',
-        content: 'Analisi dei pattern di vittoria: cosa fai di diverso quando vinci, metriche chiave e insight AI.'
+        title: 'Tab Win Conditions',
+        content: 'Analisi approfondita dei pattern di vittoria: cosa fai di diverso quando vinci rispetto a quando perdi, metriche chiave che determinano le vittorie (es. GPM più alto, morti più basse), insight AI sui pattern identificati, e confronto dettagliato tra partite vinte e perse.'
       },
       {
-        title: 'Raccomandazioni',
-        content: 'Punti di forza, aree di miglioramento e raccomandazioni personalizzate per migliorare il tuo gameplay.'
-      }
-    ]
-  },
-  '/dashboard/coaching': {
-    title: 'Coaching & Task',
-    description: 'Task personalizzati e raccomandazioni per migliorare le tue performance.',
-    sections: [
-      {
-        title: 'Task personalizzati',
-        content: 'Task generati automaticamente basati sulle tue performance. Ogni task ha una priorità (alta, media, bassa) e valori target specifici.'
-      },
-      {
-        title: 'Raccomandazioni generali',
-        content: 'Suggerimenti generali per migliorare il tuo gameplay basati sulle tue statistiche.'
+        title: 'Tab Recommendations',
+        content: 'Raccomandazioni personalizzate basate su tutte le analisi: punti di forza principali da sfruttare, aree di miglioramento prioritarie con azioni concrete, suggerimenti specifici per ruolo e stile di gioco, e roadmap di miglioramento strutturata.'
       },
       {
         title: 'Come usarlo',
-        content: 'Segna i task come completati quando li raggiungi. I task vengono rigenerati periodicamente in base alle tue nuove performance.'
-      }
-    ]
-  },
-  '/dashboard/profiling': {
-    title: 'Profilazione FZTH',
-    description: 'Profilo completo del giocatore con analisi AI-driven, trend e pattern identificati.',
-    sections: [
-      {
-        title: 'FZTH Score',
-        content: 'Punteggio complessivo (0-100) che valuta le tue performance globali basato su multiple metriche.'
-      },
-      {
-        title: 'Trend Analysis',
-        content: 'Analisi dei trend delle tue performance: confronto tra ultime 5 e ultime 10 partite per GPM, XPM, KDA e winrate.'
-      },
-      {
-        title: 'Phase Analysis',
-        content: 'Valutazione delle tue performance nelle diverse fasi di gioco: early game, mid game e late game.'
-      },
-      {
-        title: 'Pattern Identification',
-        content: 'Identificazione automatica di pattern nel tuo gameplay (es. "migliori performance in partite lunghe").'
-      },
-      {
-        title: 'Punti di forza e debolezze',
-        content: 'Analisi dettagliata dei tuoi punti di forza principali e delle aree che richiedono miglioramento.'
-      },
-      {
-        title: '💡 Lampadine Interattive (Suggerimenti AI)',
-        content: 'In molte card e metriche troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sulla metrica specifica (es. FZTH Score, trend GPM/XPM, stile di gioco, analisi fasi). Il suggerimento analizza i tuoi dati di profilazione e ti fornisce consigli pratici e concreti per migliorare. Ogni lampadina fornisce suggerimenti contestuali basati sulla sezione specifica (es. suggerimenti sul tuo stile di gioco, trend delle performance, analisi comparativa).'
-      }
-    ]
-  },
-  '/dashboard/ai-summary': {
-    title: 'Riassunto IA',
-    description: 'Riassunti intelligenti generati da AI delle tue partite o del tuo profilo completo.',
-    sections: [
-      {
-        title: 'Riassunto Profilo',
-        content: 'Genera un riassunto completo del tuo profilo di gioco basato su tutte le tue performance, punti di forza, debolezze e trend.'
-      },
-      {
-        title: 'Riassunto Partita',
-        content: 'Seleziona una partita dalla lista e genera un riassunto dettagliato con analisi AI della performance in quella specifica partita.'
-      },
-      {
-        title: 'Come funziona',
-        content: 'I riassunti vengono generati usando AI (Gemini o OpenAI) che analizza i tuoi dati e fornisce insights personalizzati.'
+        content: 'Naviga tra i 4 tabs per vedere diversi aspetti del tuo profilo. Ogni tab fornisce insights specifici: Overview per la panoramica generale, Meta Comparison per capire dove ti trovi rispetto alla community, Win Conditions per identificare cosa funziona, e Recommendations per azioni concrete di miglioramento.'
       }
     ]
   },

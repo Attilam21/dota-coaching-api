@@ -54,7 +54,7 @@ export default function GuidaUtentePage() {
     },
     {
       title: 'Panoramica Dashboard',
-      description: 'La pagina principale mostra le tue statistiche aggregate: winrate, KDA, GPM/XPM e trend.',
+      description: 'Dashboard principale con Hero Pool (Top 6), Partite Chiave, Benchmark OpenDota, Attività Recente e Azioni Rapide per accesso veloce alle analisi.',
       icon: BarChart,
       href: '/dashboard',
       color: 'bg-green-900/30 border-green-700',
@@ -165,7 +165,11 @@ export default function GuidaUtentePage() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-blue-400 mb-2">📊 Statistiche Giocatore</h3>
             <p className="text-gray-300 text-sm mb-2">
-              Panoramica, Performance & Stile, Hero Pool, Analisi Eroi e Analisi Ruolo. 
+              <strong>Panoramica:</strong> Dashboard principale con Hero Pool (Top 6), Partite Chiave, Benchmark OpenDota, Attività Recente e Azioni Rapide. 
+              <strong>Performance & Stile:</strong> Analisi approfondita con Focus Areas e raccomandazioni. 
+              <strong>Il Mio Pool:</strong> Analisi completa del tuo hero pool con diversità, specializzazione e raccomandazioni. 
+              <strong>Matchup & Counter:</strong> Analisi matchup e counter picks per decisioni draft. 
+              <strong>Analisi Ruolo:</strong> Performance per ruolo con miglioramenti specifici. 
               Queste sezioni ti mostrano le tue statistiche aggregate e ti aiutano a capire il tuo stile di gioco.
             </p>
           </div>
@@ -187,10 +191,10 @@ export default function GuidaUtentePage() {
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
-            <h3 className="text-lg font-semibold text-purple-400 mb-2">📚 Coaching & Profilo</h3>
+            <h3 className="text-lg font-semibold text-purple-400 mb-2">📚 Coaching & Insights</h3>
             <p className="text-gray-300 text-sm mb-2">
-              Coaching & Meta, Profilo AttilaLAB, Riassunto IA e Anti-Tilt. 
-              Ricevi task personalizzati e insights AI per migliorare le tue performance.
+              <strong>Coaching & Insights:</strong> Sezione consolidata con Overview del profilo, Confronto Meta, Win Conditions e Raccomandazioni personalizzate. 
+              Ricevi insights AI avanzati, confronto con percentili OpenDota e pattern di vittoria identificati automaticamente.
             </p>
           </div>
 
