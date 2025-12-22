@@ -85,7 +85,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       items: [
         { name: 'Guida', href: '/dashboard/guida-utente', icon: GraduationCap },
         { name: 'Giochi Anti-Tilt', href: '/dashboard/games', icon: Gamepad2 },
-        { name: 'Riassunto IA', href: '/dashboard/ai-summary', icon: Bot },
       ],
     },
   ]
