@@ -11,21 +11,9 @@ interface LogoProps {
   href?: string
 }
 
-export default function Logo({ className = '', showText = true, size = 'md', href }: LogoProps) {
-  const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16'
-  }
-
-  const textSizeClasses = {
-    sm: 'text-lg',
-    md: 'text-xl',
-    lg: 'text-2xl'
-  }
-
-  // SVG del logo con elmo stilizzato
-  const HelmetLogo = ({ className: svgClassName }: { className?: string }) => (
+// SVG del logo con elmo stilizzato - definito fuori dal componente per evitare problemi di riconciliazione
+function HelmetLogo({ className: svgClassName }: { className?: string }) {
+  return (
     <svg
       viewBox="0 0 120 120"
       className={svgClassName}
