@@ -33,9 +33,9 @@ interface WhatIfData {
   currentStats: {
     winrate: string
     gpm: number
-    deaths: number
-    kda: number
-    teamfight: number
+    deaths: string | number
+    kda: string | number
+    teamfight: string | number
   }
   scenarios: WhatIfScenario[]
   summary: {
@@ -61,6 +61,14 @@ export default function WhatIfPage() {
     kda: 0,
     teamfight: 0
   })
+
+  // Helper function to format numeric values safely
+  const formatStat = (value: string | number, decimals: number = 1): string => {
+    if (typeof value === 'string') {
+      return value
+    }
+    return typeof value === 'number' ? value.toFixed(decimals) : '0'
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -203,15 +211,15 @@ export default function WhatIfPage() {
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">Morti</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.deaths}</div>
+            <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.deaths, 1)}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">KDA</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.kda}</div>
+            <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.kda, 2)}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">Teamfight</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.teamfight}</div>
+            <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.teamfight, 1)}</div>
           </div>
         </div>
       </div>
