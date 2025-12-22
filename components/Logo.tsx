@@ -109,6 +109,20 @@ export default function Logo({ className = '', showText = true, size = 'md', hre
       />
     </svg>
   )
+}
+
+export default function Logo({ className = '', showText = true, size = 'md', href }: LogoProps) {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-12 w-12',
+    lg: 'h-16 w-16'
+  }
+
+  const textSizeClasses = {
+    sm: 'text-lg',
+    md: 'text-xl',
+    lg: 'text-2xl'
+  }
 
   const [showImage, setShowImage] = React.useState(true)
 
@@ -159,4 +173,3 @@ export default function Logo({ className = '', showText = true, size = 'md', hre
 
   return content
 }
-
