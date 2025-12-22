@@ -83,7 +83,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       title: 'ACCESSORI',
       colorClass: 'text-gray-500',
       items: [
-        { name: 'Guida', href: '/dashboard/guida-utente', icon: GraduationCap },
         { name: 'Giochi Anti-Tilt', href: '/dashboard/games', icon: Gamepad2 },
       ],
     },
@@ -95,6 +94,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
         <div className="p-6 border-b border-gray-700">
           <h1 className="text-xl font-bold">AttilaLAB Dashboard</h1>
+        </div>
+        
+        {/* Guida Utente - In alto con colore evidenziato */}
+        <div className="p-4 border-b border-gray-700">
+          <Link
+            href="/dashboard/guida-utente"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-all bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 text-yellow-300 hover:from-yellow-600/30 hover:to-orange-600/30 hover:border-yellow-400 hover:text-yellow-200 hover:shadow-lg hover:shadow-yellow-500/20"
+          >
+            <GraduationCap className="w-5 h-5 flex-shrink-0" />
+            <span>Guida Utente</span>
+          </Link>
         </div>
         
         <nav className="flex-1 overflow-y-auto p-4 space-y-6" data-tour="sidebar">
