@@ -92,30 +92,7 @@ export default function MatchesPage() {
     }
   }, [playerId, fetchMatches])
 
-  if (authLoading) {
-    return (
-      <div className="p-4 md:p-6">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
-  if (!playerId) {
-    return (
-      <PlayerIdInput
-        pageTitle="Partite"
-        title="Inserisci Player ID"
-        description="Inserisci il tuo Dota 2 Account ID per visualizzare le tue ultime partite. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
-      />
-    )
-  }
-
+  // Helper functions (must be defined before hooks)
   const getHeroName = (heroId?: number) => {
     if (!heroId) return 'Sconosciuto'
     return heroes[heroId]?.localized_name || `Hero ${heroId}`
@@ -192,7 +169,7 @@ export default function MatchesPage() {
       id: heroId,
       name: getHeroName(heroId)
     })).sort((a, b) => a.name.localeCompare(b.name))
-  }, [matches, heroes])
+  }, [matches, heroes, getHeroName])
 
   // Calculate aggregate statistics (using all matches for overview, filtered for list)
   const allMatchesStats = useMemo(() => {
@@ -366,7 +343,32 @@ export default function MatchesPage() {
     }
     
     return insightsList
-  }, [matches, heroPerformance, winLossComparison, trendData])
+  }, [matches, heroPerformance, winLossComparison, trendData, getHeroName])
+
+  // Early returns after all hooks
+  if (authLoading) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  if (!playerId) {
+    return (
+      <PlayerIdInput
+        pageTitle="Partite"
+        title="Inserisci Player ID"
+        description="Inserisci il tuo Dota 2 Account ID per visualizzare le tue ultime partite. Puoi anche configurarlo nel profilo per salvarlo permanentemente."
+      />
+    )
+  }
 
   return (
     <div className="p-4 md:p-6">
