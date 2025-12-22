@@ -21,6 +21,40 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
+
+  // Verifica quali file di sfondo sono disponibili
+  useEffect(() => {
+    const checkAvailableBackgrounds = async () => {
+      const backgrounds: BackgroundType[] = ['none'] // 'none' è sempre disponibile
+      
+      // Lista di tutti i possibili file
+      const possibleFiles: BackgroundType[] = [
+        'dashboard-bg.jpg',
+        'dashboard-bg.png',
+        'profile-bg.jpg',
+        'profile-bg.png'
+      ]
+
+      // Verifica quali file esistono effettivamente
+      for (const file of possibleFiles) {
+        try {
+          const response = await fetch(`/${file}`, { method: 'HEAD' })
+          if (response.ok) {
+            backgrounds.push(file)
+          }
+        } catch (err) {
+          // File non esiste, continua
+        }
+      }
+
+      setAvailableBackgrounds(backgrounds)
+    }
+
+    if (user) {
+      checkAvailableBackgrounds()
+    }
+  }, [user])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -280,12 +314,14 @@ export default function SettingsPage() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {([
-              { value: 'dashboard-bg.jpg' as BackgroundType, label: 'Dashboard JPG' },
-              { value: 'dashboard-bg.png' as BackgroundType, label: 'Dashboard PNG' },
-              { value: 'profile-bg.jpg' as BackgroundType, label: 'Profile JPG' },
-              { value: 'profile-bg.png' as BackgroundType, label: 'Profile PNG' },
-              { value: 'none' as BackgroundType, label: 'Nessuno' },
-            ]).map((option) => (
+              { value: 'dashboard-bg.jpg' as BackgroundType, label: 'Dashboard JPG', file: 'dashboard-bg.jpg' },
+              { value: 'dashboard-bg.png' as BackgroundType, label: 'Dashboard PNG', file: 'dashboard-bg.png' },
+              { value: 'profile-bg.jpg' as BackgroundType, label: 'Profile JPG', file: 'profile-bg.jpg' },
+              { value: 'profile-bg.png' as BackgroundType, label: 'Profile PNG', file: 'profile-bg.png' },
+              { value: 'none' as BackgroundType, label: 'Nessuno', file: null },
+            ])
+            .filter((option) => option.file === null || availableBackgrounds.includes(option.value))
+            .map((option) => (
               <button
                 key={option.value}
                 onClick={() => {

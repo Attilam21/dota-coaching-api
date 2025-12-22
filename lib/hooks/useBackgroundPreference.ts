@@ -35,7 +35,20 @@ export function useBackgroundPreference() {
 
   const getBackgroundUrl = (): string | null => {
     if (background === 'none') return null
+    // Verifica che il file esista prima di restituire l'URL
+    // Se il file non esiste, fallback a dashboard-bg.jpg o null
     return `/${background}`
+  }
+
+  // Verifica se il background corrente è valido
+  const isValidBackground = async (bg: BackgroundType): Promise<boolean> => {
+    if (bg === 'none') return true
+    try {
+      const response = await fetch(`/${bg}`, { method: 'HEAD' })
+      return response.ok
+    } catch {
+      return false
+    }
   }
 
   return {
