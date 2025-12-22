@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
-import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, CheckCircle2, AlertTriangle, ArrowRight, ExternalLink } from 'lucide-react'
+import { Sword, Zap, DollarSign, Search, Target, FlaskConical, BookOpen, Sparkles, BarChart as BarChartIcon, Activity, Gamepad2, Trophy, TrendingUp, Award, Clock, Lightbulb, Info, CheckCircle2, AlertTriangle, ArrowRight, ExternalLink, RefreshCw } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
@@ -18,6 +18,7 @@ import KeyMatchesCard from '@/components/KeyMatchesCard'
 import AnimatedCard from '@/components/AnimatedCard'
 import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
+import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
 
 interface PlayerStats {
   winrate: {
@@ -168,6 +169,19 @@ export default function DashboardPage() {
       fetchStats()
     }
   }, [playerId, fetchStats])
+
+  // Hook per refresh automatico con cache, polling e background sync
+  const { refresh, isRefreshing, lastUpdate, hasNewMatches, clearNewMatchesFlag } = usePlayerDataRefresh(
+    playerId,
+    fetchStats,
+    {
+      enabled: !!playerId,
+      onNewMatch: () => {
+        // Notifica opzionale quando rileva nuova partita
+        console.log('[Dashboard] Nuova partita rilevata!')
+      }
+    }
+  )
 
 
   if (authLoading) {
@@ -351,9 +365,79 @@ export default function DashboardPage() {
     return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
   }
 
+  // Format last update time
+  const formatLastUpdate = (date: Date | null): string => {
+    if (!date) return 'Mai'
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    
+    if (diffMins < 1) return 'Appena ora'
+    if (diffMins === 1) return '1 minuto fa'
+    if (diffMins < 60) return `${diffMins} minuti fa`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours === 1) return '1 ora fa'
+    if (diffHours < 24) return `${diffHours} ore fa`
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays === 1) return 'Ieri'
+    return `${diffDays} giorni fa`
+  }
+
   return (
     <div className="p-4 md:p-6">
-      <HelpButton />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <HelpButton />
+        </div>
+        
+        {/* Refresh Button con UX curata */}
+        {playerId && (
+          <div className="flex items-center gap-3">
+            {/* Badge nuove partite */}
+            {hasNewMatches && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="relative"
+              >
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 animate-pulse" />
+                <span className="text-xs text-green-400 font-medium px-2 py-1 bg-green-900/30 rounded">
+                  Nuova partita!
+                </span>
+              </motion.div>
+            )}
+            
+            {/* Timestamp ultimo aggiornamento */}
+            {lastUpdate && !isRefreshing && (
+              <span className="text-xs text-gray-400 hidden sm:block">
+                Aggiornato {formatLastUpdate(lastUpdate)}
+              </span>
+            )}
+            
+            {/* Bottone Refresh */}
+            <button
+              onClick={() => {
+                refresh(true)
+                if (hasNewMatches) {
+                  clearNewMatchesFlag()
+                }
+              }}
+              disabled={isRefreshing || loading}
+              className="relative flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-red-500 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+              title={lastUpdate ? `Ultimo aggiornamento: ${formatLastUpdate(lastUpdate)}` : 'Aggiorna dati'}
+            >
+              <RefreshCw 
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'
+                }`} 
+              />
+              <span className="hidden sm:inline">
+                {isRefreshing ? 'Aggiornamento...' : 'Aggiorna'}
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
       
       {/* Profile Header Card */}
       <div className="mb-4" data-tour="dashboard-overview">
