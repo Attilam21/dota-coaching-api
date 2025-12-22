@@ -8,8 +8,6 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import { AlertTriangle, Clock, TrendingDown, Shield, Lightbulb, RefreshCw, XCircle, CheckCircle, Calendar } from 'lucide-react'
 import Link from 'next/link'
-import InsightBulbs from '@/components/InsightBulbs'
-import { buildAntiTiltInsights } from '@/lib/insight-utils'
 
 interface AntiTiltData {
   isTilted: boolean
@@ -297,15 +295,6 @@ export default function AntiTiltPage() {
 
           {/* Recovery Stats */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6 relative">
-            {/* Insight Bulbs - Deterministic insights */}
-            {data && (
-              <div className="mb-4">
-                <InsightBulbs
-                  insights={buildAntiTiltInsights(data)}
-                  isLoading={loading}
-                />
-              </div>
-            )}
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Shield className="w-6 h-6" />
               Statistiche di Recupero

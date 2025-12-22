@@ -7,6 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
+import InsightBadge from '@/components/InsightBadge'
 import HeroCard from '@/components/HeroCard'
 import Link from 'next/link'
 import { Lightbulb, BarChart as BarChartIcon, Target, TrendingUp, CheckCircle, AlertCircle, ArrowRight, Users } from 'lucide-react'
@@ -510,6 +511,15 @@ export default function RoleAnalysisPage() {
                   {/* Preferred Role */}
                   {analysis.preferredRole && (
                     <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-red-600 rounded-lg p-6 relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="role"
+                          elementId="role-analysis-preferred"
+                          contextData={{ role: analysis.preferredRole.role, confidence: analysis.preferredRole.confidence }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <h2 className="text-xl md:text-2xl font-semibold mb-2">Ruolo Preferito</h2>

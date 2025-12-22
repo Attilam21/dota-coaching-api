@@ -8,8 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import InsightBulbs from '@/components/InsightBulbs'
-import { buildPerformanceInsights } from '@/lib/insight-utils'
+import InsightBadge from '@/components/InsightBadge'
 import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info, Activity, Eye } from 'lucide-react'
 
 interface PerformanceStats {
@@ -365,19 +364,18 @@ export default function PerformancePage() {
                     )}
                   </div>
 
-                  {/* Insight Bulbs - Deterministic insights */}
-                  {stats && benchmarks && (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
-                      <InsightBulbs
-                        insights={buildPerformanceInsights(stats, benchmarks)}
-                        isLoading={loading}
-                      />
-                    </div>
-                  )}
 
                   {/* Playstyle Banner - Enhanced */}
                   <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6 relative">
+                    {playerId && (
+                      <InsightBadge
+                        elementType="playstyle"
+                        elementId="performance-playstyle"
+                        contextData={{ playstyle: stats.playstyle }}
+                        playerId={playerId}
+                        position="top-right"
+                      />
+                    )}
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <h2 className="text-2xl font-semibold mb-3 flex items-center gap-2">
@@ -415,7 +413,16 @@ export default function PerformancePage() {
                   {/* Performance Overview - Enhanced Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors relative shadow-lg">
-                      <div className="flex items-center justify-between mb-2">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="metric-card"
+                          elementId="performance-kda"
+                          contextData={{ metricName: 'KDA', value: stats.avgKDA.toFixed(2), benchmark: '2.5' }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <div className="flex items-center justify-between mb-2 pr-8">
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">KDA</h3>
                         <Sword className="w-5 h-5 text-red-400" />
                       </div>
@@ -443,7 +450,16 @@ export default function PerformancePage() {
                       )}
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors relative shadow-lg">
-                      <div className="flex items-center justify-between mb-2">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="metric-card"
+                          elementId="performance-gpm"
+                          contextData={{ metricName: 'GPM', value: stats.avgGPM.toFixed(0), benchmark: '500' }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
+                      <div className="flex items-center justify-between mb-2 pr-8">
                         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">GPM</h3>
                         <Coins className="w-5 h-5 text-yellow-400" />
                       </div>
@@ -531,6 +547,15 @@ export default function PerformancePage() {
                   {/* Trend Chart */}
                   {stats.matches && stats.matches.length > 0 && (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+              {playerId && (
+                <InsightBadge
+                  elementType="trend-chart"
+                  elementId="performance-trend-chart"
+                  contextData={{ trends: { kda: stats.avgKDA, gpm: stats.avgGPM, xpm: stats.avgXPM }, data: stats.matches.slice(0, 10) }}
+                  playerId={playerId}
+                  position="top-right"
+                />
+              )}
               <h3 className="text-xl font-semibold mb-3">Trend Performance (Ultime 20 Partite)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={stats.matches.slice(0, 20).map((m, idx) => ({

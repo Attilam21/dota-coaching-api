@@ -7,8 +7,7 @@ import { usePlayerIdContext } from '@/lib/playerIdContext'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import InsightBulbs from '@/components/InsightBulbs'
-import { buildTeammatesInsights } from '@/lib/insight-utils'
+import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, Star, BarChart as BarChartIcon, List, Users, Sparkles } from 'lucide-react'
@@ -313,16 +312,6 @@ export default function TeammatesPage() {
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  {/* Insight Bulbs - Deterministic insights */}
-                  {teammates && teammates.length > 0 && (
-                    <div className="space-y-3 mb-6">
-                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
-                      <InsightBulbs
-                        insights={buildTeammatesInsights(teammates, insights)}
-                        isLoading={loading}
-                      />
-                    </div>
-                  )}
 
                   {/* Aggregate Statistics Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -381,6 +370,15 @@ export default function TeammatesPage() {
                   {/* Winrate Chart */}
                   {chartData.length > 0 && (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+                      {playerId && (
+                        <InsightBadge
+                          elementType="trend-chart"
+                          elementId="teammates-chart"
+                          contextData={{ teammates: chartData, totalTeammates: teammates.length }}
+                          playerId={playerId}
+                          position="top-right"
+                        />
+                      )}
                       <h3 className="text-2xl font-semibold mb-4">Top 10 Winrate</h3>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData}>

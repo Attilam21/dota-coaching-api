@@ -11,8 +11,6 @@ import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { List, BarChart as BarChartIcon, Search, Filter, X, TrendingUp, Target, Lightbulb, Activity, CheckCircle, AlertCircle } from 'lucide-react'
-import InsightBulbs from '@/components/InsightBulbs'
-import { buildMatchesInsights } from '@/lib/insight-utils'
 
 interface Match {
   match_id: number
@@ -446,15 +444,6 @@ export default function MatchesPage() {
                   {/* Trend Charts */}
                   {trendData.length > 0 && (
                     <>
-                      {/* Insight Bulbs - Deterministic insights */}
-                      {matches && matches.length > 0 && (
-                        <div className="mb-4">
-                          <InsightBulbs
-                            insights={buildMatchesInsights(matches, trendData)}
-                            isLoading={loading}
-                          />
-                        </div>
-                      )}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Winrate Trend */}
                       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
