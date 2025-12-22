@@ -247,3 +247,286 @@ export function buildAISuggestion(
   }
 }
 
+/**
+ * Build deterministic insights for Dashboard Overview
+ * Based on winrate trends, KDA trends, farm trends
+ */
+export function buildDashboardInsights(stats: {
+  winrate?: { last5: number; last10: number; delta?: number }
+  kda?: { last5: number; last10: number; delta?: number }
+  farm?: { gpm: { last5: number; last10: number }; xpm: { last5: number; last10: number } }
+  matches?: Array<{ win: boolean; deaths: number }>
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!stats) return insights
+
+  // RISCHIO: Winrate in calo
+  if (stats.winrate?.delta && stats.winrate.delta < -10) {
+    insights.push({
+      text: `Winrate −${Math.abs(stats.winrate.delta).toFixed(0)}% ultime 5 vs 10`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // FORZA: Winrate in aumento
+  if (stats.winrate?.delta && stats.winrate.delta > 10 && insights.length < 3) {
+    insights.push({
+      text: `Winrate +${stats.winrate.delta.toFixed(0)}% ultime 5 vs 10`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: KDA in calo
+  if (stats.kda?.delta && stats.kda.delta < -0.5 && insights.length < 3) {
+    insights.push({
+      text: `KDA ${stats.kda.delta.toFixed(1)} ultime 5 vs 10`,
+      type: 'bottleneck',
+      icon: '📉'
+    })
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Performance page
+ * Based on performance stats and benchmarks
+ */
+export function buildPerformanceInsights(stats: {
+  avgKDA?: number
+  avgGPM?: number
+  avgXPM?: number
+  avgDeaths?: number
+  farmEfficiency?: number
+  teamfightParticipation?: number
+} | null, benchmarks: {
+  percentiles?: { gpm?: { percentile: number }; xpm?: { percentile: number }; kda?: { percentile: number } }
+  calculatedPercentiles?: { gpm?: { percentile: number }; xpm?: { percentile: number }; kda?: { percentile: number } }
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!stats) return insights
+
+  // Get percentile from benchmarks
+  const getPercentile = (metric: 'gpm' | 'xpm' | 'kda'): number | null => {
+    if (benchmarks?.percentiles?.[metric]?.percentile) {
+      return benchmarks.percentiles[metric].percentile
+    }
+    if (benchmarks?.calculatedPercentiles?.[metric]?.percentile) {
+      return benchmarks.calculatedPercentiles[metric].percentile
+    }
+    return null
+  }
+
+  // RISCHIO: Percentile basso (< 30)
+  const kdaPercentile = getPercentile('kda')
+  if (kdaPercentile !== null && kdaPercentile < 30) {
+    insights.push({
+      text: `KDA percentile ${kdaPercentile.toFixed(0)} (< 30)`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: GPM percentile basso
+  const gpmPercentile = getPercentile('gpm')
+  if (gpmPercentile !== null && gpmPercentile < 40 && insights.length < 3) {
+    insights.push({
+      text: `GPM percentile ${gpmPercentile.toFixed(0)} (< 40)`,
+      type: 'bottleneck',
+      icon: '📉'
+    })
+  }
+
+  // FORZA: Percentile alto (> 70)
+  if (kdaPercentile !== null && kdaPercentile > 70 && insights.length < 3) {
+    insights.push({
+      text: `KDA percentile ${kdaPercentile.toFixed(0)} (> 70)`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Heroes page
+ * Based on hero winrate and pool diversity
+ */
+export function buildHeroesInsights(heroStats: Array<{
+  games: number
+  wins: number
+  winrate: number
+}> | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!heroStats || heroStats.length === 0) return insights
+
+  const totalGames = heroStats.reduce((sum, h) => sum + h.games, 0)
+  const topHero = heroStats[0]
+
+  // FORZA: Hero top con winrate alto
+  if (topHero && topHero.games >= 5 && topHero.winrate > 60) {
+    const gamesPercent = (topHero.games / totalGames) * 100
+    insights.push({
+      text: `Top hero ${topHero.winrate.toFixed(0)}% WR (${gamesPercent.toFixed(0)}% giochi)`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // RISCHIO: Pool troppo concentrato
+  if (topHero && topHero.games / totalGames > 0.4 && insights.length < 3) {
+    insights.push({
+      text: `Pool concentrato: top hero ${((topHero.games / totalGames) * 100).toFixed(0)}%`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: Winrate generale basso
+  const avgWinrate = heroStats.reduce((sum, h) => sum + (h.winrate * h.games), 0) / totalGames
+  if (avgWinrate < 45 && insights.length < 3) {
+    insights.push({
+      text: `Winrate medio ${avgWinrate.toFixed(0)}% (< 45%)`,
+      type: 'bottleneck',
+      icon: '📉'
+    })
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Role Analysis page
+ * Based on role performance and versatility
+ */
+export function buildRoleAnalysisInsights(analysis: {
+  preferredRole?: { role: string; winrate: number; games: number; confidence: string }
+  summary?: { totalRolesPlayed: number; totalGames: number }
+  roles?: Array<{ role: string; games: number; winrate: number }>
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!analysis) return insights
+
+  // FORZA: Ruolo preferito con winrate alto
+  if (analysis.preferredRole && analysis.preferredRole.winrate > 55 && analysis.preferredRole.games >= 5) {
+    insights.push({
+      text: `${analysis.preferredRole.role} → ${analysis.preferredRole.winrate.toFixed(0)}% WR`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // RISCHIO: Pool troppo limitato
+  if (analysis.summary && analysis.summary.totalRolesPlayed < 2 && insights.length < 3) {
+    insights.push({
+      text: `Pool limitato: ${analysis.summary.totalRolesPlayed} ruolo/i`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: Winrate basso nel ruolo preferito
+  if (analysis.preferredRole && analysis.preferredRole.winrate < 45 && analysis.preferredRole.games >= 5 && insights.length < 3) {
+    insights.push({
+      text: `${analysis.preferredRole.role} → ${analysis.preferredRole.winrate.toFixed(0)}% WR (< 45%)`,
+      type: 'bottleneck',
+      icon: '📉'
+    })
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Teammates page
+ * Based on teammate winrates and chemistry
+ */
+export function buildTeammatesInsights(teammates: Array<{
+  games: number
+  wins: number
+  winrate: number
+}> | null, insights?: { bestTeammate?: { winrate: number } | null; worstTeammate?: { winrate: number } | null } | null): BulbInsight[] {
+  const bulbInsights: BulbInsight[] = []
+
+  if (!teammates || teammates.length === 0) return bulbInsights
+
+  // FORZA: Compagno top con winrate alto
+  if (insights?.bestTeammate && insights.bestTeammate && insights.bestTeammate.winrate > 60) {
+    bulbInsights.push({
+      text: `Top compagno → ${insights.bestTeammate.winrate.toFixed(0)}% WR`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // RISCHIO: Compagno con winrate molto basso
+  if (insights?.worstTeammate && insights.worstTeammate && insights.worstTeammate.winrate < 40 && bulbInsights.length < 3) {
+    bulbInsights.push({
+      text: `Compagno problematico → ${insights.worstTeammate.winrate.toFixed(0)}% WR`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: Winrate medio basso con compagni
+  const totalGames = teammates.reduce((sum, t) => sum + t.games, 0)
+  if (totalGames > 0) {
+    const avgWinrate = teammates.reduce((sum, t) => sum + (t.winrate * t.games), 0) / totalGames
+    if (avgWinrate < 48 && bulbInsights.length < 3) {
+      bulbInsights.push({
+        text: `Winrate medio ${avgWinrate.toFixed(0)}% con compagni`,
+        type: 'bottleneck',
+        icon: '📉'
+      })
+    }
+  }
+
+  return bulbInsights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Builds page
+ * Based on item usage and build winrates
+ */
+export function buildBuildsInsights(buildData: {
+  topItems?: Array<{ winrate: number; usageRate: number }>
+  buildPatterns?: Array<{ winrate: number; frequency: number }>
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!buildData) return insights
+
+  // FORZA: Item top con winrate alto
+  if (buildData.topItems && buildData.topItems.length > 0) {
+    const topItem = buildData.topItems[0]
+    if (topItem.winrate > 60 && topItem.usageRate > 20) {
+      insights.push({
+        text: `Item top → ${topItem.winrate.toFixed(0)}% WR`,
+        type: 'strength',
+        icon: '✅'
+      })
+    }
+  }
+
+  // RISCHIO: Build frequente con winrate basso
+  if (buildData.buildPatterns && buildData.buildPatterns.length > 0) {
+    const frequentBuild = buildData.buildPatterns.find(b => b.frequency >= 3)
+    if (frequentBuild && frequentBuild.winrate < 45) {
+      insights.push({
+        text: `Build frequente → ${frequentBuild.winrate.toFixed(0)}% WR`,
+        type: 'risk',
+        icon: '⚠️'
+      })
+    }
+  }
+
+  return insights.slice(0, 3)
+}
+

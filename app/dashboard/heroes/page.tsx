@@ -8,6 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildHeroesInsights } from '@/lib/insight-utils'
 import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
 import { BarChart as BarChartIcon, Table, Target, TrendingUp, Users, CheckCircle, AlertCircle, Grid3x3, List, ArrowUpDown } from 'lucide-react'
@@ -397,6 +399,17 @@ export default function HeroesPage() {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
+
+                  {/* Insight Bulbs - Deterministic insights */}
+                  {heroStats && heroStats.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+                      <InsightBulbs
+                        insights={buildHeroesInsights(heroStats)}
+                        isLoading={loading}
+                      />
+                    </div>
+                  )}
 
                   {/* GPM/XPM Chart */}
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">

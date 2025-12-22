@@ -9,6 +9,8 @@ import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildPerformanceInsights } from '@/lib/insight-utils'
 import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info, Activity, Eye } from 'lucide-react'
 
 interface PerformanceStats {
@@ -363,6 +365,17 @@ export default function PerformancePage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Insight Bulbs - Deterministic insights */}
+                  {stats && benchmarks && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+                      <InsightBulbs
+                        insights={buildPerformanceInsights(stats, benchmarks)}
+                        isLoading={loading}
+                      />
+                    </div>
+                  )}
 
                   {/* Playstyle Banner - Enhanced */}
                   <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6 relative">

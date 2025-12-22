@@ -12,6 +12,8 @@ import HelpButton from '@/components/HelpButton'
 import { PlayerStatsSkeleton, StatsCardSkeleton, ChartSkeleton, MatchCardSkeleton } from '@/components/SkeletonLoader'
 import InsightBadge from '@/components/InsightBadge'
 import InsightBulb from '@/components/InsightBulb'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildDashboardInsights } from '@/lib/insight-utils'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import ProfileHeaderCard from '@/components/ProfileHeaderCard'
 import AdPlaceholder from '@/components/AdPlaceholder'
@@ -608,6 +610,17 @@ export default function DashboardPage() {
                   </div>
                   </div>
                   
+                  {/* Insight Bulbs - Deterministic insights */}
+                  {stats && (
+                    <div className="mt-4 space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+                      <InsightBulbs
+                        insights={buildDashboardInsights(stats)}
+                        isLoading={loading}
+                      />
+                    </div>
+                  )}
+
                   {/* Insight Bulb - Solo se c'è un trend significativo */}
                   {(() => {
                     const insight = getInsight()

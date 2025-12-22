@@ -8,6 +8,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildRoleAnalysisInsights } from '@/lib/insight-utils'
 import HeroCard from '@/components/HeroCard'
 import Link from 'next/link'
 import { Lightbulb, BarChart as BarChartIcon, Target, TrendingUp, CheckCircle, AlertCircle, ArrowRight, Users } from 'lucide-react'

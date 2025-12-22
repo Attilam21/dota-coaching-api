@@ -8,6 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildBuildsInsights } from '@/lib/insight-utils'
 import ItemCard from '@/components/ItemCard'
 import { BarChart as BarChartIcon } from 'lucide-react'
 
@@ -385,6 +387,15 @@ export default function BuildsPage() {
               </div>
             ) : buildData ? (
               <>
+            {/* Insight Bulbs - Deterministic insights */}
+            <div className="space-y-3 mb-6">
+              <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+              <InsightBulbs
+                insights={buildBuildsInsights(buildData)}
+                isLoading={loading}
+              />
+            </div>
+
             {/* Overall Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
