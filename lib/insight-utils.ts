@@ -252,10 +252,8 @@ export function buildAISuggestion(
  * Based on winrate trends, KDA trends, farm trends
  */
 export function buildDashboardInsights(stats: {
-  winrate?: { last5: number; last10: number; delta?: number }
-  kda?: { last5: number; last10: number; delta?: number }
-  farm?: { gpm: { last5: number; last10: number }; xpm: { last5: number; last10: number } }
-  matches?: Array<{ win: boolean; deaths: number }>
+  winrate?: { delta?: number }
+  kda?: { delta?: number }
 } | null): BulbInsight[] {
   const insights: BulbInsight[] = []
 
