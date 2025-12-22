@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
 import Logo from '@/components/Logo'
+import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
 import { 
   BarChart, 
   Zap, 
@@ -39,6 +40,7 @@ interface NavItem {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
+  const { backgroundUrl } = useBackgroundPreference()
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(path + '/')
@@ -183,16 +185,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-gray-900 relative">
         {/* Background Image - Fixed position, behind content (only in main area) */}
-        <div 
-          className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/dashboard-bg.jpg')",
-            backgroundColor: '#111827' // fallback color
-          }}
-        >
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-gray-900/60" />
-        </div>
+        {backgroundUrl && (
+          <div 
+            className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('${backgroundUrl}')`,
+              backgroundColor: '#111827' // fallback color
+            }}
+          >
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-gray-900/60" />
+          </div>
+        )}
         
         {/* Content - Above background */}
         <div className="relative z-10">

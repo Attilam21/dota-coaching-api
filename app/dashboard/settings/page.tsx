@@ -6,15 +6,17 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
-import { Info } from 'lucide-react'
+import { Info, Image as ImageIcon } from 'lucide-react'
 import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
+import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId, setPlayerId } = usePlayerIdContext()
+  const { background, updateBackground } = useBackgroundPreference()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -265,6 +267,51 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+        </AnimatedCard>
+
+        <AnimatedCard delay={0.25} className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <ImageIcon className="w-5 h-5 text-gray-400" />
+            <h2 className="text-xl font-semibold">Sfondo Dashboard</h2>
+          </div>
+          <p className="text-gray-400 text-sm mb-4">
+            Scegli lo sfondo che preferisci per il dashboard. La modifica sarà applicata immediatamente.
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {([
+              { value: 'dashboard-bg.jpg' as BackgroundType, label: 'Dashboard JPG' },
+              { value: 'dashboard-bg.png' as BackgroundType, label: 'Dashboard PNG' },
+              { value: 'profile-bg.jpg' as BackgroundType, label: 'Profile JPG' },
+              { value: 'profile-bg.png' as BackgroundType, label: 'Profile PNG' },
+              { value: 'none' as BackgroundType, label: 'Nessuno' },
+            ]).map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  updateBackground(option.value)
+                  setMessage({
+                    type: 'success',
+                    text: `Sfondo cambiato in: ${option.label}`
+                  })
+                }}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  background === option.value
+                    ? 'border-red-500 bg-red-900/20 text-white'
+                    : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
+                }`}
+              >
+                <div className="text-sm font-medium">{option.label}</div>
+                {background === option.value && (
+                  <div className="text-xs text-red-400 mt-1">✓ Attivo</div>
+                )}
+              </button>
+            ))}
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-4">
+            💡 Per aggiungere nuove immagini, salva i file come <code className="bg-gray-900 px-1 rounded">dashboard-bg.jpg</code>, <code className="bg-gray-900 px-1 rounded">dashboard-bg.png</code>, <code className="bg-gray-900 px-1 rounded">profile-bg.jpg</code> o <code className="bg-gray-900 px-1 rounded">profile-bg.png</code> nella cartella <code className="bg-gray-900 px-1 rounded">public/</code>
+          </p>
         </AnimatedCard>
 
         <AnimatedCard delay={0.3} className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
