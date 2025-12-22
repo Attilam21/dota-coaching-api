@@ -9,22 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { AlertTriangle, Lightbulb, BarChart as BarChartIcon, Target } from 'lucide-react'
-
-interface AdvancedStats {
-  fights: {
-    avgKills: number
-    avgAssists: number
-    avgDeaths: number
-    deathsPerMinute: string
-    killParticipation: number
-    teamfightParticipation: string
-    avgHeroDamage: number
-    avgTowerDamage: number
-    avgHealing: number
-    damageEfficiency: number
-    damagePerMinute: string
-  }
-}
+import type { AdvancedStats, AdvancedStatsMatch } from '@/types/advanced-stats'
 
 interface Match {
   match_id: number
@@ -67,8 +52,8 @@ export default function FightsDamagePage() {
       const data = await response.json()
       if (!data.stats) throw new Error('No stats available')
 
-      setStats(data.stats)
-      setMatches(data.matches || [])
+      setStats(data.stats as AdvancedStats)
+      setMatches((data.matches || []) as Match[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load fights & damage data')
     } finally {

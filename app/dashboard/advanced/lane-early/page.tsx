@@ -9,18 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { BarChart as BarChartIcon, Target } from 'lucide-react'
-
-interface AdvancedStats {
-  lane: {
-    avgLastHits: number
-    avgDenies: number
-    avgCS: number
-    csPerMinute: string
-    estimatedCSAt10Min: string
-    denyRate: number
-    firstBloodInvolvement: number
-  }
-}
+import type { AdvancedStats, AdvancedStatsMatch } from '@/types/advanced-stats'
 
 interface Match {
   match_id: number
@@ -61,8 +50,8 @@ export default function LaneEarlyPage() {
       const data = await response.json()
       if (!data.stats) throw new Error('No stats available')
 
-      setStats(data.stats)
-      setMatches(data.matches || [])
+      setStats(data.stats as AdvancedStats)
+      setMatches((data.matches || []) as Match[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load lane & early game data')
     } finally {

@@ -37,6 +37,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const { searchParams } = new URL(request.url)
+    // Optional: filter sections to return (comma-separated: 'lane,farm,fights,vision')
+    const sectionsParam = searchParams.get('sections')
+    const requestedSections = sectionsParam 
+      ? sectionsParam.split(',').map(s => s.trim().toLowerCase())
+      : ['lane', 'farm', 'fights', 'vision'] // Default: return all sections
     
     // Fetch recent matches summary (20 per analisi avanzate)
     // Note: Summary endpoint has limited fields, we'll fetch full details for first 10 matches
@@ -366,14 +372,16 @@ export async function GET(
       start_time: m.start_time,
     }))
 
+    // Build response object with only requested sections
+    const statsResponse: any = {}
+    if (requestedSections.includes('lane')) statsResponse.lane = laneStats
+    if (requestedSections.includes('farm')) statsResponse.farm = farmStats
+    if (requestedSections.includes('fights')) statsResponse.fights = fightStats
+    if (requestedSections.includes('vision')) statsResponse.vision = visionStats
+
     return NextResponse.json({
       matches: matchesBreakdown,
-      stats: {
-        lane: laneStats,
-        farm: farmStats,
-        fights: fightStats,
-        vision: visionStats,
-      },
+      stats: statsResponse,
       sampleSize: validMatches.length,
     }, {
       headers: {

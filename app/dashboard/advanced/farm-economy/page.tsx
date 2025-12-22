@@ -9,50 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartIcon, Target } from 'lucide-react'
-
-interface AdvancedStats {
-  lane: {
-    avgLastHits: number
-    avgDenies: number
-    avgCS: number
-    denyRate: number
-    firstBloodInvolvement: number
-  }
-  farm: {
-    avgGPM: number
-    avgXPM: number
-    avgNetWorth: number
-    goldUtilization: number
-    avgBuybacks: number
-    buybackEfficiency: string
-    buybackUsageRate: number
-    farmEfficiency: number
-    phaseAnalysis: {
-      early: { matches: number; winrate: string; avgDuration: number }
-      mid: { matches: number; winrate: string; avgDuration: number }
-      late: { matches: number; winrate: string; avgDuration: number }
-    }
-  }
-  fights: {
-    avgKills: number
-    avgAssists: number
-    avgDeaths: number
-    killParticipation: number
-    avgHeroDamage: number
-    avgTowerDamage: number
-    avgHealing: number
-    damageEfficiency: number
-  }
-  vision: {
-    avgObserverPlaced: number
-    avgObserverKilled: number
-    avgSentryPlaced: number
-    avgSentryKilled: number
-    wardEfficiency: number
-    avgRunes: number
-    visionScore: number
-  }
-}
+import type { AdvancedStats, AdvancedStatsMatch } from '@/types/advanced-stats'
 
 interface Match {
   match_id: number
@@ -103,8 +60,8 @@ export default function FarmEconomyPage() {
       const data = await response.json()
       if (!data.stats) throw new Error('No stats available')
 
-      setStats(data.stats)
-      setMatches(data.matches || [])
+      setStats(data.stats as AdvancedStats)
+      setMatches((data.matches || []) as Match[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load farm & economy data')
     } finally {
@@ -217,17 +174,17 @@ export default function FarmEconomyPage() {
               <p className="text-3xl font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</p>
               <p className="text-xs text-gray-500 mt-2">Gold per minuto</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</p>
               <p className="text-xs text-gray-500 mt-2">XP per minuto</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Gold Utilization</h3>
               <p className="text-3xl font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-2">Gold speso / guadagnato</p>
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Buyback Efficiency</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.farm.buybackEfficiency}%</p>
               <p className="text-xs text-gray-500 mt-2">Winrate con buyback</p>

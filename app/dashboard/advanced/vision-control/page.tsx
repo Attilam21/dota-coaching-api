@@ -9,24 +9,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { Lightbulb, AlertTriangle, CheckCircle2, BarChart as BarChartIcon, Target } from 'lucide-react'
-
-interface AdvancedStats {
-  vision: {
-    avgObserverPlaced: number
-    avgObserverKilled: number
-    avgSentryPlaced: number
-    avgSentryKilled: number
-    wardEfficiency: number
-    dewardEfficiency: string
-    avgRunes: number
-    runesPerMinute: string
-    avgCampsStacked: string
-    avgCourierKills: string
-    avgRoshanKills: string
-    roshanControlRate: string
-    visionScore: number
-  }
-}
+import type { AdvancedStats, AdvancedStatsMatch } from '@/types/advanced-stats'
 
 interface Match {
   match_id: number
@@ -69,8 +52,8 @@ export default function VisionControlPage() {
       const data = await response.json()
       if (!data.stats) throw new Error('No stats available')
 
-      setStats(data.stats)
-      setMatches(data.matches || [])
+      setStats(data.stats as AdvancedStats)
+      setMatches((data.matches || []) as Match[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load vision & map control data')
     } finally {
