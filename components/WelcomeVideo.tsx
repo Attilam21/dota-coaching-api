@@ -71,7 +71,7 @@ export default function WelcomeVideo({
   if (!showVideo) return null
 
   return (
-    <div className={`relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl ${className}`}>
+    <div className={`relative bg-black rounded-lg overflow-hidden shadow-2xl ${className}`} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header with title and close button */}
       <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between">
         <h2 className="text-white font-semibold text-lg">{title}</h2>
@@ -86,12 +86,13 @@ export default function WelcomeVideo({
         )}
       </div>
 
-      {/* Video element */}
-      <div className="w-full" style={{ maxHeight: '90vh' }}>
+      {/* Video element - riempie tutto lo spazio senza bordi */}
+      <div className="flex-1 w-full" style={{ minHeight: 0, position: 'relative' }}>
         <video
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover' }}
           controls={showControls}
           muted={isMuted}
           playsInline

@@ -219,7 +219,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Background Image - Fixed position, behind content (only in main area) */}
         {backgroundUrl && (
           <div 
-            className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none bg-cover bg-center bg-no-repeat"
+            key={backgroundUrl}
+            className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none bg-cover bg-center bg-no-repeat transition-opacity duration-500"
             style={{
               backgroundImage: `url('${backgroundUrl}')`,
               backgroundColor: '#111827' // fallback color

@@ -86,14 +86,14 @@ export default function WelcomeVideoModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-5xl mx-4">
+      <div className="relative w-full max-w-6xl mx-4" style={{ height: '90vh', maxHeight: '90vh' }}>
         <WelcomeVideo
           videoSrc={videoSrc}
           title={title}
           autoPlay={true}
           showControls={true}
           onClose={handleClose}
-          className="w-full"
+          className="w-full h-full"
         />
       </div>
     </div>

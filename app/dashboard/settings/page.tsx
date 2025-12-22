@@ -331,15 +331,24 @@ export default function SettingsPage() {
                     text: `Sfondo cambiato in: ${option.label}`
                   })
                 }}
-                className={`p-4 rounded-lg border-2 transition-all ${
+                className={`p-4 rounded-lg border-2 transition-all relative ${
                   background === option.value
                     ? 'border-red-500 bg-red-900/20 text-white'
                     : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
                 }`}
               >
+                {/* Anteprima immagine */}
+                {option.file && (
+                  <div className="w-full h-20 mb-2 rounded overflow-hidden bg-gray-800">
+                    <div 
+                      className="w-full h-full bg-cover bg-center"
+                      style={{ backgroundImage: `url('/${option.file}')` }}
+                    />
+                  </div>
+                )}
                 <div className="text-sm font-medium">{option.label}</div>
                 {background === option.value && (
-                  <div className="text-xs text-red-400 mt-1">✓ Attivo</div>
+                  <div className="text-xs text-red-400 mt-1 font-bold">✓ ATTIVO</div>
                 )}
               </button>
             ))}
