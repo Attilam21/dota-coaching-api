@@ -47,8 +47,6 @@ export default function HeroIcon({
       'queenofpain': 'queen_of_pain', // QueenOfPain is Queen of Pain
       'vengefulspirit': 'vengeful_spirit', // VengefulSpirit is Vengeful Spirit
       'shadow_shaman': 'rhasta', // Shadow Shaman is Rhasta
-      'dragon_knight': 'dragon_knight', // Keep as is
-      'drow_ranger': 'drow_ranger', // Keep as is
     }
     
     // Check if we need to map the name
@@ -104,4 +102,3 @@ export default function HeroIcon({
     </div>
   )
 }
-

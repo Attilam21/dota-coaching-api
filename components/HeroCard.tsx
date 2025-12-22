@@ -28,6 +28,8 @@ export default function HeroCard({
     
     // Special cases: some heroes have different names in the file system
     // Complete mapping of all hero name variations
+    // OpenDota API returns "npc_dota_hero_xxx" format
+    // CDN uses different format for some heroes
     const heroNameMap: Record<string, string> = {
       'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend (ID 11)
       'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
@@ -35,7 +37,7 @@ export default function HeroCard({
       'shredder': 'timbersaw', // Shredder is Timbersaw
       'furion': 'natures_prophet', // Furion is Nature's Prophet (CDN uses natures_prophet without apostrophe)
       'magnataur': 'magnus', // Magnataur is Magnus
-      'obsidian_destroyer': 'outworld_destroyer', // Obsidian Destroyer renamed
+      'obsidian_destroyer': 'outworld_destroyer', // Obsidian Destroyer renamed to Outworld Destroyer
       'rattletrap': 'clockwerk', // Rattletrap is Clockwerk
       'wisp': 'io', // Wisp is Io
       'zuus': 'zeus', // Zuus is Zeus
@@ -45,8 +47,6 @@ export default function HeroCard({
       'queenofpain': 'queen_of_pain', // QueenOfPain is Queen of Pain
       'vengefulspirit': 'vengeful_spirit', // VengefulSpirit is Vengeful Spirit
       'shadow_shaman': 'rhasta', // Shadow Shaman is Rhasta
-      'dragon_knight': 'dragon_knight', // Keep as is
-      'drow_ranger': 'drow_ranger', // Keep as is
     }
     
     // Check if we need to map the name
