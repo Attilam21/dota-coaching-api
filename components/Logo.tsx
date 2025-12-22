@@ -230,16 +230,11 @@ export default function Logo({ className = '', showText = true, size = 'md', hre
 
   const content = (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Logo - SVG elmo come default, immagine PNG se disponibile */}
+      {/* Logo - Immagine PNG se disponibile, altrimenti SVG elmo come fallback */}
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
-        {/* SVG elmo - sempre presente come base */}
-        <div className="w-full h-full">
-          <HelmetLogo className="w-full h-full" />
-        </div>
-        
-        {/* Immagine PNG - sovrapposta se disponibile */}
-        {showImage && (
-          <div className="absolute inset-0 w-full h-full">
+        {showImage ? (
+          /* Immagine PNG - sostituisce completamente l'elmo */
+          <div className="w-full h-full">
             <Image
               src="/attila-lab-logo.png"
               alt="ATTILA LAB Logo"
@@ -247,10 +242,15 @@ export default function Logo({ className = '', showText = true, size = 'md', hre
               className="object-contain"
               priority
               onError={() => {
-                // Nascondi l'immagine se non esiste, l'SVG rimane visibile
+                // Se l'immagine non esiste, mostra l'SVG elmo come fallback
                 setShowImage(false)
               }}
             />
+          </div>
+        ) : (
+          /* SVG elmo - fallback se l'immagine non è disponibile */
+          <div className="w-full h-full">
+            <HelmetLogo className="w-full h-full" />
           </div>
         )}
       </div>
