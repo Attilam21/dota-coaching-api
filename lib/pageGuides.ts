@@ -431,6 +431,88 @@ export const pageGuides: Record<string, PageGuide> = {
         content: 'Nelle card delle statistiche e nei grafici troverai delle piccole lampadine blu interattive. Clicca su una lampadina per ottenere un suggerimento AI personalizzato basato sui tuoi pattern di tilt e recupero. Il suggerimento analizza la tua situazione specifica (serie di sconfitte, pattern negativi, statistiche di recupero) e ti fornisce consigli pratici e concreti per gestire il tilt e migliorare le tue performance.'
       }
     ]
+  },
+  '/dashboard/predictions': {
+    title: 'Analisi Predittive',
+    description: 'Scopri cosa succederà se segui i consigli delle tue partite. Analizziamo tutte le tue partite per identificare pattern e creare proiezioni future.',
+    sections: [
+      {
+        title: 'Impact Score',
+        content: 'L\'Impact Score (0-100) misura quanto impatto avrebbero i tuoi miglioramenti se seguissi tutti i consigli identificati. Un punteggio alto indica che ci sono molte opportunità di miglioramento con alto impatto. Il punteggio è calcolato analizzando la frequenza e l\'impatto di ogni raccomandazione nelle tue partite.'
+      },
+      {
+        title: 'I Tuoi Errori Più Comuni',
+        content: 'Visualizza i pattern di errori che appaiono più spesso nelle tue partite, ordinati per frequenza e impatto. Ogni pattern mostra: la raccomandazione, quante partite è apparsa (frequenza e percentuale), la categoria (farming, positioning, teamfight, ecc.) e il livello di impatto (high/medium/low). Seguire questi consigli avrebbe il massimo impatto sul tuo winrate.'
+      },
+      {
+        title: 'Winrate Previsto',
+        content: 'Vedi quanto potrebbe migliorare il tuo winrate se seguissi tutte le raccomandazioni. Il sistema calcola un winrate previsto basato sull\'impatto cumulativo di tutti i miglioramenti suggeriti. Questo ti aiuta a capire il potenziale di miglioramento.'
+      },
+      {
+        title: 'Path to Improvement',
+        content: 'Accesso rapido al percorso step-by-step personalizzato per raggiungere i tuoi obiettivi. Questo strumento crea un percorso strutturato con step prioritari, target specifici e stime di tempo per il miglioramento.'
+      },
+      {
+        title: 'What-If Analysis',
+        content: 'Simula cosa succede se migliori metriche specifiche (GPM, morti, KDA, teamfight). Questo strumento ti permette di vedere l\'impatto previsto di miglioramenti specifici sul tuo winrate e MMR.'
+      },
+      {
+        title: 'Recommendations per Categoria',
+        content: 'Visualizza il riepilogo delle raccomandazioni divise per livello di impatto (alto, medio, basso) e la categoria più comune. Questo ti aiuta a capire su quali aree concentrarti per il massimo impatto.'
+      }
+    ]
+  },
+  '/dashboard/predictions/improvement-path': {
+    title: 'Path to Improvement',
+    description: 'Percorso step-by-step personalizzato per raggiungere i tuoi obiettivi di miglioramento basato sulle tue performance attuali e sul meta.',
+    sections: [
+      {
+        title: 'Step da Seguire',
+        content: 'Ogni step rappresenta un\'area di miglioramento specifica con: valore attuale, valore target, gap da colmare, percentuale di miglioramento, impatto previsto sul winrate, priorità (high/medium/low), azioni concrete da intraprendere e stima del numero di partite necessarie. Gli step sono ordinati per priorità e impatto.'
+      },
+      {
+        title: 'Stato Attuale vs Risultato Previsto',
+        content: 'Confronta le tue statistiche attuali (winrate, GPM, KDA, morti, ruolo) con il risultato previsto dopo aver completato tutti gli step. Vedi il miglioramento previsto del winrate, il guadagno MMR stimato e il timeframe necessario (breve/medio/lungo termine).'
+      },
+      {
+        title: 'Confronto con Meta',
+        content: 'Vedi i gap tra le tue performance e gli standard del meta per il tuo ruolo. Il confronto mostra: GPM gap, XPM gap, KDA gap e Deaths gap. I gap positivi indicano che sei sopra il meta, quelli negativi indicano aree di miglioramento.'
+      },
+      {
+        title: 'Categorie di Miglioramento',
+        content: 'Gli step coprono diverse categorie: Farming (GPM, farm rate), Positioning (morti, map awareness), Teamfight (KDA, partecipazione), Teamplay (coordinazione), Vision (warding per support). Ogni categoria ha metriche specifiche e target basati sul meta per il tuo ruolo.'
+      },
+      {
+        title: 'Come Usarlo',
+        content: 'Segui gli step in ordine di priorità. Inizia dagli step ad alto impatto e alta priorità. Ogni step include azioni concrete che puoi intraprendere. Monitora i tuoi progressi confrontando i valori attuali con i target. Il sistema aggiorna automaticamente il percorso quando migliori.'
+      }
+    ]
+  },
+  '/dashboard/predictions/what-if': {
+    title: 'What-If Analysis',
+    description: 'Simula cosa succede se migliori metriche specifiche. Scopri l\'impatto dei tuoi miglioramenti sul winrate e MMR previsti.',
+    sections: [
+      {
+        title: 'Scenari Disponibili',
+        content: 'Ogni scenario simula il miglioramento di una metrica specifica: GPM (Gold per minuto), Morti (riduzione), KDA (miglioramento), Teamfight (partecipazione). Per ogni scenario vedi: valore attuale, valore migliorato, miglioramento percentuale, winrate previsto, miglioramento winrate, MMR gain stimato e livello di confidenza (high/medium/low).'
+      },
+      {
+        title: 'Scenario con Maggior Impatto',
+        content: 'Lo scenario evidenziato mostra quale miglioramento avrebbe il massimo impatto sul tuo winrate. Questo ti aiuta a identificare l\'area su cui concentrarti per il miglioramento più significativo. Vedi anche il reasoning che spiega perché questo scenario è il più impattante.'
+      },
+      {
+        title: 'Impatto Combinato',
+        content: 'Vedi cosa succederebbe se migliorassi TUTTE le metriche insieme. Questo mostra il potenziale massimo di miglioramento: winrate finale previsto, miglioramento totale del winrate e MMR gain totale. Questo ti dà una visione del tuo potenziale di crescita complessivo.'
+      },
+      {
+        title: 'Confidenza',
+        content: 'Ogni scenario ha un livello di confidenza (high/medium/low) che indica quanto affidabile è la proiezione. La confidenza è basata sulla quantità di dati disponibili e sulla coerenza delle tue performance. Gli scenari ad alta confidenza sono più affidabili.'
+      },
+      {
+        title: 'Come Usarlo',
+        content: 'Usa questa analisi per identificare quali metriche migliorare per il massimo impatto. Concentrati sugli scenari ad alto impatto e alta confidenza. Usa l\'impatto combinato per vedere il tuo potenziale massimo. Questa analisi ti aiuta a prendere decisioni informate su dove concentrare i tuoi sforzi di miglioramento.'
+      }
+    ]
   }
 }
 

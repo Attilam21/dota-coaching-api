@@ -252,6 +252,32 @@ export default function GuidaUtentePage() {
           </div>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-cyan-400 mb-2">🔮 Analisi Predittive</h3>
+            <div className="text-gray-300 text-sm space-y-2">
+              <p>
+                <strong>Overview Predittive:</strong> Analizza tutte le tue partite per identificare pattern e creare proiezioni future. 
+                Impact Score (0-100) che misura quanto impatto avrebbero i tuoi miglioramenti, errori più comuni identificati automaticamente, 
+                winrate previsto se segui i consigli, e accesso rapido a Path to Improvement e What-If Analysis.
+              </p>
+              <p>
+                <strong>Path to Improvement:</strong> Percorso step-by-step personalizzato per raggiungere i tuoi obiettivi. 
+                Ogni step mostra: valore attuale vs target, gap da colmare, impatto previsto sul winrate, priorità, azioni concrete e stima partite necessarie. 
+                Confronto con meta per il tuo ruolo e proiezione del risultato finale (winrate, MMR gain, timeframe).
+              </p>
+              <p>
+                <strong>What-If Analysis:</strong> Simula cosa succede se migliori metriche specifiche (GPM, morti, KDA, teamfight). 
+                Vedi l'impatto previsto di ogni miglioramento sul winrate e MMR. Scenario con maggior impatto evidenziato, 
+                impatto combinato se migliori tutto insieme, e livello di confidenza per ogni proiezione.
+              </p>
+              <p>
+                <strong>Come Usarli:</strong> Inizia dall'Overview per vedere i tuoi errori più comuni e l'Impact Score. 
+                Usa Path to Improvement per un percorso strutturato step-by-step. Usa What-If Analysis per simulare miglioramenti specifici 
+                e vedere quale ha il massimo impatto. Questi strumenti ti aiutano a prendere decisioni informate su dove concentrare i tuoi sforzi.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-5">
             <h3 className="text-lg font-semibold text-orange-400 mb-2">🔬 Analisi Tecniche</h3>
             <div className="text-gray-300 text-sm space-y-2">
               <p>
