@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
-import InsightBadge from '@/components/InsightBadge'
 import { AlertTriangle, Clock, TrendingDown, Shield, Lightbulb, RefreshCw, XCircle, CheckCircle, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import InsightBulbs from '@/components/InsightBulbs'
@@ -273,21 +272,7 @@ export default function AntiTiltPage() {
 
             {/* Winrate Ultime 5 */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-              {playerId && (
-                <InsightBadge
-                  elementType="metric-card"
-                  elementId="anti-tilt-winrate-last5"
-                  contextData={{ 
-                    metricName: 'Winrate Ultime 5 Partite', 
-                    value: `${data.recentWinrate.last5.toFixed(1)}%`,
-                    last3: data.recentWinrate.last3,
-                    today: data.recentWinrate.today
-                  }}
-                  playerId={playerId}
-                  position="top-right"
-                />
-              )}
-              <div className="flex items-center justify-between mb-2 pr-8">
+              <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm text-gray-400 uppercase tracking-wider">Winrate Ultime 5</h3>
                 <RefreshCw className="w-6 h-6 text-yellow-400" />
               </div>
@@ -320,20 +305,6 @@ export default function AntiTiltPage() {
                   isLoading={loading}
                 />
               </div>
-            )}
-            {playerId && (
-              <InsightBadge
-                elementType="metric-card"
-                elementId="anti-tilt-recovery-stats"
-                contextData={{ 
-                  metricName: 'Statistiche di Recupero', 
-                  value: `${data.recoveryStats.avgRecoveryTime.toFixed(1)}h`,
-                  recoveryWinrate: data.recoveryStats.recoveryWinrate,
-                  bestWinStreak: data.recoveryStats.bestWinStreak
-                }}
-                playerId={playerId}
-                position="top-right"
-              />
             )}
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Shield className="w-6 h-6" />
@@ -369,19 +340,6 @@ export default function AntiTiltPage() {
             {/* Worst Hours */}
             {data.negativePatterns.worstHours.length > 0 && (
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 relative">
-                {playerId && (
-                  <InsightBadge
-                    elementType="metric-card"
-                    elementId="anti-tilt-worst-hours"
-                    contextData={{ 
-                      metricName: 'Orari Peggiori',
-                      worstHours: data.negativePatterns.worstHours.slice(0, 3),
-                      pattern: 'temporal'
-                    }}
-                    playerId={playerId}
-                    position="top-right"
-                  />
-                )}
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   Orari Peggiori

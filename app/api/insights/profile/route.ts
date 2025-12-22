@@ -160,27 +160,27 @@ export async function POST(request: NextRequest) {
         prompt = `Ruolo ${contextData.role || 'Core'}. AttilaLAB Score ${contextData.score}/100. 
         Scrivi 3 bullet points specifici (max 20 parole ciascuno):
         1. Problema principale identificato
-        2. Azione concreta per migliorarlo
+        2. Azione concreta da fare subito
         3. Metrica target per misurare progresso
-        FORMATO: Solo bullet points, tono diretto, niente "potresti/dovresti".`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'role':
         prompt = `Ruolo ${contextData.role} (confidenza: ${contextData.confidence}). 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Skill principale da migliorare per questo ruolo
-        2. Azione specifica da fare
+        2. Azione specifica da fare subito
         3. Come misurare il miglioramento
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'playstyle':
         prompt = `Stile di gioco: ${contextData.playstyle}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Punto debole di questo stile
-        2. Come ottimizzarlo
+        2. Azione concreta per ottimizzarlo
         3. Metrica per misurare miglioramento
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'trend-gpm':
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
         1. Cosa significa questo trend
         2. Azione immediata da fare
         3. Target per prossime partite
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'metric-card':
@@ -207,19 +207,19 @@ export async function POST(request: NextRequest) {
         
         prompt = `${metricName}: ${metricValue}${benchmark ? ` (benchmark: ${benchmark})` : ''}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
-        1. Valutazione della metrica
-        2. Azione concreta per migliorarla
+        1. Problema identificato nella metrica
+        2. Azione concreta da fare subito
         3. Target da raggiungere
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'trend-chart':
         prompt = `Trend GPM/XPM/KDA ultime partite. Pattern: ${JSON.stringify(contextData.trends || {}).substring(0, 100)}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Pattern principale identificato
-        2. Azione per migliorare
+        2. Azione concreta per migliorare
         3. Metrica target
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'phase-analysis':
@@ -230,27 +230,27 @@ export async function POST(request: NextRequest) {
         prompt = `Fase ${phase}: performance ${phaseStrength} (score ${phaseScore}/100). 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Problema specifico di questa fase
-        2. Azione concreta per migliorarla
+        2. Azione concreta da fare subito
         3. Target per prossime partite
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'comparative-analysis':
         prompt = `Ruolo ${contextData.role}. Confronto con benchmark: ${JSON.stringify(contextData.metrics || {}).substring(0, 100)}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Gap principale vs benchmark
-        2. Azione per colmare il gap
+        2. Azione concreta per colmare il gap
         3. Target misurabile
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'pattern':
         prompt = `Pattern identificati: ${contextData.patterns?.join(', ') || 'Nessun pattern specifico'}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
         1. Come sfruttare/modificare questi pattern
-        2. Azione concreta
+        2. Azione concreta da fare subito
         3. Metrica per misurare miglioramento
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         break
 
       case 'builds':
@@ -260,45 +260,45 @@ export async function POST(request: NextRequest) {
           prompt = `Top item: ${itemsList.substring(0, 150)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Analisi item utilizzati
-          2. Come ottimizzare le build
+          2. Azione concreta per ottimizzare le build
           3. Target winrate item
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else if (elementId === 'build-patterns') {
           const patterns = contextData.patterns || []
           const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR, ${p.frequency}x)`).join('; ')
           prompt = `Build comuni: ${patternsList.substring(0, 150)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Build più efficace e perché
-          2. Come ottimizzare
+          2. Azione concreta per ottimizzare
           3. Target winrate build
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else if (elementId === 'underutilized') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
           prompt = `Item sottoutilizzati con alto winrate: ${itemsList.substring(0, 150)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Perché questi item funzionano
-          2. Come integrarli nelle build
+          2. Azione concreta per integrarli nelle build
           3. Target frequenza utilizzo
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else if (elementId === 'overpurchased') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, usato ${item.frequency}x)`).join(', ')
           prompt = `Item overpurchased con basso winrate: ${itemsList.substring(0, 150)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Perché questi item non funzionano
-          2. Alternative da usare
+          2. Alternative concrete da usare
           3. Quando evitarli
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else if (elementId === 'efficiency') {
           const items = contextData.items || []
           const itemsList = items.map((item: any) => `${item.item_name} (${item.winrate}% WR, efficienza: ${item.efficiency?.toFixed(2) || 'N/A'})`).join(', ')
           prompt = `Efficienza item: ${itemsList.substring(0, 150)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Analisi efficienza item
-          2. Come ottimizzare le scelte
+          2. Azione concreta per ottimizzare le scelte
           3. Target efficienza
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else if (elementId === 'comparison') {
           const patterns = contextData.patterns || []
           const patternsList = patterns.map((p: any) => `${p.itemNames.join(' + ')} (${p.winrate}% WR)`).join('; ')
@@ -307,24 +307,24 @@ export async function POST(request: NextRequest) {
           1. Build più efficace e perché
           2. Quando usare ciascuna
           3. Target winrate
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         } else {
           prompt = `Analisi build: ${JSON.stringify(contextData).substring(0, 200)}. 
           Scrivi 3 bullet points (max 20 parole ciascuno):
           1. Analisi build
-          2. Suggerimento concreto
+          2. Azione concreta da fare
           3. Target misurabile
-          FORMATO: Solo bullet points, tono diretto.`
+          FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
         }
         break
 
       default:
         prompt = `Dati: ${JSON.stringify(contextData).substring(0, 200)}. 
         Scrivi 3 bullet points (max 20 parole ciascuno):
-        1. Problema principale
-        2. Azione concreta
+        1. Problema principale identificato
+        2. Azione concreta da fare subito
         3. Target misurabile
-        FORMATO: Solo bullet points, tono diretto.`
+        FORMATO: Solo bullet points, tono direttivo del coach. Usa imperativo: "Fai X", "Migliora Y", "Raggiungi Z". Niente "valuta" o "dovresti".`
     }
 
     const insight = await generateInsight(prompt)
