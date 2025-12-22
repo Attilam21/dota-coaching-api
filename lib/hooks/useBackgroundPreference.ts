@@ -10,17 +10,46 @@ export function useBackgroundPreference() {
   const [background, setBackground] = useState<BackgroundType>('dashboard-bg.jpg')
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Load from localStorage on mount
+  // Funzione per leggere da localStorage
+  const loadFromStorage = () => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved && (saved.endsWith('.jpg') || saved.endsWith('.png') || saved === 'none')) {
-        setBackground(saved as BackgroundType)
+        return saved as BackgroundType
       }
     } catch (err) {
       console.error('Failed to load background preference:', err)
-    } finally {
-      setIsLoading(false)
+    }
+    return 'dashboard-bg.jpg' as BackgroundType
+  }
+
+  useEffect(() => {
+    // Load from localStorage on mount
+    const saved = loadFromStorage()
+    setBackground(saved)
+    setIsLoading(false)
+
+    // Listener per cambiamenti di localStorage (da altre tab/window)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        if (e.newValue.endsWith('.jpg') || e.newValue.endsWith('.png') || e.newValue === 'none') {
+          setBackground(e.newValue as BackgroundType)
+        }
+      }
+    }
+
+    // Listener per cambiamenti nella stessa tab (custom event)
+    const handleCustomStorageChange = () => {
+      const saved = loadFromStorage()
+      setBackground(saved)
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('backgroundPreferenceChanged', handleCustomStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('backgroundPreferenceChanged', handleCustomStorageChange)
     }
   }, [])
 
@@ -28,6 +57,8 @@ export function useBackgroundPreference() {
     try {
       localStorage.setItem(STORAGE_KEY, newBackground)
       setBackground(newBackground)
+      // Trigger custom event per aggiornare altri componenti nella stessa tab
+      window.dispatchEvent(new Event('backgroundPreferenceChanged'))
     } catch (err) {
       console.error('Failed to save background preference:', err)
     }

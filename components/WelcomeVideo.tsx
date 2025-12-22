@@ -87,11 +87,11 @@ export default function WelcomeVideo({
       </div>
 
       {/* Video element */}
-      <div className="w-full" style={{ aspectRatio: '16/9', maxHeight: '90vh' }}>
+      <div className="w-full" style={{ maxHeight: '90vh' }}>
         <video
           ref={videoRef}
           src={videoSrc}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
           controls={showControls}
           muted={isMuted}
           playsInline

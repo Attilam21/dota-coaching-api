@@ -19,7 +19,6 @@ import AnimatedCard from '@/components/AnimatedCard'
 import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
-import WelcomeVideoModal from '@/components/WelcomeVideoModal'
 
 interface PlayerStats {
   winrate: {
@@ -397,12 +396,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-6">
-      {/* Welcome Video Modal - shows every time user accesses dashboard */}
-      <WelcomeVideoModal 
-        videoSrc="/videos/welcome.mp4"
-        title="Benvenuto in PRO DOTA ANALISI"
-      />
-      
       <div className="flex items-center justify-between mb-4 gap-4">
         {/* Help Button a sinistra */}
         <div className="flex-shrink-0" data-tour="help-button">
