@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import WelcomeVideoModal from '@/components/WelcomeVideoModal'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -36,6 +37,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Welcome Video Modal - shows on first visit */}
+      <WelcomeVideoModal 
+        videoSrc="/videos/welcome.mp4"
+        title="Benvenuto in PRO DOTA ANALISI"
+        showOnFirstVisit={true}
+        storageKey="welcome-video-seen"
+      />
+      
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold text-white">
