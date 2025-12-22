@@ -59,6 +59,8 @@ export default function WelcomeVideo({
   const handleClose = () => {
     if (videoRef.current) {
       videoRef.current.pause()
+      videoRef.current.currentTime = 0
+      videoRef.current.src = ''
     }
     setShowVideo(false)
     if (onClose) {
@@ -71,12 +73,12 @@ export default function WelcomeVideo({
   return (
     <div className={`relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl ${className}`}>
       {/* Header with title and close button */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between">
+      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-center justify-between">
         <h2 className="text-white font-semibold text-lg">{title}</h2>
         {onClose && (
           <button
             onClick={handleClose}
-            className="text-white hover:text-red-400 transition-colors p-2 hover:bg-white/10 rounded-full"
+            className="text-white hover:text-red-400 transition-colors p-2 hover:bg-white/10 rounded-full z-30"
             aria-label="Chiudi video"
           >
             <X className="w-5 h-5" />
@@ -85,17 +87,24 @@ export default function WelcomeVideo({
       </div>
 
       {/* Video element */}
-      <video
-        ref={videoRef}
-        src={videoSrc}
-        className="w-full h-auto"
-        controls={showControls}
-        muted={isMuted}
-        loop
-        playsInline
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
+      <div className="w-full" style={{ aspectRatio: '16/9', maxHeight: '90vh' }}>
+        <video
+          ref={videoRef}
+          src={videoSrc}
+          className="w-full h-full object-contain"
+          controls={showControls}
+          muted={isMuted}
+          playsInline
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => {
+            setIsPlaying(false)
+            if (onClose) {
+              handleClose()
+            }
+          }}
+        />
+      </div>
 
       {/* Custom controls overlay (if showControls is false) */}
       {!showControls && (
