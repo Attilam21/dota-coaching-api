@@ -9,6 +9,8 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import { AlertTriangle, Clock, TrendingDown, Shield, Lightbulb, RefreshCw, XCircle, CheckCircle, Calendar } from 'lucide-react'
 import Link from 'next/link'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildAntiTiltInsights } from '@/lib/insight-utils'
 
 interface AntiTiltData {
   isTilted: boolean
@@ -307,6 +309,17 @@ export default function AntiTiltPage() {
               <p className="text-xs text-gray-500 mt-1">Ultime 24 ore</p>
             </div>
           </div>
+
+          {/* Insight Bulbs - Deterministic insights */}
+          {data && (
+            <div className="space-y-3 mb-6">
+              <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+              <InsightBulbs
+                insights={buildAntiTiltInsights(data)}
+                isLoading={loading}
+              />
+            </div>
+          )}
 
           {/* Recovery Stats */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6 relative">

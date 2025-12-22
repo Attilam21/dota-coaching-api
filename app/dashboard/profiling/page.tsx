@@ -11,6 +11,8 @@ import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import PlayerHeader from '@/components/PlayerHeader'
 import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartTabIcon, Activity, Eye } from 'lucide-react'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildProfilingInsights } from '@/lib/insight-utils'
 
 interface PlayerProfile {
   role: string
@@ -407,6 +409,17 @@ export default function ProfilingPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Insight Bulbs - Deterministic insights */}
+          {profile && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+              <InsightBulbs
+                insights={buildProfilingInsights(profile)}
+                isLoading={loading}
+              />
             </div>
           )}
 

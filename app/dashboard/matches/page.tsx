@@ -11,6 +11,8 @@ import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { List, BarChart as BarChartIcon, Search, Filter, X, TrendingUp, Target, Lightbulb, Activity, CheckCircle, AlertCircle } from 'lucide-react'
+import InsightBulbs from '@/components/InsightBulbs'
+import { buildMatchesInsights } from '@/lib/insight-utils'
 
 interface Match {
   match_id: number
@@ -440,6 +442,17 @@ export default function MatchesPage() {
                       <p className="text-xs text-gray-500 mt-1">Gold per minuto</p>
                     </div>
                   </div>
+
+                  {/* Insight Bulbs - Deterministic insights */}
+                  {matches && matches.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
+                      <InsightBulbs
+                        insights={buildMatchesInsights(matches, trendData)}
+                        isLoading={loading}
+                      />
+                    </div>
+                  )}
 
                   {/* Trend Charts */}
                   {trendData.length > 0 && (

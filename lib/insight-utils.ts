@@ -528,3 +528,247 @@ export function buildBuildsInsights(buildData: {
   return insights.slice(0, 3)
 }
 
+/**
+ * Build deterministic insights for Matches page
+ * Based on trends, win/loss comparison, streaks
+ */
+export function buildMatchesInsights(matches: Array<{
+  win?: boolean
+  radiant_win?: boolean
+  player_slot?: number
+  gold_per_min?: number
+  kda?: number
+  kills?: number
+  deaths?: number
+  assists?: number
+  duration?: number
+}> | null, trendData?: Array<{ winrate?: number; cumulativeWinrate?: string }> | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!matches || matches.length < 5) return insights
+
+  // Helper to check if match is win
+  const isWin = (m: any) => {
+    if (m.win !== undefined) return m.win
+    if (m.radiant_win !== undefined && m.player_slot !== undefined) {
+      return (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)
+    }
+    return false
+  }
+
+  // RISCHIO: Loss streak
+  let lossStreak = 0
+  for (const match of matches.slice(0, 10)) {
+    if (!isWin(match)) {
+      lossStreak++
+    } else {
+      break
+    }
+  }
+  if (lossStreak >= 4) {
+    const winrate = matches.slice(0, 10).filter(m => isWin(m)).length / Math.min(10, matches.length) * 100
+    const delta = winrate - 50
+    if (delta < -10) {
+      insights.push({
+        text: `Loss streak ${lossStreak}+ → Winrate ${delta.toFixed(0)}%`,
+        type: 'risk',
+        icon: '⚠️'
+      })
+    }
+  }
+
+  // RISCHIO: Trend negativo ultime 5
+  if (trendData && trendData.length >= 5) {
+    const last5 = trendData.slice(-5)
+    const first5 = trendData.slice(0, 5)
+    const last5Winrate = last5.filter(m => m.winrate === 100).length / last5.length * 100
+    const first5Winrate = first5.filter(m => m.winrate === 100).length / first5.length * 100
+    const delta = last5Winrate - first5Winrate
+    if (delta < -15 && insights.length < 3) {
+      insights.push({
+        text: `Trend ultime 5: ${delta.toFixed(0)}% winrate`,
+        type: 'risk',
+        icon: '⚠️'
+      })
+    }
+  }
+
+  // FORZA: Win streak
+  let winStreak = 0
+  for (const match of matches.slice(0, 10)) {
+    if (isWin(match)) {
+      winStreak++
+    } else {
+      break
+    }
+  }
+  if (winStreak >= 4 && insights.length < 3) {
+    const winrate = matches.slice(0, 10).filter(m => isWin(m)).length / Math.min(10, matches.length) * 100
+    const delta = winrate - 50
+    if (delta > 10) {
+      insights.push({
+        text: `Win streak ${winStreak}+ → Winrate +${delta.toFixed(0)}%`,
+        type: 'strength',
+        icon: '✅'
+      })
+    }
+  }
+
+  // COLLO DI BOTTIGLIA: GPM gap tra vittorie e sconfitte
+  const wins = matches.filter(m => isWin(m))
+  const losses = matches.filter(m => !isWin(m))
+  if (wins.length >= 3 && losses.length >= 3) {
+    const avgGpmWin = wins.reduce((sum, m) => sum + (m.gold_per_min || 0), 0) / wins.length
+    const avgGpmLoss = losses.reduce((sum, m) => sum + (m.gold_per_min || 0), 0) / losses.length
+    const gap = avgGpmWin - avgGpmLoss
+    if (gap > 150 && insights.length < 3) {
+      insights.push({
+        text: `GPM gap win/loss: +${gap.toFixed(0)}`,
+        type: 'bottleneck',
+        icon: '📉'
+      })
+    }
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Profiling page
+ * Based on radar chart, trends, strengths/weaknesses
+ */
+export function buildProfilingInsights(profile: {
+  trends?: {
+    gpm?: { value: number; direction: string }
+    xpm?: { value: number; direction: string }
+    kda?: { value: number; direction: string }
+    winrate?: { value: number; direction: string }
+  }
+  radarData?: Array<{ subject: string; value: number; fullMark: number }>
+  strengths?: string[]
+  weaknesses?: string[]
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!profile) return insights
+
+  // RISCHIO: Trend negativo
+  if (profile.trends?.winrate && profile.trends.winrate.direction === 'down' && profile.trends.winrate.value < -5) {
+    insights.push({
+      text: `Trend Winrate: ${profile.trends.winrate.value.toFixed(0)}%`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // RISCHIO: Trend GPM negativo
+  if (profile.trends?.gpm && profile.trends.gpm.direction === 'down' && profile.trends.gpm.value < -50 && insights.length < 3) {
+    insights.push({
+      text: `Trend GPM: ${profile.trends.gpm.value.toFixed(0)}`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // FORZA: Trend positivo
+  if (profile.trends?.winrate && profile.trends.winrate.direction === 'up' && profile.trends.winrate.value > 5 && insights.length < 3) {
+    insights.push({
+      text: `Trend Winrate: +${profile.trends.winrate.value.toFixed(0)}%`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: Radar chart - valore basso
+  if (profile.radarData && profile.radarData.length > 0) {
+    const avgValue = profile.radarData.reduce((sum, d) => sum + d.value, 0) / profile.radarData.length
+    if (avgValue < 50 && insights.length < 3) {
+      insights.push({
+        text: `Radar medio: ${avgValue.toFixed(0)}/100`,
+        type: 'bottleneck',
+        icon: '📉'
+      })
+    }
+  }
+
+  return insights.slice(0, 3)
+}
+
+/**
+ * Build deterministic insights for Anti-Tilt page
+ * Based on tilt level, streaks, recovery stats, negative patterns
+ */
+export function buildAntiTiltInsights(data: {
+  isTilted?: boolean
+  lossStreak?: number
+  winStreak?: number
+  recentWinrate?: {
+    last3?: number
+    last5?: number
+    today?: number
+  }
+  tiltLevel?: 'low' | 'medium' | 'high' | 'critical'
+  recoveryStats?: {
+    avgRecoveryTime?: number
+    recoveryWinrate?: number
+  }
+  negativePatterns?: {
+    worstHours?: Array<{ hour: number; winrate: number }>
+    worstDays?: Array<{ day: string; winrate: number }>
+  }
+} | null): BulbInsight[] {
+  const insights: BulbInsight[] = []
+
+  if (!data) return insights
+
+  // RISCHIO: Tilt level alto
+  if (data.tiltLevel === 'high' || data.tiltLevel === 'critical') {
+    insights.push({
+      text: `Tilt level: ${data.tiltLevel.toUpperCase()}`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // RISCHIO: Loss streak alto
+  if (data.lossStreak && data.lossStreak >= 4 && insights.length < 3) {
+    insights.push({
+      text: `Loss streak ${data.lossStreak}+ → Pausa consigliata`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // RISCHIO: Winrate oggi basso
+  if (data.recentWinrate?.today && data.recentWinrate.today < 40 && insights.length < 3) {
+    insights.push({
+      text: `Winrate oggi: ${data.recentWinrate.today.toFixed(0)}% (< 40%)`,
+      type: 'risk',
+      icon: '⚠️'
+    })
+  }
+
+  // FORZA: Recovery winrate alto
+  if (data.recoveryStats?.recoveryWinrate && data.recoveryStats.recoveryWinrate > 60 && insights.length < 3) {
+    insights.push({
+      text: `Recovery WR: ${data.recoveryStats.recoveryWinrate.toFixed(0)}%`,
+      type: 'strength',
+      icon: '✅'
+    })
+  }
+
+  // COLLO DI BOTTIGLIA: Worst hours identificati
+  if (data.negativePatterns?.worstHours && data.negativePatterns.worstHours.length > 0) {
+    const worstHour = data.negativePatterns.worstHours[0]
+    if (worstHour.winrate < 40 && insights.length < 3) {
+      insights.push({
+        text: `Ore ${worstHour.hour}:00 → ${worstHour.winrate.toFixed(0)}% WR`,
+        type: 'bottleneck',
+        icon: '📉'
+      })
+    }
+  }
+
+  return insights.slice(0, 3)
+}
+
