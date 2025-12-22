@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
@@ -184,35 +183,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-gray-900 relative">
         {/* Background Image - Fixed position, behind content (only in main area) */}
-        {/* 
-          PER CARICARE LO SFONDO:
-          1. Salva la tua immagine in: public/dashboard-bg.jpg
-          2. Formato: JPG, PNG o WebP
-          3. L'immagine apparirà automaticamente qui
-          
-          Se l'immagine non esiste, lo sfondo sarà semplicemente grigio scuro
-        */}
-        <div className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none">
-          <div className="relative w-full h-full">
-            <Image
-              src="/dashboard-bg.jpg"
-              alt="Dashboard Background"
-              fill
-              className="object-cover opacity-20"
-              priority={false}
-              quality={75}
-              sizes="(max-width: 768px) 100vw, calc(100vw - 16rem)"
-              onError={(e) => {
-                // Se l'immagine non esiste, nascondi il div
-                const target = e.target as HTMLImageElement
-                if (target.parentElement) {
-                  target.parentElement.style.display = 'none'
-                }
-              }}
-            />
-            {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-gray-900/60" />
-          </div>
+        <div 
+          className="fixed top-0 right-0 bottom-0 left-64 z-0 pointer-events-none bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('/dashboard-bg.jpg')",
+            backgroundColor: '#111827' // fallback color
+          }}
+        >
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-gray-900/60" />
         </div>
         
         {/* Content - Above background */}
