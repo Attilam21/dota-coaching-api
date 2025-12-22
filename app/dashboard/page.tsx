@@ -429,51 +429,40 @@ export default function DashboardPage() {
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4 mb-4 items-start">
             {/* Hero Pool Card */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-2.5 flex flex-col">
-              <h3 className="text-xs font-semibold text-white mb-2 flex-shrink-0">Hero Pool (Top 6)</h3>
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col">
+              <h3 className="text-sm font-semibold text-white mb-3 flex-shrink-0">Hero Pool (Top 6)</h3>
               {topHeroes.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-2">
                   {topHeroes.slice(0, 6).map((hero) => {
                     const heroName = heroes[hero.hero_id]?.localized_name || `Hero ${hero.hero_id}`
                     const winrateColor = hero.winrate >= 60 ? 'text-green-400' : hero.winrate >= 50 ? 'text-yellow-400' : 'text-red-400'
                     const bgColor = hero.winrate >= 60 ? 'bg-green-900/20' : hero.winrate >= 50 ? 'bg-yellow-900/20' : 'bg-red-900/20'
                     const borderColor = hero.winrate >= 60 ? 'border-green-700/50' : hero.winrate >= 50 ? 'border-yellow-700/50' : 'border-red-700/50'
                     
-                    // Insight per ogni hero
-                    let insightTitle = hero.winrate >= 60 ? 'Eroe Forte' : hero.winrate >= 50 ? 'Eroe Solido' : 'Eroe da Migliorare'
-                    let insightReason = ''
-                    if (hero.winrate >= 60) {
-                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Continua a giocarlo.`
-                    } else if (hero.winrate >= 50) {
-                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Potenziale di crescita.`
-                    } else {
-                      insightReason = `Winrate ${hero.winrate.toFixed(0)}% su ${hero.games} partite. Analizza le partite per migliorare.`
-                    }
-                    
                     return (
                       <div
                         key={hero.hero_id}
-                        className={`border rounded p-1.5 ${borderColor} ${bgColor} flex flex-col`}
+                        className={`border rounded-lg p-2 ${borderColor} ${bgColor} flex flex-col`}
                       >
                         {/* Hero Icon + Name + Winrate */}
-                        <div className="flex flex-col items-center gap-1 mb-1">
+                        <div className="flex flex-col items-center gap-1.5 mb-1.5">
                           {heroes[hero.hero_id] ? (
                             <HeroIcon
                               heroId={hero.hero_id}
                               heroName={heroes[hero.hero_id].name}
-                              size={20}
+                              size={28}
                               className="rounded"
                             />
                           ) : (
-                            <div className="w-5 h-5 rounded bg-gray-700 flex items-center justify-center">
-                              <span className="text-[8px] text-gray-400 font-bold">{hero.hero_id}</span>
+                            <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center">
+                              <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
                             </div>
                           )}
-                          <div className="text-center">
-                            <div className={`text-[9px] font-semibold ${winrateColor} truncate max-w-full`} title={heroName}>
+                          <div className="text-center w-full">
+                            <div className={`text-xs font-semibold ${winrateColor} truncate`} title={heroName}>
                               {heroName}
                             </div>
-                            <span className={`text-[8px] px-1 py-0.5 rounded font-semibold ${
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold mt-0.5 inline-block ${
                               hero.winrate >= 60 ? 'bg-green-600 text-white' : 
                               hero.winrate >= 50 ? 'bg-yellow-600 text-white' : 
                               'bg-red-600 text-white'
@@ -484,8 +473,8 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Stats */}
-                        <div className="text-center mb-1">
-                          <div className="text-[8px] text-gray-300 leading-tight">
+                        <div className="text-center mb-1.5">
+                          <div className="text-[10px] text-gray-300 leading-tight">
                             {hero.games}p • {hero.wins}W/{hero.games - hero.wins}L
                           </div>
                         </div>
@@ -493,7 +482,7 @@ export default function DashboardPage() {
                         {/* CTA Button */}
                         <Link
                           href={`/dashboard/heroes`}
-                          className="block w-full text-center text-[8px] font-medium text-white bg-red-600 hover:bg-red-700 rounded py-0.5 transition-colors"
+                          className="block w-full text-center text-[10px] font-medium text-white bg-red-600 hover:bg-red-700 rounded py-1 transition-colors"
                         >
                           Analisi
                         </Link>

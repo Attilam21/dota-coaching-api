@@ -122,11 +122,11 @@ export default function KeyMatchesCard({
   ].filter(item => item.match) // Rimuovi eventuali undefined
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-2.5 flex flex-col">
-      <h3 className="text-xs font-semibold text-white mb-2 flex-shrink-0">Partite Chiave</h3>
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col">
+      <h3 className="text-sm font-semibold text-white mb-3 flex-shrink-0">Partite Chiave</h3>
       
       {keyMatches.length > 0 ? (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {keyMatches.map((item) => {
             const match = item.match
             const heroName = match.hero_id && heroes[match.hero_id] 
@@ -138,7 +138,7 @@ export default function KeyMatchesCard({
             return (
               <div
                 key={`${item.label}-${match.match_id}`}
-                className={`border rounded p-1.5 ${item.borderColor} ${item.bgColor} flex items-center gap-2`}
+                className={`border rounded-lg p-2 ${item.borderColor} ${item.bgColor} flex items-center gap-2.5`}
                 title={`${insight.title}: ${insight.reason}`}
               >
                 {/* Hero Icon */}
@@ -146,30 +146,30 @@ export default function KeyMatchesCard({
                   <HeroIcon
                     heroId={match.hero_id}
                     heroName={heroes[match.hero_id].name}
-                    size={20}
+                    size={28}
                     className="rounded flex-shrink-0"
                   />
                 )}
                 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <item.icon className={`w-3 h-3 ${item.color}`} />
-                    <span className={`text-[9px] font-semibold ${item.color}`}>{item.label}</span>
-                    <span className={`text-[8px] px-1 py-0.5 rounded font-semibold ${
+                  <div className="flex items-center gap-2 mb-1">
+                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                    <span className={`text-xs font-semibold ${item.color}`}>{item.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
                       match.win ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                     }`}>
                       {match.win ? 'W' : 'L'}
                     </span>
                   </div>
-                  <div className="text-[8px] text-gray-300 truncate">{heroName}</div>
-                  <div className="text-[9px] font-bold text-white">KDA: {match.kda.toFixed(2)}</div>
+                  <div className="text-[10px] text-gray-300 truncate mb-0.5">{heroName}</div>
+                  <div className="text-xs font-bold text-white">KDA: {match.kda.toFixed(2)}</div>
                 </div>
 
                 {/* CTA Button */}
                 <Link
                   href={`/dashboard/match-analysis/${match.match_id}`}
-                  className="text-[8px] font-medium text-red-400 hover:text-red-300 transition-colors flex-shrink-0 px-1.5 py-1"
+                  className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors flex-shrink-0 px-2 py-1"
                   title="Vai all'analisi"
                 >
                   →
