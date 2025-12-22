@@ -310,19 +310,17 @@ export default function AntiTiltPage() {
             </div>
           </div>
 
-          {/* Insight Bulbs - Deterministic insights */}
-          {data && (
-            <div className="space-y-3 mb-6">
-              <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
-              <InsightBulbs
-                insights={buildAntiTiltInsights(data)}
-                isLoading={loading}
-              />
-            </div>
-          )}
-
           {/* Recovery Stats */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6 relative">
+            {/* Insight Bulbs - Deterministic insights */}
+            {data && (
+              <div className="mb-4">
+                <InsightBulbs
+                  insights={buildAntiTiltInsights(data)}
+                  isLoading={loading}
+                />
+              </div>
+            )}
             {playerId && (
               <InsightBadge
                 elementType="metric-card"

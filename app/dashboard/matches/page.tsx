@@ -443,19 +443,18 @@ export default function MatchesPage() {
                     </div>
                   </div>
 
-                  {/* Insight Bulbs - Deterministic insights */}
-                  {matches && matches.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
-                      <InsightBulbs
-                        insights={buildMatchesInsights(matches, trendData)}
-                        isLoading={loading}
-                      />
-                    </div>
-                  )}
-
                   {/* Trend Charts */}
                   {trendData.length > 0 && (
+                    <>
+                      {/* Insight Bulbs - Deterministic insights */}
+                      {matches && matches.length > 0 && (
+                        <div className="mb-4">
+                          <InsightBulbs
+                            insights={buildMatchesInsights(matches, trendData)}
+                            isLoading={loading}
+                          />
+                        </div>
+                      )}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Winrate Trend */}
                       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
@@ -504,7 +503,8 @@ export default function MatchesPage() {
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
-                    </div>
+                      </div>
+                    </>
                   )}
 
                   {/* Hero Performance Preview */}

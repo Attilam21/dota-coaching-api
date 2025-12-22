@@ -412,20 +412,19 @@ export default function ProfilingPage() {
             </div>
           )}
 
-          {/* Insight Bulbs - Deterministic insights */}
-          {profile && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-400">Insight Deterministici</h3>
-              <InsightBulbs
-                insights={buildProfilingInsights(profile)}
-                isLoading={loading}
-              />
-            </div>
-          )}
-
           {/* Key Metrics */}
           {profile.metrics && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <>
+              {/* Insight Bulbs - Deterministic insights */}
+              {profile && (
+                <div className="mb-4">
+                  <InsightBulbs
+                    insights={buildProfilingInsights(profile)}
+                    isLoading={loading}
+                  />
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors">
                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
                 <p className="text-2xl font-bold text-yellow-400 mb-3">{profile.metrics.avgGPM}</p>
@@ -499,7 +498,8 @@ export default function ProfilingPage() {
                 <p className="text-2xl font-bold text-blue-400">{profile.metrics.killParticipation}%</p>
               </div>
             </div>
-                  )}
+            </>
+          )}
                 </div>
               )}
 

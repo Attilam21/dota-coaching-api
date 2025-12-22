@@ -566,14 +566,17 @@ export function buildMatchesInsights(matches: Array<{
     }
   }
   if (lossStreak >= 4) {
-    const winrate = matches.slice(0, 10).filter(m => isWin(m)).length / Math.min(10, matches.length) * 100
-    const delta = winrate - 50
-    if (delta < -10) {
-      insights.push({
-        text: `Loss streak ${lossStreak}+ → Winrate ${delta.toFixed(0)}%`,
-        type: 'risk',
-        icon: '⚠️'
-      })
+    const recentMatches = matches.slice(0, 10)
+    if (recentMatches.length > 0) {
+      const winrate = recentMatches.filter(m => isWin(m)).length / recentMatches.length * 100
+      const delta = winrate - 50
+      if (!isNaN(delta) && delta < -10) {
+        insights.push({
+          text: `Loss streak ${lossStreak}+ → Winrate ${delta.toFixed(0)}%`,
+          type: 'risk',
+          icon: '⚠️'
+        })
+      }
     }
   }
 
@@ -581,15 +584,17 @@ export function buildMatchesInsights(matches: Array<{
   if (trendData && trendData.length >= 5) {
     const last5 = trendData.slice(-5)
     const first5 = trendData.slice(0, 5)
-    const last5Winrate = last5.filter(m => m.winrate === 100).length / last5.length * 100
-    const first5Winrate = first5.filter(m => m.winrate === 100).length / first5.length * 100
-    const delta = last5Winrate - first5Winrate
-    if (delta < -15 && insights.length < 3) {
-      insights.push({
-        text: `Trend ultime 5: ${delta.toFixed(0)}% winrate`,
-        type: 'risk',
-        icon: '⚠️'
-      })
+    if (last5.length > 0 && first5.length > 0) {
+      const last5Winrate = last5.filter(m => m.winrate === 100).length / last5.length * 100
+      const first5Winrate = first5.filter(m => m.winrate === 100).length / first5.length * 100
+      const delta = last5Winrate - first5Winrate
+      if (!isNaN(delta) && delta < -15 && insights.length < 3) {
+        insights.push({
+          text: `Trend ultime 5: ${delta.toFixed(0)}% winrate`,
+          type: 'risk',
+          icon: '⚠️'
+        })
+      }
     }
   }
 
@@ -603,14 +608,17 @@ export function buildMatchesInsights(matches: Array<{
     }
   }
   if (winStreak >= 4 && insights.length < 3) {
-    const winrate = matches.slice(0, 10).filter(m => isWin(m)).length / Math.min(10, matches.length) * 100
-    const delta = winrate - 50
-    if (delta > 10) {
-      insights.push({
-        text: `Win streak ${winStreak}+ → Winrate +${delta.toFixed(0)}%`,
-        type: 'strength',
-        icon: '✅'
-      })
+    const recentMatches = matches.slice(0, 10)
+    if (recentMatches.length > 0) {
+      const winrate = recentMatches.filter(m => isWin(m)).length / recentMatches.length * 100
+      const delta = winrate - 50
+      if (!isNaN(delta) && delta > 10) {
+        insights.push({
+          text: `Win streak ${winStreak}+ → Winrate +${delta.toFixed(0)}%`,
+          type: 'strength',
+          icon: '✅'
+        })
+      }
     }
   }
 
@@ -621,7 +629,7 @@ export function buildMatchesInsights(matches: Array<{
     const avgGpmWin = wins.reduce((sum, m) => sum + (m.gold_per_min || 0), 0) / wins.length
     const avgGpmLoss = losses.reduce((sum, m) => sum + (m.gold_per_min || 0), 0) / losses.length
     const gap = avgGpmWin - avgGpmLoss
-    if (gap > 150 && insights.length < 3) {
+    if (!isNaN(gap) && isFinite(gap) && gap > 150 && insights.length < 3) {
       insights.push({
         text: `GPM gap win/loss: +${gap.toFixed(0)}`,
         type: 'bottleneck',
@@ -653,7 +661,11 @@ export function buildProfilingInsights(profile: {
   if (!profile) return insights
 
   // RISCHIO: Trend negativo
-  if (profile.trends?.winrate && profile.trends.winrate.direction === 'down' && profile.trends.winrate.value < -5) {
+  if (profile.trends?.winrate && 
+      typeof profile.trends.winrate.value === 'number' && 
+      !isNaN(profile.trends.winrate.value) &&
+      profile.trends.winrate.direction === 'down' && 
+      profile.trends.winrate.value < -5) {
     insights.push({
       text: `Trend Winrate: ${profile.trends.winrate.value.toFixed(0)}%`,
       type: 'risk',
@@ -662,7 +674,12 @@ export function buildProfilingInsights(profile: {
   }
 
   // RISCHIO: Trend GPM negativo
-  if (profile.trends?.gpm && profile.trends.gpm.direction === 'down' && profile.trends.gpm.value < -50 && insights.length < 3) {
+  if (profile.trends?.gpm && 
+      typeof profile.trends.gpm.value === 'number' && 
+      !isNaN(profile.trends.gpm.value) &&
+      profile.trends.gpm.direction === 'down' && 
+      profile.trends.gpm.value < -50 && 
+      insights.length < 3) {
     insights.push({
       text: `Trend GPM: ${profile.trends.gpm.value.toFixed(0)}`,
       type: 'risk',
@@ -671,7 +688,12 @@ export function buildProfilingInsights(profile: {
   }
 
   // FORZA: Trend positivo
-  if (profile.trends?.winrate && profile.trends.winrate.direction === 'up' && profile.trends.winrate.value > 5 && insights.length < 3) {
+  if (profile.trends?.winrate && 
+      typeof profile.trends.winrate.value === 'number' && 
+      !isNaN(profile.trends.winrate.value) &&
+      profile.trends.winrate.direction === 'up' && 
+      profile.trends.winrate.value > 5 && 
+      insights.length < 3) {
     insights.push({
       text: `Trend Winrate: +${profile.trends.winrate.value.toFixed(0)}%`,
       type: 'strength',
@@ -681,8 +703,8 @@ export function buildProfilingInsights(profile: {
 
   // COLLO DI BOTTIGLIA: Radar chart - valore basso
   if (profile.radarData && profile.radarData.length > 0) {
-    const avgValue = profile.radarData.reduce((sum, d) => sum + d.value, 0) / profile.radarData.length
-    if (avgValue < 50 && insights.length < 3) {
+    const avgValue = profile.radarData.reduce((sum, d) => sum + (d.value || 0), 0) / profile.radarData.length
+    if (!isNaN(avgValue) && isFinite(avgValue) && avgValue < 50 && insights.length < 3) {
       insights.push({
         text: `Radar medio: ${avgValue.toFixed(0)}/100`,
         type: 'bottleneck',
@@ -740,7 +762,11 @@ export function buildAntiTiltInsights(data: {
   }
 
   // RISCHIO: Winrate oggi basso
-  if (data.recentWinrate?.today && data.recentWinrate.today < 40 && insights.length < 3) {
+  if (data.recentWinrate?.today && 
+      typeof data.recentWinrate.today === 'number' && 
+      !isNaN(data.recentWinrate.today) &&
+      data.recentWinrate.today < 40 && 
+      insights.length < 3) {
     insights.push({
       text: `Winrate oggi: ${data.recentWinrate.today.toFixed(0)}% (< 40%)`,
       type: 'risk',
@@ -749,7 +775,11 @@ export function buildAntiTiltInsights(data: {
   }
 
   // FORZA: Recovery winrate alto
-  if (data.recoveryStats?.recoveryWinrate && data.recoveryStats.recoveryWinrate > 60 && insights.length < 3) {
+  if (data.recoveryStats?.recoveryWinrate && 
+      typeof data.recoveryStats.recoveryWinrate === 'number' && 
+      !isNaN(data.recoveryStats.recoveryWinrate) &&
+      data.recoveryStats.recoveryWinrate > 60 && 
+      insights.length < 3) {
     insights.push({
       text: `Recovery WR: ${data.recoveryStats.recoveryWinrate.toFixed(0)}%`,
       type: 'strength',
@@ -760,7 +790,11 @@ export function buildAntiTiltInsights(data: {
   // COLLO DI BOTTIGLIA: Worst hours identificati
   if (data.negativePatterns?.worstHours && data.negativePatterns.worstHours.length > 0) {
     const worstHour = data.negativePatterns.worstHours[0]
-    if (worstHour.winrate < 40 && insights.length < 3) {
+    if (worstHour && 
+        typeof worstHour.winrate === 'number' && 
+        !isNaN(worstHour.winrate) &&
+        worstHour.winrate < 40 && 
+        insights.length < 3) {
       insights.push({
         text: `Ore ${worstHour.hour}:00 → ${worstHour.winrate.toFixed(0)}% WR`,
         type: 'bottleneck',
