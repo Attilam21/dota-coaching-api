@@ -71,7 +71,6 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
-  const [heroesLoaded, setHeroesLoaded] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -80,27 +79,23 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router])
 
-  // Load heroes data - IMPORTANT: Must complete before rendering hero icons
+  // Load heroes data
   useEffect(() => {
     let isMounted = true
     
     fetch('/api/opendota/heroes')
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
-        if (data && isMounted) {
+        if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
           data.forEach((hero: { id: number; name: string; localized_name: string }) => {
             heroesMap[hero.id] = { name: hero.name, localized_name: hero.localized_name }
           })
           setHeroes(heroesMap)
-          setHeroesLoaded(true)
         }
       })
       .catch((error) => {
         console.error('Error loading heroes:', error)
-        if (isMounted) {
-          setHeroesLoaded(true) // Set to true even on error to prevent infinite loading
-        }
       })
     
     return () => {
@@ -531,9 +526,7 @@ export default function DashboardPage() {
             {/* Hero Pool Card */}
             <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-col">
               <h3 className="text-sm font-semibold text-white mb-3 flex-shrink-0">Hero Pool (Top 6)</h3>
-              {!heroesLoaded ? (
-                <div className="text-sm text-gray-500 py-4">Caricamento eroi...</div>
-              ) : topHeroes.length > 0 ? (
+              {topHeroes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                   {topHeroes.slice(0, 6).map((hero) => {
                     const heroData = heroes[hero.hero_id]
