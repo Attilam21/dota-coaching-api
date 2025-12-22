@@ -54,8 +54,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       colorClass: 'text-green-400',
       items: [
         { name: 'Performance & Stile', href: '/dashboard/performance', icon: Zap },
-        { name: 'Hero Pool', href: '/dashboard/heroes', icon: Theater },
-        { name: 'Analisi Eroi', href: '/dashboard/hero-analysis', icon: Search },
+        { name: 'Il Mio Pool', href: '/dashboard/heroes', icon: Theater },
+        { name: 'Matchup & Counter', href: '/dashboard/hero-analysis', icon: Search },
         { name: 'Analisi Ruolo', href: '/dashboard/role-analysis', icon: Target },
         { name: 'I Tuoi Compagni', href: '/dashboard/teammates', icon: Users },
         { name: 'Storico Partite', href: '/dashboard/matches', icon: Gamepad2 },
