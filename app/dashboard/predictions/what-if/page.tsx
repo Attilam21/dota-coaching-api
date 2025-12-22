@@ -203,15 +203,15 @@ export default function WhatIfPage() {
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">Morti</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.deaths.toFixed(1)}</div>
+            <div className="text-2xl font-bold text-white">{data.currentStats.deaths}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">KDA</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.kda.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-white">{data.currentStats.kda}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400 mb-1">Teamfight</div>
-            <div className="text-2xl font-bold text-white">{data.currentStats.teamfight.toFixed(1)}</div>
+            <div className="text-2xl font-bold text-white">{data.currentStats.teamfight}</div>
           </div>
         </div>
       </div>
