@@ -139,6 +139,7 @@ export default function KeyMatchesCard({
               <div
                 key={`${item.label}-${match.match_id}`}
                 className={`border rounded p-1.5 ${item.borderColor} ${item.bgColor} flex items-center gap-2`}
+                title={`${insight.title}: ${insight.reason}`}
               >
                 {/* Hero Icon */}
                 {match.hero_id && heroes[match.hero_id] && (
