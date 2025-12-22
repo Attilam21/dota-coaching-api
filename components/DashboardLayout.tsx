@@ -20,7 +20,10 @@ import {
   FlaskConical,
   Settings,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  TrendingUp,
+  Route,
+  Sparkles
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -61,6 +64,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { name: 'Storico Partite', href: '/dashboard/matches', icon: Gamepad2 },
         { name: 'Analisi Avanzate', href: '/dashboard/advanced', icon: FlaskConical },
         { name: 'Build & Items', href: '/dashboard/builds', icon: Shield },
+      ],
+    },
+    {
+      title: 'ANALISI PREDITTIVE',
+      colorClass: 'text-cyan-400',
+      items: [
+        { name: 'Overview Predittivo', href: '/dashboard/predictions', icon: Sparkles },
+        { name: 'Path to Improvement', href: '/dashboard/predictions/improvement-path', icon: Route },
+        { name: 'What-If Analysis', href: '/dashboard/predictions/what-if', icon: TrendingUp },
       ],
     },
     {
