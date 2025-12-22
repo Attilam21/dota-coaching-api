@@ -31,7 +31,7 @@ export default function HeroIcon({
     // Special cases: some heroes have different names in the file system
     // Complete mapping of all hero name variations
     const heroNameMap: Record<string, string> = {
-      'nevermore': 'shadow_fiend',  // Nevermore is Shadow Fiend (ID 11)
+      // Note: 'nevermore' stays as 'nevermore' - CDN uses the original name
       'skeleton_king': 'wraith_king', // Skeleton King was renamed to Wraith King
       'windrunner': 'windranger', // Windrunner was renamed to Windranger
       'shredder': 'timbersaw', // Shredder is Timbersaw
