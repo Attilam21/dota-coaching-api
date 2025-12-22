@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getRoleBenchmark } from '@/lib/benchmarks'
 
 export async function GET(
   request: NextRequest,
@@ -38,47 +39,6 @@ export async function GET(
     
     const radiantAvgKda = radiantPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
     const direAvgKda = direPlayers.reduce((sum: number, p: Player) => sum + (p.kills + p.assists) / Math.max(p.deaths, 1), 0) / 5
-
-    // Meta standards for Dota 2 (2024)
-    const META_STANDARDS = {
-      carry: {
-        gpm: 550,
-        xpm: 600,
-        csPerMin: 7,
-        killParticipation: 60,
-        towerDamage: 1500,
-        deaths: 5,
-        kda: 2.5
-      },
-      mid: {
-        gpm: 550,
-        xpm: 650,
-        csPerMin: 6.5,
-        killParticipation: 70,
-        towerDamage: 1000,
-        deaths: 5,
-        kda: 2.8
-      },
-      offlane: {
-        gpm: 450,
-        xpm: 500,
-        csPerMin: 5,
-        killParticipation: 75,
-        towerDamage: 800,
-        deaths: 6,
-        kda: 2.2
-      },
-      support: {
-        gpm: 300,
-        xpm: 350,
-        wards: 10,
-        assists: 12,
-        killParticipation: 80,
-        deaths: 6,
-        kda: 1.8,
-        campsStacked: 4
-      }
-    }
     
     // Analyze individual player performance with advanced metrics
     const playerPerformance = (match.players as Player[]).map((player: any) => {
@@ -176,7 +136,7 @@ export async function GET(
       const roleRecommendations: string[] = []
       
       if (isCarry) {
-        const meta = META_STANDARDS.carry
+        const meta = getRoleBenchmark('carry')
         // GPM comparison
         if (goldPerMin < meta.gpm * 0.85) {
           const diff = Math.round(meta.gpm - goldPerMin)
@@ -194,11 +154,13 @@ export async function GET(
         }
         
         // CS per minute
-        const csPerMinNum = parseFloat(csPerMin)
-        if (csPerMinNum < meta.csPerMin * 0.85) {
-          roleRecommendations.push(`⚠️ CS/min ${csPerMin} vs meta ${meta.csPerMin}. Migliora il farm continuo durante tutta la partita, non solo in laning phase.`)
-        } else if (csPerMinNum >= meta.csPerMin * 1.1) {
-          roleRecommendations.push(`✅ Eccellente CS/min ${csPerMin} (meta: ${meta.csPerMin}). Farm molto efficiente!`)
+        if (meta.csPerMin) {
+          const csPerMinNum = parseFloat(csPerMin)
+          if (csPerMinNum < meta.csPerMin * 0.85) {
+            roleRecommendations.push(`⚠️ CS/min ${csPerMin} vs meta ${meta.csPerMin}. Migliora il farm continuo durante tutta la partita, non solo in laning phase.`)
+          } else if (csPerMinNum >= meta.csPerMin * 1.1) {
+            roleRecommendations.push(`✅ Eccellente CS/min ${csPerMin} (meta: ${meta.csPerMin}). Farm molto efficiente!`)
+          }
         }
         
         // Kill Participation
@@ -210,10 +172,12 @@ export async function GET(
         }
         
         // Tower Damage
-        if (towerDamage < meta.towerDamage * 0.7) {
-          roleRecommendations.push(`⚠️ Tower Damage ${towerDamage} vs meta ${meta.towerDamage} (-${meta.towerDamage - towerDamage}). Come carry, contribuisci di più alla distruzione delle torri per chiudere le partite.`)
-        } else if (towerDamage >= meta.towerDamage * 1.2) {
-          roleRecommendations.push(`✅ Eccellente Tower Damage ${towerDamage} (meta: ${meta.towerDamage}). Ottimo push!`)
+        if (meta.towerDamage) {
+          if (towerDamage < meta.towerDamage * 0.7) {
+            roleRecommendations.push(`⚠️ Tower Damage ${towerDamage} vs meta ${meta.towerDamage} (-${meta.towerDamage - towerDamage}). Come carry, contribuisci di più alla distruzione delle torri per chiudere le partite.`)
+          } else if (towerDamage >= meta.towerDamage * 1.2) {
+            roleRecommendations.push(`✅ Eccellente Tower Damage ${towerDamage} (meta: ${meta.towerDamage}). Ottimo push!`)
+          }
         }
         
         // Deaths
@@ -237,7 +201,7 @@ export async function GET(
       }
       
       if (isMid) {
-        const meta = META_STANDARDS.mid
+        const meta = getRoleBenchmark('mid')
         // GPM comparison
         if (goldPerMin < meta.gpm * 0.85) {
           const diff = Math.round(meta.gpm - goldPerMin)
@@ -285,7 +249,7 @@ export async function GET(
       }
       
       if (isOfflane) {
-        const meta = META_STANDARDS.offlane
+        const meta = getRoleBenchmark('offlane')
         // Kill Participation (most important for offlane)
         const kpNum = parseFloat(killParticipation)
         if (kpNum < meta.killParticipation * 0.85) {
@@ -318,22 +282,26 @@ export async function GET(
       }
       
       if (isSupport) {
-        const meta = META_STANDARDS.support
+        const meta = getRoleBenchmark('support')
         // Warding (most important for support)
-        const totalWards = observerWards + sentryWards
-        if (totalWards < meta.wards * 0.8) {
-          const diff = meta.wards - totalWards
-          roleRecommendations.push(`⚠️ ${totalWards} wards vs meta ${meta.wards} (-${diff}). Le wards sono cruciali - punta ad almeno ${meta.wards} wards per partita.`)
-        } else if (totalWards >= meta.wards * 1.2) {
-          roleRecommendations.push(`✅ Eccellente warding: ${totalWards} wards (meta: ${meta.wards}). Ottima visione!`)
+        if (meta.wards !== undefined) {
+          const totalWards = observerWards + sentryWards
+          if (totalWards < meta.wards * 0.8) {
+            const diff = meta.wards - totalWards
+            roleRecommendations.push(`⚠️ ${totalWards} wards vs meta ${meta.wards} (-${diff}). Le wards sono cruciali - punta ad almeno ${meta.wards} wards per partita.`)
+          } else if (totalWards >= meta.wards * 1.2) {
+            roleRecommendations.push(`✅ Eccellente warding: ${totalWards} wards (meta: ${meta.wards}). Ottima visione!`)
+          }
         }
         
         // Assists
-        if (player.assists < meta.assists * 0.85) {
-          const diff = meta.assists - player.assists
-          roleRecommendations.push(`⚠️ ${player.assists} assist vs meta ${meta.assists} (-${diff}). Aumenta la partecipazione ai teamfight e proteggi i tuoi core.`)
-        } else if (player.assists >= meta.assists * 1.2) {
-          roleRecommendations.push(`✅ Eccellenti assist: ${player.assists} (meta: ${meta.assists}). Ottima presenza nei fight!`)
+        if (meta.assists !== undefined) {
+          if (player.assists < meta.assists * 0.85) {
+            const diff = meta.assists - player.assists
+            roleRecommendations.push(`⚠️ ${player.assists} assist vs meta ${meta.assists} (-${diff}). Aumenta la partecipazione ai teamfight e proteggi i tuoi core.`)
+          } else if (player.assists >= meta.assists * 1.2) {
+            roleRecommendations.push(`✅ Eccellenti assist: ${player.assists} (meta: ${meta.assists}). Ottima presenza nei fight!`)
+          }
         }
         
         // Kill Participation
@@ -352,11 +320,13 @@ export async function GET(
         }
         
         // Camps Stacked
-        if (campsStacked < meta.campsStacked) {
-          const diff = meta.campsStacked - campsStacked
-          roleRecommendations.push(`⚠️ ${campsStacked} camp stacked vs meta ${meta.campsStacked} (-${diff}). Aumenta lo stacking per aiutare il farm dei tuoi carry.`)
-        } else if (campsStacked >= meta.campsStacked * 1.5) {
-          roleRecommendations.push(`✅ Eccellente stacking: ${campsStacked} camp (meta: ${meta.campsStacked}). Ottimo supporto al farm!`)
+        if (meta.campsStacked !== undefined) {
+          if (campsStacked < meta.campsStacked) {
+            const diff = meta.campsStacked - campsStacked
+            roleRecommendations.push(`⚠️ ${campsStacked} camp stacked vs meta ${meta.campsStacked} (-${diff}). Aumenta lo stacking per aiutare il farm dei tuoi carry.`)
+          } else if (campsStacked >= meta.campsStacked * 1.5) {
+            roleRecommendations.push(`✅ Eccellente stacking: ${campsStacked} camp (meta: ${meta.campsStacked}). Ottimo supporto al farm!`)
+          }
         }
         
         // GPM (should not be too high for support)
