@@ -354,9 +354,24 @@ export default function SettingsPage() {
             ))}
           </div>
           
-          <p className="text-xs text-gray-500 mt-4">
-            💡 Per aggiungere nuove immagini, salva i file come <code className="bg-gray-900 px-1 rounded">dashboard-bg.jpg</code>, <code className="bg-gray-900 px-1 rounded">dashboard-bg.png</code>, <code className="bg-gray-900 px-1 rounded">profile-bg.jpg</code> o <code className="bg-gray-900 px-1 rounded">profile-bg.png</code> nella cartella <code className="bg-gray-900 px-1 rounded">public/</code>
-          </p>
+          <div className="text-xs text-gray-500 mt-4 space-y-2">
+            <p>
+              💡 Per aggiungere nuove immagini, salva i file nella cartella <code className="bg-gray-900 px-1 rounded">public/</code>
+            </p>
+            <div className="bg-gray-900/50 p-3 rounded border border-gray-700">
+              <p className="font-semibold text-gray-400 mb-2">📂 Percorso esatto:</p>
+              <code className="text-xs text-gray-300 break-all">
+                C:\Users\attil\Desktop\dota-2-giusto\dota-coaching-api\dota-coaching-api\public\
+              </code>
+              <p className="mt-2 text-gray-400">File supportati:</p>
+              <ul className="list-disc list-inside ml-2 space-y-1 text-gray-400">
+                <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.jpg</code> ✅ presente</li>
+                <li><code className="bg-gray-800 px-1 rounded">profile-bg.jpg</code> ❌ mancante</li>
+                <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.png</code> ❌ opzionale</li>
+                <li><code className="bg-gray-800 px-1 rounded">profile-bg.png</code> ❌ opzionale</li>
+              </ul>
+            </div>
+          </div>
         </AnimatedCard>
 
         <AnimatedCard delay={0.3} className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
