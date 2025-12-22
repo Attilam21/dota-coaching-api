@@ -671,12 +671,6 @@ export default function MatchesPage() {
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <div className="text-right mr-2">
                                   <p className="text-xs text-gray-500 mb-1">{formatDate(match.start_time)}</p>
-                                  <Link
-                                    href={`/dashboard/match-analysis/${match.match_id}`}
-                                    className="text-red-400 hover:text-red-300 text-sm font-semibold"
-                                  >
-                                    Analisi →
-                                  </Link>
                                 </div>
                                 <Link
                                   href={`/dashboard/match-advice/${match.match_id}`}
