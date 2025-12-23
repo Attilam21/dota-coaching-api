@@ -19,6 +19,8 @@ import AnimatedCard from '@/components/AnimatedCard'
 import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
+import { supabase } from '@/lib/supabase'
+import XpProgressBar from '@/components/XpProgressBar'
 
 interface PlayerStats {
   winrate: {
@@ -71,6 +73,9 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
+  const [xp, setXp] = useState<number>(0)
+  const [hasAwardedDailyXp, setHasAwardedDailyXp] = useState(false)
+  const [hasAwardedMatchXp, setHasAwardedMatchXp] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -78,6 +83,69 @@ export default function DashboardPage() {
       return
     }
   }, [user, authLoading, router])
+
+  // Carica XP e incrementa daily XP quando utente è autenticato
+  const loadXp = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await (supabase as any)
+        .from('user_xp')
+        .select('xp')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('[Dashboard] Errore caricamento XP:', error)
+        return
+      }
+
+      if (data && typeof data === 'object' && 'xp' in data) {
+        setXp(data.xp as number)
+      } else {
+        setXp(0)
+      }
+    } catch (err) {
+      console.error('[Dashboard] Errore caricamento XP:', err)
+    }
+  }, [user])
+
+  // Incrementa daily XP (una volta quando utente è autenticato)
+  useEffect(() => {
+    if (!user || authLoading || hasAwardedDailyXp) return
+
+    const incrementDailyXp = async () => {
+      try {
+        const { data, error } = await supabase.rpc('increment_daily_xp')
+
+        if (error) {
+          console.error('[Dashboard] Errore increment_daily_xp:', error)
+          return
+        }
+
+        // Aggiorna XP locale
+        if (data !== null) {
+          setXp(data)
+        }
+
+        setHasAwardedDailyXp(true)
+        
+        // Ricarica XP completo per sincronizzazione
+        await loadXp()
+      } catch (err) {
+        console.error('[Dashboard] Errore increment_daily_xp:', err)
+      }
+    }
+
+    incrementDailyXp()
+  }, [user, authLoading, hasAwardedDailyXp, loadXp])
+
+  // Carica XP iniziale quando utente è autenticato
+  useEffect(() => {
+    if (user && !authLoading) {
+      loadXp()
+    }
+  }, [user, authLoading, loadXp])
 
   // Load heroes data
   useEffect(() => {
@@ -197,12 +265,38 @@ export default function DashboardPage() {
           lose: wlData.lose || 0
         })
       }
+
+      // Award XP per ultima partita (se disponibile e non già assegnato)
+      if (statsData.stats?.matches && statsData.stats.matches.length > 0 && user && !hasAwardedMatchXp) {
+        const lastMatch = statsData.stats.matches[0] // Prima partita = più recente
+        if (lastMatch.match_id && typeof lastMatch.win === 'boolean') {
+          try {
+            const { data: awardData, error: awardError } = await (supabase as any).rpc('award_last_match_xp', {
+              p_match_id: lastMatch.match_id,
+              p_win: lastMatch.win
+            })
+
+            if (awardError) {
+              console.error('[Dashboard] Errore award_last_match_xp:', awardError)
+            } else if (awardData && awardData.length > 0) {
+              // Aggiorna XP locale
+              setXp(awardData[0].xp)
+              setHasAwardedMatchXp(true)
+              
+              // Ricarica XP completo per sincronizzazione
+              await loadXp()
+            }
+          } catch (err) {
+            console.error('[Dashboard] Errore award_last_match_xp:', err)
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load stats')
     } finally {
       setLoading(false)
     }
-  }, [playerId])
+  }, [playerId, user, hasAwardedMatchXp, loadXp])
 
   useEffect(() => {
     // Guard: chiama fetchStats() SOLO se playerId è valido (stringa non vuota e numero)
@@ -529,6 +623,19 @@ export default function DashboardPage() {
           />
         )}
       </div>
+
+      {/* XP Progress Bar (solo se utente autenticato) */}
+      {user && (
+        <div className="mb-4">
+          <XpProgressBar 
+            xp={xp}
+            onRedeem={() => {
+              // Placeholder per riscatto premio
+              alert('Funzionalità di riscatto premio in arrivo!')
+            }}
+          />
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
