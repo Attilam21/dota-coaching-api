@@ -11,8 +11,8 @@ import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
 import { updatePlayerId } from '@/app/actions/update-player-id'
+import { getPlayerId } from '@/app/actions/get-player-id'
 import { supabase } from '@/lib/supabase'
-import { Database } from '@/lib/supabase'
 
 /**
  * SettingsPageContent - Pagina Impostazioni Account
@@ -181,6 +181,11 @@ function SettingsPageContent() {
   /**
    * Carica Player ID da Supabase (se salvato)
    * Funzione opzionale per sincronizzare con il database
+   * 
+   * Usa Server Action getPlayerId per garantire:
+   * - apikey passato correttamente
+   * - RLS policies funzionanti (session gestita correttamente)
+   * - Coerenza con updatePlayerId
    */
   const loadPlayerIdFromSupabase = async () => {
     if (!user) return
@@ -195,35 +200,42 @@ function SettingsPageContent() {
           type: 'error',
           text: 'Sessione non valida. Fai logout e login di nuovo.'
         })
+        setLoadingFromSupabase(false)
         return
       }
 
-      // Query diretta per leggere dota_account_id
-      const { data, error } = await supabase
-        .from('users')
-        .select('dota_account_id')
-        .eq('id', user.id)
-        .single()
+      // Usa Server Action invece di query diretta dal client
+      // Questo garantisce apikey e RLS policies funzionanti
+      const result = await getPlayerId(session.access_token)
 
-      if (error) {
-        // Se l'utente non esiste ancora nella tabella, non è un errore
-        if (error.code === 'PGRST116') {
+      if (!result.success) {
+        // Se l'utente non esiste ancora nella tabella (PGRST116), non è un errore
+        if (result.code === 'PGRST116') {
           setSupabaseSavedId(null)
+          setSupabasePlayerId('')
           setSupabaseMessage({
             type: 'success',
             text: 'Nessun Player ID salvato in database. Puoi salvarlo qui sotto.'
           })
           return
         }
-        throw error
+        
+        // Altri errori
+        setSupabaseMessage({
+          type: 'error',
+          text: result.error || 'Errore nel caricamento da database'
+        })
+        return
       }
 
-      if (data?.dota_account_id) {
-        setSupabaseSavedId(data.dota_account_id)
-        setSupabasePlayerId(data.dota_account_id.toString())
+      // Success - gestisci il risultato
+      if (result.playerId) {
+        const playerIdNum = parseInt(result.playerId, 10)
+        setSupabaseSavedId(playerIdNum)
+        setSupabasePlayerId(result.playerId)
         setSupabaseMessage({
           type: 'success',
-          text: `Player ID caricato da database: ${data.dota_account_id}`
+          text: `Player ID caricato da database: ${result.playerId}`
         })
       } else {
         setSupabaseSavedId(null)
