@@ -103,6 +103,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
                 authUserId: user.id
               })
               setIsLoading(false)
+              loadingRef.current = false // ✅ CRITICO: Reset loadingRef prima di return
               return
             }
 
