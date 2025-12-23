@@ -41,11 +41,18 @@ function SettingsPageContent() {
   const { playerId, setPlayerId } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   
-  // State del form
+  // State del form localStorage
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
+  
+  // State per sezione Supabase (opzionale)
+  const [supabasePlayerId, setSupabasePlayerId] = useState<string>('')
+  const [savingToSupabase, setSavingToSupabase] = useState(false)
+  const [loadingFromSupabase, setLoadingFromSupabase] = useState(false)
+  const [supabaseMessage, setSupabaseMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [supabaseSavedId, setSupabaseSavedId] = useState<number | null>(null)
   
   // Ref per tracciare se abbiamo già processato il query param ?playerId=xxx
   // Previene che il valore dal Context sovrascriva il valore inserito dall'utente
@@ -170,6 +177,147 @@ function SettingsPageContent() {
       setDotaAccountId('')
     }
   }, [playerId])
+
+  /**
+   * Carica Player ID da Supabase (se salvato)
+   * Funzione opzionale per sincronizzare con il database
+   */
+  const loadPlayerIdFromSupabase = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingFromSupabase(true)
+      setSupabaseMessage(null)
+      
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setSupabaseMessage({
+          type: 'error',
+          text: 'Sessione non valida. Fai logout e login di nuovo.'
+        })
+        return
+      }
+
+      // Query diretta per leggere dota_account_id
+      const { data, error } = await supabase
+        .from('users')
+        .select('dota_account_id')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        // Se l'utente non esiste ancora nella tabella, non è un errore
+        if (error.code === 'PGRST116') {
+          setSupabaseSavedId(null)
+          setSupabaseMessage({
+            type: 'success',
+            text: 'Nessun Player ID salvato in database. Puoi salvarlo qui sotto.'
+          })
+          return
+        }
+        throw error
+      }
+
+      if (data?.dota_account_id) {
+        setSupabaseSavedId(data.dota_account_id)
+        setSupabasePlayerId(data.dota_account_id.toString())
+        setSupabaseMessage({
+          type: 'success',
+          text: `Player ID caricato da database: ${data.dota_account_id}`
+        })
+      } else {
+        setSupabaseSavedId(null)
+        setSupabasePlayerId('')
+        setSupabaseMessage({
+          type: 'success',
+          text: 'Nessun Player ID salvato in database.'
+        })
+      }
+    } catch (err) {
+      console.error('Errore nel caricamento da Supabase:', err)
+      setSupabaseMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Errore nel caricamento da database'
+      })
+    } finally {
+      setLoadingFromSupabase(false)
+    }
+  }
+
+  /**
+   * Salva Player ID in Supabase (opzionale)
+   * Questa è una funzionalità aggiuntiva - localStorage rimane la fonte primaria
+   */
+  const handleSaveToSupabase = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+
+    try {
+      setSavingToSupabase(true)
+      setSupabaseMessage(null)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setSupabaseMessage({
+          type: 'error',
+          text: 'Sessione non valida. Fai logout e login di nuovo.'
+        })
+        setSavingToSupabase(false)
+        return
+      }
+
+      const playerIdString = supabasePlayerId.trim() || null
+      const dotaAccountIdNum = playerIdString 
+        ? parseInt(playerIdString, 10) 
+        : null
+
+      // Validazione
+      if (playerIdString && isNaN(dotaAccountIdNum!)) {
+        setSupabaseMessage({
+          type: 'error',
+          text: 'L\'ID Dota deve essere un numero valido',
+        })
+        setSavingToSupabase(false)
+        return
+      }
+
+      // Usa Server Action per salvare in Supabase
+      const result = await updatePlayerId(playerIdString, session.access_token)
+
+      if (!result.success) {
+        setSupabaseMessage({
+          type: 'error',
+          text: result.error || 'Errore nel salvataggio nel database.',
+        })
+        setSavingToSupabase(false)
+        return
+      }
+
+      // Aggiorna state locale
+      setSupabaseSavedId(dotaAccountIdNum)
+      
+      setSupabaseMessage({ 
+        type: 'success', 
+        text: result.message || 'Player ID salvato in database con successo!'
+      })
+    } catch (err) {
+      console.error('Errore nel salvataggio in Supabase:', err)
+      setSupabaseMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Errore nel salvataggio nel database',
+      })
+    } finally {
+      setSavingToSupabase(false)
+    }
+  }
+
+  // Carica Player ID da Supabase al mount (solo se utente autenticato)
+  useEffect(() => {
+    if (user) {
+      loadPlayerIdFromSupabase()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   /**
    * Gestisce il salvataggio del Player ID
