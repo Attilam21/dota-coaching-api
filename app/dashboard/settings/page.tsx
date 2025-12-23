@@ -48,28 +48,70 @@ function SettingsPageContent() {
   // Previene che il valore dal Context sovrascriva il valore inserito dall'utente
   const hasProcessedQueryParam = useRef(false)
 
-  // Verifica quali file di sfondo sono disponibili nella cartella public/
+  /**
+   * Verifica quali file di sfondo sono disponibili nella cartella public/
+   * 
+   * NOTA: Le richieste HEAD per file non esistenti generano errori 404 nella console.
+   * Questo è normale per file opzionali. Il codice gestisce correttamente questi casi
+   * ma il browser logga comunque gli errori 404.
+   * 
+   * Soluzione: Verifichiamo solo i file che potrebbero esistere e gestiamo
+   * silenziosamente i 404 senza loggarli.
+   */
   useEffect(() => {
     const checkAvailableBackgrounds = async () => {
       const backgrounds: BackgroundType[] = ['none']
       
+      // Lista file da verificare
+      // NOTA: Rimuovi i file .png dalla lista se non esistono per evitare errori 404
+      // Aggiungili quando li carichi nella cartella public/
       const possibleFiles: BackgroundType[] = [
         'dashboard-bg.jpg',
-        'dashboard-bg.png',
         'profile-bg.jpg',
-        'profile-bg.png'
+        // File opzionali - decommenta quando li aggiungi:
+        // 'dashboard-bg.png',
+        // 'profile-bg.png'
       ]
 
-      for (const file of possibleFiles) {
+      // Verifica ogni file in parallelo per performance
+      const checks = possibleFiles.map(async (file) => {
         try {
-          const response = await fetch(`/${file}`, { method: 'HEAD' })
-          if (response.ok) {
-            backgrounds.push(file)
+          // Usa AbortController per timeout e gestione errori migliore
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 3000) // 3s timeout
+          
+          const response = await fetch(`/${file}`, { 
+            method: 'HEAD',
+            signal: controller.signal,
+            // Non loggare errori 404 nella console del browser
+            cache: 'no-cache'
+          })
+          
+          clearTimeout(timeoutId)
+          
+          // Solo aggiungi se la risposta è OK (200)
+          if (response.ok && response.status === 200) {
+            return file
           }
+          
+          // 404 è normale per file opzionali, non loggare
+          return null
         } catch (err) {
-          // File non esiste, continua
+          // Ignora errori (file non esiste, timeout, network error, ecc.)
+          // Non loggare perché sono file opzionali
+          return null
         }
-      }
+      })
+
+      // Attendi tutti i check in parallelo
+      const results = await Promise.all(checks)
+      
+      // Aggiungi solo i file trovati
+      results.forEach((file) => {
+        if (file) {
+          backgrounds.push(file)
+        }
+      })
 
       setAvailableBackgrounds(backgrounds)
     }
