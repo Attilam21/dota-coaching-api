@@ -42,11 +42,13 @@ const nextConfig = {
         destination: '/dashboard/coaching-insights',
         permanent: true,
       },
-      {
-        source: '/dashboard/profiling',
-        destination: '/dashboard/coaching-insights',
-        permanent: true,
-      },
+      // RIMOSSO: redirect di /dashboard/profiling
+      // La pagina /dashboard/profiling esiste e deve essere accessibile
+      // {
+      //   source: '/dashboard/profiling',
+      //   destination: '/dashboard/coaching-insights',
+      //   permanent: true,
+      // },
     ];
   },
   webpack: (config, { isServer }) => {
