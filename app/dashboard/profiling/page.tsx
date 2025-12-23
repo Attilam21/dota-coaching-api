@@ -10,7 +10,8 @@ import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import PlayerAvatar from '@/components/PlayerAvatar'
 import PlayerHeader from '@/components/PlayerHeader'
-import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartTabIcon, Activity, Eye } from 'lucide-react'
+import { TrendingUp, BarChart as BarChartIcon, Sword, Zap, Target, AlertTriangle, Lightbulb, CheckCircle2, BarChart as BarChartTabIcon, Activity, Eye, Settings } from 'lucide-react'
+import Link from 'next/link'
 
 interface PlayerProfile {
   role: string
@@ -129,7 +130,23 @@ export default function ProfilingPage() {
 
   return (
     <div className="p-4 md:p-6 relative">
-      <HelpButton />
+      {/* Top Bar with Help and Settings */}
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <div className="flex-shrink-0">
+          <HelpButton />
+        </div>
+        <div className="flex-shrink-0">
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white rounded-lg font-medium transition-all duration-200"
+            title="Impostazioni"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Impostazioni</span>
+          </Link>
+        </div>
+      </div>
+      
       {/* Background senza overlay - nitido come What-If */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20"
@@ -157,7 +174,7 @@ export default function ProfilingPage() {
               rankMedalUrl={profile.rankMedalUrl}
               soloMMR={profile.soloMMR}
               winrate={profile.metrics?.winrate ? parseFloat(profile.metrics.winrate) : undefined}
-              showSettingsLink={true}
+              showSettingsLink={false}
             />
           </div>
         )}

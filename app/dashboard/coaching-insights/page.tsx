@@ -10,7 +10,8 @@ import PlayerHeader from '@/components/PlayerHeader'
 import InsightBadge from '@/components/InsightBadge'
 import AISuggestionCard from '@/components/AISuggestionCard'
 import { buildAISuggestion } from '@/lib/insight-utils'
-import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon, Lightbulb, AlertTriangle } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon, Lightbulb, AlertTriangle, Settings } from 'lucide-react'
+import Link from 'next/link'
 
 interface MetaComparison {
   role: string
@@ -296,7 +297,23 @@ export default function CoachingInsightsPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <HelpButton />
+      {/* Top Bar with Help and Settings */}
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <div className="flex-shrink-0">
+          <HelpButton />
+        </div>
+        <div className="flex-shrink-0">
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white rounded-lg font-medium transition-all duration-200"
+            title="Impostazioni"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Impostazioni</span>
+          </Link>
+        </div>
+      </div>
+      
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Coaching & Insights</h1>
         <p className="text-gray-400">
@@ -320,7 +337,7 @@ export default function CoachingInsightsPage() {
             rankMedalUrl={profile.rankMedalUrl}
             soloMMR={profile.soloMMR}
             winrate={profile.metrics?.winrate ? parseFloat(profile.metrics.winrate) : undefined}
-            showSettingsLink={true}
+            showSettingsLink={false}
           />
         </div>
       )}
