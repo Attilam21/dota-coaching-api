@@ -20,7 +20,7 @@ import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
 import { supabase } from '@/lib/supabase'
-import XpProgressBar from '@/components/XpProgressBar'
+import PercorsoCard from '@/components/PercorsoCard'
 
 interface PlayerStats {
   winrate: {
@@ -611,9 +611,10 @@ export default function DashboardPage() {
       </div>
 
       {/* XP Progress Bar (solo se utente autenticato) */}
+      {/* Card "Percorso" (solo se utente autenticato) */}
       {user ? (
         <div className="mb-4">
-          <XpProgressBar xp={xp} />
+          <PercorsoCard xp={xp} isLoading={authLoading} />
         </div>
       ) : (
         <div className="mb-4 bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
