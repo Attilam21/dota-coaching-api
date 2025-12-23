@@ -108,11 +108,10 @@ export default function DashboardPage() {
 
   const fetchStats = useCallback(async () => {
     // Guard: playerId deve essere una stringa non vuota e un numero valido
+    // Se playerId è null/undefined, ritorna silenziosamente (comportamento normale)
+    // Se playerId non è numerico, ritorna silenziosamente (validazione fallita)
     if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim())) {
-      // Log solo in development per evitare spam in console
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Dashboard] ⚠️ fetchStats() saltato: playerId non valido o non disponibile')
-      }
+      // Nessun log - è normale che fetchStats() venga chiamato quando playerId non è ancora disponibile
       return
     }
 
@@ -208,18 +207,16 @@ export default function DashboardPage() {
   useEffect(() => {
     // Guard: chiama fetchStats() SOLO se playerId è valido (stringa non vuota e numero)
     // Evita chiamate API inutili quando playerId è null, undefined, o non numerico
+    // Nessun log quando playerId è null/undefined (comportamento normale al mount)
     if (playerId && playerId.trim() && /^\d+$/.test(playerId.trim())) {
       // Log solo in development
       if (process.env.NODE_ENV === 'development') {
         console.log('[Dashboard] ✅ playerId valido, chiamando fetchStats()...')
       }
       fetchStats()
-    } else {
-      // Log solo in development, e solo se playerId è stato effettivamente cambiato (non al mount iniziale)
-      if (process.env.NODE_ENV === 'development' && playerId !== null && playerId !== undefined) {
-        console.log('[Dashboard] ⚠️ playerId non valido, fetchStats() non chiamato')
-      }
     }
+    // Nessun log quando playerId è null/undefined - è il comportamento normale al mount
+    // Nessun log quando playerId non è numerico - fetchStats() ha già il suo guard interno
   }, [playerId, fetchStats])
 
   // Hook per refresh automatico con cache, polling e background sync

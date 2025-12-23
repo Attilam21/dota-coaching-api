@@ -89,7 +89,8 @@ export function usePlayerDataRefresh<T = any>(
   
   // Check per nuove partite (fetch leggero)
   const checkForNewMatches = useCallback(async (): Promise<boolean> => {
-    if (!playerId || !enabled || isCheckingRef.current) return false
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim()) || !enabled || isCheckingRef.current) return false
     
     try {
       isCheckingRef.current = true
@@ -144,7 +145,8 @@ export function usePlayerDataRefresh<T = any>(
   
   // Refresh completo (chiama fetchFunction)
   const refresh = useCallback(async (force = false) => {
-    if (!playerId || !fetchFunctionRef.current || isRefreshing) return
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim()) || !fetchFunctionRef.current || isRefreshing) return
     
     try {
       setIsRefreshing(true)
@@ -168,7 +170,8 @@ export function usePlayerDataRefresh<T = any>(
   
   // Polling periodico (solo quando pagina visibile)
   useEffect(() => {
-    if (!playerId || !enabled || !fetchFunctionRef.current) return
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim()) || !enabled || !fetchFunctionRef.current) return
     
     // Funzione polling
     const doPolling = async () => {
@@ -202,7 +205,8 @@ export function usePlayerDataRefresh<T = any>(
   
   // Background sync (quando utente torna sulla pagina)
   useEffect(() => {
-    if (!playerId || !enabled) return
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim()) || !enabled) return
     
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
@@ -237,7 +241,8 @@ export function usePlayerDataRefresh<T = any>(
   
   // Inizializza last_match_id al mount
   useEffect(() => {
-    if (playerId) {
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (playerId && playerId.trim() && /^\d+$/.test(playerId.trim())) {
       loadLastMatchId()
     }
   }, [playerId, loadLastMatchId])
