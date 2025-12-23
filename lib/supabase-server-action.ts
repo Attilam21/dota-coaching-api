@@ -4,7 +4,7 @@ import type { Database } from './supabase'
 
 /**
  * Create Supabase client for Server Actions
- * Uses cookies() from Next.js to read session cookies
+ * Uses cookies() from Next.js to read session cookies and extract JWT
  * This ensures JWT is always passed correctly to Supabase
  */
 export function createServerActionSupabaseClient() {
@@ -17,8 +17,37 @@ export function createServerActionSupabaseClient() {
 
   const cookieStore = cookies()
   
-  // Create client with cookie handling for Server Actions
-  // Supabase will automatically read session from cookies and add Authorization header
+  // Read session from cookies
+  // Supabase stores session in cookies with pattern: sb-<project-ref>-auth-token
+  // We need to find the access_token from the session cookie
+  let accessToken: string | undefined = undefined
+  
+  // Try to get access token from cookies
+  // Supabase stores it in a cookie that contains JSON with access_token
+  try {
+    // Look for Supabase auth cookies (pattern: sb-*-auth-token)
+    const allCookies = cookieStore.getAll()
+    for (const cookie of allCookies) {
+      if (cookie.name.includes('auth-token') || cookie.name.includes('sb-')) {
+        try {
+          // Try to parse as JSON (Supabase stores session as JSON)
+          const sessionData = JSON.parse(cookie.value)
+          if (sessionData?.access_token) {
+            accessToken = sessionData.access_token
+            break
+          }
+        } catch {
+          // Cookie might not be JSON, continue searching
+          continue
+        }
+      }
+    }
+  } catch (error) {
+    // If we can't read cookies, continue without access token
+    // This will result in unauthenticated requests, which is expected if user is not logged in
+  }
+  
+  // Create client with JWT in Authorization header if available
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: false,
@@ -28,28 +57,8 @@ export function createServerActionSupabaseClient() {
     global: {
       headers: {
         'apikey': supabaseAnonKey, // Always required
-        // Supabase automatically reads session from cookies and adds Authorization header
-        // when cookies are available via the cookie store
-      },
-    },
-    cookies: {
-      get(name: string) {
-        const cookie = cookieStore.get(name)
-        return cookie?.value ?? ''
-      },
-      set(name: string, value: string, options?: any) {
-        try {
-          cookieStore.set(name, value, options)
-        } catch {
-          // Ignore cookie errors in server actions
-        }
-      },
-      remove(name: string, options?: any) {
-        try {
-          cookieStore.set(name, '', { ...options, maxAge: 0 })
-        } catch {
-          // Ignore cookie errors
-        }
+        // Add Authorization header with JWT if we found it in cookies
+        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
       },
     },
   })
