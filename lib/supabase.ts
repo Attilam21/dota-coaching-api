@@ -1,9 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Database Types - Allineati con uso reale
-// SOLO autenticazione: usiamo solo auth.users (automatico)
-// public.users viene creato automaticamente dal trigger ma NON lo usiamo nel codice
-// Player ID salvato in localStorage, non in Supabase
+// public.users viene creato automaticamente dal trigger
+// Player ID salvato in database (dota_account_id) E localStorage (fallback)
 export type Database = {
   public: {
     Tables: {
@@ -11,18 +10,27 @@ export type Database = {
         Row: {
           id: string
           email: string
+          dota_account_id: number | null
+          dota_account_verified_at: string | null
+          dota_verification_method: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           email: string
+          dota_account_id?: number | null
+          dota_account_verified_at?: string | null
+          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           email?: string
+          dota_account_id?: number | null
+          dota_account_verified_at?: string | null
+          dota_verification_method?: string | null
           created_at?: string
           updated_at?: string
         }

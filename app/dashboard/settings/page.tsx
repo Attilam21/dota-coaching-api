@@ -11,6 +11,7 @@ import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
+import { savePlayerId, getPlayerId } from '@/app/actions/save-player-id'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -67,27 +68,41 @@ export default function SettingsPage() {
     }
   }, [user, authLoading, router])
 
-  // Load from PlayerIdContext (which reads from localStorage)
-  const loadUserSettings = () => {
+  // Load from database first, then fallback to localStorage
+  const loadUserSettings = async () => {
     if (!user) return
 
     try {
       setLoading(true)
       
-      // Load from PlayerIdContext (which uses localStorage)
-      if (playerId) {
-        setDotaAccountId(playerId)
-      } else {
-        // Also try direct localStorage read as fallback
+      // 1. Try to load from database first
+      const dbResult = await getPlayerId()
+      
+      if (dbResult.success && dbResult.playerId) {
+        // Found in database - use it
+        setDotaAccountId(dbResult.playerId)
+        setPlayerId(dbResult.playerId)
+        // Sync to localStorage as fallback
         try {
-          const saved = localStorage.getItem('fzth_player_id')
-          if (saved) {
-            setDotaAccountId(saved)
-            // Sync with context
-            setPlayerId(saved)
-          }
+          localStorage.setItem('fzth_player_id', dbResult.playerId)
         } catch (err) {
-          console.error('Failed to read localStorage:', err)
+          console.error('Failed to sync to localStorage:', err)
+        }
+      } else {
+        // 2. Fallback to localStorage/context
+        if (playerId) {
+          setDotaAccountId(playerId)
+        } else {
+          // Also try direct localStorage read
+          try {
+            const saved = localStorage.getItem('fzth_player_id')
+            if (saved) {
+              setDotaAccountId(saved)
+              setPlayerId(saved)
+            }
+          } catch (err) {
+            console.error('Failed to read localStorage:', err)
+          }
         }
       }
 
@@ -115,22 +130,21 @@ export default function SettingsPage() {
       setSaving(true)
       setMessage(null)
 
-      // Validate that it's a valid number if provided
-      if (dotaAccountId.trim() && isNaN(parseInt(dotaAccountId.trim()))) {
+      const playerIdString = dotaAccountId.trim() || null
+
+      // Save to database via server action
+      const result = await savePlayerId(playerIdString)
+
+      if (!result.success) {
         setMessage({
           type: 'error',
-          text: 'L\'ID Dota deve essere un numero valido',
+          text: result.error || 'Errore nel salvataggio del Player ID.',
         })
         setSaving(false)
         return
       }
 
-      // Salva SOLO in localStorage (via PlayerIdContext)
-      // Non usiamo più Supabase per evitare errori RLS
-      const playerIdString = dotaAccountId.trim() || null
-      
-      // Force update: salva in localStorage direttamente E tramite context
-      // Questo assicura che tutte le pagine vedano il cambio immediatamente
+      // Also save to localStorage as fallback
       if (playerIdString) {
         try {
           localStorage.setItem('fzth_player_id', playerIdString)
@@ -150,7 +164,7 @@ export default function SettingsPage() {
 
       setMessage({ 
         type: 'success', 
-        text: 'Player ID salvato con successo! Naviga tra le sezioni per vedere i dati aggiornati.' 
+        text: result.message || 'Player ID salvato con successo! Le pagine si aggiorneranno automaticamente con i nuovi dati.' 
       })
     } catch (err) {
       console.error('Failed to save settings:', err)
