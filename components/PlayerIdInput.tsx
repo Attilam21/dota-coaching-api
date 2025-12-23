@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { usePlayerIdContext } from '@/lib/playerIdContext'
 import { Info, ExternalLink, Settings } from 'lucide-react'
 
 interface PlayerIdInputProps {
@@ -12,13 +11,15 @@ interface PlayerIdInputProps {
 }
 
 export default function PlayerIdInput({ title, description, pageTitle }: PlayerIdInputProps) {
-  const { setPlayerId } = usePlayerIdContext()
   const [inputValue, setInputValue] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (inputValue.trim()) {
-      setPlayerId(inputValue.trim())
+      // NOTA: NON salvare nello state globale - l'ID deve essere salvato SOLO nelle settings
+      // Questo componente serve solo per mostrare il form, non per salvare l'ID
+      // L'utente deve andare in /dashboard/settings per salvare permanentemente l'ID
+      window.location.href = `/dashboard/settings?playerId=${encodeURIComponent(inputValue.trim())}`
     }
   }
 

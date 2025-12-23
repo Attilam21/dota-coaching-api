@@ -9,6 +9,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [dotaAccountId, setDotaAccountId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -32,7 +33,18 @@ export default function SignupPage() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Valida Dota Account ID se fornito
+      let dotaAccountIdNum: number | null = null
+      if (dotaAccountId.trim()) {
+        dotaAccountIdNum = parseInt(dotaAccountId.trim(), 10)
+        if (isNaN(dotaAccountIdNum)) {
+          setError('L\'ID Dota deve essere un numero valido')
+          setLoading(false)
+          return
+        }
+      }
+
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -41,6 +53,32 @@ export default function SignupPage() {
       })
 
       if (error) throw error
+
+      // Se l'utente ha fornito un Dota Account ID, salvalo nel database
+      // NOTA: Il trigger handle_new_user() crea già il record in public.users
+      // Dobbiamo solo aggiornare il dota_account_id se fornito
+      if (signUpData.user && dotaAccountIdNum) {
+        try {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ 
+              dota_account_id: dotaAccountIdNum,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', signUpData.user.id)
+
+          if (updateError) {
+            console.warn('[Signup] Errore salvataggio Dota Account ID:', updateError)
+            // Non bloccare il signup se il salvataggio dell'ID fallisce
+            // L'utente può salvarlo successivamente nelle settings
+          } else {
+            console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
+          }
+        } catch (updateErr) {
+          console.warn('[Signup] Exception durante salvataggio Dota Account ID:', updateErr)
+          // Non bloccare il signup
+        }
+      }
 
       setSuccess(true)
       // Redirect to dashboard after 2 seconds
@@ -136,6 +174,32 @@ export default function SignupPage() {
                 className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
                 placeholder="Ripeti la password"
               />
+            </div>
+            <div>
+              <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
+                Dota 2 Account ID <span className="text-gray-500 text-xs">(opzionale)</span>
+              </label>
+              <input
+                id="dotaAccountId"
+                name="dotaAccountId"
+                type="text"
+                value={dotaAccountId}
+                onChange={(e) => setDotaAccountId(e.target.value)}
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-700 bg-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                placeholder="es. 1903287666 (puoi aggiungerlo anche dopo)"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Puoi trovarlo su{' '}
+                <a
+                  href="https://www.opendota.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-400 hover:text-red-300 underline"
+                >
+                  OpenDota
+                </a>
+                . Puoi anche aggiungerlo successivamente nelle impostazioni.
+              </p>
             </div>
           </div>
 

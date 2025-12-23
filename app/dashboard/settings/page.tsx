@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
 import { Info, Image as ImageIcon } from 'lucide-react'
@@ -16,6 +16,7 @@ import { updatePlayerId } from '@/app/actions/update-player-id'
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { playerId, setPlayerId, reload } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
@@ -61,14 +62,28 @@ export default function SettingsPage() {
     }
   }, [user, authLoading, router])
 
-  // Sincronizza input con playerId dal context (caricato da PlayerIdContext)
+  // Leggi playerId da query param (se reindirizzato da PlayerIdInput)
   useEffect(() => {
-    if (playerId) {
-      setDotaAccountId(playerId)
-    } else {
-      setDotaAccountId('')
+    const playerIdFromQuery = searchParams.get('playerId')
+    if (playerIdFromQuery) {
+      setDotaAccountId(playerIdFromQuery)
+      // Rimuovi query param dall'URL dopo averlo letto
+      router.replace('/dashboard/settings', { scroll: false })
     }
-  }, [playerId])
+  }, [searchParams, router])
+
+  // Sincronizza input con playerId dal context (caricato da PlayerIdContext)
+  // Solo se non c'è un playerId dal query param
+  useEffect(() => {
+    const playerIdFromQuery = searchParams.get('playerId')
+    if (!playerIdFromQuery) {
+      if (playerId) {
+        setDotaAccountId(playerId)
+      } else {
+        setDotaAccountId('')
+      }
+    }
+  }, [playerId, searchParams])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
