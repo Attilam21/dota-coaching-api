@@ -113,41 +113,68 @@ export default function DashboardPage() {
   }, [user])
 
   // Incrementa daily XP con bonus prestazione (una volta quando utente è autenticato)
+  // NOTA: Calcola badge prestazione solo se stats è disponibile, altrimenti usa STABLE (bonus +5)
   useEffect(() => {
     if (!user || authLoading || hasAwardedDailyXp) return
 
     const incrementDailyXp = async () => {
       try {
-        // Calcola badge prestazione basato su trend (se disponibili)
-        const winrateTrend = stats ? getWinrateTrend() : null
-        const kdaTrend = stats ? getKDATrend() : null
-        const badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
+        // Calcola badge prestazione basato su trend (solo se stats disponibile)
+        let badge: PerformanceBadge = 'STABLE' // Default
+        let performanceBonus = 5 // Default STABLE bonus
+        
+        if (stats) {
+          const winrateTrend = getWinrateTrend()
+          const kdaTrend = getKDATrend()
+          badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
+          performanceBonus = badge === 'HOT' ? 10 : badge === 'STABLE' ? 5 : 0
+        }
+        
         setPerformanceBadge(badge)
 
-        // Calcola bonus prestazione (HOT +10, STABLE +5, COLD +0)
-        const performanceBonus = badge === 'HOT' ? 10 : badge === 'STABLE' ? 5 : 0
+        // Prova prima la nuova funzione con bonus, fallback alla vecchia se non esiste
+        let xpResult: number | null = null
+        
+        try {
+          const { data, error } = await (supabase as any).rpc('increment_daily_xp_with_bonus', {
+            p_performance_bonus: performanceBonus
+          })
 
-        // Chiama RPC con bonus prestazione
-        const { data, error } = await (supabase as any).rpc('increment_daily_xp_with_bonus', {
-          p_performance_bonus: performanceBonus
-        })
-
-        if (error) {
-          console.error('[Dashboard] Errore increment_daily_xp_with_bonus:', error)
-          // Fallback alla funzione senza bonus se la nuova non esiste ancora
-          const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
-          if (fallbackError) {
-            console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
+          if (error) {
+            // Se errore 404 o funzione non esiste, usa fallback
+            if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('404')) {
+              // Fallback alla funzione senza bonus
+              const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
+              if (fallbackError) {
+                console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
+                return
+              }
+              xpResult = fallbackData
+            } else {
+              console.error('[Dashboard] Errore increment_daily_xp_with_bonus:', error)
+              return
+            }
+          } else {
+            xpResult = data
+          }
+        } catch (rpcError: any) {
+          // Se la funzione non esiste (404), usa fallback
+          if (rpcError?.code === 'PGRST116' || rpcError?.message?.includes('404') || rpcError?.status === 404) {
+            const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
+            if (fallbackError) {
+              console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
+              return
+            }
+            xpResult = fallbackData
+          } else {
+            console.error('[Dashboard] Errore increment_daily_xp_with_bonus (exception):', rpcError)
             return
           }
-          if (fallbackData !== null) {
-            setXp(fallbackData)
-          }
-        } else {
-          // Aggiorna XP locale
-          if (data !== null) {
-            setXp(data)
-          }
+        }
+
+        // Aggiorna XP locale
+        if (xpResult !== null && xpResult !== undefined) {
+          setXp(xpResult)
         }
 
         setHasAwardedDailyXp(true)
@@ -156,6 +183,7 @@ export default function DashboardPage() {
         await loadXp()
       } catch (err) {
         console.error('[Dashboard] Errore increment_daily_xp:', err)
+        // Non bloccare il flusso se XP fallisce
       }
     }
 
@@ -289,18 +317,24 @@ export default function DashboardPage() {
       }
 
       // Award XP per ultima partita (se disponibile e non già assegnato)
+      // NOTA: Questa funzione è opzionale, non blocca il flusso se fallisce
       if (statsData.stats?.matches && statsData.stats.matches.length > 0 && user && !hasAwardedMatchXp) {
         const lastMatch = statsData.stats.matches[0] // Prima partita = più recente
-        if (lastMatch.match_id && typeof lastMatch.win === 'boolean') {
+        
+        // Valida che match_id sia un numero valido e win sia boolean
+        if (lastMatch.match_id && typeof lastMatch.match_id === 'number' && typeof lastMatch.win === 'boolean') {
           try {
             const { data: awardData, error: awardError } = await (supabase as any).rpc('award_last_match_xp', {
-              p_match_id: lastMatch.match_id,
-              p_win: lastMatch.win
+              p_match_id: Number(lastMatch.match_id), // Assicura che sia number
+              p_win: Boolean(lastMatch.win) // Assicura che sia boolean
             })
 
             if (awardError) {
-              console.error('[Dashboard] Errore award_last_match_xp:', awardError)
-            } else if (awardData && awardData.length > 0) {
+              // Log errore ma non bloccare (funzione opzionale)
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Dashboard] award_last_match_xp opzionale fallita (non critico):', awardError)
+              }
+            } else if (awardData && Array.isArray(awardData) && awardData.length > 0 && awardData[0]?.xp !== undefined) {
               // Aggiorna XP locale
               setXp(awardData[0].xp)
               setHasAwardedMatchXp(true)
@@ -309,7 +343,10 @@ export default function DashboardPage() {
               await loadXp()
             }
           } catch (err) {
-            console.error('[Dashboard] Errore award_last_match_xp:', err)
+            // Non bloccare il flusso se award match XP fallisce (opzionale)
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Dashboard] award_last_match_xp opzionale fallita (non critico):', err)
+            }
           }
         }
       }
