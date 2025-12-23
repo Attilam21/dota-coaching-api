@@ -91,6 +91,25 @@ export default function SettingsPage() {
         return
       }
 
+      // Verifica sessione prima di salvare
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !currentSession) {
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Fai logout e login di nuovo.',
+        })
+        setSaving(false)
+        return
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Settings] Saving with session:', {
+          userId: currentSession.user.id,
+          hasAccessToken: !!currentSession.access_token,
+        })
+      }
+
       // Salvataggio diretto con client Supabase
       const { error: updateError } = await supabase
         .from('users')
