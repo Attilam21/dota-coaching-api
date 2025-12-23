@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -13,7 +13,8 @@ import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgrou
 import { supabase } from '@/lib/supabase'
 import { updatePlayerId } from '@/app/actions/update-player-id'
 
-export default function SettingsPage() {
+// Componente interno che usa useSearchParams - deve essere wrappato in Suspense
+function SettingsPageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -394,5 +395,20 @@ export default function SettingsPage() {
         </AnimatedCard>
       </div>
     </AnimatedPage>
+  )
+}
+
+// Export principale con Suspense boundary per useSearchParams
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-4 md:p-6">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+    }>
+      <SettingsPageContent />
+    </Suspense>
   )
 }
