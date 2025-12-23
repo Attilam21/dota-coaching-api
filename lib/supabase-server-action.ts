@@ -39,7 +39,9 @@ export function createServerActionSupabaseClient() {
       },
       remove(name: string, options: CookieOptions) {
         try {
-          cookieStore.set({ name, value: '', ...options })
+          // CRITICO: maxAge: 0 è necessario per eliminare correttamente il cookie dal browser
+          // Senza questo, i cookie di autenticazione potrebbero persistere creando problemi di sicurezza
+          cookieStore.set({ name, value: '', maxAge: 0, ...options })
         } catch {
           // Ignore cookie errors
         }
