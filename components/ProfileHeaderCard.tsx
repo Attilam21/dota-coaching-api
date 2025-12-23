@@ -188,19 +188,7 @@ export default function ProfileHeaderCard({
         </div>
       </div>
 
-      {/* Settings Link */}
-      {showSettingsLink && (
-        <div className="absolute top-4 right-4">
-          <Link
-            href="/dashboard/settings"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
-            title="Impostazioni"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Impostazioni</span>
-          </Link>
-        </div>
-      )}
+      {/* Settings Link rimosso - ora è nella barra superiore della dashboard */}
     </div>
   )
 }
