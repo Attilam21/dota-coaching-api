@@ -214,10 +214,11 @@ function HelmetLogo({ className: svgClassName }: { className?: string }) {
 }
 
 export default function Logo({ className = '', showText = false, size = 'md', href }: LogoProps) {
+  // Dimensioni orizzontali per rispettare le proporzioni del logo (emblema + testo)
   const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16'
+    sm: 'h-8',  // Altezza fissa
+    md: 'h-12',
+    lg: 'h-16'
   }
 
   const textSizeClasses = {
@@ -230,23 +231,27 @@ export default function Logo({ className = '', showText = false, size = 'md', hr
 
   const content = (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Logo - Immagine JPEG così com'è, adattata alle dimensioni */}
-      <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
+      {/* Logo - Immagine JPEG così com'è, adattata alle dimensioni orizzontali */}
+      <div 
+        className={`relative ${sizeClasses[size]} flex-shrink-0`} 
+        style={{ 
+          aspectRatio: '3.5 / 1',  // Proporzioni orizzontali del logo
+          width: 'auto'
+        }}
+      >
         {showImage ? (
-          /* Immagine JPEG - mostra il logo completo così com'è */
-          <div className="w-full h-full">
-            <Image
-              src="/logo.jpeg"
-              alt="ATTILA LAB Logo"
-              fill
-              className="object-contain"
-              priority
-              onError={() => {
-                // Se l'immagine non esiste, mostra l'SVG elmo come fallback
-                setShowImage(false)
-              }}
-            />
-          </div>
+          /* Immagine JPEG - mostra il logo completo così com'è, mantenendo proporzioni orizzontali */
+          <Image
+            src="/logo.jpeg"
+            alt="ATTILA LAB Logo"
+            fill
+            className="object-contain"
+            priority
+            onError={() => {
+              // Se l'immagine non esiste, mostra l'SVG elmo come fallback
+              setShowImage(false)
+            }}
+          />
         ) : (
           /* SVG elmo - fallback se l'immagine non è disponibile */
           <div className="w-full h-full">
