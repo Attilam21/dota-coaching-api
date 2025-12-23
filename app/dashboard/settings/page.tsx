@@ -11,6 +11,7 @@ import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
 import { supabase } from '@/lib/supabase'
+import { updatePlayerId } from '@/app/actions/update-player-id'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -91,104 +92,28 @@ export default function SettingsPage() {
         return
       }
 
-      // Verifica sessione prima di salvare
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !currentSession) {
+      // Usa Server Action invece di client diretto
+      // Vantaggi:
+      // - ✅ Session gestita automaticamente da Next.js cookies()
+      // - ✅ JWT sempre presente e passato correttamente
+      // - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
+      const result = await updatePlayerId(playerIdString)
+
+      if (!result.success) {
         setMessage({
           type: 'error',
-          text: 'Sessione non valida. Fai logout e login di nuovo.',
+          text: result.error || 'Errore nel salvataggio del Player ID.',
         })
         setSaving(false)
         return
-      }
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Settings] Saving with session:', {
-          userId: currentSession.user.id,
-          hasAccessToken: !!currentSession.access_token,
-        })
-      }
-
-      // DEBUG: Verifica sessione e JWT prima di salvare
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Settings] DEBUG - Session check:', {
-          hasSession: !!currentSession,
-          hasAccessToken: !!currentSession?.access_token,
-          accessTokenPreview: currentSession?.access_token?.substring(0, 30) + '...',
-          userId: currentSession?.user?.id,
-          userEmail: currentSession?.user?.email,
-        })
-      }
-
-      // Salvataggio diretto con client Supabase
-      // IMPORTANTE: Supabase dovrebbe aggiungere automaticamente Authorization header
-      // con session.access_token quando presente. Se non lo fa, avremo 403.
-      const { data: updateData, error: updateError } = await supabase
-        .from('users')
-        .update({
-          dota_account_id: dotaAccountIdNum,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .select() // Aggiungi select per vedere risposta
-
-      if (updateError) {
-        console.error('[Settings] Error updating player ID:', updateError)
-        console.error('[Settings] Error details:', {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-        })
-        
-        // DEBUG: Verifica se JWT è stato passato
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[Settings] DEBUG - Verifica sessione dopo errore:')
-          const { data: { session: errorSession } } = await supabase.auth.getSession()
-          console.error('[Settings] Session dopo errore:', {
-            hasSession: !!errorSession,
-            hasAccessToken: !!errorSession?.access_token,
-            userId: errorSession?.user?.id,
-          })
-        }
-        
-        // Gestione errori più semplice - non reindirizza automaticamente
-        if (updateError.code === '42501' || updateError.message?.includes('permission denied')) {
-          setMessage({
-            type: 'error',
-            text: `Errore di permessi (${updateError.code}). JWT non passato correttamente. Verifica console per dettagli.`,
-          })
-        } else if (updateError.message?.includes('JWT') || updateError.code === 'PGRST301') {
-          setMessage({
-            type: 'error',
-            text: 'Sessione scaduta. Fai logout e login di nuovo.',
-          })
-        } else {
-          setMessage({
-            type: 'error',
-            text: `${updateError.message || 'Errore nel salvataggio'} (Code: ${updateError.code})`,
-          })
-        }
-        setSaving(false)
-        return
-      }
-
-      // DEBUG: Success
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Settings] ✅ UPDATE riuscito!', updateData)
       }
 
       // Success - aggiorna context
       setPlayerId(playerIdString)
 
-      const successMessage = dotaAccountIdNum 
-        ? `Player ID ${dotaAccountIdNum} salvato con successo!`
-        : 'Player ID rimosso con successo.'
-      
       setMessage({ 
         type: 'success', 
-        text: successMessage
+        text: result.message || 'Player ID salvato con successo!'
       })
     } catch (err) {
       console.error('Failed to save settings:', err)
