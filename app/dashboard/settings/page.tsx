@@ -16,7 +16,7 @@ import { updatePlayerId } from '@/app/actions/update-player-id'
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId, setPlayerId } = usePlayerIdContext()
+  const { playerId, setPlayerId, reload } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
@@ -120,13 +120,21 @@ export default function SettingsPage() {
         return
       }
 
-      // Success - aggiorna context
+      // Success - ricarica dal database per sincronizzazione completa
+      console.log('[Settings] Salvataggio riuscito, ricarico Player ID dal database...')
+      await reload()
+      
+      // Aggiorna anche state locale per immediate feedback
       setPlayerId(playerIdString)
 
       setMessage({ 
         type: 'success', 
-        text: result.message || 'Player ID salvato con successo!'
+        text: result.message || 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
       })
+      
+      // Notifica che la dashboard si aggiornerà automaticamente
+      // Il redirect è opzionale - l'utente può rimanere qui o andare alla dashboard
+      console.log('[Settings] Player ID salvato e ricaricato. Dashboard si aggiornerà automaticamente.')
     } catch (err) {
       console.error('Failed to save settings:', err)
       setMessage({

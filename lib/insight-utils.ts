@@ -88,7 +88,7 @@ export function buildBulbInsights(
   const matchCount = matches.length
 
   // Calculate winrate by condition
-  const calculateWinrateByCondition = (condition: (m: any) => boolean): number => {
+  const calculateWinrateByCondition = (condition: (m: PlayerStats['matches'][number]) => boolean): number => {
     const filtered = matches.filter(condition)
     if (filtered.length < 3) return -1 // Not enough data
     const wins = filtered.filter(m => {
@@ -548,7 +548,7 @@ export function buildMatchesInsights(matches: Array<{
   if (!matches || matches.length < 5) return insights
 
   // Helper to check if match is win
-  const isWin = (m: any) => {
+  const isWin = (m: { win?: boolean; radiant_win?: boolean; player_slot?: number }): boolean => {
     if (m.win !== undefined) return m.win
     if (m.radiant_win !== undefined && m.player_slot !== undefined) {
       return (m.player_slot < 128 && m.radiant_win) || (m.player_slot >= 128 && !m.radiant_win)

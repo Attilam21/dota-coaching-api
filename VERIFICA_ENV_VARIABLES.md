@@ -13,8 +13,8 @@ Questo errore significa che l'header `apikey` non viene inviato nelle richieste 
 Apri `.env.local` nella root del progetto e verifica:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://yzfjtrteezvyoudpfccb.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6Zmp0cnRlZXp2eW91ZHBmY2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NDQwMDYsImV4cCI6MjA3OTEyMDAwNn0.sMWiigc2nb3KjSnco6mU5k0556ukRTcKS-3LDREtKIw
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
 **IMPORTANTE**:

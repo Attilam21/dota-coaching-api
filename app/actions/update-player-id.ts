@@ -14,7 +14,8 @@ import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 export async function updatePlayerId(playerId: string | null, accessToken?: string) {
   try {
     // Crea client server-side con JWT esplicito
-    const supabase = createServerActionSupabaseClient(accessToken)
+    // IMPORTANTE: Ora è async perché setSession() è async
+    const supabase = await createServerActionSupabaseClient(accessToken)
 
     // Verifica sessione
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -40,6 +41,7 @@ export async function updatePlayerId(playerId: string | null, accessToken?: stri
     }
 
     // Update user record
+    console.log('[updatePlayerId] Aggiornamento database per user:', user.id, 'dota_account_id:', dotaAccountId)
     const { data, error: updateError } = await supabase
       .from('users')
       .update({
@@ -51,12 +53,25 @@ export async function updatePlayerId(playerId: string | null, accessToken?: stri
       .single()
 
     if (updateError) {
-      console.error('[updatePlayerId] Error:', updateError)
+      console.error('[updatePlayerId] Errore aggiornamento database:', {
+        error: updateError,
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint,
+        userId: user.id
+      })
       return {
         success: false,
         error: updateError.message || 'Errore nel salvataggio del Player ID.',
       }
     }
+
+    console.log('[updatePlayerId] Salvataggio riuscito:', {
+      userId: user.id,
+      dotaAccountId: dotaAccountId,
+      updatedData: data
+    })
 
     return {
       success: true,
