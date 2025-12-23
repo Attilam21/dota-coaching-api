@@ -430,9 +430,10 @@ function SettingsPageContent() {
               <p className="mt-2 text-gray-400">File supportati:</p>
               <ul className="list-disc list-inside ml-2 space-y-1 text-gray-400">
                 <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.jpg</code> ✅ presente</li>
-                <li><code className="bg-gray-800 px-1 rounded">profile-bg.jpg</code> ❌ mancante</li>
-                <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.png</code> ❌ opzionale</li>
-                <li><code className="bg-gray-800 px-1 rounded">profile-bg.png</code> ❌ opzionale</li>
+                <li><code className="bg-gray-800 px-1 rounded">profile-bg.jpg</code> ✅ presente</li>
+                {/* File opzionali - decommenta quando li aggiungi: */}
+                {/* <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.png</code> ❌ opzionale</li> */}
+                {/* <li><code className="bg-gray-800 px-1 rounded">profile-bg.png</code> ❌ opzionale</li> */}
               </ul>
             </div>
           </div>
