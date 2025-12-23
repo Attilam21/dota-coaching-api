@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from './auth-context'
 import { supabase } from './supabase'
 
@@ -37,6 +37,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   const [verificationMethod, setVerificationMethodState] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const loadingRef = useRef(false) // Prevenire chiamate multiple simultanee
+  const lastErrorRef = useRef<{ timestamp: number; count: number } | null>(null) // Traccia errori per prevenire loop
 
   // Mark as mounted on client side (SSR safety)
   useEffect(() => {
@@ -45,31 +47,54 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
 
   // Funzione per caricare Player ID dal database (riutilizzabile)
   const loadPlayerIdFromDatabase = useCallback(async () => {
-          // CRITICO: Attendere che sia user che session siano disponibili
-          // Se la sessione non è disponibile, auth.uid() non funziona e RLS rifiuta (403)
-          if (!user || !session) {
-            // User o sessione non ancora disponibili - attendere
-            setPlayerIdState(null)
-            setIsVerifiedState(false)
-            setVerifiedAtState(null)
-            setVerificationMethodState(null)
-            setIsLoading(false)
-            return
-          }
-          
-          // Verifica che la sessione abbia un access_token valido
-          if (!session.access_token) {
-            console.warn('[PlayerIdContext] Session without access_token, waiting...')
-            setPlayerIdState(null)
-            setIsVerifiedState(false)
-            setVerifiedAtState(null)
-            setVerificationMethodState(null)
-            setIsLoading(false)
-            return
-          }
+    // Prevenire chiamate multiple simultanee
+    if (loadingRef.current) {
+      console.log('[PlayerIdContext] Load già in corso, skip...')
+      return
+    }
 
-          try {
-            setIsLoading(true)
+    // CRITICO: Attendere che sia user che session siano disponibili
+    // Se la sessione non è disponibile, auth.uid() non funziona e RLS rifiuta (403)
+    if (!user || !session) {
+      // User o sessione non ancora disponibili - attendere
+      setPlayerIdState(null)
+      setIsVerifiedState(false)
+      setVerifiedAtState(null)
+      setVerificationMethodState(null)
+      setIsLoading(false)
+      return
+    }
+    
+    // Verifica che la sessione abbia un access_token valido
+    if (!session.access_token) {
+      console.warn('[PlayerIdContext] Session without access_token, waiting...')
+      setPlayerIdState(null)
+      setIsVerifiedState(false)
+      setVerifiedAtState(null)
+      setVerificationMethodState(null)
+      setIsLoading(false)
+      return
+    }
+
+    // Gestione errori ripetuti - se abbiamo avuto troppi errori 403 di recente, non riprovare
+    const now = Date.now()
+    if (lastErrorRef.current) {
+      const timeSinceLastError = now - lastErrorRef.current.timestamp
+      // Se abbiamo avuto 3+ errori negli ultimi 10 secondi, non riprovare (previene loop)
+      if (lastErrorRef.current.count >= 3 && timeSinceLastError < 10000) {
+        console.warn('[PlayerIdContext] Troppi errori recenti, skip per prevenire loop. Riprova tra qualche secondo.')
+        setIsLoading(false)
+        return
+      }
+      // Reset counter se è passato abbastanza tempo
+      if (timeSinceLastError > 30000) {
+        lastErrorRef.current = null
+      }
+    }
+
+    try {
+      loadingRef.current = true
+      setIsLoading(true)
             
             // Verifica che l'ID utente nella sessione corrisponda
             if (session.user.id !== user.id) {
@@ -82,6 +107,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
             }
 
             // Verifica che la sessione sia ancora valida prima di fare la query
+            // NOTA: Supabase client con persistSession: true dovrebbe già avere la sessione da localStorage
+            // Non serve chiamare setSession() se la sessione è già presente nel client
             const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
             
             if (sessionError || !currentSession || !currentSession.access_token) {
@@ -91,32 +118,28 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               setVerifiedAtState(null)
               setVerificationMethodState(null)
               setIsLoading(false)
+              loadingRef.current = false
               return
             }
-        
-            // Carica da database (SOLA FONTE DI VERITÀ)
-            // CRITICO: Assicurarsi che la sessione sia impostata nel client prima della query
-            // Supabase client deve avere la sessione attiva per auth.uid() funzionare nelle RLS policies
-            console.log('[PlayerIdContext] Caricamento Player ID dal database per user:', user.id)
-            
-            // Verifica che la sessione sia attiva nel client Supabase
-            // Questo è necessario perché Supabase usa la sessione per auth.uid() nelle RLS policies
-            // NOTA: Supabase client dovrebbe già avere la sessione da localStorage,
-            // ma assicuriamoci che sia sincronizzata
-            if (currentSession?.access_token) {
-              // Imposta esplicitamente la sessione nel client per garantire che auth.uid() funzioni
-              // Usa solo access_token e refresh_token come richiesto dal tipo
+
+            // Verifica che la sessione nel client corrisponda a quella che abbiamo
+            if (currentSession.access_token !== session.access_token) {
+              console.warn('[PlayerIdContext] Session token mismatch, sincronizzando...')
+              // Sincronizza la sessione se diversa
               const { error: setSessionError } = await supabase.auth.setSession({
                 access_token: currentSession.access_token,
                 refresh_token: currentSession.refresh_token || '',
               })
               
               if (setSessionError) {
-                console.warn('[PlayerIdContext] setSession error (continuing anyway):', setSessionError.message)
-              } else {
-                console.log('[PlayerIdContext] Session set successfully in client')
+                console.warn('[PlayerIdContext] setSession error:', setSessionError.message)
               }
             }
+        
+            // Carica da database (SOLA FONTE DI VERITÀ)
+            // Supabase client con persistSession: true dovrebbe automaticamente usare la sessione
+            // da localStorage per auth.uid() nelle RLS policies
+            console.log('[PlayerIdContext] Caricamento Player ID dal database per user:', user.id)
             
             const { data: userData, error: fetchError } = await supabase
               .from('users')
@@ -125,14 +148,30 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               .single()
 
             if (fetchError) {
-              // Se è un errore 403, potrebbe essere un problema di timing - logga ma non bloccare
-              if (fetchError.code === 'PGRST301' || fetchError.message?.includes('403') || fetchError.message?.includes('Forbidden')) {
-                console.warn('[PlayerIdContext] 403 Forbidden - RLS policy might be blocking. Session:', {
+              // Gestione errori 403/42501 (permission denied)
+              const isPermissionError = fetchError.code === 'PGRST301' || 
+                                       fetchError.code === '42501' ||
+                                       fetchError.message?.includes('403') || 
+                                       fetchError.message?.includes('Forbidden') ||
+                                       fetchError.message?.includes('permission denied')
+              
+              if (isPermissionError) {
+                // Traccia errori per prevenire loop
+                if (!lastErrorRef.current) {
+                  lastErrorRef.current = { timestamp: Date.now(), count: 1 }
+                } else {
+                  lastErrorRef.current.count += 1
+                  lastErrorRef.current.timestamp = Date.now()
+                }
+                
+                console.error('[PlayerIdContext] 403/42501 Permission Denied - RLS policy blocking:', {
                   hasSession: !!currentSession,
                   hasAccessToken: !!currentSession?.access_token,
                   userId: user?.id,
                   errorCode: fetchError.code,
-                  errorMessage: fetchError.message
+                  errorMessage: fetchError.message,
+                  errorCount: lastErrorRef.current.count,
+                  hint: 'Verifica che RLS policies siano configurate correttamente e che auth.uid() funzioni'
                 })
               } else {
                 console.error('[PlayerIdContext] Error fetching player ID from DB:', {
@@ -147,6 +186,11 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               setIsVerifiedState(false)
               setVerifiedAtState(null)
               setVerificationMethodState(null)
+              
+              // Reset error counter se non è un errore di permesso
+              if (!isPermissionError) {
+                lastErrorRef.current = null
+              }
             } else if (userData?.dota_account_id) {
               // Found in database - use it
               const dbPlayerId = String(userData.dota_account_id)
@@ -173,20 +217,25 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
             setVerificationMethodState(null)
           } finally {
             setIsLoading(false)
+            loadingRef.current = false
           }
   }, [user, session])
 
   // Load Player ID from database when user is authenticated AND session is loaded
+  // NOTA: NON includere loadPlayerIdFromDatabase nelle dipendenze per prevenire loop
+  // La funzione è già memoizzata con useCallback e dipende solo da user/session
   useEffect(() => {
     if (!isMounted) return
+    if (!user || !session) return // Non provare se user/session non sono disponibili
 
     // Aggiungi un piccolo delay per assicurarsi che la sessione sia completamente inizializzata
     const timeoutId = setTimeout(() => {
       loadPlayerIdFromDatabase()
-    }, 100)
+    }, 200) // Aumentato a 200ms per dare più tempo alla sessione
 
     return () => clearTimeout(timeoutId)
-  }, [isMounted, user, session, loadPlayerIdFromDatabase])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted, user?.id, session?.access_token]) // Usa solo ID e token come dipendenze, non l'intero oggetto
 
   // Update player ID state (database è la fonte di verità, questo aggiorna solo lo state)
   const setPlayerId = useCallback((id: string | null) => {
