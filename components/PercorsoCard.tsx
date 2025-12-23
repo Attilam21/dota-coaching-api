@@ -53,32 +53,50 @@ export default function PercorsoCard({ xp, isLoading = false }: PercorsoCardProp
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar con Avatar */}
       <div className="space-y-2">
-        <div className="relative w-full h-8 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+        <div className="relative w-full h-12 bg-gray-800 rounded-full overflow-visible border border-gray-700 flex items-center">
           {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-800" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-800 rounded-full" />
+          
+          {/* Avatar livello attuale (sinistra) */}
+          <div className="absolute left-0 z-10 flex items-center justify-center" style={{ transform: 'translateX(-50%)' }}>
+            <div className="bg-gray-800 border-2 rounded-full p-1" style={{ borderColor: currentRank.color }}>
+              <FantasyRankAvatar icon={currentRank.avatarIcon} color={currentRank.color} size={40} />
+            </div>
+          </div>
+          
+          {/* Avatar livello obiettivo (destra) */}
+          {nextRank && (
+            <div className="absolute right-0 z-10 flex items-center justify-center" style={{ transform: 'translateX(50%)' }}>
+              <div className="bg-gray-800 border-2 rounded-full p-1" style={{ borderColor: nextRank.color }}>
+                <FantasyRankAvatar icon={nextRank.avatarIcon} color={nextRank.color} size={40} />
+              </div>
+            </div>
+          )}
           
           {/* Progress fill con animazione */}
           <motion.div
-            className="absolute inset-y-0 left-0"
+            className="absolute inset-y-0 left-0 rounded-full"
             style={{
               background: `linear-gradient(to right, ${currentRank.color}, ${nextRank?.color || currentRank.color})`,
-              width: `${percentage}%`
+              width: `${percentage}%`,
+              marginLeft: '20px', // Spazio per avatar sinistra
+              marginRight: nextRank ? '20px' : '0' // Spazio per avatar destra se presente
             }}
             initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
+            animate={{ width: `calc(${percentage}% - ${nextRank ? '40px' : '20px'})` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             {/* Shine effect */}
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" 
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full" 
               style={{ animation: 'shimmer 2s infinite' }} 
             />
           </motion.div>
 
           {/* Text overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center z-0" style={{ paddingLeft: '24px', paddingRight: nextRank ? '24px' : '0' }}>
             <span className="text-sm font-semibold text-white drop-shadow-lg">
               {progressText}
             </span>
