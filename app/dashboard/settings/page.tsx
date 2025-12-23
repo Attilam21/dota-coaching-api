@@ -125,11 +125,8 @@ function SettingsPageContent() {
         return
       }
 
-      // Usa Server Action invece di client diretto
+      // Usa Server Action per salvare nel database
       // Passa l'access_token dalla sessione corrente
-      // Vantaggi:
-      // - ✅ JWT passato esplicitamente dal client
-      // - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
       const result = await updatePlayerId(playerIdString, currentSession.access_token)
 
       if (!result.success) {
@@ -139,6 +136,18 @@ function SettingsPageContent() {
         })
         setSaving(false)
         return
+      }
+
+      // Sincronizza localStorage (fonte primaria come da ARCHITECTURE.md)
+      // localStorage è la fonte primaria, DB è sincronizzato per backup
+      if (typeof window !== 'undefined') {
+        if (playerIdString) {
+          localStorage.setItem('fzth_player_id', playerIdString)
+          console.log('[SettingsPage] Player ID sincronizzato in localStorage:', playerIdString)
+        } else {
+          localStorage.removeItem('fzth_player_id')
+          console.log('[SettingsPage] Player ID rimosso da localStorage')
+        }
       }
 
       // Success - ricarica dal database per sincronizzazione completa

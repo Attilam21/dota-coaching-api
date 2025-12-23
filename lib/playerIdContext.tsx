@@ -4,8 +4,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAuth } from './auth-context'
 import { supabase } from './supabase'
 
-// NOTA: localStorage per Player ID rimosso - usiamo solo database
-// localStorage rimane SOLO per dati partita (last_match_id_*, player_data_* per cache match)
+// Player ID gestito in localStorage come fonte primaria (come da ARCHITECTURE.md)
+// localStorage rimane anche per dati partita (last_match_id_*, player_data_* per cache match)
+const PLAYER_ID_KEY = 'fzth_player_id'
 
 interface PlayerIdContextType {
   playerId: string | null
@@ -45,200 +46,98 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true)
   }, [])
 
-  // Funzione per caricare Player ID dal database (riutilizzabile)
-  const loadPlayerIdFromDatabase = useCallback(async () => {
+  // Funzione per caricare Player ID da localStorage (fonte primaria)
+  const loadPlayerIdFromLocalStorage = useCallback(() => {
     // Prevenire chiamate multiple simultanee
     if (loadingRef.current) {
       console.log('[PlayerIdContext] Load già in corso, skip...')
       return
     }
 
-    // CRITICO: Attendere che sia user che session siano disponibili
-    // Se la sessione non è disponibile, auth.uid() non funziona e RLS rifiuta (403)
-    if (!user || !session) {
-      // User o sessione non ancora disponibili - attendere
-      setPlayerIdState(null)
-      setIsVerifiedState(false)
-      setVerifiedAtState(null)
-      setVerificationMethodState(null)
-      setIsLoading(false)
-      return
-    }
-    
-    // Verifica che la sessione abbia un access_token valido
-    if (!session.access_token) {
-      console.warn('[PlayerIdContext] Session without access_token, waiting...')
-      setPlayerIdState(null)
-      setIsVerifiedState(false)
-      setVerifiedAtState(null)
-      setVerificationMethodState(null)
-      setIsLoading(false)
-      return
-    }
-
-    // Gestione errori ripetuti - se abbiamo avuto troppi errori 403 di recente, non riprovare
-    const now = Date.now()
-    if (lastErrorRef.current) {
-      const timeSinceLastError = now - lastErrorRef.current.timestamp
-      // Se abbiamo avuto 3+ errori negli ultimi 10 secondi, non riprovare (previene loop)
-      if (lastErrorRef.current.count >= 3 && timeSinceLastError < 10000) {
-        console.warn('[PlayerIdContext] Troppi errori recenti, skip per prevenire loop. Riprova tra qualche secondo.')
-        setIsLoading(false)
-        return
-      }
-      // Reset counter se è passato abbastanza tempo
-      if (timeSinceLastError > 30000) {
-        lastErrorRef.current = null
-      }
-    }
-
     try {
       loadingRef.current = true
       setIsLoading(true)
-            
-            // Verifica che l'ID utente nella sessione corrisponda
-            if (session.user.id !== user.id) {
-              console.error('[PlayerIdContext] ID utente mismatch:', {
-                sessionUserId: session.user.id,
-                authUserId: user.id
-              })
-              setIsLoading(false)
-              loadingRef.current = false // ✅ CRITICO: Reset loadingRef prima di return
-              return
-            }
+      
+      // Carica da localStorage (fonte primaria come da ARCHITECTURE.md)
+      if (typeof window !== 'undefined') {
+        const savedPlayerId = localStorage.getItem(PLAYER_ID_KEY)
+        
+        if (savedPlayerId && savedPlayerId.trim()) {
+          console.log('[PlayerIdContext] ✅ Player ID trovato in localStorage:', savedPlayerId)
+          setPlayerIdState(savedPlayerId.trim())
+          // localStorage non contiene dati verifica, quindi reset
+          setIsVerifiedState(false)
+          setVerifiedAtState(null)
+          setVerificationMethodState(null)
+        } else {
+          console.log('[PlayerIdContext] Nessun Player ID trovato in localStorage')
+          setPlayerIdState(null)
+          setIsVerifiedState(false)
+          setVerifiedAtState(null)
+          setVerificationMethodState(null)
+        }
+      } else {
+        // SSR - non c'è localStorage
+        setPlayerIdState(null)
+        setIsVerifiedState(false)
+        setVerifiedAtState(null)
+        setVerificationMethodState(null)
+      }
+    } catch (err) {
+      console.error('[PlayerIdContext] Failed to load player ID from localStorage:', err)
+      setPlayerIdState(null)
+      setIsVerifiedState(false)
+      setVerifiedAtState(null)
+      setVerificationMethodState(null)
+    } finally {
+      setIsLoading(false)
+      loadingRef.current = false
+    }
+  }, [])
 
-            // Usa Server Action invece di query client-side per evitare problemi con RLS
-            // Il client Supabase lato client non passa sempre correttamente l'Authorization header
-            // La Server Action garantisce che la sessione sia passata correttamente
-            console.log('[PlayerIdContext] 📥 Caricamento Player ID dal database per user:', user.id)
-            console.log('[PlayerIdContext] Usando Server Action per garantire corretta autenticazione RLS')
-            
-            // Importa Server Action dinamicamente (client component)
-            // Passa accessToken esplicitamente per garantire autenticazione RLS
-            const { getPlayerId } = await import('@/app/actions/get-player-id')
-            const result = await getPlayerId(session.access_token)
-            
-            // Gestisci risultato Server Action
-            if (!result.success) {
-              const fetchError = {
-                code: result.code || 'UNKNOWN',
-                message: result.error || 'Unknown error',
-              }
-              
-              // Gestione errori 403/42501 (permission denied)
-              const isPermissionError = fetchError.code === 'PGRST301' || 
-                                       fetchError.code === '42501' ||
-                                       fetchError.message?.includes('403') || 
-                                       fetchError.message?.includes('Forbidden') ||
-                                       fetchError.message?.includes('permission denied')
-              
-              if (isPermissionError) {
-                // Traccia errori per prevenire loop
-                if (!lastErrorRef.current) {
-                  lastErrorRef.current = { timestamp: Date.now(), count: 1 }
-                } else {
-                  lastErrorRef.current.count += 1
-                  lastErrorRef.current.timestamp = Date.now()
-                }
-                
-                console.error('[PlayerIdContext] 403/42501 Permission Denied - RLS policy blocking:', {
-                  hasSession: !!session,
-                  hasAccessToken: !!session?.access_token,
-                  userId: user?.id,
-                  errorCode: fetchError.code,
-                  errorMessage: fetchError.message,
-                  errorCount: lastErrorRef.current.count,
-                  hint: 'Server Action dovrebbe passare correttamente la sessione. Verifica RLS policies.'
-                })
-              } else {
-                console.error('[PlayerIdContext] Error fetching player ID from DB:', {
-                  error: fetchError,
-                  code: fetchError.code,
-                  message: fetchError.message,
-                })
-              }
-              // In caso di errore, mostra campo vuoto (non fallback localStorage)
-              setPlayerIdState(null)
-              setIsVerifiedState(false)
-              setVerifiedAtState(null)
-              setVerificationMethodState(null)
-              
-              // Reset error counter se non è un errore di permesso
-              if (!isPermissionError) {
-                lastErrorRef.current = null
-              }
-            } else if (result.playerId) {
-              // Found in database - use it
-              console.log('[PlayerIdContext] ✅ Player ID trovato nel database:', result.playerId)
-              setPlayerIdState(result.playerId)
-              
-              // Carica anche dati verifica se presenti
-              setIsVerifiedState(result.verified || false)
-              setVerifiedAtState(result.verifiedAt || null)
-              setVerificationMethodState(result.verificationMethod || null)
-            } else {
-              // No ID in DB
-              console.log('[PlayerIdContext] Nessun Player ID trovato nel database per questo utente')
-              setPlayerIdState(null)
-              setIsVerifiedState(false)
-              setVerifiedAtState(null)
-              setVerificationMethodState(null)
-            }
-            
-            // Fine gestione Server Action
-          } catch (err) {
-            console.error('[PlayerIdContext] Failed to load player ID:', err)
-            setPlayerIdState(null)
-            setIsVerifiedState(false)
-            setVerifiedAtState(null)
-            setVerificationMethodState(null)
-          } finally {
-            setIsLoading(false)
-            loadingRef.current = false
-          }
-  }, [user, session])
-
-  // Load Player ID from database when user is authenticated AND session is loaded
-  // NOTA: NON includere loadPlayerIdFromDatabase nelle dipendenze per prevenire loop
-  // La funzione è già memoizzata con useCallback e dipende solo da user/session
+  // Load Player ID from localStorage quando il componente è montato
+  // localStorage è la fonte primaria (come da ARCHITECTURE.md)
   useEffect(() => {
-    console.log('[PlayerIdContext] 🔄 useEffect triggerato:', {
-      isMounted,
-      hasUser: !!user,
-      userId: user?.id,
-      hasSession: !!session,
-      hasAccessToken: !!session?.access_token
-    })
-    
     if (!isMounted) {
-      console.log('[PlayerIdContext] ⏸️ Componente non ancora montato, skip')
       return
     }
+
+    // Carica immediatamente da localStorage
+    loadPlayerIdFromLocalStorage()
+  }, [isMounted, loadPlayerIdFromLocalStorage])
+  
+  // Ascolta cambiamenti in localStorage (per sincronizzazione tra tab)
+  useEffect(() => {
+    if (!isMounted) return
     
-    if (!user || !session) {
-      console.warn('[PlayerIdContext] ⚠️ User o session non disponibili, skip:', {
-        hasUser: !!user,
-        hasSession: !!session
-      })
-      return // Non provare se user/session non sono disponibili
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === PLAYER_ID_KEY) {
+        console.log('[PlayerIdContext] Storage event - Player ID cambiato in localStorage')
+        loadPlayerIdFromLocalStorage()
+      }
     }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [isMounted, loadPlayerIdFromLocalStorage])
 
-    // Aggiungi un piccolo delay per assicurarsi che la sessione sia completamente inizializzata
-    console.log('[PlayerIdContext] ⏳ Delay 200ms prima di caricare Player ID...')
-    const timeoutId = setTimeout(() => {
-      console.log('[PlayerIdContext] 🚀 Chiamata loadPlayerIdFromDatabase()')
-      loadPlayerIdFromDatabase()
-    }, 200) // Aumentato a 200ms per dare più tempo alla sessione
-
-    return () => clearTimeout(timeoutId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMounted, user?.id, session?.access_token]) // Usa solo ID e token come dipendenze, non l'intero oggetto
-
-  // Update player ID state (database è la fonte di verità, questo aggiorna solo lo state)
+  // Update player ID state e localStorage (localStorage è la fonte primaria)
   const setPlayerId = useCallback((id: string | null) => {
-    // Aggiorna solo lo state locale - il database viene aggiornato da SettingsPage
-    // Questo permette sincronizzazione immediata tra componenti
-    setPlayerIdState(id ? id.trim() : null)
+    const trimmedId = id ? id.trim() : null
+    
+    // Aggiorna state
+    setPlayerIdState(trimmedId)
+    
+    // Salva in localStorage (fonte primaria)
+    if (typeof window !== 'undefined') {
+      if (trimmedId) {
+        localStorage.setItem(PLAYER_ID_KEY, trimmedId)
+        console.log('[PlayerIdContext] Player ID salvato in localStorage:', trimmedId)
+      } else {
+        localStorage.removeItem(PLAYER_ID_KEY)
+        console.log('[PlayerIdContext] Player ID rimosso da localStorage')
+      }
+    }
     
     // Se ID viene rimosso, rimuovi anche dati verifica
     if (!id) {
@@ -246,9 +145,6 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       setVerifiedAtState(null)
       setVerificationMethodState(null)
     }
-    
-    // NOTA: NON salvare in localStorage - database è l'unica fonte
-    // localStorage rimane SOLO per dati partita (last_match_id_*, player_data_*)
   }, [])
 
   // Set verification status (aggiorna solo state locale - database viene aggiornato da SettingsPage se necessario)
@@ -267,11 +163,11 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     // NOTA: NON salvare in localStorage - database è l'unica fonte
   }, [playerId])
 
-  // Funzione reload esposta per forzare ricaricamento da database
+  // Funzione reload esposta per forzare ricaricamento da localStorage
   const reload = useCallback(async () => {
     console.log('[PlayerIdContext] Reload forzato richiesto')
-    await loadPlayerIdFromDatabase()
-  }, [loadPlayerIdFromDatabase])
+    loadPlayerIdFromLocalStorage()
+  }, [loadPlayerIdFromLocalStorage])
 
   // Memoize context value to prevent unnecessary re-renders
   // This ensures components only re-render when values actually change
