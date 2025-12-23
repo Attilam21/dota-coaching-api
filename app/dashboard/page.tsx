@@ -107,17 +107,28 @@ export default function DashboardPage() {
   }, [])
 
   const fetchStats = useCallback(async () => {
-    if (!playerId) {
-      console.warn('[Dashboard] ⚠️ fetchStats() chiamato ma playerId è null/undefined')
+    // Guard: playerId deve essere una stringa non vuota e un numero valido
+    if (!playerId || !playerId.trim() || !/^\d+$/.test(playerId.trim())) {
+      // Log solo in development per evitare spam in console
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] ⚠️ fetchStats() saltato: playerId non valido o non disponibile')
+      }
       return
     }
 
-    console.log('[Dashboard] 🚀 fetchStats() chiamato con playerId:', playerId)
+    // Log solo in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Dashboard] 🚀 fetchStats() chiamato con playerId:', playerId)
+    }
+
     try {
       setLoading(true)
       setError(null)
 
-      console.log('[Dashboard] 📡 Chiamate API per playerId:', playerId)
+      // Log solo in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] 📡 Chiamate API per playerId:', playerId)
+      }
       const [statsResponse, advancedResponse, profileResponse, wlResponse, benchmarksResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
         fetch(`/api/player/${playerId}/advanced-stats`),
@@ -126,13 +137,16 @@ export default function DashboardPage() {
         fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
       ])
 
-      console.log('[Dashboard] 📥 Risposte API ricevute:', {
-        stats: statsResponse.status,
-        advanced: advancedResponse.status,
-        profile: profileResponse?.status || 'skipped',
-        wl: wlResponse?.status || 'skipped',
-        benchmarks: benchmarksResponse?.status || 'skipped'
-      })
+      // Log solo in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] 📥 Risposte API ricevute:', {
+          stats: statsResponse.status,
+          advanced: advancedResponse.status,
+          profile: profileResponse?.status || 'skipped',
+          wl: wlResponse?.status || 'skipped',
+          benchmarks: benchmarksResponse?.status || 'skipped'
+        })
+      }
 
       if (!statsResponse.ok) {
         console.error('[Dashboard] ❌ statsResponse non OK:', statsResponse.status, statsResponse.statusText)
@@ -192,12 +206,19 @@ export default function DashboardPage() {
   }, [playerId])
 
   useEffect(() => {
-    console.log('[Dashboard] 🔄 useEffect playerId cambiato:', playerId)
-    if (playerId) {
-      console.log('[Dashboard] ✅ playerId disponibile, chiamando fetchStats()...')
+    // Guard: chiama fetchStats() SOLO se playerId è valido (stringa non vuota e numero)
+    // Evita chiamate API inutili quando playerId è null, undefined, o non numerico
+    if (playerId && playerId.trim() && /^\d+$/.test(playerId.trim())) {
+      // Log solo in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Dashboard] ✅ playerId valido, chiamando fetchStats()...')
+      }
       fetchStats()
     } else {
-      console.warn('[Dashboard] ⚠️ playerId non disponibile, fetchStats() non chiamato')
+      // Log solo in development, e solo se playerId è stato effettivamente cambiato (non al mount iniziale)
+      if (process.env.NODE_ENV === 'development' && playerId !== null && playerId !== undefined) {
+        console.log('[Dashboard] ⚠️ playerId non valido, fetchStats() non chiamato')
+      }
     }
   }, [playerId, fetchStats])
 
