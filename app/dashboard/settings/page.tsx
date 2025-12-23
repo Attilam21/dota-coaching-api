@@ -12,6 +12,7 @@ import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
 import { savePlayerId, getPlayerId } from '@/app/actions/save-player-id'
+import { supabase } from '@/lib/supabase'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -76,7 +77,9 @@ export default function SettingsPage() {
       setLoading(true)
       
       // 1. Try to load from database first
-      const dbResult = await getPlayerId()
+      // Get access token to pass to server action
+      const { data: { session } } = await supabase.auth.getSession()
+      const dbResult = await getPlayerId(session?.access_token)
       
       if (dbResult.success && dbResult.playerId) {
         // Found in database - use it
@@ -132,8 +135,12 @@ export default function SettingsPage() {
 
       const playerIdString = dotaAccountId.trim() || null
 
+      // Get access token from Supabase session to pass to server action
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+
       // Save to database via server action
-      const result = await savePlayerId(playerIdString)
+      const result = await savePlayerId(playerIdString, accessToken)
 
       if (!result.success) {
         setMessage({

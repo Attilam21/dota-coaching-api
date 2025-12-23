@@ -11,19 +11,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-function createServerSupabaseClient() {
+function createServerSupabaseClient(accessToken?: string) {
   const cookieStore = cookies()
   
-  return createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+  const clientOptions: any = {
     cookies: {
       get(name: string): string {
-        return cookieStore.get(name)?.value ?? ''
+        const cookie = cookieStore.get(name)
+        return cookie?.value ?? ''
       },
       set(name: string, value: string, options?: { path?: string; maxAge?: number; domain?: string; secure?: boolean; httpOnly?: boolean; sameSite?: 'lax' | 'strict' | 'none' }) {
         try {
           cookieStore.set(name, value, options as any)
         } catch {
-          // Ignore cookie errors
+          // Ignore cookie errors in server actions
         }
       },
       remove(name: string, options?: { path?: string; domain?: string }) {
@@ -34,14 +35,25 @@ function createServerSupabaseClient() {
         }
       },
     },
-  } as any)
+  }
+  
+  // Add Authorization header if access token is provided
+  if (accessToken) {
+    clientOptions.global = {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    }
+  }
+  
+  return createClient<Database>(supabaseUrl!, supabaseAnonKey!, clientOptions as any)
 }
 
-export async function savePlayerId(playerId: string | null) {
+export async function savePlayerId(playerId: string | null, accessToken?: string) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerSupabaseClient(accessToken)
 
-    // Get current user
+    // Get current user - if accessToken is provided, it will be used via Authorization header
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
@@ -103,9 +115,9 @@ export async function savePlayerId(playerId: string | null) {
   }
 }
 
-export async function getPlayerId() {
+export async function getPlayerId(accessToken?: string) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerSupabaseClient(accessToken)
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
