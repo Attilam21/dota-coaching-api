@@ -4,49 +4,35 @@ import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 
 /**
  * Server Action per ottenere il Player ID
- * Riceve l'access_token come parametro dal client
- * Questo garantisce che la sessione sia passata correttamente per RLS
+ * 
+ * CORRETTO: Usa cookies() per leggere la sessione dai cookie HTTP
+ * auth.getUser() funziona perché Supabase può leggere la sessione dai cookie
  */
-export async function getPlayerId(accessToken?: string) {
+export async function getPlayerId() {
   try {
-    // Verifica che abbiamo l'accessToken
-    if (!accessToken) {
-      console.error('[getPlayerId] Nessun accessToken fornito')
+    // Crea client Supabase per Server Action
+    // Legge automaticamente la sessione dai cookie HTTP
+    const supabase = createServerActionSupabaseClient()
+
+    // Ottieni l'utente corrente tramite Supabase Auth
+    // Funziona perché il client legge la sessione dai cookie
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    // Log temporaneo per debug
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[getPlayerId] getUser() result:', user ? `User found: ${user.id}` : 'User null', userError ? `Error: ${userError.message}` : 'No error')
+    }
+
+    if (userError || !user) {
+      console.error('[getPlayerId] Errore getUser:', userError?.message)
       return { success: false, error: 'User not authenticated', playerId: null }
     }
 
-    // Decodifica JWT per ottenere user ID direttamente (più affidabile di getUser())
-    // Questo evita problemi con token scaduti o chiamate API fallite
-    let userId: string | null = null
-    try {
-      const parts = accessToken.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
-        userId = payload.sub // user ID dal JWT
-        console.log('[getPlayerId] User ID estratto da JWT:', userId)
-      } else {
-        console.error('[getPlayerId] JWT non valido (formato errato)')
-        return { success: false, error: 'Token non valido', playerId: null }
-      }
-    } catch (jwtError) {
-      console.error('[getPlayerId] Errore decodifica JWT:', jwtError)
-      return { success: false, error: 'Token non valido', playerId: null }
-    }
-
-    if (!userId) {
-      console.error('[getPlayerId] User ID non trovato nel JWT')
-      return { success: false, error: 'User not authenticated', playerId: null }
-    }
-
-    // Crea client Supabase per Server Action con accessToken esplicito
-    // L'accessToken viene passato dal client (SettingsPage)
-    const supabase = await createServerActionSupabaseClient(accessToken)
-
-    // Carica Player ID dal database usando userId estratto dal JWT
+    // Carica Player ID dal database
     const { data: userData, error: fetchError } = await supabase
       .from('users')
       .select('dota_account_id, dota_account_verified_at, dota_verification_method')
-      .eq('id', userId)
+      .eq('id', user.id)
       .single()
 
     if (fetchError) {

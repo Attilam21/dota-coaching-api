@@ -4,21 +4,24 @@ import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 
 /**
  * Server Action per aggiornare il Player ID
- * Riceve l'access_token dal client e lo usa per autenticare le richieste
- * Questo bypassa i problemi di JWT non passato correttamente dal client
  * 
- * Vantaggi:
- * - ✅ JWT passato esplicitamente dal client
- * - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
+ * CORRETTO: Usa cookies() per leggere la sessione dai cookie HTTP
+ * auth.getUser() funziona perché Supabase può leggere la sessione dai cookie
  */
-export async function updatePlayerId(playerId: string | null, accessToken?: string) {
+export async function updatePlayerId(playerId: string | null) {
   try {
-    // Crea client server-side con JWT esplicito
-    // IMPORTANTE: Ora è async perché setSession() è async
-    const supabase = await createServerActionSupabaseClient(accessToken)
+    // Crea client Supabase per Server Action
+    // Legge automaticamente la sessione dai cookie HTTP
+    const supabase = createServerActionSupabaseClient()
 
-    // Verifica sessione
+    // Verifica sessione tramite Supabase Auth
+    // Funziona perché il client legge la sessione dai cookie
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    // Log temporaneo per debug
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[updatePlayerId] getUser() result:', user ? `User found: ${user.id}` : 'User null', authError ? `Error: ${authError.message}` : 'No error')
+    }
 
     if (authError || !user) {
       return {

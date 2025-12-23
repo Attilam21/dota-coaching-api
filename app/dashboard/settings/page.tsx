@@ -194,19 +194,9 @@ function SettingsPageContent() {
       setLoadingFromSupabase(true)
       setSupabaseMessage(null)
       
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        setSupabaseMessage({
-          type: 'error',
-          text: 'Sessione non valida. Fai logout e login di nuovo.'
-        })
-        setLoadingFromSupabase(false)
-        return
-      }
-
-      // Usa Server Action invece di query diretta dal client
-      // Questo garantisce apikey e RLS policies funzionanti
-      const result = await getPlayerId(session.access_token)
+      // Usa Server Action che legge automaticamente la sessione dai cookie
+      // Non serve più passare accessToken - Supabase legge dai cookie HTTP
+      const result = await getPlayerId()
 
       if (!result.success) {
         // Se l'utente non esiste ancora nella tabella (PGRST116), non è un errore
@@ -268,16 +258,6 @@ function SettingsPageContent() {
       setSavingToSupabase(true)
       setSupabaseMessage(null)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        setSupabaseMessage({
-          type: 'error',
-          text: 'Sessione non valida. Fai logout e login di nuovo.'
-        })
-        setSavingToSupabase(false)
-        return
-      }
-
       const playerIdString = supabasePlayerId.trim() || null
       const dotaAccountIdNum = playerIdString 
         ? parseInt(playerIdString, 10) 
@@ -293,8 +273,9 @@ function SettingsPageContent() {
         return
       }
 
-      // Usa Server Action per salvare in Supabase
-      const result = await updatePlayerId(playerIdString, session.access_token)
+      // Usa Server Action che legge automaticamente la sessione dai cookie
+      // Non serve più passare accessToken - Supabase legge dai cookie HTTP
+      const result = await updatePlayerId(playerIdString)
 
       if (!result.success) {
         setSupabaseMessage({
@@ -604,14 +585,12 @@ function SettingsPageContent() {
                     type="button"
                     onClick={async () => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID dal database?')) {
-                        const { data: { session } } = await supabase.auth.getSession()
-                        if (session?.access_token) {
-                          const result = await updatePlayerId(null, session.access_token)
-                          if (result.success) {
-                            setSupabaseSavedId(null)
-                            setSupabasePlayerId('')
-                            setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
-                          }
+                        // Usa Server Action che legge automaticamente la sessione dai cookie
+                        const result = await updatePlayerId(null)
+                        if (result.success) {
+                          setSupabaseSavedId(null)
+                          setSupabasePlayerId('')
+                          setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
                         }
                       }
                     }}
