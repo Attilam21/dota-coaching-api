@@ -273,9 +273,20 @@ function SettingsPageContent() {
         return
       }
 
-      // Usa Server Action che legge automaticamente la sessione dai cookie
-      // Non serve più passare accessToken - Supabase legge dai cookie HTTP
-      const result = await updatePlayerId(playerIdString)
+      // Recupera sessione dal client Supabase (localStorage)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.access_token) {
+        setSupabaseMessage({
+          type: 'error',
+          text: 'Non autenticato. Effettua il login per salvare il Player ID.',
+        })
+        setSavingToSupabase(false)
+        return
+      }
+
+      // Passa access_token esplicitamente alla Server Action
+      const result = await updatePlayerId(playerIdString, session.access_token)
 
       if (!result.success) {
         setSupabaseMessage({
@@ -585,12 +596,28 @@ function SettingsPageContent() {
                     type="button"
                     onClick={async () => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID dal database?')) {
-                        // Usa Server Action che legge automaticamente la sessione dai cookie
-                        const result = await updatePlayerId(null)
+                        // Recupera sessione dal client Supabase (localStorage)
+                        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+                        
+                        if (sessionError || !session?.access_token) {
+                          setSupabaseMessage({
+                            type: 'error',
+                            text: 'Non autenticato. Effettua il login per rimuovere il Player ID.',
+                          })
+                          return
+                        }
+
+                        // Passa access_token esplicitamente alla Server Action
+                        const result = await updatePlayerId(null, session.access_token)
                         if (result.success) {
                           setSupabaseSavedId(null)
                           setSupabasePlayerId('')
                           setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
+                        } else {
+                          setSupabaseMessage({
+                            type: 'error',
+                            text: result.error || 'Errore nella rimozione del Player ID.',
+                          })
                         }
                       }
                     }}

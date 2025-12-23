@@ -1,29 +1,53 @@
 'use server'
 
-import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase'
 
 /**
  * Server Action per aggiornare il Player ID
  * 
- * CORRETTO: Usa cookies() per leggere la sessione dai cookie HTTP
- * auth.getUser() funziona perché Supabase può leggere la sessione dai cookie
+ * Usa access_token passato esplicitamente dal client (localStorage)
+ * NON usa cookie o SSR helpers - compatibile con client @supabase/supabase-js
  */
-export async function updatePlayerId(playerId: string | null) {
+export async function updatePlayerId(playerId: string | null, accessToken: string) {
   try {
-    // Crea client Supabase per Server Action
-    // Legge automaticamente la sessione dai cookie HTTP
-    const supabase = createServerActionSupabaseClient()
-
-    // Verifica sessione tramite Supabase Auth
-    // Funziona perché il client legge la sessione dai cookie
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    // Log temporaneo per debug
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[updatePlayerId] getUser() result:', user ? `User found: ${user.id}` : 'User null', authError ? `Error: ${authError.message}` : 'No error')
+    // Valida access_token
+    if (!accessToken || !accessToken.trim()) {
+      return {
+        success: false,
+        error: 'Token di autenticazione mancante. Effettua il login per salvare il Player ID.',
+      }
     }
 
+    // Crea client Supabase standard (NON SSR, compatibile con client localStorage)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return {
+        success: false,
+        error: 'Configurazione Supabase mancante.',
+      }
+    }
+
+    const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+      global: {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      },
+    })
+
+    // Verifica utente usando access_token esplicito
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
+
     if (authError || !user) {
+      console.error('[updatePlayerId] Errore autenticazione:', authError?.message)
       return {
         success: false,
         error: 'Non autenticato. Effettua il login per salvare il Player ID.',
@@ -45,7 +69,7 @@ export async function updatePlayerId(playerId: string | null) {
 
     // Update user record
     console.log('[updatePlayerId] Aggiornamento database per user:', user.id, 'dota_account_id:', dotaAccountId)
-    // Cast esplicito necessario perché createServerClient non inferisce correttamente il tipo Database
+    // Cast esplicito necessario per type inference
     const { data, error: updateError } = await (supabase as any)
       .from('users')
       .update({

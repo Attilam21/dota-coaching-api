@@ -62,8 +62,8 @@ export default function SignupPage() {
         // NOTA: Il trigger handle_new_user() crea già il record in public.users
         if (dotaAccountIdNum) {
           try {
-            // Usa Server Action per salvare l'ID (legge automaticamente la sessione dai cookie)
-            const result = await updatePlayerId(dotaAccountId.toString())
+            // Passa access_token esplicitamente alla Server Action
+            const result = await updatePlayerId(dotaAccountId.toString(), signUpData.session.access_token)
             if (result.success) {
               console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
             } else {
