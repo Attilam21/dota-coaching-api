@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
  * Endpoint di test per verificare la struttura reale di obs_log e sen_log
  * Usa questo per capire cosa contengono esattamente questi array
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

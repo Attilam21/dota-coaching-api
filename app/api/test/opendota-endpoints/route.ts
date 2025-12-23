@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
  * Test endpoint per verificare quali endpoint OpenDota sono disponibili
  * per una partita specifica
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
