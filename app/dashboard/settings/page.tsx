@@ -10,23 +10,45 @@ import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
-// NOTA: Player ID gestito SOLO in localStorage (come da ARCHITECTURE.md originale)
-// NESSUN salvataggio nel database - localStorage è l'unica fonte
 
-// Componente interno che usa useSearchParams - deve essere wrappato in Suspense
+/**
+ * SettingsPageContent - Pagina Impostazioni Account
+ * 
+ * Permette all'utente di:
+ * 1. Impostare/modificare il Dota 2 Account ID (salvato in localStorage)
+ * 2. Scegliere lo sfondo della dashboard
+ * 
+ * ARCHITETTURA:
+ * - Player ID salvato SOLO in localStorage (chiave: 'fzth_player_id')
+ * - Nessun salvataggio nel database Supabase
+ * - Quando l'utente salva, viene chiamato setPlayerId() che aggiorna localStorage e Context
+ * - La dashboard si aggiorna automaticamente quando il Player ID cambia
+ * 
+ * FLUSSO:
+ * 1. Utente può arrivare qui da PlayerIdInput con query param ?playerId=123
+ * 2. Il form viene pre-compilato con il Player ID dal query param o dal Context
+ * 3. Utente modifica e salva → salva in localStorage → aggiorna Context → dashboard si aggiorna
+ * 
+ * NOTA: useSearchParams richiede Suspense boundary (Next.js 14 requirement)
+ */
 function SettingsPageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { playerId, setPlayerId } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
+  
+  // State del form
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
-  const hasProcessedQueryParam = useRef(false) // Traccia se abbiamo già processato il query param
+  
+  // Ref per tracciare se abbiamo già processato il query param ?playerId=xxx
+  // Previene che il valore dal Context sovrascriva il valore inserito dall'utente
+  const hasProcessedQueryParam = useRef(false)
 
-  // Verifica quali file di sfondo sono disponibili
+  // Verifica quali file di sfondo sono disponibili nella cartella public/
   useEffect(() => {
     const checkAvailableBackgrounds = async () => {
       const backgrounds: BackgroundType[] = ['none']
@@ -57,33 +79,40 @@ function SettingsPageContent() {
     }
   }, [user])
 
-  // Redirect se non autenticato
+  // Redirect a login se utente non autenticato
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
     }
   }, [user, authLoading, router])
 
-  // Leggi playerId da query param (se reindirizzato da PlayerIdInput)
+  /**
+   * Gestisce il query param ?playerId=xxx quando l'utente arriva da PlayerIdInput
+   * 
+   * Quando l'utente inserisce un Player ID in PlayerIdInput, viene reindirizzato qui
+   * con ?playerId=123. Questo effect legge il valore e pre-compila il form.
+   */
   useEffect(() => {
     const playerIdFromQuery = searchParams.get('playerId')
     if (playerIdFromQuery && !hasProcessedQueryParam.current) {
       setDotaAccountId(playerIdFromQuery)
-      hasProcessedQueryParam.current = true // Marca come processato
-      // Rimuovi query param dall'URL dopo averlo letto
+      hasProcessedQueryParam.current = true
+      // Rimuovi query param dall'URL per pulizia
       router.replace('/dashboard/settings', { scroll: false })
     }
   }, [searchParams, router])
 
-  // Sincronizza input con playerId dal context (caricato da PlayerIdContext)
-  // Solo se non abbiamo già processato un query param (per evitare di sovrascrivere il valore inserito dall'utente)
+  /**
+   * Sincronizza il form con il Player ID dal Context
+   * 
+   * IMPORTANTE: Non sovrascrive se abbiamo già processato un query param.
+   * Questo previene che il valore inserito dall'utente venga sovrascritto
+   * dal valore salvato nel Context.
+   */
   useEffect(() => {
-    // Se abbiamo già processato un query param, non sovrascrivere con il valore dal context
-    if (hasProcessedQueryParam.current) {
-      return
-    }
+    if (hasProcessedQueryParam.current) return
     
-    // Altrimenti, sincronizza con il valore dal context
+    // Sincronizza con il valore dal Context (caricato da localStorage)
     if (playerId) {
       setDotaAccountId(playerId)
     } else {
@@ -91,6 +120,18 @@ function SettingsPageContent() {
     }
   }, [playerId])
 
+  /**
+   * Gestisce il salvataggio del Player ID
+   * 
+   * FLUSSO:
+   * 1. Valida che l'ID sia un numero valido
+   * 2. Salva in localStorage (chiave: 'fzth_player_id')
+   * 3. Aggiorna il Context chiamando setPlayerId()
+   * 4. Il Context notifica tutti i componenti sottoscritti
+   * 5. La dashboard si aggiorna automaticamente
+   * 
+   * NOTA: Nessun salvataggio nel database - localStorage è l'unica fonte.
+   */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -104,6 +145,7 @@ function SettingsPageContent() {
         ? parseInt(playerIdString, 10) 
         : null
 
+      // Validazione: Player ID deve essere un numero valido
       if (playerIdString && isNaN(dotaAccountIdNum!)) {
         setMessage({
           type: 'error',
@@ -113,32 +155,27 @@ function SettingsPageContent() {
         return
       }
 
-      // Salva SOLO in localStorage (fonte primaria come da ARCHITECTURE.md originale)
-      // NESSUN salvataggio nel database - localStorage è l'unica fonte
+      // Salva in localStorage (fonte primaria)
       if (typeof window !== 'undefined') {
         if (playerIdString) {
           localStorage.setItem('fzth_player_id', playerIdString)
-          console.log('[SettingsPage] Player ID salvato in localStorage:', playerIdString)
         } else {
           localStorage.removeItem('fzth_player_id')
-          console.log('[SettingsPage] Player ID rimosso da localStorage')
         }
       }
 
-      // Aggiorna context (che ricaricherà da localStorage automaticamente)
+      // Aggiorna Context (notifica tutti i componenti sottoscritti)
       setPlayerId(playerIdString)
       
-      // Reset hasProcessedQueryParam per permettere sincronizzazione futura
+      // Reset ref per permettere sincronizzazione futura
       hasProcessedQueryParam.current = false
 
       setMessage({ 
         type: 'success', 
         text: 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
       })
-      
-      console.log('[Settings] Player ID salvato in localStorage. Dashboard si aggiornerà automaticamente.')
     } catch (err) {
-      console.error('Failed to save settings:', err)
+      console.error('Errore nel salvataggio impostazioni:', err)
       setMessage({
         type: 'error',
         text: err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni',
@@ -268,10 +305,11 @@ function SettingsPageContent() {
                     type="button"
                     onClick={() => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
-                        // Rimuovi SOLO da localStorage (fonte primaria)
+                        // Rimuovi da localStorage (fonte primaria)
                         if (typeof window !== 'undefined') {
                           localStorage.removeItem('fzth_player_id')
                         }
+                        // Aggiorna Context e form
                         setPlayerId(null)
                         setDotaAccountId('')
                         hasProcessedQueryParam.current = false
