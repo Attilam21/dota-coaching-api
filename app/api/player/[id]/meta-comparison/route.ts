@@ -70,18 +70,63 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Fetch all necessary data
-    const [statsResponse, advancedResponse, benchmarksResponse, profileResponse] = await Promise.all([
-      fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/benchmarks`).catch(() => null),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/profile`).catch(() => null),
-    ])
+    // Fetch all necessary data - gestisci errori come nella versione backup
+    let statsResponse: Response | null = null
+    let advancedResponse: Response | null = null
+    
+    try {
+      [statsResponse, advancedResponse] = await Promise.all([
+        fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
+        fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`)
+      ])
+    } catch (err) {
+      console.error('Failed to fetch stats or advanced stats:', err)
+      return NextResponse.json(
+        { error: 'Failed to fetch player stats' },
+        { status: 500 }
+      )
+    }
 
-    const statsData = statsResponse.ok ? await statsResponse.json() : null
-    const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
-    const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
-    const profileData = profileResponse?.ok ? await profileResponse.json() : null
+    // Fetch optional data separately
+    let benchmarksResponse: Response | null = null
+    let profileResponse: Response | null = null
+    try {
+      benchmarksResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/benchmarks`).catch(() => null)
+      profileResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/profile`).catch(() => null)
+    } catch (err) {
+      // Non bloccare se questi falliscono
+      console.warn('Optional data fetch failed:', err)
+    }
+
+    // Parse responses safely
+    let statsData: any = null
+    let advancedData: any = null
+    
+    if (statsResponse?.ok) {
+      try {
+        statsData = await statsResponse.json()
+      } catch (err) {
+        console.error('Failed to parse stats response:', err)
+      }
+    } else {
+      const errorText = statsResponse ? await statsResponse.text().catch(() => 'Unknown error') : 'No response'
+      console.error('Stats fetch failed:', statsResponse?.status, errorText)
+      return NextResponse.json(
+        { error: 'Failed to fetch player stats' },
+        { status: 500 }
+      )
+    }
+
+    if (advancedResponse?.ok) {
+      try {
+        advancedData = await advancedResponse.json()
+      } catch (err) {
+        console.error('Failed to parse advanced stats response:', err)
+      }
+    }
+
+    const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json().catch(() => null) : null
+    const profileData = profileResponse?.ok ? await profileResponse.json().catch(() => null) : null
 
     if (!statsData?.stats) {
       return NextResponse.json(

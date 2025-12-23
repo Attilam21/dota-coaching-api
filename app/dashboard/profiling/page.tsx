@@ -130,7 +130,7 @@ export default function ProfilingPage() {
   return (
     <div className="p-4 md:p-6 relative">
       <HelpButton />
-      {/* Background with overlay */}
+      {/* Background senza overlay - nitido come What-If */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-20"
         style={{
@@ -138,7 +138,6 @@ export default function ProfilingPage() {
           backgroundColor: '#0f172a' // fallback color
         }}
       ></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/75 via-blue-900/65 to-slate-900/75 -z-10"></div>
       
       <div className="relative z-10">
         {/* Page Title */}

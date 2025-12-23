@@ -32,10 +32,18 @@ export async function GET(
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({
-        error: 'No matches found',
+        totalMatches: 0,
+        totalRecommendations: 0,
         recommendations: [],
-        patterns: [],
-        impactScore: 0
+        topPatterns: [],
+        impactScore: 0,
+        projectedWinrateImprovement: 0,
+        summary: {
+          mostCommonCategory: 'general',
+          highImpactCount: 0,
+          mediumImpactCount: 0,
+          lowImpactCount: 0
+        }
       })
     }
 
@@ -66,6 +74,24 @@ export async function GET(
     const validAdvice = adviceResults
       .filter((result) => result.status === 'fulfilled' && result.value !== null)
       .map((result) => (result as PromiseFulfilledResult<any>).value)
+
+    // Se non ci sono consigli validi, restituisci struttura vuota ma valida
+    if (validAdvice.length === 0) {
+      return NextResponse.json({
+        totalMatches: matches.length,
+        totalRecommendations: 0,
+        recommendations: [],
+        topPatterns: [],
+        impactScore: 0,
+        projectedWinrateImprovement: 0,
+        summary: {
+          mostCommonCategory: 'general',
+          highImpactCount: 0,
+          mediumImpactCount: 0,
+          lowImpactCount: 0
+        }
+      })
+    }
 
     // Aggregate all recommendations
     const allRecommendations: Array<{
