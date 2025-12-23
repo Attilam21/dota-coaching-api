@@ -489,6 +489,24 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Messaggio quando non ci sono partite */}
+      {!loading && !error && stats && (!stats.matches || stats.matches.length === 0) && (
+        <div className="mb-6 bg-yellow-900/50 border border-yellow-700 text-yellow-200 px-6 py-4 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-200 mb-2">Nessuna partita trovata</h3>
+              <p className="text-yellow-300 mb-2">
+                Questo giocatore non ha partite registrate su OpenDota. Le statistiche e i punteggi sono disponibili solo dopo aver giocato almeno una partita.
+              </p>
+              <p className="text-sm text-yellow-400">
+                💡 <strong>Suggerimento:</strong> Assicurati che l'Account ID sia corretto e che il profilo sia pubblico su OpenDota.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="space-y-4">
           {/* Header Skeleton */}

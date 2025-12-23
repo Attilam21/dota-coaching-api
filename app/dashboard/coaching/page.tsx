@@ -72,12 +72,24 @@ export default function CoachingPage() {
       setError(null)
 
       const response = await fetch(`/api/player/${playerId}/meta-comparison`)
-      if (!response.ok) throw new Error('Failed to fetch meta comparison data')
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        // Se è un errore 404 con hasMatches: false, mostra messaggio specifico
+        if (response.status === 404 && errorData.hasMatches === false) {
+          setError(errorData.message || 'Questo giocatore non ha partite registrate. Le statistiche sono disponibili solo dopo aver giocato almeno una partita.')
+        } else {
+          throw new Error(errorData.message || 'Failed to fetch meta comparison data')
+        }
+        setMetaData(null)
+        return
+      }
 
       const data = await response.json()
       setMetaData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load meta comparison data')
+      setMetaData(null)
     } finally {
       setLoading(false)
     }

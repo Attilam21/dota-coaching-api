@@ -139,6 +139,18 @@ export async function GET(
     const advanced = advancedData?.stats || {}
     const matches = stats.matches || []
 
+    // ⚠️ CONTROLLO CRITICO: Se non ci sono partite, ritorna errore
+    if (!matches || matches.length === 0) {
+      return NextResponse.json(
+        { 
+          error: 'No matches found',
+          message: 'Questo giocatore non ha partite registrate. Le statistiche sono disponibili solo dopo aver giocato almeno una partita.',
+          hasMatches: false
+        },
+        { status: 404 }
+      )
+    }
+
     // Calculate player metrics
     const playerMetrics = {
       avgGPM: matches.length > 0
