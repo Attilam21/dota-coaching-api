@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { updatePlayerId } from '@/app/actions/update-player-id'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -54,37 +55,39 @@ export default function SignupPage() {
 
       if (error) throw error
 
-      // Se l'utente ha fornito un Dota Account ID, salvalo nel database
-      // NOTA: Il trigger handle_new_user() crea già il record in public.users
-      // Dobbiamo solo aggiornare il dota_account_id se fornito
-      if (signUpData.user && dotaAccountIdNum) {
-        try {
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ 
-              dota_account_id: dotaAccountIdNum,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', signUpData.user.id)
-
-          if (updateError) {
-            console.warn('[Signup] Errore salvataggio Dota Account ID:', updateError)
-            // Non bloccare il signup se il salvataggio dell'ID fallisce
-            // L'utente può salvarlo successivamente nelle settings
-          } else {
-            console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
+      // Se la sessione è disponibile (email confirmation non richiesta), salva ID e vai al dashboard
+      // Altrimenti mostra solo messaggio di verifica email
+      if (signUpData.session?.access_token) {
+        // Utente autenticato immediatamente - salva ID se fornito
+        // NOTA: Il trigger handle_new_user() crea già il record in public.users
+        if (dotaAccountIdNum) {
+          try {
+            // Usa Server Action per salvare l'ID (gestisce correttamente RLS)
+            const result = await updatePlayerId(dotaAccountId.toString(), signUpData.session.access_token)
+            if (result.success) {
+              console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
+            } else {
+              console.warn('[Signup] Errore salvataggio Dota Account ID:', result.error)
+              // Non bloccare il signup se il salvataggio dell'ID fallisce
+              // L'utente può salvarlo successivamente nelle settings
+            }
+          } catch (err) {
+            console.warn('[Signup] Exception durante salvataggio Dota Account ID:', err)
+            // Non bloccare il signup
           }
-        } catch (updateErr) {
-          console.warn('[Signup] Exception durante salvataggio Dota Account ID:', updateErr)
-          // Non bloccare il signup
         }
+        
+        setSuccess(true)
+        // Redirect to dashboard after 1 second
+        setTimeout(() => {
+          router.push('/dashboard')
+          router.refresh()
+        }, 1000)
+      } else {
+        // Email confirmation richiesta - mostra solo messaggio, non fare redirect
+        // L'ID verrà salvato quando l'utente verifica l'email e fa login
+        setSuccess(true)
       }
-
-      setSuccess(true)
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Si è verificato un errore durante la registrazione')
     } finally {
