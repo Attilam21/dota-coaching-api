@@ -40,21 +40,18 @@ export type Database = {
           user_id: string
           xp: number
           last_login_day: string | null
-          last_awarded_match_id: number | null
           updated_at: string
         }
         Insert: {
           user_id: string
           xp?: number
           last_login_day?: string | null
-          last_awarded_match_id?: number | null
           updated_at?: string
         }
         Update: {
           user_id?: string
           xp?: number
           last_login_day?: string | null
-          last_awarded_match_id?: number | null
           updated_at?: string
         }
       }
@@ -63,22 +60,6 @@ export type Database = {
       increment_daily_xp: {
         Args: Record<PropertyKey, never>
         Returns: number
-      }
-      increment_daily_xp_with_bonus: {
-        Args: {
-          p_performance_bonus: number
-        }
-        Returns: number
-      }
-      award_last_match_xp: {
-        Args: {
-          p_match_id: number
-          p_win: boolean
-        }
-        Returns: {
-          xp: number
-          delta: number
-        }[]
       }
     }
   }
