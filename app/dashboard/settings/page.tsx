@@ -159,22 +159,12 @@ export default function SettingsPage() {
       }
 
       // SALVA DIRETTAMENTE CON CLIENT SUPABASE (non Server Action)
-      // Questo evita problemi di autenticazione perché usa la sessione già presente
+      // Il client Supabase gestisce automaticamente la sessione
+      // Se user è presente (da useAuth), l'utente è autenticato
+      // Proviamo direttamente il salvataggio - se fallisce per auth, gestiamo l'errore
       
-      // Verifica che la sessione sia presente
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !currentSession) {
-        console.error('❌ Session error:', sessionError)
-        setMessage({
-          type: 'error',
-          text: 'Sessione non valida. Effettua il login di nuovo.',
-        })
-        setSaving(false)
-        return
-      }
-
       // Salvataggio con client Supabase
+      // Il client gestisce automaticamente la sessione e il refresh token
       const { error: updateError } = await supabase
         .from('users')
         .update({
@@ -185,18 +175,36 @@ export default function SettingsPage() {
 
       if (updateError) {
         console.error('Error updating player ID:', updateError)
+        console.error('Error details:', {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+        })
         
-        // Se è un errore di autenticazione, reindirizza al login
+        // Se è un errore di autenticazione (403, JWT expired, permission denied)
         if (updateError.code === 'PGRST301' || 
+            updateError.code === '42501' ||
             updateError.message?.includes('JWT') ||
-            updateError.message?.includes('permission denied')) {
-          setMessage({
-            type: 'error',
-            text: 'Sessione scaduta. Effettua il login di nuovo.',
-          })
-          setTimeout(() => {
-            router.push('/auth/login')
-          }, 2000)
+            updateError.message?.includes('permission denied') ||
+            updateError.message?.includes('row-level security')) {
+          // Verifica se l'utente è ancora loggato prima di reindirizzare
+          const { data: { session: checkSession } } = await supabase.auth.getSession()
+          if (!checkSession) {
+            setMessage({
+              type: 'error',
+              text: 'Sessione scaduta. Effettua il login di nuovo.',
+            })
+            setTimeout(() => {
+              router.push('/auth/login')
+            }, 2000)
+          } else {
+            // Sessione presente ma errore permission - potrebbe essere problema RLS
+            setMessage({
+              type: 'error',
+              text: 'Errore di permessi. Se il problema persiste, prova a fare logout e login di nuovo.',
+            })
+          }
           setSaving(false)
           return
         }
