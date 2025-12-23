@@ -113,13 +113,20 @@ export default function DashboardPage() {
   }, [user])
 
   // Incrementa daily XP con bonus prestazione (una volta quando utente è autenticato)
-  // NOTA: Calcola badge prestazione solo se stats è disponibile, altrimenti usa STABLE (bonus +5)
+  // NOTA: stats NON è nelle dipendenze per evitare race condition
+  // Il badge prestazione viene calcolato quando stats è disponibile, ma l'assegnazione XP
+  // avviene solo una volta quando l'utente è autenticato (idempotente lato server)
   useEffect(() => {
-    if (!user || authLoading || hasAwardedDailyXp) return
+    if (!user || authLoading || hasAwardedDailyXp || isIncrementingXpRef.current) return
 
     const incrementDailyXp = async () => {
+      // Prevenire chiamate multiple simultanee
+      if (isIncrementingXpRef.current) return
+      isIncrementingXpRef.current = true
+
       try {
         // Calcola badge prestazione basato su trend (solo se stats disponibile)
+        // NOTA: stats viene letto dal closure, non dalle dipendenze
         let badge: PerformanceBadge = 'STABLE' // Default
         let performanceBonus = 5 // Default STABLE bonus
         
@@ -184,11 +191,24 @@ export default function DashboardPage() {
       } catch (err) {
         console.error('[Dashboard] Errore increment_daily_xp:', err)
         // Non bloccare il flusso se XP fallisce
+      } finally {
+        // Reset ref solo dopo che tutto è completato
+        isIncrementingXpRef.current = false
       }
     }
 
     incrementDailyXp()
-  }, [user, authLoading, hasAwardedDailyXp, loadXp, stats])
+  }, [user, authLoading, hasAwardedDailyXp, loadXp]) // stats rimosso dalle dipendenze
+
+  // Aggiorna badge prestazione quando stats cambia (separato dall'assegnazione XP)
+  useEffect(() => {
+    if (!stats) return
+
+    const winrateTrend = getWinrateTrend()
+    const kdaTrend = getKDATrend()
+    const badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
+    setPerformanceBadge(badge)
+  }, [stats]) // Solo per aggiornare il badge, non per assegnare XP
 
   // Carica XP iniziale quando utente è autenticato
   useEffect(() => {
