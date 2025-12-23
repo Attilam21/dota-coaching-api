@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
 import { Info, Image as ImageIcon } from 'lucide-react'
@@ -19,7 +18,6 @@ export default function SettingsPage() {
   const { playerId, setPlayerId } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
@@ -27,9 +25,8 @@ export default function SettingsPage() {
   // Verifica quali file di sfondo sono disponibili
   useEffect(() => {
     const checkAvailableBackgrounds = async () => {
-      const backgrounds: BackgroundType[] = ['none'] // 'none' è sempre disponibile
+      const backgrounds: BackgroundType[] = ['none']
       
-      // Lista di tutti i possibili file
       const possibleFiles: BackgroundType[] = [
         'dashboard-bg.jpg',
         'dashboard-bg.png',
@@ -37,7 +34,6 @@ export default function SettingsPage() {
         'profile-bg.png'
       ]
 
-      // Verifica quali file esistono effettivamente
       for (const file of possibleFiles) {
         try {
           const response = await fetch(`/${file}`, { method: 'HEAD' })
@@ -57,74 +53,14 @@ export default function SettingsPage() {
     }
   }, [user])
 
+  // Redirect se non autenticato
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
-      return
-    }
-
-    if (user) {
-      loadUserSettings()
     }
   }, [user, authLoading, router])
 
-  // Load from database first, then fallback to localStorage
-  const loadUserSettings = async () => {
-    if (!user) return
-
-    try {
-      setLoading(true)
-      
-      // 1. Try to load from database first (using client Supabase directly)
-      const { data: userData, error: fetchError } = await supabase
-        .from('users')
-        .select('dota_account_id')
-        .eq('id', user.id)
-        .single()
-
-      if (fetchError) {
-        console.error('Error fetching player ID from DB:', fetchError)
-        
-        // Se è un errore di autenticazione, reindirizza al login
-        if (fetchError.code === 'PGRST301' || 
-            fetchError.message?.includes('JWT') ||
-            fetchError.message?.includes('permission denied')) {
-          setMessage({
-            type: 'error',
-            text: 'Sessione scaduta. Effettua il login di nuovo.',
-          })
-          setTimeout(() => {
-            router.push('/auth/login')
-          }, 2000)
-          return
-        }
-        
-        // Altri errori: mostra messaggio ma non fallback a localStorage
-        setDotaAccountId('')
-        setPlayerId(null)
-      } else if (userData?.dota_account_id) {
-        // Found in database - use it (SOLA FONTE DI VERITÀ)
-        const dbPlayerId = String(userData.dota_account_id)
-        setDotaAccountId(dbPlayerId)
-        setPlayerId(dbPlayerId)
-        // NON sincronizzare localStorage - database è l'unica fonte
-      } else {
-        // No ID in DB - campo vuoto
-        setDotaAccountId('')
-        setPlayerId(null)
-      }
-
-    } catch (err) {
-      console.error('Failed to load settings:', err)
-      // In caso di errore generico, mostra campo vuoto (non fallback localStorage)
-      setDotaAccountId('')
-      setPlayerId(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Update local state when playerId changes
+  // Sincronizza input con playerId dal context (caricato da PlayerIdContext)
   useEffect(() => {
     if (playerId) {
       setDotaAccountId(playerId)
@@ -142,13 +78,10 @@ export default function SettingsPage() {
       setMessage(null)
 
       const playerIdString = dotaAccountId.trim() || null
-
-      // Convert playerId to number or null
       const dotaAccountIdNum = playerIdString 
         ? parseInt(playerIdString, 10) 
         : null
 
-      // Validate it's a valid number
       if (playerIdString && isNaN(dotaAccountIdNum!)) {
         setMessage({
           type: 'error',
@@ -158,13 +91,7 @@ export default function SettingsPage() {
         return
       }
 
-      // SALVA DIRETTAMENTE CON CLIENT SUPABASE (non Server Action)
-      // Il client Supabase gestisce automaticamente la sessione
-      // Se user è presente (da useAuth), l'utente è autenticato
-      // Proviamo direttamente il salvataggio - se fallisce per auth, gestiamo l'errore
-      
-      // Salvataggio con client Supabase
-      // Il client gestisce automaticamente la sessione e il refresh token
+      // Salvataggio diretto con client Supabase
       const { error: updateError } = await supabase
         .from('users')
         .update({
@@ -175,68 +102,44 @@ export default function SettingsPage() {
 
       if (updateError) {
         console.error('Error updating player ID:', updateError)
-        console.error('Error details:', {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-        })
         
-        // Se è un errore di autenticazione (403, JWT expired, permission denied)
-        if (updateError.code === 'PGRST301' || 
-            updateError.code === '42501' ||
-            updateError.message?.includes('JWT') ||
-            updateError.message?.includes('permission denied') ||
-            updateError.message?.includes('row-level security')) {
-          // Verifica se l'utente è ancora loggato prima di reindirizzare
-          const { data: { session: checkSession } } = await supabase.auth.getSession()
-          if (!checkSession) {
-            setMessage({
-              type: 'error',
-              text: 'Sessione scaduta. Effettua il login di nuovo.',
-            })
-            setTimeout(() => {
-              router.push('/auth/login')
-            }, 2000)
-          } else {
-            // Sessione presente ma errore permission - potrebbe essere problema RLS
-            setMessage({
-              type: 'error',
-              text: 'Errore di permessi. Se il problema persiste, prova a fare logout e login di nuovo.',
-            })
-          }
-          setSaving(false)
-          return
+        // Gestione errori più semplice - non reindirizza automaticamente
+        if (updateError.code === '42501' || updateError.message?.includes('permission denied')) {
+          setMessage({
+            type: 'error',
+            text: 'Errore di permessi. Verifica di essere loggato correttamente.',
+          })
+        } else if (updateError.message?.includes('JWT') || updateError.code === 'PGRST301') {
+          setMessage({
+            type: 'error',
+            text: 'Sessione scaduta. Fai logout e login di nuovo.',
+          })
+        } else {
+          setMessage({
+            type: 'error',
+            text: updateError.message || 'Errore nel salvataggio del Player ID.',
+          })
         }
-        
-        setMessage({
-          type: 'error',
-          text: updateError.message || 'Errore nel salvataggio del Player ID.',
-        })
         setSaving(false)
         return
       }
 
-      // Success - salvato SOLO in database (fonte unica di verità)
-      const successMessage = dotaAccountIdNum 
-        ? `Player ID ${dotaAccountIdNum} salvato nel database!`
-        : 'Player ID rimosso dal database.'
-      
-      // NON salvare in localStorage - database è l'unica fonte
-      
-      // Update context (this will trigger re-renders in all consuming components)
+      // Success - aggiorna context
       setPlayerId(playerIdString)
 
+      const successMessage = dotaAccountIdNum 
+        ? `Player ID ${dotaAccountIdNum} salvato con successo!`
+        : 'Player ID rimosso con successo.'
+      
       setMessage({ 
         type: 'success', 
-        text: successMessage || 'Player ID salvato con successo! Le pagine si aggiorneranno automaticamente con i nuovi dati.' 
+        text: successMessage
       })
     } catch (err) {
       console.error('Failed to save settings:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni'
       setMessage({
         type: 'error',
-        text: errorMessage,
+        text: err instanceof Error ? err.message : 'Errore nel salvataggio delle impostazioni',
       })
     } finally {
       setSaving(false)
@@ -274,7 +177,6 @@ export default function SettingsPage() {
           </AnimatedCard>
         )}
 
-        {/* Guida per nuovo utente - solo se non ha ancora un Player ID */}
         {!playerId && !dotaAccountId && (
           <AnimatedCard delay={0.15} className="bg-green-900/30 border border-green-700 rounded-lg p-6 max-w-2xl mb-6">
             <div className="flex items-start gap-3">
@@ -310,76 +212,87 @@ export default function SettingsPage() {
         )}
 
         <AnimatedCard delay={0.2} className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
-        <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
+          <h2 className="text-xl font-semibold mb-6">Profilo Utente</h2>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input
-              type="email"
-              value={user.email || ''}
-              disabled
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
-            />
-            <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
-          </div>
-
-          <form onSubmit={handleSave}>
-            <div className="mb-4">
-              <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
-                Dota 2 Account ID <span className="text-red-400">*</span>
-              </label>
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
               <input
-                id="dotaAccountId"
-                type="text"
-                value={dotaAccountId}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
-                placeholder="es. 8607682237"
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                type="email"
+                value={user.email || ''}
+                disabled
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Il tuo Steam Account ID per Dota 2. Cercalo su{' '}
-                <a
-                  href="https://www.opendota.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-red-400 hover:text-red-300 underline"
-                >
-                  OpenDota.com
-                </a>
-                {' '}inserendo il tuo nome utente Steam.
-              </p>
+              <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
             </div>
 
-            <div className="flex gap-3">
-              <AnimatedButton
-                type="submit"
-                disabled={saving}
-                variant="primary"
-              >
-                {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
-              </AnimatedButton>
-              {playerId && (
+            <form onSubmit={handleSave}>
+              <div className="mb-4">
+                <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
+                  Dota 2 Account ID <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="dotaAccountId"
+                  type="text"
+                  value={dotaAccountId}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
+                  placeholder="es. 8607682237"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Il tuo Steam Account ID per Dota 2. Cercalo su{' '}
+                  <a
+                    href="https://www.opendota.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-400 hover:text-red-300 underline"
+                  >
+                    OpenDota.com
+                  </a>
+                  {' '}inserendo il tuo nome utente Steam.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
                 <AnimatedButton
-                  type="button"
-                  onClick={() => {
-                    if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
-                      setPlayerId(null)
-                      setDotaAccountId('')
-                      setMessage({
-                        type: 'success',
-                        text: 'Player ID rimosso con successo.'
-                      })
-                    }
-                  }}
-                  variant="secondary"
+                  type="submit"
+                  disabled={saving}
+                  variant="primary"
                 >
-                  Rimuovi Player ID
+                  {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
                 </AnimatedButton>
-              )}
-            </div>
-          </form>
-        </div>
+                {playerId && (
+                  <AnimatedButton
+                    type="button"
+                    onClick={async () => {
+                      if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
+                        try {
+                          if (!user) return
+                          const { error } = await supabase
+                            .from('users')
+                            .update({ dota_account_id: null, updated_at: new Date().toISOString() })
+                            .eq('id', user.id)
+                          
+                          if (error) {
+                            setMessage({ type: 'error', text: 'Errore nella rimozione del Player ID.' })
+                          } else {
+                            setPlayerId(null)
+                            setDotaAccountId('')
+                            setMessage({ type: 'success', text: 'Player ID rimosso con successo.' })
+                          }
+                        } catch (err) {
+                          setMessage({ type: 'error', text: 'Errore nella rimozione del Player ID.' })
+                        }
+                      }
+                    }}
+                    variant="secondary"
+                  >
+                    Rimuovi Player ID
+                  </AnimatedButton>
+                )}
+              </div>
+            </form>
+          </div>
         </AnimatedCard>
 
         <AnimatedCard delay={0.25} className="mt-6 bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-2xl">
@@ -416,7 +329,6 @@ export default function SettingsPage() {
                     : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
                 }`}
               >
-                {/* Anteprima immagine */}
                 {option.file && (
                   <div className="w-full h-20 mb-2 rounded overflow-hidden bg-gray-800">
                     <div 
