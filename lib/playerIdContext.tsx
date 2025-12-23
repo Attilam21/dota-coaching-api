@@ -26,7 +26,7 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
 })
 
 export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+      const { user, session } = useAuth()
   const [playerId, setPlayerIdState] = useState<string | null>(null)
   const [isVerified, setIsVerifiedState] = useState<boolean>(false)
   const [verifiedAt, setVerifiedAtState] = useState<string | null>(null)
