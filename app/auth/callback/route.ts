@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
     global: {
       headers: {
         'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        // NOTA: NON impostare Authorization con anon key
+        // Supabase gestisce automaticamente l'Authorization header con il token dell'utente
+        // quando presente nei query parameters (code, token, etc.)
       },
     },
   })

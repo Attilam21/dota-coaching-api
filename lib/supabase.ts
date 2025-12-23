@@ -88,7 +88,8 @@ function createSupabaseClient(): SupabaseClient<Database> {
     global: {
       headers: {
         'apikey': supabaseAnonKey, // Assicura che apikey sia sempre presente
-        'Authorization': `Bearer ${supabaseAnonKey}`, // Fallback per compatibilità
+        // NOTA: NON impostare Authorization qui - Supabase lo gestisce automaticamente
+        // con il token dell'utente quando presente (session.access_token)
       },
     },
     db: {

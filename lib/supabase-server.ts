@@ -22,7 +22,9 @@ export function createServerSupabaseClient(request: NextRequest) {
     global: {
       headers: {
         'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        // NOTA: NON impostare Authorization con anon key
+        // Supabase gestisce automaticamente l'Authorization header con il token dell'utente
+        // quando presente nei cookies (cookieHeader)
         ...(cookieHeader && { cookie: cookieHeader }),
       },
     },
