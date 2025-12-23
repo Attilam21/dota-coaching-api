@@ -51,16 +51,34 @@ function createServerSupabaseClient(accessToken?: string) {
 
 export async function savePlayerId(playerId: string | null, accessToken?: string) {
   try {
+    // Log per debug
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[savePlayerId] AccessToken ricevuto:', accessToken ? 'Presente' : 'Mancante')
+    }
+
     const supabase = createServerSupabaseClient(accessToken)
 
     // Get current user - if accessToken is provided, it will be used via Authorization header
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !user) {
+    if (authError) {
+      console.error('[savePlayerId] Auth error:', authError)
+      return {
+        success: false,
+        error: `Errore autenticazione: ${authError.message}. Effettua il login per salvare il Player ID.`,
+      }
+    }
+
+    if (!user) {
+      console.error('[savePlayerId] User non trovato')
       return {
         success: false,
         error: 'Non autenticato. Effettua il login per salvare il Player ID.',
       }
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[savePlayerId] User autenticato:', user.id, user.email)
     }
 
     // Convert playerId to number or null

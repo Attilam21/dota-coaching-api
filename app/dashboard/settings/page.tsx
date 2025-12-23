@@ -135,21 +135,45 @@ export default function SettingsPage() {
 
       const playerIdString = dotaAccountId.trim() || null
 
-      // Get access token from Supabase session to pass to server action
-      const { data: { session } } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
+      // Convert playerId to number or null
+      const dotaAccountIdNum = playerIdString 
+        ? parseInt(playerIdString, 10) 
+        : null
 
-      // Save to database via server action
-      const result = await savePlayerId(playerIdString, accessToken)
-
-      if (!result.success) {
+      // Validate it's a valid number
+      if (playerIdString && isNaN(dotaAccountIdNum!)) {
         setMessage({
           type: 'error',
-          text: result.error || 'Errore nel salvataggio del Player ID.',
+          text: 'L\'ID Dota deve essere un numero valido',
         })
         setSaving(false)
         return
       }
+
+      // SALVA DIRETTAMENTE CON CLIENT SUPABASE (non Server Action)
+      // Questo evita problemi di autenticazione perché usa la sessione già presente
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          dota_account_id: dotaAccountIdNum,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error('Error updating player ID:', updateError)
+        setMessage({
+          type: 'error',
+          text: updateError.message || 'Errore nel salvataggio del Player ID.',
+        })
+        setSaving(false)
+        return
+      }
+
+      // Success - salva anche in localStorage come fallback
+      const successMessage = dotaAccountIdNum 
+        ? `Player ID ${dotaAccountIdNum} salvato e sovrascritto nel database!`
+        : 'Player ID rimosso dal database.'
 
       // Also save to localStorage as fallback
       if (playerIdString) {
@@ -171,7 +195,7 @@ export default function SettingsPage() {
 
       setMessage({ 
         type: 'success', 
-        text: result.message || 'Player ID salvato con successo! Le pagine si aggiorneranno automaticamente con i nuovi dati.' 
+        text: successMessage || 'Player ID salvato con successo! Le pagine si aggiorneranno automaticamente con i nuovi dati.' 
       })
     } catch (err) {
       console.error('Failed to save settings:', err)
