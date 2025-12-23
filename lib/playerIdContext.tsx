@@ -107,31 +107,36 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               return
             }
 
-            // CRITICO: Imposta esplicitamente la sessione nel client Supabase PRIMA di fare la query
-            // Questo è necessario perché auth.uid() nelle RLS policies richiede che la sessione sia attiva
-            // Anche se persistSession: true, dobbiamo assicurarci che la sessione sia impostata esplicitamente
-            console.log('[PlayerIdContext] 🔐 Impostazione sessione esplicita nel client Supabase...')
-            const { error: setSessionError } = await supabase.auth.setSession({
-              access_token: session.access_token,
-              refresh_token: session.refresh_token || '',
-            })
+            // NOTA: Il client Supabase con persistSession: true dovrebbe già avere la sessione
+            // Il client Supabase aggiunge automaticamente:
+            // - apikey header (dal secondo parametro del costruttore createClient)
+            // - Authorization header con JWT (dalla sessione attiva se presente)
+            // NON chiamare setSession() qui perché può causare problemi con l'apikey header
             
-            if (setSessionError) {
-              console.error('[PlayerIdContext] ❌ Errore setSession:', setSessionError.message)
-              setPlayerIdState(null)
-              setIsVerifiedState(false)
-              setVerifiedAtState(null)
-              setVerificationMethodState(null)
-              setIsLoading(false)
-              loadingRef.current = false
-              return
+            // Verifica che la sessione nel client sia presente
+            const { data: { session: currentSession }, error: sessionCheckError } = await supabase.auth.getSession()
+            
+            if (sessionCheckError) {
+              console.error('[PlayerIdContext] ❌ Errore getSession:', sessionCheckError.message)
             }
             
-            console.log('[PlayerIdContext] ✅ Sessione impostata correttamente, auth.uid() dovrebbe funzionare')
+            if (!currentSession || !currentSession.access_token) {
+              console.warn('[PlayerIdContext] ⚠️ Sessione non presente nel client Supabase')
+              console.warn('[PlayerIdContext] Questo potrebbe causare problemi con auth.uid() nelle RLS policies')
+              // Non bloccare - prova comunque la query
+            } else {
+              console.log('[PlayerIdContext] ✅ Sessione presente nel client Supabase, access_token disponibile')
+              if (currentSession.access_token !== session.access_token) {
+                console.warn('[PlayerIdContext] ⚠️ Token mismatch - client potrebbe avere token più recente (refresh automatico)')
+              }
+            }
         
             // Carica da database (SOLA FONTE DI VERITÀ)
-            // Ora che la sessione è impostata esplicitamente, auth.uid() dovrebbe funzionare nelle RLS policies
+            // Il client Supabase dovrebbe automaticamente includere:
+            // - apikey header (dal costruttore createClient in lib/supabase.ts)
+            // - Authorization header con JWT (dalla sessione attiva)
             console.log('[PlayerIdContext] 📥 Caricamento Player ID dal database per user:', user.id)
+            console.log('[PlayerIdContext] Verifica che la richiesta includa apikey e Authorization headers')
             
             const { data: userData, error: fetchError } = await supabase
               .from('users')
