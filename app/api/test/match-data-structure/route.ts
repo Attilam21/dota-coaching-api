@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
  * Test endpoint per verificare la struttura reale dei dati di una partita
  * e identificare perché teamfights e item timing non si popolano
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
