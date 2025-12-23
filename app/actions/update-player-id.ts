@@ -9,13 +9,21 @@ import type { Database } from '@/lib/supabase'
  * Usa access_token passato esplicitamente dal client (localStorage)
  * NON usa cookie o SSR helpers - compatibile con client @supabase/supabase-js
  */
-export async function updatePlayerId(playerId: string | null, accessToken: string, refreshToken?: string) {
+export async function updatePlayerId(playerId: string | null, accessToken: string, refreshToken: string) {
   try {
     // Valida access_token
     if (!accessToken || !accessToken.trim()) {
       return {
         success: false,
         error: 'Token di autenticazione mancante. Effettua il login per salvare il Player ID.',
+      }
+    }
+
+    // Valida refresh_token (obbligatorio per setSession e RLS)
+    if (!refreshToken || !refreshToken.trim()) {
+      return {
+        success: false,
+        error: 'Refresh token mancante, rifai login.',
       }
     }
 
@@ -30,9 +38,6 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       }
     }
 
-    // LOG TEMPORANEO: verifica token presente
-    console.log('[updatePlayerId] Token presente:', !!accessToken)
-
     const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: false,
@@ -46,18 +51,19 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       },
     })
 
-    // Imposta sessione esplicitamente per permettere a RLS di funzionare
+    // Imposta sessione SEMPRE per permettere a RLS di funzionare
     // RLS richiede che la sessione sia impostata nel client per auth.uid()
     // setSession() permette a Supabase di usare il token per le query database
-    if (refreshToken) {
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      })
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
 
-      if (sessionError) {
-        console.error('[updatePlayerId] Errore impostazione sessione:', sessionError.message)
-        // Continua comunque - l'Authorization header potrebbe essere sufficiente
+    if (sessionError) {
+      console.error('[updatePlayerId] Errore impostazione sessione:', sessionError.message)
+      return {
+        success: false,
+        error: 'Errore nell\'autenticazione. Rifai login.',
       }
     }
 
@@ -99,7 +105,6 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       .single()
 
     if (updateError) {
-      // LOG TEMPORANEO: stampa solo l'errore (non il token)
       console.error('[updatePlayerId] Errore aggiornamento database:', {
         code: updateError.code,
         message: updateError.message,

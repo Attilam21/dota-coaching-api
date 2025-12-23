@@ -276,21 +276,30 @@ function SettingsPageContent() {
       // Recupera sessione dal client Supabase (localStorage)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (sessionError || !session?.access_token) {
+      if (sessionError || !session) {
         setSupabaseMessage({
           type: 'error',
-          text: 'Non autenticato. Effettua il login per salvare il Player ID.',
+          text: 'Devi fare login.',
+        })
+        setSavingToSupabase(false)
+        return
+      }
+
+      if (!session.access_token || !session.refresh_token) {
+        setSupabaseMessage({
+          type: 'error',
+          text: 'Sessione non valida. Rifai login.',
         })
         setSavingToSupabase(false)
         return
       }
 
       // Passa access_token e refresh_token esplicitamente alla Server Action
-      // refresh_token necessario per setSession() che abilita RLS
+      // refresh_token obbligatorio per setSession() che abilita RLS
       const result = await updatePlayerId(
         playerIdString, 
         session.access_token,
-        session.refresh_token || ''
+        session.refresh_token
       )
 
       if (!result.success) {

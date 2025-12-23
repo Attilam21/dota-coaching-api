@@ -63,17 +63,23 @@ export default function SignupPage() {
         if (dotaAccountIdNum) {
           try {
             // Passa access_token e refresh_token esplicitamente alla Server Action
-            const result = await updatePlayerId(
-              dotaAccountId.toString(), 
-              signUpData.session.access_token,
-              signUpData.session.refresh_token || ''
-            )
-            if (result.success) {
-              console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
+            // refresh_token obbligatorio per setSession() che abilita RLS
+            if (!signUpData.session.refresh_token) {
+              console.warn('[Signup] Refresh token mancante, salto salvataggio Player ID')
+              // Non bloccare il signup se manca refresh_token
             } else {
-              console.warn('[Signup] Errore salvataggio Dota Account ID:', result.error)
-              // Non bloccare il signup se il salvataggio dell'ID fallisce
-              // L'utente può salvarlo successivamente nelle settings
+              const result = await updatePlayerId(
+                dotaAccountId.toString(), 
+                signUpData.session.access_token,
+                signUpData.session.refresh_token
+              )
+              if (result.success) {
+                console.log('[Signup] Dota Account ID salvato con successo:', dotaAccountIdNum)
+              } else {
+                console.warn('[Signup] Errore salvataggio Dota Account ID:', result.error)
+                // Non bloccare il signup se il salvataggio dell'ID fallisce
+                // L'utente può salvarlo successivamente nelle settings
+              }
             }
           } catch (err) {
             console.warn('[Signup] Exception durante salvataggio Dota Account ID:', err)
