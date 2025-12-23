@@ -10,6 +10,9 @@ import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
+import { updatePlayerId } from '@/app/actions/update-player-id'
+import { supabase } from '@/lib/supabase'
+import { Database } from '@/lib/supabase'
 
 /**
  * SettingsPageContent - Pagina Impostazioni Account
@@ -367,6 +370,94 @@ function SettingsPageContent() {
                     variant="secondary"
                   >
                     Rimuovi Player ID
+                  </AnimatedButton>
+                )}
+              </div>
+            </form>
+          </div>
+        </AnimatedCard>
+
+        {/* Sezione Salvataggio in Supabase (Opzionale) */}
+        <AnimatedCard delay={0.22} className="mt-6 bg-blue-900/20 border border-blue-700 rounded-lg p-6 max-w-2xl">
+          <div className="flex items-start gap-3 mb-4">
+            <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-2">Salvataggio in Database (Opzionale)</h2>
+              <p className="text-gray-300 text-sm mb-4">
+                Puoi salvare il tuo Player ID anche nel database Supabase per sincronizzarlo tra dispositivi.
+                Questa è un'opzione aggiuntiva - il salvataggio in localStorage rimane la fonte primaria.
+              </p>
+            </div>
+          </div>
+
+          {supabaseMessage && (
+            <div className={`mb-4 border rounded-lg p-3 ${
+              supabaseMessage.type === 'success'
+                ? 'bg-green-900/50 border-green-700 text-green-200'
+                : 'bg-red-900/50 border-red-700 text-red-200'
+            }`}>
+              {supabaseMessage.text}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="supabasePlayerId" className="block text-sm font-medium text-gray-300 mb-2">
+                Dota 2 Account ID (per Database)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="supabasePlayerId"
+                  type="text"
+                  value={supabasePlayerId}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSupabasePlayerId(e.target.value)}
+                  placeholder={supabaseSavedId ? supabaseSavedId.toString() : "es. 8607682237"}
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <AnimatedButton
+                  type="button"
+                  onClick={loadPlayerIdFromSupabase}
+                  disabled={loadingFromSupabase}
+                  variant="secondary"
+                >
+                  {loadingFromSupabase ? 'Caricamento...' : 'Carica da DB'}
+                </AnimatedButton>
+              </div>
+              {supabaseSavedId && (
+                <p className="text-xs text-green-400 mt-1">
+                  ✓ Salvato in database: {supabaseSavedId}
+                </p>
+              )}
+            </div>
+
+            <form onSubmit={handleSaveToSupabase}>
+              <div className="flex gap-3">
+                <AnimatedButton
+                  type="submit"
+                  disabled={savingToSupabase}
+                  variant="primary"
+                >
+                  {savingToSupabase ? 'Salvataggio...' : 'Salva in Database'}
+                </AnimatedButton>
+                {supabaseSavedId && (
+                  <AnimatedButton
+                    type="button"
+                    onClick={async () => {
+                      if (confirm('Sei sicuro di voler rimuovere il Player ID dal database?')) {
+                        const { data: { session } } = await supabase.auth.getSession()
+                        if (session?.access_token) {
+                          const result = await updatePlayerId(null, session.access_token)
+                          if (result.success) {
+                            setSupabaseSavedId(null)
+                            setSupabasePlayerId('')
+                            setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
+                          }
+                        }
+                      }
+                    }}
+                    variant="secondary"
+                  >
+                    Rimuovi da DB
                   </AnimatedButton>
                 )}
               </div>
