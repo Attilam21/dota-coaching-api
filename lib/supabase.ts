@@ -67,12 +67,16 @@ function createSupabaseClient(): SupabaseClient<Database> {
     console.error('❌ Supabase using placeholder values! Please configure real environment variables.')
   }
 
+  // Verifica che l'apikey sia valida (non vuota e non placeholder)
+  if (!supabaseAnonKey || supabaseAnonKey.length < 20) {
+    console.error('❌ Supabase ANON_KEY sembra non valida! Verifica le variabili d\'ambiente.')
+  }
+
   // Create client with proper configuration for client-side usage
   // IMPORTANT: apikey è SEMPRE richiesto da Supabase per identificare il progetto
-  // Authorization header (JWT) viene usato per l'autenticazione quando presente
-  // Entrambi DEVONO essere presenti simultaneamente - Supabase gestisce correttamente:
-  // - apikey identifica il progetto (sempre richiesto)
-  // - Authorization identifica l'utente (quando presente)
+  // Il secondo parametro (supabaseAnonKey) viene automaticamente usato come apikey header
+  // Tuttavia, dobbiamo assicurarci che sia sempre presente anche nei global headers
+  // per garantire che tutte le richieste includano l'apikey
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -84,7 +88,11 @@ function createSupabaseClient(): SupabaseClient<Database> {
     global: {
       headers: {
         'apikey': supabaseAnonKey, // Assicura che apikey sia sempre presente
+        'Authorization': `Bearer ${supabaseAnonKey}`, // Fallback per compatibilità
       },
+    },
+    db: {
+      schema: 'public',
     },
   })
 
