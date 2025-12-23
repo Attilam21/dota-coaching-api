@@ -92,12 +92,24 @@ export default function SettingsPage() {
         return
       }
 
+      // Verifica sessione prima di salvare
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !currentSession) {
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Fai logout e login di nuovo.',
+        })
+        setSaving(false)
+        return
+      }
+
       // Usa Server Action invece di client diretto
       // Passa l'access_token dalla sessione corrente
       // Vantaggi:
       // - ✅ JWT passato esplicitamente dal client
       // - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
-      const result = await updatePlayerId(playerIdString, currentSession?.access_token)
+      const result = await updatePlayerId(playerIdString, currentSession.access_token)
 
       if (!result.success) {
         setMessage({
