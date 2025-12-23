@@ -213,7 +213,7 @@ function HelmetLogo({ className: svgClassName }: { className?: string }) {
   )
 }
 
-export default function Logo({ className = '', showText = true, size = 'md', href }: LogoProps) {
+export default function Logo({ className = '', showText = false, size = 'md', href }: LogoProps) {
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-12 w-12',
@@ -230,13 +230,13 @@ export default function Logo({ className = '', showText = true, size = 'md', hre
 
   const content = (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Logo - Immagine PNG se disponibile, altrimenti SVG elmo come fallback */}
+      {/* Logo - Immagine JPG così com'è, adattata alle dimensioni */}
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         {showImage ? (
-          /* Immagine PNG - sostituisce completamente l'elmo */
+          /* Immagine JPG - mostra il logo completo così com'è */
           <div className="w-full h-full">
             <Image
-              src="/attila-lab-logo.png"
+              src="/logo.jpg"
               alt="ATTILA LAB Logo"
               fill
               className="object-contain"
