@@ -1,16 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import { useAuth } from './auth-context'
+import { supabase } from './supabase'
 
-const PLAYER_ID_KEY = 'fzth_player_id'
-const PLAYER_DATA_KEY = 'fzth_player_data'
-
-interface PlayerData {
-  playerId: string
-  verified: boolean
-  verifiedAt: string | null
-  verificationMethod: string | null
-}
+// NOTA: localStorage per Player ID rimosso - usiamo solo database
+// localStorage rimane SOLO per dati partita (last_match_id_*, player_data_* per cache match)
 
 interface PlayerIdContextType {
   playerId: string | null
@@ -31,163 +26,112 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
 })
 
 export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
-  // Load player data from localStorage
-  const loadPlayerData = (): { playerId: string | null; verified: boolean; verifiedAt: string | null; verificationMethod: string | null } => {
-    if (typeof window === 'undefined') {
-      return { playerId: null, verified: false, verifiedAt: null, verificationMethod: null }
-    }
-    
-    try {
-      // Try new format first (JSON object)
-      const dataStr = localStorage.getItem(PLAYER_DATA_KEY)
-      if (dataStr) {
-        const data: PlayerData = JSON.parse(dataStr)
-        return {
-          playerId: data.playerId ? data.playerId.trim() : null,
-          verified: data.verified || false,
-          verifiedAt: data.verifiedAt || null,
-          verificationMethod: data.verificationMethod || null
-        }
-      }
-      
-      // Fallback to old format (just player ID)
-      const oldPlayerId = localStorage.getItem(PLAYER_ID_KEY)
-      if (oldPlayerId) {
-        return {
-          playerId: oldPlayerId.trim(),
-          verified: false,
-          verifiedAt: null,
-          verificationMethod: null
-        }
-      }
-    } catch (err) {
-      console.error('[PlayerIdContext] Failed to load player data:', err)
-    }
-    
-    return { playerId: null, verified: false, verifiedAt: null, verificationMethod: null }
-  }
-
-  const initialData = loadPlayerData()
-  
-  const [playerId, setPlayerIdState] = useState<string | null>(initialData.playerId)
-  const [isVerified, setIsVerifiedState] = useState<boolean>(initialData.verified)
-  const [verifiedAt, setVerifiedAtState] = useState<string | null>(initialData.verifiedAt)
-  const [verificationMethod, setVerificationMethodState] = useState<string | null>(initialData.verificationMethod)
+  const { user } = useAuth()
+  const [playerId, setPlayerIdState] = useState<string | null>(null)
+  const [isVerified, setIsVerifiedState] = useState<boolean>(false)
+  const [verifiedAt, setVerifiedAtState] = useState<string | null>(null)
+  const [verificationMethod, setVerificationMethodState] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Mark as mounted on client side (SSR safety)
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // Sync with localStorage on mount (in case it changed externally)
+  // Load Player ID from database when user is authenticated
   useEffect(() => {
     if (!isMounted) return
 
-    try {
-      const data = loadPlayerData()
-      if (data.playerId !== playerId) {
-        setPlayerIdState(data.playerId)
-      }
-      if (data.verified !== isVerified) {
-        setIsVerifiedState(data.verified)
-      }
-      if (data.verifiedAt !== verifiedAt) {
-        setVerifiedAtState(data.verifiedAt)
-      }
-      if (data.verificationMethod !== verificationMethod) {
-        setVerificationMethodState(data.verificationMethod)
-      }
-    } catch (err) {
-      console.error('[PlayerIdContext] Failed to load from localStorage:', err)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMounted]) // Only run on mount, not when playerId changes
-
-  // Listen for storage events (synchronize between tabs/windows)
-  useEffect(() => {
-    if (!isMounted) return
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === PLAYER_ID_KEY || e.key === PLAYER_DATA_KEY) {
-        const data = loadPlayerData()
-        if (data.playerId !== playerId) {
-          setPlayerIdState(data.playerId)
-        }
-        if (data.verified !== isVerified) {
-          setIsVerifiedState(data.verified)
-        }
-        if (data.verifiedAt !== verifiedAt) {
-          setVerifiedAtState(data.verifiedAt)
-        }
-        if (data.verificationMethod !== verificationMethod) {
-          setVerificationMethodState(data.verificationMethod)
-        }
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [isMounted, playerId, isVerified, verifiedAt, verificationMethod])
-
-  // Save to localStorage whenever playerId changes
-  const setPlayerId = useCallback((id: string | null) => {
-    try {
-      if (id) {
-        const trimmedId = id.trim()
-        setPlayerIdState(trimmedId)
-        
-        // Save in new format (JSON object)
-        const playerData: PlayerData = {
-          playerId: trimmedId,
-          verified: isVerified,
-          verifiedAt: verifiedAt,
-          verificationMethod: verificationMethod
-        }
-        localStorage.setItem(PLAYER_DATA_KEY, JSON.stringify(playerData))
-        
-        // Also save in old format for compatibility
-        localStorage.setItem(PLAYER_ID_KEY, trimmedId)
-      } else {
+    const loadPlayerIdFromDatabase = async () => {
+      if (!user) {
+        // User not authenticated - clear player ID
         setPlayerIdState(null)
         setIsVerifiedState(false)
         setVerifiedAtState(null)
         setVerificationMethodState(null)
-        localStorage.removeItem(PLAYER_DATA_KEY)
-        localStorage.removeItem(PLAYER_ID_KEY)
+        setIsLoading(false)
+        return
       }
-    } catch (err) {
-      console.error('[PlayerIdContext] Failed to save player ID to localStorage:', err)
-    }
-  }, [isVerified, verifiedAt, verificationMethod])
 
-  // Set verification status
-  const setVerified = useCallback((verified: boolean, method: string = 'questions') => {
-    try {
-      if (!playerId) return
-      
-      setIsVerifiedState(verified)
-      if (verified) {
-        setVerifiedAtState(new Date().toISOString())
-        setVerificationMethodState(method)
-      } else {
+      try {
+        setIsLoading(true)
+        
+        // Carica da database (SOLA FONTE DI VERITÀ)
+        const { data: userData, error: fetchError } = await supabase
+          .from('users')
+          .select('dota_account_id, dota_account_verified_at, dota_verification_method')
+          .eq('id', user.id)
+          .single()
+
+        if (fetchError) {
+          console.error('[PlayerIdContext] Error fetching player ID from DB:', fetchError)
+          // In caso di errore, mostra campo vuoto (non fallback localStorage)
+          setPlayerIdState(null)
+          setIsVerifiedState(false)
+          setVerifiedAtState(null)
+          setVerificationMethodState(null)
+        } else if (userData?.dota_account_id) {
+          // Found in database - use it
+          const dbPlayerId = String(userData.dota_account_id)
+          setPlayerIdState(dbPlayerId)
+          
+          // Carica anche dati verifica se presenti
+          setIsVerifiedState(!!userData.dota_account_verified_at)
+          setVerifiedAtState(userData.dota_account_verified_at || null)
+          setVerificationMethodState(userData.dota_verification_method || null)
+        } else {
+          // No ID in DB
+          setPlayerIdState(null)
+          setIsVerifiedState(false)
+          setVerifiedAtState(null)
+          setVerificationMethodState(null)
+        }
+      } catch (err) {
+        console.error('[PlayerIdContext] Failed to load player ID:', err)
+        setPlayerIdState(null)
+        setIsVerifiedState(false)
         setVerifiedAtState(null)
         setVerificationMethodState(null)
+      } finally {
+        setIsLoading(false)
       }
-      
-      // Save in new format (JSON object)
-      const playerData: PlayerData = {
-        playerId: playerId,
-        verified: verified,
-        verifiedAt: verified ? new Date().toISOString() : null,
-        verificationMethod: verified ? method : null
-      }
-      localStorage.setItem(PLAYER_DATA_KEY, JSON.stringify(playerData))
-    } catch (err) {
-      console.error('[PlayerIdContext] Failed to save verification status:', err)
     }
+
+    loadPlayerIdFromDatabase()
+  }, [isMounted, user])
+
+  // Update player ID state (database è la fonte di verità, questo aggiorna solo lo state)
+  const setPlayerId = useCallback((id: string | null) => {
+    // Aggiorna solo lo state locale - il database viene aggiornato da SettingsPage
+    // Questo permette sincronizzazione immediata tra componenti
+    setPlayerIdState(id ? id.trim() : null)
+    
+    // Se ID viene rimosso, rimuovi anche dati verifica
+    if (!id) {
+      setIsVerifiedState(false)
+      setVerifiedAtState(null)
+      setVerificationMethodState(null)
+    }
+    
+    // NOTA: NON salvare in localStorage - database è l'unica fonte
+    // localStorage rimane SOLO per dati partita (last_match_id_*, player_data_*)
+  }, [])
+
+  // Set verification status (aggiorna solo state locale - database viene aggiornato da SettingsPage se necessario)
+  const setVerified = useCallback((verified: boolean, method: string = 'questions') => {
+    if (!playerId) return
+    
+    setIsVerifiedState(verified)
+    if (verified) {
+      setVerifiedAtState(new Date().toISOString())
+      setVerificationMethodState(method)
+    } else {
+      setVerifiedAtState(null)
+      setVerificationMethodState(null)
+    }
+    
+    // NOTA: NON salvare in localStorage - database è l'unica fonte
   }, [playerId])
 
   // Memoize context value to prevent unnecessary re-renders

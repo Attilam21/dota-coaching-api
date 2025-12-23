@@ -52,9 +52,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes with error handling
     try {
       const authStateChangeResult = supabase.auth.onAuthStateChange(
-        (_event: AuthChangeEvent, session: Session | null) => {
-          setSession(session)
-          setUser(session?.user ?? null)
+        (event: AuthChangeEvent, session: Session | null) => {
+          // Gestione esplicita eventi auth
+          if (event === 'TOKEN_REFRESHED') {
+            // Token refresh riuscito
+            setSession(session)
+            setUser(session?.user ?? null)
+          } else if (event === 'SIGNED_OUT' || (event === 'USER_UPDATED' && !session)) {
+            // Sessione scaduta o logout
+            setSession(null)
+            setUser(null)
+            // Pulire solo token auth (NON toccare dati partita)
+            try {
+              localStorage.removeItem('sb-auth-token')
+            } catch (err) {
+              console.error('[AuthContext] Failed to clear auth token:', err)
+            }
+          } else {
+            // Altri eventi (SIGNED_IN, USER_UPDATED con sessione, ecc.)
+            setSession(session)
+            setUser(session?.user ?? null)
+          }
           setLoading(false)
         }
       )

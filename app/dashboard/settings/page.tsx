@@ -84,50 +84,41 @@ export default function SettingsPage() {
 
       if (fetchError) {
         console.error('Error fetching player ID from DB:', fetchError)
-        // Fallback to localStorage if DB fetch fails
-        const saved = localStorage.getItem('fzth_player_id')
-        if (saved) {
-          setDotaAccountId(saved)
-          setPlayerId(saved)
-        } else {
-          setDotaAccountId('')
-          setPlayerId(null)
+        
+        // Se è un errore di autenticazione, reindirizza al login
+        if (fetchError.code === 'PGRST301' || 
+            fetchError.message?.includes('JWT') ||
+            fetchError.message?.includes('permission denied')) {
+          setMessage({
+            type: 'error',
+            text: 'Sessione scaduta. Effettua il login di nuovo.',
+          })
+          setTimeout(() => {
+            router.push('/auth/login')
+          }, 2000)
+          return
         }
+        
+        // Altri errori: mostra messaggio ma non fallback a localStorage
+        setDotaAccountId('')
+        setPlayerId(null)
       } else if (userData?.dota_account_id) {
-        // Found in database - use it
+        // Found in database - use it (SOLA FONTE DI VERITÀ)
         const dbPlayerId = String(userData.dota_account_id)
         setDotaAccountId(dbPlayerId)
         setPlayerId(dbPlayerId)
-        // Sync to localStorage as fallback
-        try {
-          localStorage.setItem('fzth_player_id', dbPlayerId)
-        } catch (err) {
-          console.error('Failed to sync to localStorage:', err)
-        }
+        // NON sincronizzare localStorage - database è l'unica fonte
       } else {
-        // No ID in DB, check localStorage
-        const saved = localStorage.getItem('fzth_player_id')
-        if (saved) {
-          setDotaAccountId(saved)
-          setPlayerId(saved)
-        } else {
-          setDotaAccountId('')
-          setPlayerId(null)
-        }
+        // No ID in DB - campo vuoto
+        setDotaAccountId('')
+        setPlayerId(null)
       }
 
     } catch (err) {
       console.error('Failed to load settings:', err)
-      // Fallback to localStorage on any error
-      try {
-        const saved = localStorage.getItem('fzth_player_id')
-        if (saved) {
-          setDotaAccountId(saved)
-          setPlayerId(saved)
-        }
-      } catch (localErr) {
-        console.error('Failed to read localStorage:', localErr)
-      }
+      // In caso di errore generico, mostra campo vuoto (non fallback localStorage)
+      setDotaAccountId('')
+      setPlayerId(null)
     } finally {
       setLoading(false)
     }
@@ -194,6 +185,22 @@ export default function SettingsPage() {
 
       if (updateError) {
         console.error('Error updating player ID:', updateError)
+        
+        // Se è un errore di autenticazione, reindirizza al login
+        if (updateError.code === 'PGRST301' || 
+            updateError.message?.includes('JWT') ||
+            updateError.message?.includes('permission denied')) {
+          setMessage({
+            type: 'error',
+            text: 'Sessione scaduta. Effettua il login di nuovo.',
+          })
+          setTimeout(() => {
+            router.push('/auth/login')
+          }, 2000)
+          setSaving(false)
+          return
+        }
+        
         setMessage({
           type: 'error',
           text: updateError.message || 'Errore nel salvataggio del Player ID.',
@@ -202,25 +209,12 @@ export default function SettingsPage() {
         return
       }
 
-      // Success - salva anche in localStorage come fallback
+      // Success - salvato SOLO in database (fonte unica di verità)
       const successMessage = dotaAccountIdNum 
-        ? `Player ID ${dotaAccountIdNum} salvato e sovrascritto nel database!`
+        ? `Player ID ${dotaAccountIdNum} salvato nel database!`
         : 'Player ID rimosso dal database.'
-
-      // Also save to localStorage as fallback
-      if (playerIdString) {
-        try {
-          localStorage.setItem('fzth_player_id', playerIdString)
-        } catch (err) {
-          console.error('Failed to save to localStorage:', err)
-        }
-      } else {
-        try {
-          localStorage.removeItem('fzth_player_id')
-        } catch (err) {
-          console.error('Failed to remove from localStorage:', err)
-        }
-      }
+      
+      // NON salvare in localStorage - database è l'unica fonte
       
       // Update context (this will trigger re-renders in all consuming components)
       setPlayerId(playerIdString)

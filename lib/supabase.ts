@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Database Types - Allineati con uso reale
 // public.users viene creato automaticamente dal trigger
-// Player ID salvato in database (dota_account_id) E localStorage (fallback)
+// Player ID salvato SOLO in database (dota_account_id) - NON più in localStorage
 export type Database = {
   public: {
     Tables: {
@@ -88,14 +88,38 @@ function createSupabaseClient(): SupabaseClient<Database> {
     },
   })
 
-  // Debug: Log session state in development
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Gestione errori refresh token e sessioni
+  if (typeof window !== 'undefined') {
     client.auth.onAuthStateChange((event, session) => {
-      console.log('[Supabase Client] Auth state changed:', event, {
-        hasSession: !!session,
-        hasAccessToken: !!session?.access_token,
-        userId: session?.user?.id,
-      })
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Supabase Client] Auth state changed:', event, {
+          hasSession: !!session,
+          hasAccessToken: !!session?.access_token,
+          userId: session?.user?.id,
+        })
+      }
+
+      // Gestione errori refresh token
+      if (event === 'TOKEN_REFRESHED') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Supabase] Token refreshed successfully')
+        }
+      } else if (event === 'SIGNED_OUT' || (event === 'USER_UPDATED' && !session)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Supabase] Session expired or user signed out')
+        }
+        // Pulire solo token auth quando sessione scade
+        // NOTA: NON toccare dati partita in localStorage (last_match_id_*, player_data_*)
+        try {
+          localStorage.removeItem('sb-auth-token')
+        } catch (err) {
+          console.error('[Supabase] Failed to clear auth token:', err)
+        }
+      } else if (event === 'SIGNED_IN') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Supabase] User signed in')
+        }
+      }
     })
   }
 
