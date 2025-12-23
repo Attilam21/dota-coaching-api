@@ -9,7 +9,7 @@ import type { Database } from '@/lib/supabase'
  * Usa access_token passato esplicitamente dal client (localStorage)
  * NON usa cookie o SSR helpers - compatibile con client @supabase/supabase-js
  */
-export async function updatePlayerId(playerId: string | null, accessToken: string) {
+export async function updatePlayerId(playerId: string | null, accessToken: string, refreshToken?: string) {
   try {
     // Valida access_token
     if (!accessToken || !accessToken.trim()) {
@@ -30,6 +30,9 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       }
     }
 
+    // LOG TEMPORANEO: verifica token presente
+    console.log('[updatePlayerId] Token presente:', !!accessToken)
+
     const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: false,
@@ -42,6 +45,21 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
         },
       },
     })
+
+    // Imposta sessione esplicitamente per permettere a RLS di funzionare
+    // RLS richiede che la sessione sia impostata nel client per auth.uid()
+    // setSession() permette a Supabase di usare il token per le query database
+    if (refreshToken) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+
+      if (sessionError) {
+        console.error('[updatePlayerId] Errore impostazione sessione:', sessionError.message)
+        // Continua comunque - l'Authorization header potrebbe essere sufficiente
+      }
+    }
 
     // Verifica utente usando access_token esplicito
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
@@ -81,8 +99,8 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       .single()
 
     if (updateError) {
+      // LOG TEMPORANEO: stampa solo l'errore (non il token)
       console.error('[updatePlayerId] Errore aggiornamento database:', {
-        error: updateError,
         code: updateError.code,
         message: updateError.message,
         details: updateError.details,

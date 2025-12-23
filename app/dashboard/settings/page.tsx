@@ -285,8 +285,13 @@ function SettingsPageContent() {
         return
       }
 
-      // Passa access_token esplicitamente alla Server Action
-      const result = await updatePlayerId(playerIdString, session.access_token)
+      // Passa access_token e refresh_token esplicitamente alla Server Action
+      // refresh_token necessario per setSession() che abilita RLS
+      const result = await updatePlayerId(
+        playerIdString, 
+        session.access_token,
+        session.refresh_token || ''
+      )
 
       if (!result.success) {
         setSupabaseMessage({
@@ -607,8 +612,8 @@ function SettingsPageContent() {
                           return
                         }
 
-                        // Passa access_token esplicitamente alla Server Action
-                        const result = await updatePlayerId(null, session.access_token)
+                        // Passa access_token e refresh_token esplicitamente alla Server Action
+                        const result = await updatePlayerId(null, session.access_token, session.refresh_token || '')
                         if (result.success) {
                           setSupabaseSavedId(null)
                           setSupabasePlayerId('')
