@@ -56,6 +56,17 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
             return
           }
 
+ilo          // Verifica che la sessione abbia un access_token valido
+          if (!session.access_token) {
+            console.warn('[PlayerIdContext] Session without access_token, waiting...')
+            setPlayerIdState(null)
+            setIsVerifiedState(false)
+            setVerifiedAtState(null)
+            setVerificationMethodState(null)
+            setIsLoading(false)
+            return
+          }
+
           try {
             setIsLoading(true)
             
@@ -68,50 +79,77 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               setIsLoading(false)
               return
             }
+
+            // Verifica che la sessione sia ancora valida prima di fare la query
+            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+            
+            if (sessionError || !currentSession || !currentSession.access_token) {
+              console.error('[PlayerIdContext] Session invalid or expired:', sessionError)
+              setPlayerIdState(null)
+              setIsVerifiedState(false)
+              setVerifiedAtState(null)
+              setVerificationMethodState(null)
+              setIsLoading(false)
+              return
+            }
         
-        // Carica da database (SOLA FONTE DI VERITÀ)
-        // Ora auth.uid() funzionerà correttamente perché la sessione è caricata
-        const { data: userData, error: fetchError } = await supabase
-          .from('users')
-          .select('dota_account_id, dota_account_verified_at, dota_verification_method')
-          .eq('id', user.id)
-          .single()
+            // Carica da database (SOLA FONTE DI VERITÀ)
+            // Ora auth.uid() funzionerà correttamente perché la sessione è caricata e valida
+            const { data: userData, error: fetchError } = await supabase
+              .from('users')
+              .select('dota_account_id, dota_account_verified_at, dota_verification_method')
+              .eq('id', user.id)
+              .single()
 
-        if (fetchError) {
-          console.error('[PlayerIdContext] Error fetching player ID from DB:', fetchError)
-          // In caso di errore, mostra campo vuoto (non fallback localStorage)
-          setPlayerIdState(null)
-          setIsVerifiedState(false)
-          setVerifiedAtState(null)
-          setVerificationMethodState(null)
-        } else if (userData?.dota_account_id) {
-          // Found in database - use it
-          const dbPlayerId = String(userData.dota_account_id)
-          setPlayerIdState(dbPlayerId)
-          
-          // Carica anche dati verifica se presenti
-          setIsVerifiedState(!!userData.dota_account_verified_at)
-          setVerifiedAtState(userData.dota_account_verified_at || null)
-          setVerificationMethodState(userData.dota_verification_method || null)
-        } else {
-          // No ID in DB
-          setPlayerIdState(null)
-          setIsVerifiedState(false)
-          setVerifiedAtState(null)
-          setVerificationMethodState(null)
+            if (fetchError) {
+              // Se è un errore 403, potrebbe essere un problema di timing - logga ma non bloccare
+              if (fetchError.code === 'PGRST301' || fetchError.message?.includes('403') || fetchError.message?.includes('Forbidden')) {
+                console.warn('[PlayerIdContext] 403 Forbidden - RLS policy might be blocking. Session:', {
+                  hasSession: !!currentSession,
+                  hasAccessToken: !!currentSession?.access_token,
+                  userId: user.id
+                })
+              } else {
+                console.error('[PlayerIdContext] Error fetching player ID from DB:', fetchError)
+              }
+              // In caso di errore, mostra campo vuoto (non fallback localStorage)
+              setPlayerIdState(null)
+              setIsVerifiedState(false)
+              setVerifiedAtState(null)
+              setVerificationMethodState(null)
+            } else if (userData?.dota_account_id) {
+              // Found in database - use it
+              const dbPlayerId = String(userData.dota_account_id)
+              setPlayerIdState(dbPlayerId)
+              
+              // Carica anche dati verifica se presenti
+              setIsVerifiedState(!!userData.dota_account_verified_at)
+              setVerifiedAtState(userData.dota_account_verified_at || null)
+              setVerificationMethodState(userData.dota_verification_method || null)
+            } else {
+              // No ID in DB
+              setPlayerIdState(null)
+              setIsVerifiedState(false)
+              setVerifiedAtState(null)
+              setVerificationMethodState(null)
+            }
+          } catch (err) {
+            console.error('[PlayerIdContext] Failed to load player ID:', err)
+            setPlayerIdState(null)
+            setIsVerifiedState(false)
+            setVerifiedAtState(null)
+            setVerificationMethodState(null)
+          } finally {
+            setIsLoading(false)
+          }
         }
-      } catch (err) {
-        console.error('[PlayerIdContext] Failed to load player ID:', err)
-        setPlayerIdState(null)
-        setIsVerifiedState(false)
-        setVerifiedAtState(null)
-        setVerificationMethodState(null)
-      } finally {
-        setIsLoading(false)
-      }
-    }
 
-        loadPlayerIdFromDatabase()
+        // Aggiungi un piccolo delay per assicurarsi che la sessione sia completamente inizializzata
+        const timeoutId = setTimeout(() => {
+          loadPlayerIdFromDatabase()
+        }, 100)
+
+        return () => clearTimeout(timeoutId)
       }, [isMounted, user, session])
 
   // Update player ID state (database è la fonte di verità, questo aggiorna solo lo state)
