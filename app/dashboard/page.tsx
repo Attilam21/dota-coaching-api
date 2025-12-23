@@ -107,12 +107,17 @@ export default function DashboardPage() {
   }, [])
 
   const fetchStats = useCallback(async () => {
-    if (!playerId) return
+    if (!playerId) {
+      console.warn('[Dashboard] ⚠️ fetchStats() chiamato ma playerId è null/undefined')
+      return
+    }
 
+    console.log('[Dashboard] 🚀 fetchStats() chiamato con playerId:', playerId)
     try {
       setLoading(true)
       setError(null)
 
+      console.log('[Dashboard] 📡 Chiamate API per playerId:', playerId)
       const [statsResponse, advancedResponse, profileResponse, wlResponse, benchmarksResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
         fetch(`/api/player/${playerId}/advanced-stats`),
@@ -121,7 +126,18 @@ export default function DashboardPage() {
         fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
       ])
 
-      if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
+      console.log('[Dashboard] 📥 Risposte API ricevute:', {
+        stats: statsResponse.status,
+        advanced: advancedResponse.status,
+        profile: profileResponse?.status || 'skipped',
+        wl: wlResponse?.status || 'skipped',
+        benchmarks: benchmarksResponse?.status || 'skipped'
+      })
+
+      if (!statsResponse.ok) {
+        console.error('[Dashboard] ❌ statsResponse non OK:', statsResponse.status, statsResponse.statusText)
+        throw new Error(`Failed to fetch player stats: ${statsResponse.status} ${statsResponse.statusText}`)
+      }
 
       const statsData = await statsResponse.json()
       const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
@@ -176,8 +192,12 @@ export default function DashboardPage() {
   }, [playerId])
 
   useEffect(() => {
+    console.log('[Dashboard] 🔄 useEffect playerId cambiato:', playerId)
     if (playerId) {
+      console.log('[Dashboard] ✅ playerId disponibile, chiamando fetchStats()...')
       fetchStats()
+    } else {
+      console.warn('[Dashboard] ⚠️ playerId non disponibile, fetchStats() non chiamato')
     }
   }, [playerId, fetchStats])
 

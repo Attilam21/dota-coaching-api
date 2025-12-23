@@ -21,19 +21,24 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    console.log('[API /stats] 🚀 Richiesta ricevuta per player ID:', id)
     
     // Fetch recent matches (20 per allineare con analisi avanzate)
+    console.log('[API /stats] 📡 Chiamata OpenDota per player:', id)
     const matchesResponse = await fetchWithTimeout(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
       timeout: 10000, // 10 seconds timeout
       next: { revalidate: 3600 }
     })
     
     if (!matchesResponse.ok) {
+      console.error('[API /stats] ❌ OpenDota risposta non OK:', matchesResponse.status, matchesResponse.statusText)
       return NextResponse.json(
         { error: 'Failed to fetch matches' },
         { status: matchesResponse.status }
       )
     }
+    
+    console.log('[API /stats] ✅ OpenDota risposta OK')
 
     const matches: OpenDotaMatch[] = await matchesResponse.json()
     
@@ -204,6 +209,7 @@ export async function GET(
       })),
     }
 
+    console.log('[API /stats] ✅ Risposta inviata con', matches.length, 'matches')
     return NextResponse.json({
       matches: matches.slice(0, 20),
       stats,

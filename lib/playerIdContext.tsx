@@ -195,7 +195,7 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
             } else if (userData?.dota_account_id) {
               // Found in database - use it
               const dbPlayerId = String(userData.dota_account_id)
-              console.log('[PlayerIdContext] Player ID trovato nel database:', dbPlayerId)
+              console.log('[PlayerIdContext] ✅ Player ID trovato nel database:', dbPlayerId, 'per user:', user.id)
               setPlayerIdState(dbPlayerId)
               
               // Carica anche dati verifica se presenti
@@ -204,7 +204,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               setVerificationMethodState(userData.dota_verification_method || null)
             } else {
               // No ID in DB
-              console.log('[PlayerIdContext] Nessun Player ID trovato nel database per questo utente')
+              console.warn('[PlayerIdContext] ⚠️ Nessun Player ID trovato nel database per questo utente:', user.id)
+              console.warn('[PlayerIdContext] UserData ricevuto:', userData)
               setPlayerIdState(null)
               setIsVerifiedState(false)
               setVerifiedAtState(null)
@@ -226,11 +227,31 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   // NOTA: NON includere loadPlayerIdFromDatabase nelle dipendenze per prevenire loop
   // La funzione è già memoizzata con useCallback e dipende solo da user/session
   useEffect(() => {
-    if (!isMounted) return
-    if (!user || !session) return // Non provare se user/session non sono disponibili
+    console.log('[PlayerIdContext] 🔄 useEffect triggerato:', {
+      isMounted,
+      hasUser: !!user,
+      userId: user?.id,
+      hasSession: !!session,
+      hasAccessToken: !!session?.access_token
+    })
+    
+    if (!isMounted) {
+      console.log('[PlayerIdContext] ⏸️ Componente non ancora montato, skip')
+      return
+    }
+    
+    if (!user || !session) {
+      console.warn('[PlayerIdContext] ⚠️ User o session non disponibili, skip:', {
+        hasUser: !!user,
+        hasSession: !!session
+      })
+      return // Non provare se user/session non sono disponibili
+    }
 
     // Aggiungi un piccolo delay per assicurarsi che la sessione sia completamente inizializzata
+    console.log('[PlayerIdContext] ⏳ Delay 200ms prima di caricare Player ID...')
     const timeoutId = setTimeout(() => {
+      console.log('[PlayerIdContext] 🚀 Chiamata loadPlayerIdFromDatabase()')
       loadPlayerIdFromDatabase()
     }, 200) // Aumentato a 200ms per dare più tempo alla sessione
 
