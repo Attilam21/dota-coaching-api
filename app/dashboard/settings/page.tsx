@@ -311,8 +311,27 @@ function SettingsPageContent() {
         return
       }
 
-      // Aggiorna state locale
+      // Aggiorna state locale Supabase
       setSupabaseSavedId(dotaAccountIdNum)
+      
+      // SINCRONIZZAZIONE: Dopo salvataggio DB, aggiorna localStorage e Context
+      // Questo garantisce coerenza e forza il refresh della dashboard
+      if (playerIdString) {
+        // Aggiorna localStorage con lo stesso valore (coerenza)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fzth_player_id', playerIdString)
+        }
+        
+        // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
+        // Questo forza il refresh automatico dei dati dashboard
+        setPlayerId(playerIdString)
+      } else {
+        // Se playerIdString è null, rimuovi da localStorage e Context
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('fzth_player_id')
+        }
+        setPlayerId(null)
+      }
       
       setSupabaseMessage({ 
         type: 'success', 
@@ -626,6 +645,17 @@ function SettingsPageContent() {
                         if (result.success) {
                           setSupabaseSavedId(null)
                           setSupabasePlayerId('')
+                          
+                          // SINCRONIZZAZIONE: Dopo rimozione da DB, aggiorna localStorage e Context
+                          // Rimuovi da localStorage (coerenza)
+                          if (typeof window !== 'undefined') {
+                            localStorage.removeItem('fzth_player_id')
+                          }
+                          
+                          // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
+                          // Questo forza il refresh automatico dei dati dashboard
+                          setPlayerId(null)
+                          
                           setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
                         } else {
                           setSupabaseMessage({

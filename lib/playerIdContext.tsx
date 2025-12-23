@@ -1,23 +1,27 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useAuth } from '@/lib/auth-context'
+import { getPlayerId } from '@/app/actions/get-player-id'
 
 /**
  * PlayerIdContext - Gestione Player ID Dota 2
  * 
- * Questo context gestisce il Dota 2 Account ID dell'utente utilizzando localStorage come unica fonte di verità.
+ * Questo context gestisce il Dota 2 Account ID dell'utente con priorità:
+ * 1. localStorage 'fzth_player_id' (se presente e valido) - override per test
+ * 2. Supabase public.users.dota_account_id (se localStorage vuoto e utente autenticato)
  * 
  * ARCHITETTURA:
- * - Player ID salvato SOLO in localStorage (chiave: 'fzth_player_id')
- * - Nessun salvataggio nel database Supabase
- * - localStorage è la fonte primaria e unica per il Player ID
+ * - PRIORITÀ 1: localStorage (chiave: 'fzth_player_id') - fonte primaria quando presente
+ * - PRIORITÀ 2: Supabase public.users.dota_account_id - fallback quando localStorage vuoto
  * - Altri dati in localStorage: cache match (last_match_id_*, player_data_*)
  * 
  * FLUSSO:
- * 1. Al mount del componente, carica Player ID da localStorage
- * 2. setPlayerId() aggiorna sia lo state React che localStorage
- * 3. Tutti i componenti che usano usePlayerIdContext() ricevono il Player ID aggiornato
- * 4. Le dashboard pages usano questo Player ID per fetchare dati da OpenDota API
+ * 1. Al mount, carica Player ID da localStorage
+ * 2. Se localStorage vuoto e utente autenticato, carica da Supabase
+ * 3. setPlayerId() aggiorna state React, localStorage e (opzionalmente) Supabase
+ * 4. Tutti i componenti che usano usePlayerIdContext() ricevono il Player ID aggiornato
+ * 5. Le dashboard pages usano questo Player ID per fetchare dati da OpenDota API
  * 
  * UTILIZZO:
  * ```tsx
@@ -74,9 +78,13 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   
+  // Auth context per sapere se l'utente è autenticato
+  const { user, loading: authLoading } = useAuth()
+  
   // Refs per prevenire race conditions
   const loadingRef = useRef(false)
   const lastErrorRef = useRef<{ timestamp: number; count: number } | null>(null)
+  const hasLoadedFromSupabaseRef = useRef(false) // Evita chiamate multiple a Supabase
 
   // SSR Safety: marca il componente come montato solo lato client
   useEffect(() => {
@@ -84,12 +92,63 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   /**
-   * Carica il Player ID da localStorage
+   * Carica il Player ID da Supabase (fallback quando localStorage è vuoto)
    * 
-   * Questa è l'unica fonte di verità per il Player ID.
-   * Viene chiamata al mount del componente e quando necessario.
+   * PRIORITÀ 2: Se localStorage è vuoto e utente è autenticato, carica da Supabase
    */
-  const loadPlayerIdFromLocalStorage = useCallback(() => {
+  const loadPlayerIdFromSupabase = useCallback(async () => {
+    // Prevenire chiamate multiple simultanee
+    if (loadingRef.current || hasLoadedFromSupabaseRef.current) {
+      return
+    }
+
+    // Solo se utente è autenticato
+    if (!user || authLoading) {
+      return
+    }
+
+    try {
+      loadingRef.current = true
+      hasLoadedFromSupabaseRef.current = true
+      
+      const result = await getPlayerId()
+      
+      if (result.success && result.playerId) {
+        // Valida che sia un numero valido
+        const trimmedId = result.playerId.trim()
+        if (/^\d+$/.test(trimmedId)) {
+          // Aggiorna state e localStorage (sincronizzazione)
+          setPlayerIdState(trimmedId)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(PLAYER_ID_KEY, trimmedId)
+          }
+          
+          // Aggiorna dati verifica se disponibili
+          if (result.verified) {
+            setIsVerifiedState(true)
+            setVerifiedAtState(result.verifiedAt)
+            setVerificationMethodState(result.verificationMethod)
+          } else {
+            setIsVerifiedState(false)
+            setVerifiedAtState(null)
+            setVerificationMethodState(null)
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[PlayerIdContext] Errore nel caricamento Player ID da Supabase:', err)
+      // Non bloccare il flusso se Supabase fallisce
+    } finally {
+      loadingRef.current = false
+    }
+  }, [user, authLoading])
+
+  /**
+   * Carica il Player ID seguendo la priorità:
+   * 1. localStorage 'fzth_player_id' (se presente e valido)
+   * 2. Supabase public.users.dota_account_id (se localStorage vuoto e utente autenticato)
+   */
+  const loadPlayerId = useCallback(async () => {
     // Prevenire chiamate multiple simultanee (race condition protection)
     if (loadingRef.current) {
       return
@@ -103,14 +162,27 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== 'undefined') {
         const savedPlayerId = localStorage.getItem(PLAYER_ID_KEY)
         
-        if (savedPlayerId && savedPlayerId.trim()) {
+        // PRIORITÀ 1: localStorage (se presente e valido)
+        if (savedPlayerId && savedPlayerId.trim() && /^\d+$/.test(savedPlayerId.trim())) {
           setPlayerIdState(savedPlayerId.trim())
           // Reset dati verifica (non persistiti in localStorage)
           setIsVerifiedState(false)
           setVerifiedAtState(null)
           setVerificationMethodState(null)
+          setIsLoading(false)
+          loadingRef.current = false
+          return
+        }
+        
+        // PRIORITÀ 2: localStorage vuoto -> prova Supabase (solo se utente autenticato)
+        // Reset hasLoadedFromSupabaseRef per permettere nuovo tentativo se auth cambia
+        hasLoadedFromSupabaseRef.current = false
+        
+        // Se localStorage è vuoto e utente è autenticato, carica da Supabase
+        if (!savedPlayerId && user && !authLoading) {
+          await loadPlayerIdFromSupabase()
         } else {
-          // Nessun Player ID salvato
+          // Nessun Player ID disponibile
           setPlayerIdState(null)
           setIsVerifiedState(false)
           setVerifiedAtState(null)
@@ -133,13 +205,19 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
       loadingRef.current = false
     }
-  }, [])
+  }, [user, authLoading, loadPlayerIdFromSupabase])
 
-  // Carica Player ID da localStorage al mount del componente (solo lato client)
+  // Carica Player ID al mount e quando auth cambia (solo lato client)
   useEffect(() => {
     if (!isMounted) return
-    loadPlayerIdFromLocalStorage()
-  }, [isMounted, loadPlayerIdFromLocalStorage])
+    
+    // Reset hasLoadedFromSupabaseRef quando auth cambia per permettere nuovo tentativo
+    if (user && !authLoading) {
+      hasLoadedFromSupabaseRef.current = false
+    }
+    
+    loadPlayerId()
+  }, [isMounted, user, authLoading, loadPlayerId])
 
   /**
    * Imposta/aggiorna il Player ID
@@ -197,13 +275,15 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   }, [playerId])
 
   /**
-   * Forza il ricaricamento del Player ID da localStorage
+   * Forza il ricaricamento del Player ID seguendo la priorità
    * 
    * Utile quando si vuole sincronizzare manualmente dopo modifiche esterne.
+   * Reset hasLoadedFromSupabaseRef per permettere nuovo tentativo.
    */
   const reload = useCallback(async () => {
-    loadPlayerIdFromLocalStorage()
-  }, [loadPlayerIdFromLocalStorage])
+    hasLoadedFromSupabaseRef.current = false
+    await loadPlayerId()
+  }, [loadPlayerId])
 
   // Memoizza il valore del context per evitare re-render inutili
   // I componenti si ri-renderizzano solo quando i valori cambiano effettivamente
