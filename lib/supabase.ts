@@ -73,7 +73,6 @@ function createSupabaseClient(): SupabaseClient<Database> {
   // Entrambi DEVONO essere presenti simultaneamente - Supabase gestisce correttamente:
   // - apikey identifica il progetto (sempre richiesto)
   // - Authorization identifica l'utente (quando presente)
-  // Il problema 403 NON è causato dal conflitto tra i due header
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -82,11 +81,11 @@ function createSupabaseClient(): SupabaseClient<Database> {
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       storageKey: 'sb-auth-token',
     },
-    // No custom fetch - Supabase JS gestisce automaticamente apikey e JWT correttamente
-    // Il problema 403 è probabilmente dovuto a:
-    // 1. JWT role non corretto (deve essere "authenticated" non "anon")
-    // 2. RLS policies che usano roles: {authenticated} ma JWT ha role: "anon"
-    // 3. Configurazione Supabase Auth che non genera JWT con role corretto
+    global: {
+      headers: {
+        'apikey': supabaseAnonKey, // Assicura che apikey sia sempre presente
+      },
+    },
   })
 
   // Debug: Log session state in development

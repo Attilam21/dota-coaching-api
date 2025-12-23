@@ -11,7 +11,6 @@ import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
-import { savePlayerId, getPlayerId } from '@/app/actions/save-player-id'
 import { supabase } from '@/lib/supabase'
 
 export default function SettingsPage() {
@@ -76,41 +75,59 @@ export default function SettingsPage() {
     try {
       setLoading(true)
       
-      // 1. Try to load from database first
-      // Get access token to pass to server action
-      const { data: { session } } = await supabase.auth.getSession()
-      const dbResult = await getPlayerId(session?.access_token)
-      
-      if (dbResult.success && dbResult.playerId) {
+      // 1. Try to load from database first (using client Supabase directly)
+      const { data: userData, error: fetchError } = await supabase
+        .from('users')
+        .select('dota_account_id')
+        .eq('id', user.id)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching player ID from DB:', fetchError)
+        // Fallback to localStorage if DB fetch fails
+        const saved = localStorage.getItem('fzth_player_id')
+        if (saved) {
+          setDotaAccountId(saved)
+          setPlayerId(saved)
+        } else {
+          setDotaAccountId('')
+          setPlayerId(null)
+        }
+      } else if (userData?.dota_account_id) {
         // Found in database - use it
-        setDotaAccountId(dbResult.playerId)
-        setPlayerId(dbResult.playerId)
+        const dbPlayerId = String(userData.dota_account_id)
+        setDotaAccountId(dbPlayerId)
+        setPlayerId(dbPlayerId)
         // Sync to localStorage as fallback
         try {
-          localStorage.setItem('fzth_player_id', dbResult.playerId)
+          localStorage.setItem('fzth_player_id', dbPlayerId)
         } catch (err) {
           console.error('Failed to sync to localStorage:', err)
         }
       } else {
-        // 2. Fallback to localStorage/context
-        if (playerId) {
-          setDotaAccountId(playerId)
+        // No ID in DB, check localStorage
+        const saved = localStorage.getItem('fzth_player_id')
+        if (saved) {
+          setDotaAccountId(saved)
+          setPlayerId(saved)
         } else {
-          // Also try direct localStorage read
-          try {
-            const saved = localStorage.getItem('fzth_player_id')
-            if (saved) {
-              setDotaAccountId(saved)
-              setPlayerId(saved)
-            }
-          } catch (err) {
-            console.error('Failed to read localStorage:', err)
-          }
+          setDotaAccountId('')
+          setPlayerId(null)
         }
       }
 
     } catch (err) {
       console.error('Failed to load settings:', err)
+      // Fallback to localStorage on any error
+      try {
+        const saved = localStorage.getItem('fzth_player_id')
+        if (saved) {
+          setDotaAccountId(saved)
+          setPlayerId(saved)
+        }
+      } catch (localErr) {
+        console.error('Failed to read localStorage:', localErr)
+      }
     } finally {
       setLoading(false)
     }
@@ -152,6 +169,21 @@ export default function SettingsPage() {
 
       // SALVA DIRETTAMENTE CON CLIENT SUPABASE (non Server Action)
       // Questo evita problemi di autenticazione perché usa la sessione già presente
+      
+      // Verifica che la sessione sia presente
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !currentSession) {
+        console.error('❌ Session error:', sessionError)
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Effettua il login di nuovo.',
+        })
+        setSaving(false)
+        return
+      }
+
+      // Salvataggio con client Supabase
       const { error: updateError } = await supabase
         .from('users')
         .update({
