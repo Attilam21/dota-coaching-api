@@ -230,13 +230,13 @@ export default function Logo({ className = '', showText = false, size = 'md', hr
 
   const content = (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Logo - Immagine JPG così com'è, adattata alle dimensioni */}
+      {/* Logo - Immagine JPEG così com'è, adattata alle dimensioni */}
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         {showImage ? (
-          /* Immagine JPG - mostra il logo completo così com'è */
+          /* Immagine JPEG - mostra il logo completo così com'è */
           <div className="w-full h-full">
             <Image
-              src="/logo.jpg"
+              src="/logo.jpeg"
               alt="ATTILA LAB Logo"
               fill
               className="object-contain"
