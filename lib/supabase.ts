@@ -88,7 +88,12 @@ function createSupabaseClient(): SupabaseClient<Database> {
     global: {
       headers: {
         'apikey': supabaseAnonKey, // Assicura che apikey sia sempre presente
-        'Authorization': `Bearer ${supabaseAnonKey}`, // Fallback per compatibilità
+        // NOTA CRITICA: NON impostare Authorization qui!
+        // Supabase gestisce automaticamente Authorization con session.access_token (JWT utente)
+        // quando presente. Impostare Authorization con anon key causa:
+        // - 403 Forbidden (RLS policies falliscono perché auth.uid() = null)
+        // - auth.uid() non può estrarre user_id da anon key
+        // Documentazione: https://supabase.com/docs/guides/troubleshooting/auth-error-401-invalid-claim-missing-sub
       },
     },
     db: {
