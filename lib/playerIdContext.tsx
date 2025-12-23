@@ -107,44 +107,24 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               return
             }
 
-            // NOTA: Il client Supabase con persistSession: true dovrebbe già avere la sessione
-            // Il client Supabase aggiunge automaticamente:
-            // - apikey header (dal secondo parametro del costruttore createClient)
-            // - Authorization header con JWT (dalla sessione attiva se presente)
-            // NON chiamare setSession() qui perché può causare problemi con l'apikey header
-            
-            // Verifica che la sessione nel client sia presente
-            const { data: { session: currentSession }, error: sessionCheckError } = await supabase.auth.getSession()
-            
-            if (sessionCheckError) {
-              console.error('[PlayerIdContext] ❌ Errore getSession:', sessionCheckError.message)
-            }
-            
-            if (!currentSession || !currentSession.access_token) {
-              console.warn('[PlayerIdContext] ⚠️ Sessione non presente nel client Supabase')
-              console.warn('[PlayerIdContext] Questo potrebbe causare problemi con auth.uid() nelle RLS policies')
-              // Non bloccare - prova comunque la query
-            } else {
-              console.log('[PlayerIdContext] ✅ Sessione presente nel client Supabase, access_token disponibile')
-              if (currentSession.access_token !== session.access_token) {
-                console.warn('[PlayerIdContext] ⚠️ Token mismatch - client potrebbe avere token più recente (refresh automatico)')
-              }
-            }
-        
-            // Carica da database (SOLA FONTE DI VERITÀ)
-            // Il client Supabase dovrebbe automaticamente includere:
-            // - apikey header (dal costruttore createClient in lib/supabase.ts)
-            // - Authorization header con JWT (dalla sessione attiva)
+            // Usa Server Action invece di query client-side per evitare problemi con RLS
+            // Il client Supabase lato client non passa sempre correttamente l'Authorization header
+            // La Server Action garantisce che la sessione sia passata correttamente
             console.log('[PlayerIdContext] 📥 Caricamento Player ID dal database per user:', user.id)
-            console.log('[PlayerIdContext] Verifica che la richiesta includa apikey e Authorization headers')
+            console.log('[PlayerIdContext] Usando Server Action per garantire corretta autenticazione RLS')
             
-            const { data: userData, error: fetchError } = await supabase
-              .from('users')
-              .select('dota_account_id, dota_account_verified_at, dota_verification_method')
-              .eq('id', user.id)
-              .single()
-
-            if (fetchError) {
+            // Importa Server Action dinamicamente (client component)
+            // Passa accessToken esplicitamente per garantire autenticazione RLS
+            const { getPlayerId } = await import('@/app/actions/get-player-id')
+            const result = await getPlayerId(session.access_token)
+            
+            // Gestisci risultato Server Action
+            if (!result.success) {
+              const fetchError = {
+                code: result.code || 'UNKNOWN',
+                message: result.error || 'Unknown error',
+              }
+              
               // Gestione errori 403/42501 (permission denied)
               const isPermissionError = fetchError.code === 'PGRST301' || 
                                        fetchError.code === '42501' ||
@@ -168,14 +148,13 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
                   errorCode: fetchError.code,
                   errorMessage: fetchError.message,
                   errorCount: lastErrorRef.current.count,
-                  hint: 'Verifica che RLS policies siano configurate correttamente e che auth.uid() funzioni. Sessione dovrebbe essere impostata esplicitamente con setSession().'
+                  hint: 'Server Action dovrebbe passare correttamente la sessione. Verifica RLS policies.'
                 })
               } else {
                 console.error('[PlayerIdContext] Error fetching player ID from DB:', {
                   error: fetchError,
                   code: fetchError.code,
                   message: fetchError.message,
-                  details: fetchError.details
                 })
               }
               // In caso di errore, mostra campo vuoto (non fallback localStorage)
@@ -188,25 +167,25 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               if (!isPermissionError) {
                 lastErrorRef.current = null
               }
-            } else if (userData?.dota_account_id) {
+            } else if (result.playerId) {
               // Found in database - use it
-              const dbPlayerId = String(userData.dota_account_id)
-              console.log('[PlayerIdContext] ✅ Player ID trovato nel database:', dbPlayerId, 'per user:', user.id)
-              setPlayerIdState(dbPlayerId)
+              console.log('[PlayerIdContext] ✅ Player ID trovato nel database:', result.playerId)
+              setPlayerIdState(result.playerId)
               
               // Carica anche dati verifica se presenti
-              setIsVerifiedState(!!userData.dota_account_verified_at)
-              setVerifiedAtState(userData.dota_account_verified_at || null)
-              setVerificationMethodState(userData.dota_verification_method || null)
+              setIsVerifiedState(result.verified || false)
+              setVerifiedAtState(result.verifiedAt || null)
+              setVerificationMethodState(result.verificationMethod || null)
             } else {
               // No ID in DB
-              console.warn('[PlayerIdContext] ⚠️ Nessun Player ID trovato nel database per questo utente:', user.id)
-              console.warn('[PlayerIdContext] UserData ricevuto:', userData)
+              console.log('[PlayerIdContext] Nessun Player ID trovato nel database per questo utente')
               setPlayerIdState(null)
               setIsVerifiedState(false)
               setVerifiedAtState(null)
               setVerificationMethodState(null)
             }
+            
+            // Fine gestione Server Action
           } catch (err) {
             console.error('[PlayerIdContext] Failed to load player ID:', err)
             setPlayerIdState(null)
