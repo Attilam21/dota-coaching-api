@@ -39,25 +39,38 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true)
   }, [])
 
-  // Load Player ID from database when user is authenticated
-  useEffect(() => {
-    if (!isMounted) return
+      // Load Player ID from database when user is authenticated AND session is loaded
+      useEffect(() => {
+        if (!isMounted) return
 
-    const loadPlayerIdFromDatabase = async () => {
-      if (!user) {
-        // User not authenticated - clear player ID
-        setPlayerIdState(null)
-        setIsVerifiedState(false)
-        setVerifiedAtState(null)
-        setVerificationMethodState(null)
-        setIsLoading(false)
-        return
-      }
+        const loadPlayerIdFromDatabase = async () => {
+          // CRITICO: Attendere che sia user che session siano disponibili
+          // Se la sessione non è disponibile, auth.uid() non funziona e RLS rifiuta (403)
+          if (!user || !session) {
+            // User o sessione non ancora disponibili - attendere
+            setPlayerIdState(null)
+            setIsVerifiedState(false)
+            setVerifiedAtState(null)
+            setVerificationMethodState(null)
+            setIsLoading(false)
+            return
+          }
 
-      try {
-        setIsLoading(true)
+          try {
+            setIsLoading(true)
+            
+            // Verifica che l'ID utente nella sessione corrisponda
+            if (session.user.id !== user.id) {
+              console.error('[PlayerIdContext] ID utente mismatch:', {
+                sessionUserId: session.user.id,
+                authUserId: user.id
+              })
+              setIsLoading(false)
+              return
+            }
         
         // Carica da database (SOLA FONTE DI VERITÀ)
+        // Ora auth.uid() funzionerà correttamente perché la sessione è caricata
         const { data: userData, error: fetchError } = await supabase
           .from('users')
           .select('dota_account_id, dota_account_verified_at, dota_verification_method')
@@ -98,8 +111,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    loadPlayerIdFromDatabase()
-  }, [isMounted, user])
+        loadPlayerIdFromDatabase()
+      }, [isMounted, user, session])
 
   // Update player ID state (database è la fonte di verità, questo aggiorna solo lo state)
   const setPlayerId = useCallback((id: string | null) => {
