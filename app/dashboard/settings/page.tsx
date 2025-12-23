@@ -110,23 +110,54 @@ export default function SettingsPage() {
         })
       }
 
+      // DEBUG: Verifica sessione e JWT prima di salvare
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Settings] DEBUG - Session check:', {
+          hasSession: !!currentSession,
+          hasAccessToken: !!currentSession?.access_token,
+          accessTokenPreview: currentSession?.access_token?.substring(0, 30) + '...',
+          userId: currentSession?.user?.id,
+          userEmail: currentSession?.user?.email,
+        })
+      }
+
       // Salvataggio diretto con client Supabase
-      const { error: updateError } = await supabase
+      // IMPORTANTE: Supabase dovrebbe aggiungere automaticamente Authorization header
+      // con session.access_token quando presente. Se non lo fa, avremo 403.
+      const { data: updateData, error: updateError } = await supabase
         .from('users')
         .update({
           dota_account_id: dotaAccountIdNum,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id)
+        .select() // Aggiungi select per vedere risposta
 
       if (updateError) {
-        console.error('Error updating player ID:', updateError)
+        console.error('[Settings] Error updating player ID:', updateError)
+        console.error('[Settings] Error details:', {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+        })
+        
+        // DEBUG: Verifica se JWT è stato passato
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Settings] DEBUG - Verifica sessione dopo errore:')
+          const { data: { session: errorSession } } = await supabase.auth.getSession()
+          console.error('[Settings] Session dopo errore:', {
+            hasSession: !!errorSession,
+            hasAccessToken: !!errorSession?.access_token,
+            userId: errorSession?.user?.id,
+          })
+        }
         
         // Gestione errori più semplice - non reindirizza automaticamente
         if (updateError.code === '42501' || updateError.message?.includes('permission denied')) {
           setMessage({
             type: 'error',
-            text: 'Errore di permessi. Verifica di essere loggato correttamente.',
+            text: `Errore di permessi (${updateError.code}). JWT non passato correttamente. Verifica console per dettagli.`,
           })
         } else if (updateError.message?.includes('JWT') || updateError.code === 'PGRST301') {
           setMessage({
@@ -136,11 +167,16 @@ export default function SettingsPage() {
         } else {
           setMessage({
             type: 'error',
-            text: updateError.message || 'Errore nel salvataggio del Player ID.',
+            text: `${updateError.message || 'Errore nel salvataggio'} (Code: ${updateError.code})`,
           })
         }
         setSaving(false)
         return
+      }
+
+      // DEBUG: Success
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Settings] ✅ UPDATE riuscito!', updateData)
       }
 
       // Success - aggiorna context
