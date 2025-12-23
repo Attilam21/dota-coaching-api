@@ -45,13 +45,22 @@ export async function getPlayerId() {
       }
     }
 
-    if (userData?.dota_account_id) {
+    // Type assertion necessario perché createServerClient non inferisce correttamente il tipo Database
+    type UserData = {
+      dota_account_id: number | null
+      dota_account_verified_at: string | null
+      dota_verification_method: string | null
+    }
+
+    const typedUserData = userData as UserData | null
+
+    if (typedUserData?.dota_account_id) {
       return {
         success: true,
-        playerId: String(userData.dota_account_id),
-        verified: !!userData.dota_account_verified_at,
-        verifiedAt: userData.dota_account_verified_at,
-        verificationMethod: userData.dota_verification_method
+        playerId: String(typedUserData.dota_account_id),
+        verified: !!typedUserData.dota_account_verified_at,
+        verifiedAt: typedUserData.dota_account_verified_at,
+        verificationMethod: typedUserData.dota_verification_method
       }
     }
 

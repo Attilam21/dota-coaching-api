@@ -45,7 +45,8 @@ export async function updatePlayerId(playerId: string | null) {
 
     // Update user record
     console.log('[updatePlayerId] Aggiornamento database per user:', user.id, 'dota_account_id:', dotaAccountId)
-    const { data, error: updateError } = await supabase
+    // Cast esplicito necessario perché createServerClient non inferisce correttamente il tipo Database
+    const { data, error: updateError } = await (supabase as any)
       .from('users')
       .update({
         dota_account_id: dotaAccountId,

@@ -1,13 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from './supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Create Supabase client for Server Actions
  * 
- * CORRETTO: Usa cookies() da next/headers per leggere la sessione dai cookie HTTP
+ * CORRETTO: Usa createServerClient da @supabase/ssr (pattern ufficiale)
  * Questo permette a auth.getUser() di funzionare correttamente perché Supabase
- * può leggere la sessione dai cookie della request.
+ * può leggere la sessione dai cookie HTTP usando il pattern ufficiale Next.js/Supabase.
  * 
  * Non usa più decodifica manuale JWT o setSession() hack - tutto gestito da Supabase Auth.
  */
@@ -21,39 +22,33 @@ export function createServerActionSupabaseClient() {
   
   const cookieStore = cookies()
   
-  // Crea client con cookies() per leggere sessione dai cookie HTTP
-  // Supabase gestisce automaticamente l'autenticazione dai cookie
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-    global: {
-      headers: {
-        'apikey': supabaseAnonKey, // Always required
-      },
-    },
+  // Usa createServerClient da @supabase/ssr (pattern ufficiale)
+  // Gestisce automaticamente l'autenticazione dai cookie HTTP
+  // Usa CookieMethodsServerDeprecated (get/set/remove) per Server Actions
+  const client = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string): string {
-        const cookie = cookieStore.get(name)
-        return cookie?.value ?? ''
+      get(name: string) {
+        return cookieStore.get(name)?.value ?? undefined
       },
-      set(name: string, value: string, options?: { path?: string; maxAge?: number; domain?: string; secure?: boolean; httpOnly?: boolean; sameSite?: 'lax' | 'strict' | 'none' }) {
+      set(name: string, value: string, options: CookieOptions) {
         try {
-          cookieStore.set(name, value, options as any)
+          cookieStore.set({ name, value, ...options })
         } catch {
           // Ignore cookie errors in server actions (read-only in some contexts)
         }
       },
-      remove(name: string, options?: { path?: string; domain?: string }) {
+      remove(name: string, options: CookieOptions) {
         try {
-          cookieStore.set(name, '', { ...options, maxAge: 0 } as any)
+          cookieStore.set({ name, value: '', ...options })
         } catch {
           // Ignore cookie errors
         }
       },
     },
   })
+  
+  // Cast esplicito per garantire che il tipo Database sia corretto
+  // createServerClient non inferisce correttamente il tipo Database, quindi facciamo un cast più forte
+  return client as unknown as SupabaseClient<Database>
 }
 

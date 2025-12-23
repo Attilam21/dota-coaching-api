@@ -1,62 +1,10 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import type { Database } from '@/lib/supabase'
+import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
-
-function createServerSupabaseClient(accessToken?: string) {
-  const cookieStore = cookies()
-  
-  const clientOptions: any = {
-    cookies: {
-      get(name: string): string {
-        const cookie = cookieStore.get(name)
-        return cookie?.value ?? ''
-      },
-      set(name: string, value: string, options?: { path?: string; maxAge?: number; domain?: string; secure?: boolean; httpOnly?: boolean; sameSite?: 'lax' | 'strict' | 'none' }) {
-        try {
-          cookieStore.set(name, value, options as any)
-        } catch {
-          // Ignore cookie errors in server actions
-        }
-      },
-      remove(name: string, options?: { path?: string; domain?: string }) {
-        try {
-          cookieStore.set(name, '', { ...options, maxAge: 0 } as any)
-        } catch {
-          // Ignore cookie errors
-        }
-      },
-    },
-  }
-  
-  // Add Authorization header if access token is provided
-  if (accessToken) {
-    clientOptions.global = {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    }
-  }
-  
-  return createClient<Database>(supabaseUrl!, supabaseAnonKey!, clientOptions as any)
-}
-
-export async function savePlayerId(playerId: string | null, accessToken?: string) {
+export async function savePlayerId(playerId: string | null) {
   try {
-    // Log per debug
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[savePlayerId] AccessToken ricevuto:', accessToken ? 'Presente' : 'Mancante')
-    }
-
-    const supabase = createServerSupabaseClient(accessToken)
+    const supabase = createServerActionSupabaseClient()
 
     // Get current user - if accessToken is provided, it will be used via Authorization header
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -97,7 +45,8 @@ export async function savePlayerId(playerId: string | null, accessToken?: string
     // Update user record - SOVRASCRIVE sempre l'ID precedente
     // Se dotaAccountId è null, rimuove l'ID dal database
     // Se dotaAccountId è un numero, sostituisce quello vecchio
-    const { error: updateError } = await supabase
+    // Cast esplicito necessario perché createServerClient non inferisce correttamente il tipo Database
+    const { error: updateError } = await (supabase as any)
       .from('users')
       .update({
         dota_account_id: dotaAccountId, // null o nuovo ID - sempre sovrascrive
@@ -135,7 +84,7 @@ export async function savePlayerId(playerId: string | null, accessToken?: string
 
 export async function getPlayerId(accessToken?: string) {
   try {
-    const supabase = createServerSupabaseClient(accessToken)
+    const supabase = createServerActionSupabaseClient()
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -149,7 +98,8 @@ export async function getPlayerId(accessToken?: string) {
     }
 
     // Get user record
-    const { data: userData, error: fetchError } = await supabase
+    // Cast esplicito necessario perché createServerClient non inferisce correttamente il tipo Database
+    const { data: userData, error: fetchError } = await (supabase as any)
       .from('users')
       .select('dota_account_id')
       .eq('id', user.id)
@@ -166,7 +116,7 @@ export async function getPlayerId(accessToken?: string) {
 
     return {
       success: true,
-      playerId: userData?.dota_account_id ? String(userData.dota_account_id) : null,
+      playerId: (userData as any)?.dota_account_id ? String((userData as any).dota_account_id) : null,
     }
   } catch (error) {
     console.error('Error in getPlayerId:', error)
