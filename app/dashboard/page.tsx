@@ -78,6 +78,9 @@ export default function DashboardPage() {
   const [hasAwardedDailyXp, setHasAwardedDailyXp] = useState(false)
   const [hasAwardedMatchXp, setHasAwardedMatchXp] = useState(false)
   const [performanceBadge, setPerformanceBadge] = useState<PerformanceBadge | null>(null)
+  
+  // Ref per prevenire race condition: traccia se incrementDailyXp è in esecuzione
+  const isIncrementingXpRef = useRef(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
