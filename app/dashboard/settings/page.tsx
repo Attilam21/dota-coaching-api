@@ -93,11 +93,11 @@ export default function SettingsPage() {
       }
 
       // Usa Server Action invece di client diretto
+      // Passa l'access_token dalla sessione corrente
       // Vantaggi:
-      // - ✅ Session gestita automaticamente da Next.js cookies()
-      // - ✅ JWT sempre presente e passato correttamente
+      // - ✅ JWT passato esplicitamente dal client
       // - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
-      const result = await updatePlayerId(playerIdString)
+      const result = await updatePlayerId(playerIdString, currentSession?.access_token)
 
       if (!result.success) {
         setMessage({

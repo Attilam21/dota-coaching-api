@@ -4,18 +4,17 @@ import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 
 /**
  * Server Action per aggiornare il Player ID
- * Usa createServerActionSupabaseClient che gestisce automaticamente la sessione dai cookies
+ * Riceve l'access_token dal client e lo usa per autenticare le richieste
  * Questo bypassa i problemi di JWT non passato correttamente dal client
  * 
  * Vantaggi:
- * - ✅ Session gestita automaticamente da Next.js cookies()
- * - ✅ JWT sempre presente e passato correttamente
+ * - ✅ JWT passato esplicitamente dal client
  * - ✅ RLS policies funzionano correttamente perché auth.uid() è disponibile
  */
-export async function updatePlayerId(playerId: string | null) {
+export async function updatePlayerId(playerId: string | null, accessToken?: string) {
   try {
-    // Crea client server-side che legge session dai cookies automaticamente
-    const supabase = createServerActionSupabaseClient()
+    // Crea client server-side con JWT esplicito
+    const supabase = createServerActionSupabaseClient(accessToken)
 
     // Verifica sessione
     const { data: { user }, error: authError } = await supabase.auth.getUser()
