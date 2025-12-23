@@ -64,6 +64,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      increment_daily_xp_with_bonus: {
+        Args: {
+          p_performance_bonus: number
+        }
+        Returns: number
+      }
       award_last_match_xp: {
         Args: {
           p_match_id: number

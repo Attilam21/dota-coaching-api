@@ -20,7 +20,8 @@ import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
 import { supabase } from '@/lib/supabase'
-import XpProgressBar from '@/components/XpProgressBar'
+import FidelityCard from '@/components/FidelityCard'
+import { calculatePerformanceBadge, type PerformanceBadge } from '@/lib/fidelityRanks'
 
 interface PlayerStats {
   winrate: {
@@ -76,6 +77,7 @@ export default function DashboardPage() {
   const [xp, setXp] = useState<number>(0)
   const [hasAwardedDailyXp, setHasAwardedDailyXp] = useState(false)
   const [hasAwardedMatchXp, setHasAwardedMatchXp] = useState(false)
+  const [performanceBadge, setPerformanceBadge] = useState<PerformanceBadge | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -110,22 +112,42 @@ export default function DashboardPage() {
     }
   }, [user])
 
-  // Incrementa daily XP (una volta quando utente è autenticato)
+  // Incrementa daily XP con bonus prestazione (una volta quando utente è autenticato)
   useEffect(() => {
     if (!user || authLoading || hasAwardedDailyXp) return
 
     const incrementDailyXp = async () => {
       try {
-        const { data, error } = await supabase.rpc('increment_daily_xp')
+        // Calcola badge prestazione basato su trend (se disponibili)
+        const winrateTrend = stats ? getWinrateTrend() : null
+        const kdaTrend = stats ? getKDATrend() : null
+        const badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
+        setPerformanceBadge(badge)
+
+        // Calcola bonus prestazione (HOT +10, STABLE +5, COLD +0)
+        const performanceBonus = badge === 'HOT' ? 10 : badge === 'STABLE' ? 5 : 0
+
+        // Chiama RPC con bonus prestazione
+        const { data, error } = await (supabase as any).rpc('increment_daily_xp_with_bonus', {
+          p_performance_bonus: performanceBonus
+        })
 
         if (error) {
-          console.error('[Dashboard] Errore increment_daily_xp:', error)
-          return
-        }
-
-        // Aggiorna XP locale
-        if (data !== null) {
-          setXp(data)
+          console.error('[Dashboard] Errore increment_daily_xp_with_bonus:', error)
+          // Fallback alla funzione senza bonus se la nuova non esiste ancora
+          const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
+          if (fallbackError) {
+            console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
+            return
+          }
+          if (fallbackData !== null) {
+            setXp(fallbackData)
+          }
+        } else {
+          // Aggiorna XP locale
+          if (data !== null) {
+            setXp(data)
+          }
         }
 
         setHasAwardedDailyXp(true)
@@ -138,7 +160,7 @@ export default function DashboardPage() {
     }
 
     incrementDailyXp()
-  }, [user, authLoading, hasAwardedDailyXp, loadXp])
+  }, [user, authLoading, hasAwardedDailyXp, loadXp, stats])
 
   // Carica XP iniziale quando utente è autenticato
   useEffect(() => {
@@ -353,19 +375,19 @@ export default function DashboardPage() {
   }
 
   const getWinrateTrend = () => {
-    if (!stats || !stats.winrate) return { label: 'N/A', color: 'bg-gray-500' }
+    if (!stats || !stats.winrate) return { label: 'N/A', color: 'bg-gray-500', delta: 0 }
     const delta = stats.winrate.delta || 0
-    if (delta > 5) return { label: 'In aumento', color: 'bg-green-500' }
-    if (delta < -5) return { label: 'In calo', color: 'bg-red-500' }
-    return { label: 'Stabile', color: 'bg-gray-500' }
+    if (delta > 5) return { label: 'In aumento', color: 'bg-green-500', delta }
+    if (delta < -5) return { label: 'In calo', color: 'bg-red-500', delta }
+    return { label: 'Stabile', color: 'bg-gray-500', delta }
   }
 
   const getKDATrend = () => {
-    if (!stats || !stats.kda) return { label: 'N/A', color: 'bg-gray-500' }
+    if (!stats || !stats.kda) return { label: 'N/A', color: 'bg-gray-500', delta: 0 }
     const delta = stats.kda.delta || 0
-    if (delta > 0.5) return { label: 'Migliora', color: 'bg-green-500' }
-    if (delta < -0.5) return { label: 'Peggiora', color: 'bg-red-500' }
-    return { label: 'Stabile', color: 'bg-gray-500' }
+    if (delta > 0.5) return { label: 'Migliora', color: 'bg-green-500', delta }
+    if (delta < -0.5) return { label: 'Peggiora', color: 'bg-red-500', delta }
+    return { label: 'Stabile', color: 'bg-gray-500', delta }
   }
 
   const getInsight = () => {
@@ -624,16 +646,18 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* XP Progress Bar (solo se utente autenticato) */}
-      {user && (
+      {/* Fidelity Card "Percorso" (solo se utente autenticato) */}
+      {user ? (
         <div className="mb-4">
-          <XpProgressBar 
+          <FidelityCard 
             xp={xp}
-            onRedeem={() => {
-              // Placeholder per riscatto premio
-              alert('Funzionalità di riscatto premio in arrivo!')
-            }}
+            performanceBadge={performanceBadge || undefined}
+            isLoading={authLoading}
           />
+        </div>
+      ) : (
+        <div className="mb-4 bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+          <p className="text-gray-400">Accedi per sbloccare il Percorso</p>
         </div>
       )}
 
