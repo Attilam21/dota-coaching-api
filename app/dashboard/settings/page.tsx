@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -24,6 +24,7 @@ function SettingsPageContent() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
+  const hasProcessedQueryParam = useRef(false) // Traccia se abbiamo già processato il query param
 
   // Verifica quali file di sfondo sono disponibili
   useEffect(() => {
@@ -66,25 +67,29 @@ function SettingsPageContent() {
   // Leggi playerId da query param (se reindirizzato da PlayerIdInput)
   useEffect(() => {
     const playerIdFromQuery = searchParams.get('playerId')
-    if (playerIdFromQuery) {
+    if (playerIdFromQuery && !hasProcessedQueryParam.current) {
       setDotaAccountId(playerIdFromQuery)
+      hasProcessedQueryParam.current = true // Marca come processato
       // Rimuovi query param dall'URL dopo averlo letto
       router.replace('/dashboard/settings', { scroll: false })
     }
   }, [searchParams, router])
 
   // Sincronizza input con playerId dal context (caricato da PlayerIdContext)
-  // Solo se non c'è un playerId dal query param
+  // Solo se non abbiamo già processato un query param (per evitare di sovrascrivere il valore inserito dall'utente)
   useEffect(() => {
-    const playerIdFromQuery = searchParams.get('playerId')
-    if (!playerIdFromQuery) {
-      if (playerId) {
-        setDotaAccountId(playerId)
-      } else {
-        setDotaAccountId('')
-      }
+    // Se abbiamo già processato un query param, non sovrascrivere con il valore dal context
+    if (hasProcessedQueryParam.current) {
+      return
     }
-  }, [playerId, searchParams])
+    
+    // Altrimenti, sincronizza con il valore dal context
+    if (playerId) {
+      setDotaAccountId(playerId)
+    } else {
+      setDotaAccountId('')
+    }
+  }, [playerId])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
