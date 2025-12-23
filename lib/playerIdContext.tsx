@@ -107,13 +107,17 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               return
             }
 
-            // Verifica che la sessione sia ancora valida prima di fare la query
-            // NOTA: Supabase client con persistSession: true dovrebbe già avere la sessione da localStorage
-            // Non serve chiamare setSession() se la sessione è già presente nel client
-            const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+            // CRITICO: Imposta esplicitamente la sessione nel client Supabase PRIMA di fare la query
+            // Questo è necessario perché auth.uid() nelle RLS policies richiede che la sessione sia attiva
+            // Anche se persistSession: true, dobbiamo assicurarci che la sessione sia impostata esplicitamente
+            console.log('[PlayerIdContext] 🔐 Impostazione sessione esplicita nel client Supabase...')
+            const { error: setSessionError } = await supabase.auth.setSession({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token || '',
+            })
             
-            if (sessionError || !currentSession || !currentSession.access_token) {
-              console.error('[PlayerIdContext] Session invalid or expired:', sessionError)
+            if (setSessionError) {
+              console.error('[PlayerIdContext] ❌ Errore setSession:', setSessionError.message)
               setPlayerIdState(null)
               setIsVerifiedState(false)
               setVerifiedAtState(null)
@@ -122,25 +126,12 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
               loadingRef.current = false
               return
             }
-
-            // Verifica che la sessione nel client corrisponda a quella che abbiamo
-            if (currentSession.access_token !== session.access_token) {
-              console.warn('[PlayerIdContext] Session token mismatch, sincronizzando...')
-              // Sincronizza la sessione se diversa
-              const { error: setSessionError } = await supabase.auth.setSession({
-                access_token: currentSession.access_token,
-                refresh_token: currentSession.refresh_token || '',
-              })
-              
-              if (setSessionError) {
-                console.warn('[PlayerIdContext] setSession error:', setSessionError.message)
-              }
-            }
+            
+            console.log('[PlayerIdContext] ✅ Sessione impostata correttamente, auth.uid() dovrebbe funzionare')
         
             // Carica da database (SOLA FONTE DI VERITÀ)
-            // Supabase client con persistSession: true dovrebbe automaticamente usare la sessione
-            // da localStorage per auth.uid() nelle RLS policies
-            console.log('[PlayerIdContext] Caricamento Player ID dal database per user:', user.id)
+            // Ora che la sessione è impostata esplicitamente, auth.uid() dovrebbe funzionare nelle RLS policies
+            console.log('[PlayerIdContext] 📥 Caricamento Player ID dal database per user:', user.id)
             
             const { data: userData, error: fetchError } = await supabase
               .from('users')
@@ -166,13 +157,13 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
                 }
                 
                 console.error('[PlayerIdContext] 403/42501 Permission Denied - RLS policy blocking:', {
-                  hasSession: !!currentSession,
-                  hasAccessToken: !!currentSession?.access_token,
+                  hasSession: !!session,
+                  hasAccessToken: !!session?.access_token,
                   userId: user?.id,
                   errorCode: fetchError.code,
                   errorMessage: fetchError.message,
                   errorCount: lastErrorRef.current.count,
-                  hint: 'Verifica che RLS policies siano configurate correttamente e che auth.uid() funzioni'
+                  hint: 'Verifica che RLS policies siano configurate correttamente e che auth.uid() funzioni. Sessione dovrebbe essere impostata esplicitamente con setSession().'
                 })
               } else {
                 console.error('[PlayerIdContext] Error fetching player ID from DB:', {
