@@ -108,80 +108,12 @@ END;
 $$;
 
 -- =====================================================
--- FUNZIONE RPC: award_last_match_xp()
--- Assegna XP per ultima partita (idempotente)
--- =====================================================
-CREATE OR REPLACE FUNCTION public.award_last_match_xp(
-  p_match_id BIGINT,
-  p_win BOOLEAN
-)
-RETURNS TABLE(xp INT, delta INT)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  v_user_id UUID;
-  v_current_xp INT;
-  v_last_awarded_match_id BIGINT;
-  v_delta INT;
-  v_new_xp INT;
-BEGIN
-  -- Ottieni user_id corrente
-  v_user_id := auth.uid();
-  
-  IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'User not authenticated';
-  END IF;
-
-  -- Prova a ottenere XP esistente
-  SELECT xp, last_awarded_match_id INTO v_current_xp, v_last_awarded_match_id
-  FROM public.user_xp
-  WHERE user_id = v_user_id;
-
-  -- Se riga non esiste -> INSERT
-  IF NOT FOUND THEN
-    v_delta := CASE WHEN p_win THEN 25 ELSE -10 END;
-    v_new_xp := GREATEST(0, v_delta);
-    
-    INSERT INTO public.user_xp (user_id, xp, last_awarded_match_id, updated_at)
-    VALUES (v_user_id, v_new_xp, p_match_id, NOW())
-    RETURNING xp INTO v_new_xp;
-    
-    RETURN QUERY SELECT v_new_xp, v_delta;
-    RETURN;
-  END IF;
-
-  -- Se last_awarded_match_id = p_match_id -> non cambia (idempotente)
-  IF v_last_awarded_match_id = p_match_id THEN
-    RETURN QUERY SELECT v_current_xp, 0;
-    RETURN;
-  END IF;
-
-  -- Calcola delta
-  v_delta := CASE WHEN p_win THEN 25 ELSE -10 END;
-  v_new_xp := GREATEST(0, v_current_xp + v_delta);
-
-  -- Aggiorna XP
-  UPDATE public.user_xp
-  SET 
-    xp = v_new_xp,
-    last_awarded_match_id = p_match_id,
-    updated_at = NOW()
-  WHERE user_id = v_user_id;
-
-  RETURN QUERY SELECT v_new_xp, v_delta;
-END;
-$$;
-
--- =====================================================
 -- GRANT execute permissions
 -- =====================================================
 GRANT EXECUTE ON FUNCTION public.increment_daily_xp() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.award_last_match_xp(BIGINT, BOOLEAN) TO authenticated;
 
 -- Revoke da public (sicurezza)
 REVOKE EXECUTE ON FUNCTION public.increment_daily_xp() FROM public;
-REVOKE EXECUTE ON FUNCTION public.award_last_match_xp(BIGINT, BOOLEAN) FROM public;
 
 COMMIT;
 

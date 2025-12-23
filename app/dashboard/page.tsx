@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
@@ -20,8 +20,7 @@ import HeroIcon from '@/components/HeroIcon'
 import { motion } from 'framer-motion'
 import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
 import { supabase } from '@/lib/supabase'
-import FidelityCard from '@/components/FidelityCard'
-import { calculatePerformanceBadge, type PerformanceBadge } from '@/lib/fidelityRanks'
+import XpProgressBar from '@/components/XpProgressBar'
 
 interface PlayerStats {
   winrate: {
@@ -76,8 +75,6 @@ export default function DashboardPage() {
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [xp, setXp] = useState<number>(0)
   const [hasAwardedDailyXp, setHasAwardedDailyXp] = useState(false)
-  const [hasAwardedMatchXp, setHasAwardedMatchXp] = useState(false)
-  const [performanceBadge, setPerformanceBadge] = useState<PerformanceBadge | null>(null)
   
   // Ref per prevenire race condition: traccia se incrementDailyXp è in esecuzione
   const isIncrementingXpRef = useRef(false)
@@ -115,10 +112,8 @@ export default function DashboardPage() {
     }
   }, [user])
 
-  // Incrementa daily XP con bonus prestazione (una volta quando utente è autenticato)
-  // NOTA: stats NON è nelle dipendenze per evitare race condition
-  // Il badge prestazione viene calcolato quando stats è disponibile, ma l'assegnazione XP
-  // avviene solo una volta quando l'utente è autenticato (idempotente lato server)
+  // Incrementa daily XP (una volta quando utente è autenticato)
+  // NOTA: idempotente lato server (non incrementa se già fatto oggi)
   useEffect(() => {
     if (!user || authLoading || hasAwardedDailyXp || isIncrementingXpRef.current) return
 
@@ -128,63 +123,16 @@ export default function DashboardPage() {
       isIncrementingXpRef.current = true
 
       try {
-        // Calcola badge prestazione basato su trend (solo se stats disponibile)
-        // NOTA: stats viene letto dal closure, non dalle dipendenze
-        let badge: PerformanceBadge = 'STABLE' // Default
-        let performanceBonus = 5 // Default STABLE bonus
-        
-        if (stats) {
-          const winrateTrend = getWinrateTrend()
-          const kdaTrend = getKDATrend()
-          badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
-          performanceBonus = badge === 'HOT' ? 10 : badge === 'STABLE' ? 5 : 0
-        }
-        
-        setPerformanceBadge(badge)
+        const { data, error } = await (supabase as any).rpc('increment_daily_xp')
 
-        // Prova prima la nuova funzione con bonus, fallback alla vecchia se non esiste
-        let xpResult: number | null = null
-        
-        try {
-          const { data, error } = await (supabase as any).rpc('increment_daily_xp_with_bonus', {
-            p_performance_bonus: performanceBonus
-          })
-
-          if (error) {
-            // Se errore 404 o funzione non esiste, usa fallback
-            if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.message?.includes('404')) {
-              // Fallback alla funzione senza bonus
-              const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
-              if (fallbackError) {
-                console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
-                return
-              }
-              xpResult = fallbackData
-            } else {
-              console.error('[Dashboard] Errore increment_daily_xp_with_bonus:', error)
-              return
-            }
-          } else {
-            xpResult = data
-          }
-        } catch (rpcError: any) {
-          // Se la funzione non esiste (404), usa fallback
-          if (rpcError?.code === 'PGRST116' || rpcError?.message?.includes('404') || rpcError?.status === 404) {
-            const { data: fallbackData, error: fallbackError } = await (supabase as any).rpc('increment_daily_xp')
-            if (fallbackError) {
-              console.error('[Dashboard] Errore increment_daily_xp (fallback):', fallbackError)
-              return
-            }
-            xpResult = fallbackData
-          } else {
-            console.error('[Dashboard] Errore increment_daily_xp_with_bonus (exception):', rpcError)
-            return
-          }
+        if (error) {
+          console.error('[Dashboard] Errore increment_daily_xp:', error)
+          return
         }
 
         // Aggiorna XP locale
-        if (xpResult !== null && xpResult !== undefined) {
-          setXp(xpResult)
+        if (data !== null && data !== undefined) {
+          setXp(data)
         }
 
         setHasAwardedDailyXp(true)
@@ -201,17 +149,7 @@ export default function DashboardPage() {
     }
 
     incrementDailyXp()
-  }, [user, authLoading, hasAwardedDailyXp, loadXp]) // stats rimosso dalle dipendenze
-
-  // Aggiorna badge prestazione quando stats cambia (separato dall'assegnazione XP)
-  useEffect(() => {
-    if (!stats) return
-
-    const winrateTrend = getWinrateTrend()
-    const kdaTrend = getKDATrend()
-    const badge = calculatePerformanceBadge(winrateTrend, kdaTrend)
-    setPerformanceBadge(badge)
-  }, [stats]) // Solo per aggiornare il badge, non per assegnare XP
+  }, [user, authLoading, hasAwardedDailyXp, loadXp])
 
   // Carica XP iniziale quando utente è autenticato
   useEffect(() => {
@@ -339,46 +277,12 @@ export default function DashboardPage() {
         })
       }
 
-      // Award XP per ultima partita (se disponibile e non già assegnato)
-      // NOTA: Questa funzione è opzionale, non blocca il flusso se fallisce
-      if (statsData.stats?.matches && statsData.stats.matches.length > 0 && user && !hasAwardedMatchXp) {
-        const lastMatch = statsData.stats.matches[0] // Prima partita = più recente
-        
-        // Valida che match_id sia un numero valido e win sia boolean
-        if (lastMatch.match_id && typeof lastMatch.match_id === 'number' && typeof lastMatch.win === 'boolean') {
-          try {
-            const { data: awardData, error: awardError } = await (supabase as any).rpc('award_last_match_xp', {
-              p_match_id: Number(lastMatch.match_id), // Assicura che sia number
-              p_win: Boolean(lastMatch.win) // Assicura che sia boolean
-            })
-
-            if (awardError) {
-              // Log errore ma non bloccare (funzione opzionale)
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[Dashboard] award_last_match_xp opzionale fallita (non critico):', awardError)
-              }
-            } else if (awardData && Array.isArray(awardData) && awardData.length > 0 && awardData[0]?.xp !== undefined) {
-              // Aggiorna XP locale
-              setXp(awardData[0].xp)
-              setHasAwardedMatchXp(true)
-              
-              // Ricarica XP completo per sincronizzazione
-              await loadXp()
-            }
-          } catch (err) {
-            // Non bloccare il flusso se award match XP fallisce (opzionale)
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[Dashboard] award_last_match_xp opzionale fallita (non critico):', err)
-            }
-          }
-        }
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load stats')
     } finally {
       setLoading(false)
     }
-  }, [playerId, user, hasAwardedMatchXp, loadXp])
+  }, [playerId, user, loadXp])
 
   useEffect(() => {
     // Guard: chiama fetchStats() SOLO se playerId è valido (stringa non vuota e numero)
@@ -706,14 +610,10 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Fidelity Card "Percorso" (solo se utente autenticato) */}
+      {/* XP Progress Bar (solo se utente autenticato) */}
       {user ? (
         <div className="mb-4">
-          <FidelityCard 
-            xp={xp}
-            performanceBadge={performanceBadge || undefined}
-            isLoading={authLoading}
-          />
+          <XpProgressBar xp={xp} />
         </div>
       ) : (
         <div className="mb-4 bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
