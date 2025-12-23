@@ -39,19 +39,10 @@ export type Database = {
   }
 }
 
-/**
- * Crea il client Supabase per uso client-side (browser)
- * 
- * CONFIGURAZIONE CRITICA:
- * - Il secondo parametro (supabaseAnonKey) viene automaticamente usato come apikey header
- * - Aggiungiamo anche apikey nei global headers per garantire che sia sempre presente
- * - NON impostare Authorization con anon key - Supabase gestisce automaticamente con session.access_token
- * 
- * PERCHÉ NON IMPOSTARE Authorization CON ANON KEY:
- * Se Authorization contiene anon key, SOVRASCRIVE il JWT utente causando:
- * - auth.uid() = NULL (anon key non ha claim 'sub')
- * - RLS policies falliscono → 403 Forbidden
- */
+// Client-side Supabase client
+// In Next.js 14 App Router, we need to ensure the client is created correctly
+// for client-side usage (browser)
+
 function createSupabaseClient(): SupabaseClient<Database> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -62,6 +53,7 @@ function createSupabaseClient(): SupabaseClient<Database> {
     console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
     console.error('Authentication features will not work. Please configure environment variables.')
     
+    // Return a mock client that will fail gracefully
     return createClient<Database>('https://placeholder.supabase.co', 'placeholder', {
       auth: {
         persistSession: false,
@@ -70,20 +62,21 @@ function createSupabaseClient(): SupabaseClient<Database> {
     })
   }
 
-  // Validazione valori non placeholder
+  // Verify the keys are not placeholder values
   if (supabaseUrl === 'https://placeholder.supabase.co' || supabaseAnonKey === 'placeholder') {
     console.error('❌ Supabase using placeholder values! Please configure real environment variables.')
   }
 
-  // Validazione formato anon key
+  // Verifica che l'apikey sia valida (non vuota e non placeholder)
   if (!supabaseAnonKey || supabaseAnonKey.length < 20) {
     console.error('❌ Supabase ANON_KEY sembra non valida! Verifica le variabili d\'ambiente.')
   }
 
-  // Create client - CONFIGURAZIONE CORRETTA
+  // Create client with proper configuration for client-side usage
+  // IMPORTANT: apikey è SEMPRE richiesto da Supabase per identificare il progetto
   // Il secondo parametro (supabaseAnonKey) viene automaticamente usato come apikey header
-  // Aggiungiamo anche nei global headers per garantire che sia sempre presente
-  // NON impostare Authorization - Supabase lo gestisce automaticamente con session.access_token
+  // Tuttavia, dobbiamo assicurarci che sia sempre presente anche nei global headers
+  // per garantire che tutte le richieste includano l'apikey
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -94,9 +87,8 @@ function createSupabaseClient(): SupabaseClient<Database> {
     },
     global: {
       headers: {
-        // apikey SEMPRE presente - garantisce che tutte le richieste includano l'apikey
-        'apikey': supabaseAnonKey,
-        // NOTA CRITICA: NON impostare Authorization qui!
+        'apikey': supabaseAnonKey, // Assicura che apikey sia sempre presente
+        // NOTA CRITICA: NON impostare Authorization con anon key!
         // Supabase aggiunge automaticamente Authorization con session.access_token quando presente
         // Se Authorization contiene anon key, sovrascrive il JWT utente causando 403 Forbidden
       },
@@ -106,27 +98,36 @@ function createSupabaseClient(): SupabaseClient<Database> {
     },
   })
 
-  // Gestione eventi auth e logging per debug
+  // Gestione errori refresh token e sessioni
   if (typeof window !== 'undefined') {
     client.auth.onAuthStateChange((event, session) => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('[Supabase] Auth state changed:', event, {
+        console.log('[Supabase Client] Auth state changed:', event, {
           hasSession: !!session,
           hasAccessToken: !!session?.access_token,
           userId: session?.user?.id,
-          email: session?.user?.email,
         })
       }
 
-      // Cleanup quando sessione scade o logout
-      if (event === 'SIGNED_OUT' || (event === 'USER_UPDATED' && !session)) {
+      // Gestione errori refresh token
+      if (event === 'TOKEN_REFRESHED') {
         if (process.env.NODE_ENV === 'development') {
-          console.log('[Supabase] Session expired or user signed out - clearing auth token')
+          console.log('[Supabase] Token refreshed successfully')
         }
+      } else if (event === 'SIGNED_OUT' || (event === 'USER_UPDATED' && !session)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Supabase] Session expired or user signed out')
+        }
+        // Pulire solo token auth quando sessione scade
+        // NOTA: NON toccare dati partita in localStorage (last_match_id_*, player_data_*)
         try {
           localStorage.removeItem('sb-auth-token')
         } catch (err) {
           console.error('[Supabase] Failed to clear auth token:', err)
+        }
+      } else if (event === 'SIGNED_IN') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Supabase] User signed in')
         }
       }
     })
@@ -136,6 +137,7 @@ function createSupabaseClient(): SupabaseClient<Database> {
 }
 
 // Create singleton instance for client-side usage
+// This ensures we only create one client instance per browser session
 const supabase = createSupabaseClient()
 
 export { supabase }
