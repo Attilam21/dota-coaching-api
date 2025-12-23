@@ -43,8 +43,9 @@ export type Database = {
  * Crea il client Supabase per uso client-side (browser)
  * 
  * CONFIGURAZIONE CRITICA:
- * - apikey: SEMPRE presente nei global headers (identifica progetto Supabase)
- * - Authorization: NON impostare con anon key - Supabase gestisce automaticamente con session.access_token
+ * - Il secondo parametro (supabaseAnonKey) viene automaticamente usato come apikey header
+ * - Aggiungiamo anche apikey nei global headers per garantire che sia sempre presente
+ * - NON impostare Authorization con anon key - Supabase gestisce automaticamente con session.access_token
  * 
  * PERCHÉ NON IMPOSTARE Authorization CON ANON KEY:
  * Se Authorization contiene anon key, SOVRASCRIVE il JWT utente causando:
@@ -81,7 +82,8 @@ function createSupabaseClient(): SupabaseClient<Database> {
 
   // Create client - CONFIGURAZIONE CORRETTA
   // Il secondo parametro (supabaseAnonKey) viene automaticamente usato come apikey header
-  // NON impostare Authorization nei global headers - Supabase lo gestisce automaticamente
+  // Aggiungiamo anche nei global headers per garantire che sia sempre presente
+  // NON impostare Authorization - Supabase lo gestisce automaticamente con session.access_token
   const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -92,9 +94,11 @@ function createSupabaseClient(): SupabaseClient<Database> {
     },
     global: {
       headers: {
-        // SOLO apikey - NON Authorization!
-        // Supabase aggiunge automaticamente Authorization con session.access_token quando presente
+        // apikey SEMPRE presente - garantisce che tutte le richieste includano l'apikey
         'apikey': supabaseAnonKey,
+        // NOTA CRITICA: NON impostare Authorization qui!
+        // Supabase aggiunge automaticamente Authorization con session.access_token quando presente
+        // Se Authorization contiene anon key, sovrascrive il JWT utente causando 403 Forbidden
       },
     },
     db: {
@@ -133,34 +137,5 @@ function createSupabaseClient(): SupabaseClient<Database> {
 
 // Create singleton instance for client-side usage
 const supabase = createSupabaseClient()
-
-/**
- * Helper function per verificare sessione prima di query
- * Utile per debug e validazione
- */
-export async function verifySession() {
-  const { data: { session }, error } = await supabase.auth.getSession()
-  
-  if (error) {
-    console.error('[verifySession] Error getting session:', error)
-    return { valid: false, session: null, error }
-  }
-  
-  if (!session) {
-    console.warn('[verifySession] No active session')
-    return { valid: false, session: null, error: null }
-  }
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[verifySession] Session valid:', {
-      userId: session.user.id,
-      email: session.user.email,
-      hasAccessToken: !!session.access_token,
-      expiresAt: new Date(session.expires_at! * 1000).toISOString(),
-    })
-  }
-  
-  return { valid: true, session, error: null }
-}
 
 export { supabase }
