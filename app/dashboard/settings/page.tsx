@@ -75,10 +75,12 @@ function SettingsPageContent() {
 
       // Verifica ogni file in parallelo per performance
       const checks = possibleFiles.map(async (file) => {
+        const controller = new AbortController()
+        let timeoutId: NodeJS.Timeout | null = null
+        
         try {
           // Usa AbortController per timeout e gestione errori migliore
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 3000) // 3s timeout
+          timeoutId = setTimeout(() => controller.abort(), 3000) // 3s timeout
           
           const response = await fetch(`/${file}`, { 
             method: 'HEAD',
@@ -86,8 +88,6 @@ function SettingsPageContent() {
             // Non loggare errori 404 nella console del browser
             cache: 'no-cache'
           })
-          
-          clearTimeout(timeoutId)
           
           // Solo aggiungi se la risposta è OK (200)
           if (response.ok && response.status === 200) {
@@ -100,6 +100,12 @@ function SettingsPageContent() {
           // Ignora errori (file non esiste, timeout, network error, ecc.)
           // Non loggare perché sono file opzionali
           return null
+        } finally {
+          // CRITICO: Sempre cancella il timeout per evitare memory leak
+          // Questo viene eseguito sia in caso di successo che di errore
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId)
+          }
         }
       })
 
