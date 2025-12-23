@@ -10,15 +10,15 @@ import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
 import { useBackgroundPreference, BackgroundType } from '@/lib/hooks/useBackgroundPreference'
-import { supabase } from '@/lib/supabase'
-import { updatePlayerId } from '@/app/actions/update-player-id'
+// NOTA: Player ID gestito SOLO in localStorage (come da ARCHITECTURE.md originale)
+// NESSUN salvataggio nel database - localStorage è l'unica fonte
 
 // Componente interno che usa useSearchParams - deve essere wrappato in Suspense
 function SettingsPageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { playerId, setPlayerId, reload } = usePlayerIdContext()
+  const { playerId, setPlayerId } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
@@ -113,58 +113,30 @@ function SettingsPageContent() {
         return
       }
 
-      // Verifica sessione prima di salvare
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !currentSession) {
-        setMessage({
-          type: 'error',
-          text: 'Sessione non valida. Fai logout e login di nuovo.',
-        })
-        setSaving(false)
-        return
-      }
-
-      // Usa Server Action per salvare nel database
-      // Passa l'access_token dalla sessione corrente
-      const result = await updatePlayerId(playerIdString, currentSession.access_token)
-
-      if (!result.success) {
-        setMessage({
-          type: 'error',
-          text: result.error || 'Errore nel salvataggio del Player ID.',
-        })
-        setSaving(false)
-        return
-      }
-
-      // Sincronizza localStorage (fonte primaria come da ARCHITECTURE.md)
-      // localStorage è la fonte primaria, DB è sincronizzato per backup
+      // Salva SOLO in localStorage (fonte primaria come da ARCHITECTURE.md originale)
+      // NESSUN salvataggio nel database - localStorage è l'unica fonte
       if (typeof window !== 'undefined') {
         if (playerIdString) {
           localStorage.setItem('fzth_player_id', playerIdString)
-          console.log('[SettingsPage] Player ID sincronizzato in localStorage:', playerIdString)
+          console.log('[SettingsPage] Player ID salvato in localStorage:', playerIdString)
         } else {
           localStorage.removeItem('fzth_player_id')
           console.log('[SettingsPage] Player ID rimosso da localStorage')
         }
       }
 
-      // Success - ricarica dal database per sincronizzazione completa
-      console.log('[Settings] Salvataggio riuscito, ricarico Player ID dal database...')
-      await reload()
-      
-      // Aggiorna anche state locale per immediate feedback
+      // Aggiorna context (che ricaricherà da localStorage automaticamente)
       setPlayerId(playerIdString)
+      
+      // Reset hasProcessedQueryParam per permettere sincronizzazione futura
+      hasProcessedQueryParam.current = false
 
       setMessage({ 
         type: 'success', 
-        text: result.message || 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
+        text: 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
       })
       
-      // Notifica che la dashboard si aggiornerà automaticamente
-      // Il redirect è opzionale - l'utente può rimanere qui o andare alla dashboard
-      console.log('[Settings] Player ID salvato e ricaricato. Dashboard si aggiornerà automaticamente.')
+      console.log('[Settings] Player ID salvato in localStorage. Dashboard si aggiornerà automaticamente.')
     } catch (err) {
       console.error('Failed to save settings:', err)
       setMessage({
@@ -294,25 +266,16 @@ function SettingsPageContent() {
                 {playerId && (
                   <AnimatedButton
                     type="button"
-                    onClick={async () => {
+                    onClick={() => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
-                        try {
-                          if (!user) return
-                          const { error } = await supabase
-                            .from('users')
-                            .update({ dota_account_id: null, updated_at: new Date().toISOString() })
-                            .eq('id', user.id)
-                          
-                          if (error) {
-                            setMessage({ type: 'error', text: 'Errore nella rimozione del Player ID.' })
-                          } else {
-                            setPlayerId(null)
-                            setDotaAccountId('')
-                            setMessage({ type: 'success', text: 'Player ID rimosso con successo.' })
-                          }
-                        } catch (err) {
-                          setMessage({ type: 'error', text: 'Errore nella rimozione del Player ID.' })
+                        // Rimuovi SOLO da localStorage (fonte primaria)
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('fzth_player_id')
                         }
+                        setPlayerId(null)
+                        setDotaAccountId('')
+                        hasProcessedQueryParam.current = false
+                        setMessage({ type: 'success', text: 'Player ID rimosso con successo.' })
                       }
                     }}
                     variant="secondary"

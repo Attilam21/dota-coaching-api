@@ -1,11 +1,10 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useAuth } from './auth-context'
-import { supabase } from './supabase'
 
-// Player ID gestito in localStorage come fonte primaria (come da ARCHITECTURE.md)
+// Player ID gestito SOLO in localStorage (come da ARCHITECTURE.md originale)
 // localStorage rimane anche per dati partita (last_match_id_*, player_data_* per cache match)
+// NESSUN salvataggio nel database - localStorage è l'unica fonte
 const PLAYER_ID_KEY = 'fzth_player_id'
 
 interface PlayerIdContextType {
@@ -15,7 +14,7 @@ interface PlayerIdContextType {
   verifiedAt: string | null
   verificationMethod: string | null
   setVerified: (verified: boolean, method?: string) => void
-  reload: () => Promise<void> // Funzione per forzare ricaricamento da database
+  reload: () => Promise<void> // Funzione per forzare ricaricamento da localStorage
   isLoading: boolean
 }
 
@@ -31,7 +30,7 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
 })
 
 export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
-  const { user, session } = useAuth()
+  // NOTA: localStorage non richiede autenticazione - è puro client-side
   const [playerId, setPlayerIdState] = useState<string | null>(null)
   const [isVerified, setIsVerifiedState] = useState<boolean>(false)
   const [verifiedAt, setVerifiedAtState] = useState<string | null>(null)
@@ -106,20 +105,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     loadPlayerIdFromLocalStorage()
   }, [isMounted, loadPlayerIdFromLocalStorage])
   
-  // Ascolta cambiamenti in localStorage (per sincronizzazione tra tab)
-  useEffect(() => {
-    if (!isMounted) return
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === PLAYER_ID_KEY) {
-        console.log('[PlayerIdContext] Storage event - Player ID cambiato in localStorage')
-        loadPlayerIdFromLocalStorage()
-      }
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [isMounted, loadPlayerIdFromLocalStorage])
+  // NOTA: storage event funziona solo tra tab diverse, non nella stessa tab
+  // Non serve listener - setPlayerId() aggiorna già tutto direttamente
 
   // Update player ID state e localStorage (localStorage è la fonte primaria)
   const setPlayerId = useCallback((id: string | null) => {
@@ -147,7 +134,8 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Set verification status (aggiorna solo state locale - database viene aggiornato da SettingsPage se necessario)
+  // Set verification status (aggiorna solo state locale)
+  // NOTA: localStorage non contiene dati verifica, solo Player ID
   const setVerified = useCallback((verified: boolean, method: string = 'questions') => {
     if (!playerId) return
     
@@ -159,11 +147,10 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       setVerifiedAtState(null)
       setVerificationMethodState(null)
     }
-    
-    // NOTA: NON salvare in localStorage - database è l'unica fonte
   }, [playerId])
 
   // Funzione reload esposta per forzare ricaricamento da localStorage
+  // NOTA: Non serve async, ma manteniamo la signature per compatibilità
   const reload = useCallback(async () => {
     console.log('[PlayerIdContext] Reload forzato richiesto')
     loadPlayerIdFromLocalStorage()
