@@ -236,7 +236,8 @@ export default function Logo({ className = '', showText = false, size = 'md', hr
         className={`relative ${sizeClasses[size]} flex-shrink-0`} 
         style={{ 
           aspectRatio: '3.5 / 1',  // Proporzioni orizzontali del logo
-          width: 'auto'
+          width: 'auto',
+          filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(239, 68, 68, 0.3))',
         }}
       >
         {showImage ? (
@@ -245,7 +246,7 @@ export default function Logo({ className = '', showText = false, size = 'md', hr
             src="/logo.jpeg"
             alt="ATTILA LAB Logo"
             fill
-            className="object-contain"
+            className="object-contain brightness-110 contrast-110"
             priority
             onError={() => {
               // Se l'immagine non esiste, mostra l'SVG elmo come fallback

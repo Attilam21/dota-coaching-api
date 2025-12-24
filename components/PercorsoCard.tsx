@@ -101,6 +101,39 @@ export default function PercorsoCard({ xp, isLoading = false }: PercorsoCardProp
 
       {/* Progress Bar (full width, senza avatar) */}
       <div className="space-y-2">
+        {/* Statistiche XP sopra la barra */}
+        <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-3 py-2 mb-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs md:text-sm font-semibold text-gray-300">
+                XP Attuale: <span style={{ color: currentRank.color, fontWeight: 700 }}>{xp.toLocaleString()}</span>
+              </span>
+              {nextRank && (
+                <>
+                  <span className="text-xs text-gray-500">•</span>
+                  <span className="text-xs text-gray-400">
+                    Mancano <span className="font-semibold text-yellow-400">{(nextRank.minXp - xp).toLocaleString()}</span> XP
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs md:text-sm font-bold px-2 py-0.5 rounded" style={{ 
+                color: currentRank.color,
+                backgroundColor: currentRank.color + '15',
+                border: `1px solid ${currentRank.color}40`
+              }}>
+                {percentage}%
+              </span>
+              {nextRank && (
+                <span className="text-xs text-gray-400">
+                  → <span style={{ color: nextRank.color }}>{nextRank.name}</span>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        
         <div 
           className="relative w-full rounded-full overflow-hidden"
           style={{ 
