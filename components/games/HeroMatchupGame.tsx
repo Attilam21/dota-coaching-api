@@ -188,7 +188,20 @@ export default function HeroMatchupGame() {
   }
 
   const getHeroImageUrl = (heroName: string) => {
-    return `https://cdn.dota2.com/apps/dota2/images/heroes/${heroName.replace('npc_dota_hero_', '')}_full.png`
+    if (!heroName) return ''
+    
+    // Remove "npc_dota_hero_" prefix if present and normalize
+    let imageName = heroName.toLowerCase().replace(/^npc_dota_hero_/, '')
+    
+    // Clean up any remaining invalid characters (keep underscores)
+    // Note: CDN uses underscores and lowercase letters/numbers only
+    imageName = imageName.replace(/[^a-z0-9_]/g, '')
+    
+    if (!imageName) return ''
+    
+    // Use _full.png for large hero images in the game
+    // Use cdn.cloudflare.steamstatic.com for better SSL support
+    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${imageName}_full.png`
   }
 
   const finalScore = score + (maxStreak * 50) + (round * 5)

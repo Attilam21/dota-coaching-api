@@ -39,8 +39,7 @@ export default function HeroIcon({
     if (!imageName) return null
     
     // Use _sb.png for small icons (more efficient)
-    // Try cdn.cloudflare.steamstatic.com first (better SSL support with next/image)
-    // Fallback to cdn.dota2.com if needed
+    // Use cdn.cloudflare.steamstatic.com for better SSL support with next/image
     return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${imageName}_sb.png`
   }
 
