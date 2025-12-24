@@ -189,7 +189,7 @@ export async function GET(
       : 0
     const winrate = stats.winrate?.last10 || 0
     const avgDeaths = advanced.fights?.avgDeaths || 0
-    const role = profile.role || 'Core'
+    const role = profile?.role || 'Core'
 
     // Benchmark per ruolo
     const benchmarks: Record<string, { gpm: number; xpm: number; kda: number; deaths: number }> = {
