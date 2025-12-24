@@ -305,7 +305,7 @@ export default function WhatIfPage() {
                     <div>
                       <div className="text-xs text-gray-500">Valore</div>
                       <div className="text-lg font-bold text-white">
-                        {scenario.currentValue} → {scenario.improvedValue}
+                        {typeof scenario.currentValue === 'number' ? scenario.currentValue.toFixed(1) : scenario.currentValue} → {typeof scenario.improvedValue === 'number' ? scenario.improvedValue.toFixed(1) : scenario.improvedValue}
                       </div>
                     </div>
                   </div>

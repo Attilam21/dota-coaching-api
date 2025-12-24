@@ -370,8 +370,8 @@ export default function ImprovementPathPage() {
                   {/* Progress Bar */}
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-400">Attuale: {step.currentValue}</span>
-                      <span className="text-cyan-400 font-semibold">Target: {step.targetValue}</span>
+                      <span className="text-gray-400">Attuale: {typeof step.currentValue === 'number' ? step.currentValue.toFixed(1) : step.currentValue}</span>
+                      <span className="text-cyan-400 font-semibold">Target: {typeof step.targetValue === 'number' ? step.targetValue.toFixed(1) : step.targetValue}</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
                       <div 
@@ -382,7 +382,7 @@ export default function ImprovementPathPage() {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Gap: {step.gap} ({step.gapPercent}%)</span>
+                      <span>Gap: {typeof step.gap === 'number' ? step.gap.toFixed(1) : step.gap} ({typeof step.gapPercent === 'number' ? step.gapPercent.toFixed(1) : step.gapPercent}%)</span>
                       <span>{step.estimatedMatches} partite stimate</span>
                     </div>
                   </div>
