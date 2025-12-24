@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRoleBenchmark } from '@/lib/benchmarks'
+import { fetchOpenDota, getCached, setCached } from '@/lib/opendota'
 
 export async function GET(
   request: NextRequest,
@@ -8,17 +9,24 @@ export async function GET(
   try {
     const { id } = await params
     
-    // Fetch match data from OpenDota
-    const response = await fetch(`https://api.opendota.com/api/matches/${id}`)
+    // Check cache first
+    const cacheKey = `match:${id}`
+    let match = getCached<any>(cacheKey)
     
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: 'Match not found' },
-        { status: 404 }
-      )
+    if (!match) {
+      // Fetch match data from OpenDota
+      match = await fetchOpenDota<any>(`/matches/${id}`)
+      
+      if (!match) {
+        return NextResponse.json(
+          { error: 'Match not found' },
+          { status: 404 }
+        )
+      }
+      
+      // Cache for 6 hours
+      setCached(cacheKey, match, 21600)
     }
-
-    const match = await response.json()
     
     interface Player {
       kills: number

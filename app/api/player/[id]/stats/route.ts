@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchWithTimeout } from '@/lib/fetch-utils'
+import { fetchOpenDota, mapWithConcurrency, getCached, setCached } from '@/lib/opendota'
 
 interface OpenDotaMatch {
   match_id: number
@@ -23,24 +23,22 @@ export async function GET(
     const { id } = await params
     console.log('[API /stats] 🚀 Richiesta ricevuta per player ID:', id)
     
-    // Fetch recent matches (20 per allineare con analisi avanzate)
-    console.log('[API /stats] 📡 Chiamata OpenDota per player:', id)
-    const matchesResponse = await fetchWithTimeout(`https://api.opendota.com/api/players/${id}/matches?limit=20`, {
-      timeout: 10000, // 10 seconds timeout
-      next: { revalidate: 3600 }
-    })
+    // Check cache for match list
+    const matchesCacheKey = `player:${id}:matches`
+    let matches: OpenDotaMatch[] | null = getCached<OpenDotaMatch[]>(matchesCacheKey)
     
-    if (!matchesResponse.ok) {
-      console.error('[API /stats] ❌ OpenDota risposta non OK:', matchesResponse.status, matchesResponse.statusText)
-      return NextResponse.json(
-        { error: 'Failed to fetch matches' },
-        { status: matchesResponse.status }
-      )
+    if (!matches) {
+      // Fetch recent matches (20 per allineare con analisi avanzate)
+      console.log('[API /stats] 📡 Chiamata OpenDota per player:', id)
+      matches = await fetchOpenDota<OpenDotaMatch[]>(`/players/${id}/matches?limit=20`)
+      
+      // Cache match list for 60 seconds
+      if (matches) {
+        setCached(matchesCacheKey, matches, 60)
+      }
+    } else {
+      console.log('[API /stats] ✅ Usando cache per match list')
     }
-    
-    console.log('[API /stats] ✅ OpenDota risposta OK')
-
-    const matches: OpenDotaMatch[] = await matchesResponse.json()
     
     if (!matches || matches.length === 0) {
       return NextResponse.json({
@@ -67,23 +65,29 @@ export async function GET(
     
     // Always fetch full match details for ALL matches to ensure accurate GPM/XPM
     // OpenDota's match list endpoint may not always include or have accurate GPM/XPM
-    // Use fetchWithTimeout utility with 8 seconds per match
-    const fullMatchesPromises = matches.slice(0, 20).map((m) =>
-      fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
-        timeout: 8000, // 8 seconds per match
-        next: { revalidate: 3600 }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .catch((err) => {
-          console.warn(`Failed to fetch match ${m.match_id} details:`, err.message)
-          return null
-        })
-    )
-    
-    // Use Promise.allSettled instead of Promise.all to continue even if some fail
-    const fullMatchesResults = await Promise.allSettled(fullMatchesPromises)
-    const fullMatches = fullMatchesResults.map(result => 
-      result.status === 'fulfilled' ? result.value : null
+    // Use mapWithConcurrency to limit parallel requests (max 6 at a time)
+    const matchIds = matches.slice(0, 20).map(m => m.match_id)
+    const fullMatches = await mapWithConcurrency(
+      matchIds,
+      async (matchId) => {
+        // Check cache first
+        const matchCacheKey = `match:${matchId}`
+        const cached = getCached<any>(matchCacheKey)
+        if (cached) {
+          return cached
+        }
+        
+        // Fetch from API
+        const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+        
+        // Cache for 6 hours
+        if (matchData) {
+          setCached(matchCacheKey, matchData, 21600)
+        }
+        
+        return matchData
+      },
+      6 // Max 6 concurrent requests
     )
     
     // Enrich matches with accurate GPM/XPM, hero_id, and duration from full match details

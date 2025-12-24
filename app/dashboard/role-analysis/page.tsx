@@ -140,33 +140,25 @@ export default function RoleAnalysisPage() {
 
     try {
       setTrendLoading(true)
-      // Fetch recent matches to calculate trend
-      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=100`, {
-        next: { revalidate: 3600 }
-      })
+      // Use backend API instead of direct OpenDota calls
+      const response = await fetch(`/api/player/${playerId}/role-analysis`)
       if (!response.ok) return
 
-      const matches = await response.json()
-      if (!matches || matches.length === 0) return
+      const data = await response.json()
+      if (!data || !data.roleStats) return
 
-      // Fetch heroes data to get role info
-      const heroesResponse = await fetch('https://api.opendota.com/api/heroes', {
-        next: { revalidate: 86400 }
-      })
-      const allHeroes = heroesResponse.ok ? await heroesResponse.json() : []
+      // Extract heroes data from response
+      const allHeroes = data.heroes || []
       const heroesMap: Record<number, string[]> = {}
       allHeroes.forEach((hero: any) => {
         heroesMap[hero.id] = hero.roles || []
       })
 
-      // Fetch full match details for first 50 matches
+      // For trend calculation, we need match details - use cached data from API
+      // The backend already fetches matches, so we'll work with what we have
+      const matches = data.matches || []
       const matchesToFetch = matches.slice(0, 50)
-      const fullMatchesPromises = matchesToFetch.map((m: any) =>
-        fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
-          next: { revalidate: 3600 }
-        }).then(res => res.ok ? res.json() : null).catch(() => null)
-      )
-      const fullMatches = await Promise.all(fullMatchesPromises)
+      const fullMatches = data.fullMatches || []
 
       // Group matches by period (last 10, 20, 30, 50 matches) for selected role
       const roleMatches = fullMatches

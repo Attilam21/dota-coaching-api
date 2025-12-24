@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchWithTimeout } from '@/lib/fetch-utils'
+import { fetchOpenDota, mapWithConcurrency, getCached, setCached } from '@/lib/opendota'
 
 /**
  * Analisi What-If: simula cosa succede se migliori metriche specifiche
@@ -19,22 +19,15 @@ export async function GET(
     const teamfightImprovement = parseFloat(searchParams.get('teamfight') || '0')
 
     // Fetch player matches
-    const matchesResponse = await fetchWithTimeout(
-      `https://api.opendota.com/api/players/${id}/matches?limit=20`,
-      {
-        timeout: 10000,
-        next: { revalidate: 3600 }
+    const matchesCacheKey = `player:${id}:matches`
+    let matches: any[] | null = getCached<any[]>(matchesCacheKey)
+    
+    if (!matches) {
+      matches = await fetchOpenDota<any[]>(`/players/${id}/matches?limit=20`)
+      if (matches) {
+        setCached(matchesCacheKey, matches, 60)
       }
-    )
-
-    if (!matchesResponse.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch matches' },
-        { status: matchesResponse.status }
-      )
     }
-
-    const matches: any[] = await matchesResponse.json()
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({
@@ -44,19 +37,22 @@ export async function GET(
     }
 
     // Fetch full match details
-    const fullMatchesPromises = matches.slice(0, 20).map((m) =>
-      fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
-        timeout: 8000,
-        next: { revalidate: 3600 }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .catch(() => null)
-    )
-
-    const fullMatches = await Promise.allSettled(fullMatchesPromises)
-    const validMatches = fullMatches
-      .filter((r) => r.status === 'fulfilled' && r.value !== null)
-      .map((r) => (r as PromiseFulfilledResult<any>).value)
+    const matchIds = matches.slice(0, 20).map((m) => m.match_id)
+    const validMatches = (await mapWithConcurrency(
+      matchIds,
+      async (matchId) => {
+        const matchCacheKey = `match:${matchId}`
+        const cached = getCached<any>(matchCacheKey)
+        if (cached) return cached
+        
+        const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+        if (matchData) {
+          setCached(matchCacheKey, matchData, 21600)
+        }
+        return matchData
+      },
+      6
+    )).filter((m) => m !== null)
 
     const playerMatches = validMatches
       .map((match) => {

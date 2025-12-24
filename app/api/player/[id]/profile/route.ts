@@ -25,14 +25,13 @@ export async function GET(
     ])
     
     // Fetch OpenDota separatamente (non blocca se fallisce)
-    let opendotaResponse: Response | null = null
+    let opendotaData: any = null
     try {
-      opendotaResponse = await fetch(`https://api.opendota.com/api/players/${playerId}`, {
-        next: { revalidate: 3600 }
-      })
+      const { fetchOpenDota } = await import('@/lib/opendota')
+      opendotaData = await fetchOpenDota<any>(`/players/${playerId}`)
     } catch (err) {
       // Non bloccare se OpenDota fallisce
-      opendotaResponse = null
+      opendotaData = null
     }
     
     // Parse responses safely - come nella versione backup
@@ -61,15 +60,7 @@ export async function GET(
       console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
     }
     
-    // Parse OpenDota data for avatar and rank
-    let opendotaData: any = null
-    if (opendotaResponse && opendotaResponse.ok) {
-      try {
-        opendotaData = await opendotaResponse.json()
-      } catch (err) {
-        console.warn('Failed to parse OpenDota response:', err)
-      }
-    }
+    // opendotaData già parsato sopra
     
     // Validate statsData structure - must have stats object (come nella versione backup)
     if (!statsData?.stats) {

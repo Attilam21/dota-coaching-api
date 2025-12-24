@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchOpenDota, mapWithConcurrency, getCached, setCached } from '@/lib/opendota'
 
 export async function GET(
   request: NextRequest,
@@ -8,24 +9,17 @@ export async function GET(
     const { id } = await params
     
     // Fetch heroes stats from OpenDota
-    const [heroesResponse, playerHeroesResponse] = await Promise.all([
-      fetch('https://api.opendota.com/api/heroes', {
-        next: { revalidate: 86400 }
-      }),
-      fetch(`https://api.opendota.com/api/players/${id}/heroes`, {
-        next: { revalidate: 3600 }
-      })
+    const [allHeroes, playerHeroes] = await Promise.all([
+      fetchOpenDota<any[]>('/heroes').catch(() => []),
+      fetchOpenDota<any[]>(`/players/${id}/heroes`).catch(() => [])
     ])
     
-    if (!heroesResponse.ok || !playerHeroesResponse.ok) {
+    if (!allHeroes || !playerHeroes) {
       return NextResponse.json(
         { error: 'Failed to fetch hero data' },
         { status: 500 }
       )
     }
-
-    const allHeroes = await heroesResponse.json()
-    const playerHeroes = await playerHeroesResponse.json()
 
     // Create heroes map
     const heroesMap: Record<number, { name: string; localized_name: string; primary_attr: string; roles: string[] }> = {}
@@ -42,20 +36,31 @@ export async function GET(
     // We'll fetch matches and calculate averages per hero
     let heroGPMXPM: Record<number, { gpm: number; xpm: number; count: number }> = {}
     let heroKDA: Record<number, { kills: number; assists: number; deaths: number; count: number }> = {}
+    let matchesForTrend: any[] = []
+    let fullMatchesForTrend: any[] = []
     try {
-      const matchesResponse = await fetch(`https://api.opendota.com/api/players/${id}/matches?limit=100`, {
-        next: { revalidate: 3600 }
-      })
-      if (matchesResponse.ok) {
-        const matches = await matchesResponse.json()
+      const matches = await fetchOpenDota<any[]>(`/players/${id}/matches?limit=100`).catch(() => [])
+      matchesForTrend = matches || []
+      if (matches && matches.length > 0) {
         // Fetch full match details for first 50 matches to get accurate GPM/XPM
         const matchesToFetch = matches.slice(0, 50)
-        const fullMatchesPromises = matchesToFetch.map((m: any) =>
-          fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
-            next: { revalidate: 3600 }
-          }).then(res => res.ok ? res.json() : null).catch(() => null)
+        const matchIds = matchesToFetch.map((m: any) => m.match_id)
+        const fullMatches = await mapWithConcurrency(
+          matchIds,
+          async (matchId) => {
+            const matchCacheKey = `match:${matchId}`
+            const cached = getCached<any>(matchCacheKey)
+            if (cached) return cached
+            
+            const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+            if (matchData) {
+              setCached(matchCacheKey, matchData, 21600)
+            }
+            return matchData
+          },
+          6
         )
-        const fullMatches = await Promise.all(fullMatchesPromises)
+        fullMatchesForTrend = fullMatches.filter((m: any) => m !== null)
         
         // Calculate GPM/XPM per hero from matches
         fullMatches.forEach((fullMatch: any, idx: number) => {
@@ -257,6 +262,8 @@ export async function GET(
       stats.winrate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0
     })
 
+    // matchesForTrend and fullMatchesForTrend already fetched above
+
     return NextResponse.json({
       heroStats: heroStats.slice(0, 20), // Top 20 most played
       bestHeroes,
@@ -271,6 +278,8 @@ export async function GET(
       mostPlayed,
       roleStats,
       insights,
+      matches: matchesForTrend, // Per trend calculation
+      fullMatches: fullMatchesForTrend, // Per trend calculation
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes

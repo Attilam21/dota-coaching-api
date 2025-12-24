@@ -185,11 +185,8 @@ export default function MatchAnalysisDetailPage() {
         setLoading(true)
         setError(null)
 
-        // Fetch match data
-        let response = await fetch(`/api/opendota/match/${matchId}`)
-        if (!response.ok) {
-          response = await fetch(`https://api.opendota.com/api/matches/${matchId}`)
-        }
+        // Fetch match data (solo backend, no fallback diretto)
+        const response = await fetch(`/api/opendota/match/${matchId}`)
         if (!response.ok) throw new Error('Failed to fetch match')
         const matchData = await response.json()
         setMatch(matchData)

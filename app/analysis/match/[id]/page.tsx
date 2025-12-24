@@ -140,14 +140,9 @@ export default function MatchAnalysisPage() {
     const fetchMatch = async () => {
       try {
         setLoading(true)
-        // Try API route first (uses OpenDota)
-        let response = await fetch(`/api/opendota/match/${matchId}`)
+        // Use backend API only (no direct OpenDota calls)
+        const response = await fetch(`/api/opendota/match/${matchId}`)
         
-        if (!response.ok) {
-          // Fallback to OpenDota API directly
-          response = await fetch(`https://api.opendota.com/api/matches/${matchId}`)
-        }
-
         if (!response.ok) throw new Error('Failed to fetch match')
         
         const data = await response.json()

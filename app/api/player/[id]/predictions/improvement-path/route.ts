@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchWithTimeout } from '@/lib/fetch-utils'
+import { fetchOpenDota, mapWithConcurrency, getCached, setCached } from '@/lib/opendota'
 
 /**
  * Crea un percorso di miglioramento step-by-step basato su recommendations aggregate
@@ -13,22 +13,15 @@ export async function GET(
     const { id } = await params
 
     // Fetch player stats
-    const statsResponse = await fetchWithTimeout(
-      `https://api.opendota.com/api/players/${id}/matches?limit=20`,
-      {
-        timeout: 10000,
-        next: { revalidate: 3600 }
+    const matchesCacheKey = `player:${id}:matches`
+    let matches: any[] | null = getCached<any[]>(matchesCacheKey)
+    
+    if (!matches) {
+      matches = await fetchOpenDota<any[]>(`/players/${id}/matches?limit=20`)
+      if (matches) {
+        setCached(matchesCacheKey, matches, 60)
       }
-    )
-
-    if (!statsResponse.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch player stats' },
-        { status: statsResponse.status }
-      )
     }
-
-    const matches: any[] = await statsResponse.json()
 
     if (!matches || matches.length === 0) {
       return NextResponse.json({
@@ -39,19 +32,24 @@ export async function GET(
     }
 
     // Fetch full match details for accurate stats
-    const fullMatchesPromises = matches.slice(0, 20).map((m) =>
-      fetchWithTimeout(`https://api.opendota.com/api/matches/${m.match_id}`, {
-        timeout: 8000,
-        next: { revalidate: 3600 }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .catch(() => null)
+    const matchIds = matches.slice(0, 20).map((m) => m.match_id)
+    const fullMatchesPromises = await mapWithConcurrency(
+      matchIds,
+      async (matchId) => {
+        const matchCacheKey = `match:${matchId}`
+        const cached = getCached<any>(matchCacheKey)
+        if (cached) return cached
+        
+        const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+        if (matchData) {
+          setCached(matchCacheKey, matchData, 21600)
+        }
+        return matchData
+      },
+      6
     )
 
-    const fullMatches = await Promise.allSettled(fullMatchesPromises)
-    const validMatches = fullMatches
-      .filter((r) => r.status === 'fulfilled' && r.value !== null)
-      .map((r) => (r as PromiseFulfilledResult<any>).value)
+    const validMatches = fullMatchesPromises.filter((m) => m !== null)
 
     // Find player in each match and calculate averages
     const playerMatches = validMatches

@@ -178,23 +178,20 @@ export default function HeroAnalysisPage() {
 
     try {
       setTrendLoading(true)
-      // Fetch recent matches to calculate trend
-      const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=100`, {
-        next: { revalidate: 3600 }
-      })
+      // Use backend API instead of direct OpenDota calls
+      const response = await fetch(`/api/player/${playerId}/hero-analysis`)
       if (!response.ok) return
 
-      const matches = await response.json()
-      if (!matches || matches.length === 0) return
+      const data = await response.json()
+      if (!data || !data.heroStats) return
 
-      // Fetch full match details for first 50 matches
+      // Extract matches from response
+      const matches = data.matches || []
+      if (matches.length === 0) return
+
+      // Use cached match data from API response
       const matchesToFetch = matches.slice(0, 50)
-      const fullMatchesPromises = matchesToFetch.map((m: any) =>
-        fetch(`https://api.opendota.com/api/matches/${m.match_id}`, {
-          next: { revalidate: 3600 }
-        }).then(res => res.ok ? res.json() : null).catch(() => null)
-      )
-      const fullMatches = await Promise.all(fullMatchesPromises)
+      const fullMatches = data.fullMatches || []
 
       // Group matches by period (last 10, 20, 30, 50 matches) for selected hero
       const heroMatches = fullMatches

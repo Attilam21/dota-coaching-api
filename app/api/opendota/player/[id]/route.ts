@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchOpenDota, getCached, setCached } from '@/lib/opendota'
 
 export async function GET(
   request: NextRequest,
@@ -7,21 +8,21 @@ export async function GET(
   try {
     const { id } = await params
     
-    const response = await fetch(`https://api.opendota.com/api/players/${id}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 3600 }
-    })
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch player' },
-        { status: response.status }
-      )
+    // Check cache first
+    const cacheKey = `player:${id}`
+    const cached = getCached<any>(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      })
     }
 
-    const data = await response.json()
+    const data = await fetchOpenDota<any>(`/players/${id}`)
+    
+    // Cache for 60 seconds (match list changes frequently)
+    setCached(cacheKey, data, 60)
     
     return NextResponse.json(data, {
       headers: {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchOpenDota, mapWithConcurrency, getCached, setCached } from '@/lib/opendota'
 
 export async function GET(
   request: NextRequest,
@@ -9,12 +10,10 @@ export async function GET(
     
     // Fetch player data
     // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const [statsResponse, advancedStatsResponse, heroesResponse] = await Promise.all([
+    const [statsResponse, advancedStatsResponse, heroesData] = await Promise.all([
       fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
       fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
-      fetch(`https://api.opendota.com/api/players/${id}/heroes`, {
-        next: { revalidate: 3600 }
-      })
+      fetchOpenDota<any[]>(`/players/${id}/heroes`).catch(() => null)
     ])
     
     // Parse responses safely
@@ -44,14 +43,8 @@ export async function GET(
       console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
     }
     
-    if (heroesResponse.ok) {
-      try {
-        playerHeroes = await heroesResponse.json()
-      } catch (err) {
-        console.error('Failed to parse heroes response:', err)
-      }
-    } else {
-      console.error('Heroes fetch failed:', heroesResponse.status)
+    if (heroesData) {
+      playerHeroes = heroesData
     }
     
     if (!statsData?.stats || !advancedData?.stats) {
@@ -62,10 +55,7 @@ export async function GET(
     }
 
     // Fetch heroes data to get role info
-    const heroesDataResponse = await fetch('https://api.opendota.com/api/heroes', {
-      next: { revalidate: 86400 }
-    })
-    const allHeroes = await heroesDataResponse.json()
+    const allHeroes = await fetchOpenDota<any[]>('/heroes').catch(() => [])
     const heroesMap: Record<number, { roles: string[]; localized_name: string }> = {}
     allHeroes.forEach((hero: any) => {
       heroesMap[hero.id] = {
@@ -210,8 +200,29 @@ export async function GET(
       recommendations.push('Hai giocato principalmente un solo ruolo. Diversificare può migliorare l\'adattabilità e la comprensione del gioco.')
     }
 
+    // Fetch matches for trend calculation (if needed by client)
+    const matchesForTrend = stats.matches || []
+    const matchesToFetch = matchesForTrend.slice(0, 50)
+    const matchIds = matchesToFetch.map((m: any) => m.match_id)
+    const fullMatches = await mapWithConcurrency(
+      matchIds,
+      async (matchId: number) => {
+        const matchCacheKey = `match:${matchId}`
+        const cached = getCached<any>(matchCacheKey)
+        if (cached) return cached
+        
+        const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+        if (matchData) {
+          setCached(matchCacheKey, matchData, 21600)
+        }
+        return matchData
+      },
+      6
+    )
+
     return NextResponse.json({
       roles: rolePerformance,
+      roleStats: rolePerformance, // Alias per compatibilità
       preferredRole,
       recommendations,
       summary: {
@@ -220,7 +231,10 @@ export async function GET(
         bestRole: rolesArray.length > 0 ? rolesArray.reduce((best, curr) => 
           curr[1].winrate > best[1].winrate ? curr : best
         )[0] : 'N/A',
-      }
+      },
+      heroes: allHeroes, // Per trend calculation
+      matches: matchesForTrend, // Per trend calculation
+      fullMatches: fullMatches.filter((m: any) => m !== null), // Per trend calculation
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
