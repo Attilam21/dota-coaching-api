@@ -49,7 +49,7 @@ type TabType = 'meta' | 'win-conditions'
 export default function CoachingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId } = usePlayerIdContext()
+  const { playerId, isLoading: playerIdLoading } = usePlayerIdContext()
   const [metaData, setMetaData] = useState<MetaComparison | null>(null)
   const [winConditions, setWinConditions] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -113,14 +113,15 @@ export default function CoachingPage() {
   }, [playerId])
 
   useEffect(() => {
-    if (playerId) {
-      fetchMetaComparison()
-      // Fetch win conditions when tab is active or when playerId changes
-      if (activeTab === 'win-conditions') {
-        fetchWinConditions()
-      }
+    // Don't fetch if playerId is loading or not available
+    if (playerIdLoading || !playerId) return
+    
+    fetchMetaComparison()
+    // Fetch win conditions when tab is active or when playerId changes
+    if (activeTab === 'win-conditions') {
+      fetchWinConditions()
     }
-  }, [playerId, fetchMetaComparison, activeTab])
+  }, [playerId, playerIdLoading, fetchMetaComparison, activeTab])
 
   // Fetch win conditions when switching to win-conditions tab
   useEffect(() => {
@@ -212,6 +213,17 @@ export default function CoachingPage() {
 
   if (!user) {
     return null
+  }
+
+  // Show loading state while playerId is loading
+  if (playerIdLoading) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+    )
   }
 
   if (!playerId) {

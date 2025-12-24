@@ -110,28 +110,52 @@ export async function GET(
       }).catch(() => null),
     ])
 
-    // Check if critical responses succeeded
-    if (profileResponse.status === 'rejected' || statsResponse.status === 'rejected') {
-      return NextResponse.json(
-        { error: 'Failed to fetch player data' },
-        { status: 500 }
-      )
+    // Parse responses with graceful degradation
+    let profile: any = null
+    let statsData: any = null
+    let advancedData: any = null
+    const warnings: string[] = []
+    
+    if (profileResponse.status === 'fulfilled' && profileResponse.value.ok) {
+      try {
+        profile = await profileResponse.value.json()
+      } catch (err) {
+        console.error('Failed to parse profile response:', err)
+        warnings.push('Profile data not available')
+      }
+    } else {
+      warnings.push('Profile data not available')
+    }
+    
+    if (statsResponse.status === 'fulfilled' && statsResponse.value.ok) {
+      try {
+        statsData = await statsResponse.value.json()
+      } catch (err) {
+        console.error('Failed to parse stats response:', err)
+        warnings.push('Stats data not available')
+      }
+    } else {
+      warnings.push('Stats data not available')
+    }
+    
+    if (advancedResponse?.status === 'fulfilled' && advancedResponse.value?.ok) {
+      try {
+        advancedData = await advancedResponse.value.json()
+      } catch (err) {
+        console.error('Failed to parse advanced stats response:', err)
+        // Advanced stats are optional, no warning needed
+      }
     }
 
-    if (!profileResponse.value.ok || !statsResponse.value.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch player data' },
-        { status: 500 }
-      )
+    // Use default values if data is missing (graceful degradation)
+    const defaultStats = {
+      winrate: { last5: 0, last10: 0, delta: 0 },
+      kda: { last5: 0, last10: 0, delta: 0 },
+      farm: { gpm: { last5: 0, last10: 0 }, xpm: { last5: 0, last10: 0 } },
+      matches: [],
     }
-
-    const profile = await profileResponse.value.json()
-    const statsData = await statsResponse.value.json()
-    const advancedData = advancedResponse?.status === 'fulfilled' && advancedResponse.value?.ok 
-      ? await advancedResponse.value.json() 
-      : null
-
-    const stats = statsData.stats
+    
+    const stats = statsData?.stats || defaultStats
     const advanced = advancedData?.stats || {
       lane: { avgLastHits: 0, avgDenies: 0 },
       farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0 },
@@ -141,7 +165,20 @@ export async function GET(
 
     const matches = stats.matches || []
     if (matches.length === 0) {
-      return NextResponse.json({ error: 'No matches found' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'No matches found',
+        warnings: warnings.length > 0 ? warnings : undefined,
+        partial: warnings.length > 0,
+      }, { status: 400 })
+    }
+    
+    // If both profile and stats are missing, return error
+    if (!profile && !statsData) {
+      return NextResponse.json({
+        error: 'Failed to fetch player data',
+        warnings,
+        partial: true,
+      }, { status: 500 })
     }
 
     // Calculate metrics
@@ -260,10 +297,17 @@ Scrivi 3 bullet points specifici (max 20 parole ciascuno):
 
 FORMATO: Solo bullet points, niente introduzione, tono diretto.`
 
-    // Generate advice
-    const advice = await generateCoachingAdvice(prompt)
+    // Generate advice (with fallback if AI fails)
+    let advice: string
+    try {
+      advice = await generateCoachingAdvice(prompt)
+    } catch (err) {
+      console.error('AI service unavailable, using fallback advice:', err)
+      advice = `Focus su migliorare ${mainIssue.type === 'farm' ? 'il farm rate' : mainIssue.type === 'kda' ? 'il KDA' : mainIssue.type === 'deaths' ? 'la sopravvivenza' : 'le performance generali'}. Analizza le tue partite e pratica le skill specifiche per il tuo ruolo.`
+      warnings.push('AI coaching advice not available, using fallback')
+    }
 
-    return NextResponse.json({
+    const response: any = {
       advice,
       mainIssue: {
         type: mainIssue.type,
@@ -274,7 +318,15 @@ FORMATO: Solo bullet points, niente introduzione, tono diretto.`
         deathTiming: deathTiming?.detected || false,
         farmVsFight: farmVsFight?.detected || false,
       },
-    }, {
+    }
+    
+    // Add warnings and partial flag if data is incomplete (backward compatible)
+    if (warnings.length > 0) {
+      response.warnings = warnings
+      response.partial = true
+    }
+    
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800',
       },

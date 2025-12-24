@@ -62,20 +62,26 @@ export async function GET(
     
     // opendotaData già parsato sopra
     
-    // Validate statsData structure - must have stats object (come nella versione backup)
+    // Validate statsData structure - use default stats if missing (resilient fallback)
+    const defaultStats = {
+      winrate: { last5: 0, last10: 0, delta: 0 },
+      kda: { last5: 0, last10: 0, delta: 0 },
+      farm: { gpm: { last5: 0, last10: 0 }, xpm: { last5: 0, last10: 0 } },
+      matches: [],
+    }
+    
+    const stats = statsData?.stats || defaultStats
+    const warnings: string[] = []
+    
     if (!statsData?.stats) {
-      return NextResponse.json(
-        { error: 'Failed to fetch basic player stats. Please ensure the player ID is valid and has recent matches.' },
-        { status: 500 }
-      )
+      warnings.push('Basic player stats not available, using default values')
     }
 
     // Advanced stats are optional but preferred
     if (!advancedData?.stats) {
       console.warn('Advanced stats not available, using basic stats only')
+      warnings.push('Advanced stats not available, using basic stats only')
     }
-
-    const stats = statsData.stats
     const advanced = advancedData?.stats || {
       lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
       farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
@@ -365,7 +371,7 @@ export async function GET(
       ? `https://steamcdn-a.akamaihd.net/apps/dota2/images/rank_icons/rank_icon_${rankTier}.png`
       : null
 
-    return NextResponse.json({
+    const response: any = {
       role,
       roleConfidence,
       playstyle,
@@ -402,7 +408,15 @@ export async function GET(
       rankTier,
       soloMMR,
       rankMedalUrl,
-    }, {
+    }
+    
+    // Add warnings and partial flag if data is incomplete (backward compatible)
+    if (warnings.length > 0) {
+      response.warnings = warnings
+      response.partial = true
+    }
+    
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
       },

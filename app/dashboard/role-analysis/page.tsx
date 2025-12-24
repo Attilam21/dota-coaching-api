@@ -61,7 +61,7 @@ type TabType = 'overview' | 'improvement' | 'trend'
 export default function RoleAnalysisPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const { playerId } = usePlayerIdContext()
+  const { playerId, isLoading: playerIdLoading } = usePlayerIdContext()
   const [analysis, setAnalysis] = useState<RoleAnalysis | null>(null)
   const [advancedStats, setAdvancedStats] = useState<any>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
@@ -230,10 +230,11 @@ export default function RoleAnalysisPage() {
   }, [playerId, selectedRoleForTrend])
 
   useEffect(() => {
-    if (playerId) {
-      fetchAnalysis()
-    }
-  }, [playerId, fetchAnalysis])
+    // Don't fetch if playerId is loading or not available
+    if (playerIdLoading || !playerId) return
+    
+    fetchAnalysis()
+  }, [playerId, playerIdLoading, fetchAnalysis])
 
   useEffect(() => {
     if (selectedRoleForTrend) {
@@ -253,6 +254,17 @@ export default function RoleAnalysisPage() {
 
   if (!user) {
     return null
+  }
+
+  // Show loading state while playerId is loading
+  if (playerIdLoading) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+      </div>
+    )
   }
 
   if (!playerId) {

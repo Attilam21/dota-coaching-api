@@ -224,10 +224,29 @@ export async function GET(
     })
   } catch (error) {
     console.error('Error fetching player stats:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    // Return shape-safe response with default stats to prevent downstream crashes
+    return NextResponse.json({
+      matches: [],
+      stats: {
+        winrate: {
+          last5: 0,
+          last10: 0,
+          delta: 0,
+        },
+        kda: {
+          last5: 0,
+          last10: 0,
+          delta: 0,
+        },
+        farm: {
+          gpm: { last5: 0, last10: 0 },
+          xpm: { last5: 0, last10: 0 },
+        },
+        matches: [],
+      },
+      error: 'Internal server error',
+      partial: true,
+    }, { status: 500 })
   }
 }
 

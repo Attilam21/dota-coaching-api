@@ -60,9 +60,9 @@ export async function fetchOpenDota<T>(
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      // Timeout con AbortController
+      // Timeout con AbortController (aumentato per problemi VPN)
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout (aumentato per VPN)
 
       const response = await fetch(url, {
         ...init,

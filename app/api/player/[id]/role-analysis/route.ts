@@ -47,11 +47,38 @@ export async function GET(
       playerHeroes = heroesData
     }
     
-    if (!statsData?.stats || !advancedData?.stats) {
-      return NextResponse.json(
-        { error: 'Failed to fetch or parse player data' },
-        { status: 500 }
-      )
+    // Use default stats if missing (graceful degradation)
+    const defaultStats = {
+      winrate: { last5: 0, last10: 0, delta: 0 },
+      kda: { last5: 0, last10: 0, delta: 0 },
+      farm: { gpm: { last5: 0, last10: 0 }, xpm: { last5: 0, last10: 0 } },
+      matches: [],
+    }
+    
+    const defaultAdvanced = {
+      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
+      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
+      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
+      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
+    }
+    
+    const warnings: string[] = []
+    
+    if (!statsData?.stats) {
+      warnings.push('Basic stats not available, using default values')
+    }
+    
+    if (!advancedData?.stats) {
+      warnings.push('Advanced stats not available, using default values')
+    }
+    
+    // If both are missing, return error
+    if (!statsData?.stats && !advancedData?.stats) {
+      return NextResponse.json({
+        error: 'Failed to fetch or parse player data',
+        warnings,
+        partial: true,
+      }, { status: 500 })
     }
 
     // Fetch heroes data to get role info
@@ -82,9 +109,11 @@ export async function GET(
     }
 
     // Process player heroes and assign to roles
-    playerHeroes
-      .filter((h: any) => h.games && h.games > 0)
-      .forEach((h: any) => {
+    // Handle case where playerHeroes might be null (e.g., VPN issues, API failures)
+    if (playerHeroes && Array.isArray(playerHeroes)) {
+      playerHeroes
+        .filter((h: any) => h.games && h.games > 0)
+        .forEach((h: any) => {
         const hero = heroesMap[h.hero_id]
         if (!hero) return
 
@@ -119,15 +148,14 @@ export async function GET(
           rolePerformance.Support.heroes.push(heroData)
         }
       })
+    } else {
+      // Log warning if playerHeroes is missing
+      console.warn('playerHeroes data not available, using default role performance')
+    }
 
     // Calculate winrates and REAL metrics per role
-    const stats = statsData.stats
-    const advanced = advancedData?.stats || {
-      lane: { avgLastHits: 0, avgDenies: 0, firstBloodInvolvement: 0, denyRate: 0 },
-      farm: { avgGPM: 0, avgXPM: 0, goldUtilization: 0, avgNetWorth: 0, avgBuybacks: 0 },
-      fights: { killParticipation: 0, avgHeroDamage: 0, avgTowerDamage: 0, avgDeaths: 0, avgAssists: 0 },
-      vision: { avgObserverPlaced: 0, avgObserverKilled: 0, avgSentryPlaced: 0, wardEfficiency: 0 }
-    }
+    const stats = statsData?.stats || defaultStats
+    const advanced = advancedData?.stats || defaultAdvanced
     const matches = stats.matches || []
 
     // Calculate REAL metrics per role based on actual match data
@@ -220,7 +248,7 @@ export async function GET(
       6
     )
 
-    return NextResponse.json({
+    const response: any = {
       roles: rolePerformance,
       roleStats: rolePerformance, // Alias per compatibilità
       preferredRole,
@@ -235,7 +263,15 @@ export async function GET(
       heroes: allHeroes, // Per trend calculation
       matches: matchesForTrend, // Per trend calculation
       fullMatches: fullMatches.filter((m: any) => m !== null), // Per trend calculation
-    }, {
+    }
+    
+    // Add warnings and partial flag if data is incomplete (backward compatible)
+    if (warnings.length > 0) {
+      response.warnings = warnings
+      response.partial = true
+    }
+    
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
       },
