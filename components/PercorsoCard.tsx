@@ -59,7 +59,7 @@ export default function PercorsoCard({ xp, isLoading = false }: PercorsoCardProp
         {/* Avatar portrait (sinistra desktop, centrato mobile) */}
         <div className="flex-shrink-0 flex justify-center md:justify-start">
           <div 
-            className="relative overflow-hidden rounded-[14px] w-[104px] h-[150px] sm:w-[120px] sm:h-[170px] md:w-[96px] md:h-[140px]"
+            className="relative overflow-hidden rounded-[14px] w-[104px] h-[150px] sm:w-[120px] sm:h-[170px] md:w-[96px] md:h-[140px] lg:w-[96px] lg:h-[140px]"
             style={{
               boxShadow: `0 0 20px ${currentRank.color}40, 0 0 40px ${currentRank.color}20`
             }}
