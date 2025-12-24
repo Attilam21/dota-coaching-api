@@ -215,16 +215,17 @@ function HelmetLogo({ className: svgClassName }: { className?: string }) {
 
 export default function Logo({ className = '', showText = false, size = 'md', href }: LogoProps) {
   // Dimensioni orizzontali per rispettare le proporzioni del logo (emblema + testo)
+  // Aumentate del 20% rispetto alle dimensioni originali
   const sizeClasses = {
-    sm: 'h-8',  // Altezza fissa
-    md: 'h-12',
-    lg: 'h-16'
+    sm: 'h-10',  // 32px * 1.2 = 38.4px ≈ 40px (h-10)
+    md: 'h-14',  // 48px * 1.2 = 57.6px ≈ 56px (h-14)
+    lg: 'h-20'   // 64px * 1.2 = 76.8px ≈ 80px (h-20)
   }
 
   const textSizeClasses = {
-    sm: 'text-lg',
-    md: 'text-xl',
-    lg: 'text-2xl'
+    sm: 'text-xl',   // Aumentato per proporzionalità
+    md: 'text-2xl',  // Aumentato per proporzionalità
+    lg: 'text-3xl'   // Aumentato per proporzionalità
   }
 
   const [showImage, setShowImage] = React.useState(true)
