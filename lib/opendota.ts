@@ -116,9 +116,27 @@ export async function mapWithConcurrency<T, R>(
   maxConcurrency = 6
 ): Promise<(R | null)[]> {
   const results: (R | null)[] = new Array(items.length).fill(null)
-  const executing: Array<{ promise: Promise<void>; index: number }> = []
+  const executing: Array<Promise<void>> = []
 
   for (let i = 0; i < items.length; i++) {
+    // Se abbiamo raggiunto il limite, aspetta che uno completi PRIMA di aggiungere
+    if (executing.length >= maxConcurrency) {
+      // Crea promise che risolvono con il loro riferimento quando completano
+      const racePromises = executing.map((p) => 
+        p.then(() => p).catch(() => p)
+      )
+      
+      // Aspetta che QUALSIASI promise completi e ottieni il suo riferimento
+      const completedPromise = await Promise.race(racePromises)
+      
+      // Rimuovi il promise che ha completato dall'array
+      const indexToRemove = executing.findIndex(p => p === completedPromise)
+      if (indexToRemove !== -1) {
+        executing.splice(indexToRemove, 1)
+      }
+    }
+
+    // Crea e aggiungi il nuovo promise (dopo aver rimosso uno se necessario)
     const promise = (async () => {
       try {
         results[i] = await fn(items[i], i)
@@ -128,26 +146,11 @@ export async function mapWithConcurrency<T, R>(
       }
     })()
 
-    const task = { promise, index: i }
-    executing.push(task)
-
-    // Quando raggiungiamo il limite, aspettiamo che una finisca
-    if (executing.length >= maxConcurrency) {
-      // Crea promise che risolvono con l'index quando completano
-      const racePromises = executing.map((e, idx) => 
-        e.promise.then(() => idx).catch(() => idx)
-      )
-      
-      // Aspetta che QUALSIASI promise completi e ottieni il suo index nell'array
-      const completedArrayIndex = await Promise.race(racePromises)
-      
-      // Rimuovi il promise che ha completato (non quello corrente!)
-      executing.splice(completedArrayIndex, 1)
-    }
+    executing.push(promise)
   }
 
   // Aspetta che tutte finiscano
-  await Promise.all(executing.map(e => e.promise))
+  await Promise.all(executing)
 
   return results
 }
@@ -183,4 +186,3 @@ export function setCached<T>(key: string, data: T, ttlSeconds: number): void {
 export function clearCache(): void {
   cache.clear()
 }
-
