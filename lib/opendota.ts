@@ -116,7 +116,7 @@ export async function mapWithConcurrency<T, R>(
   maxConcurrency = 6
 ): Promise<(R | null)[]> {
   const results: (R | null)[] = new Array(items.length).fill(null)
-  const executing: Promise<void>[] = []
+  const executing: Array<{ promise: Promise<void>; index: number }> = []
 
   for (let i = 0; i < items.length; i++) {
     const promise = (async () => {
@@ -128,17 +128,26 @@ export async function mapWithConcurrency<T, R>(
       }
     })()
 
-    executing.push(promise)
+    const task = { promise, index: i }
+    executing.push(task)
 
     // Quando raggiungiamo il limite, aspettiamo che una finisca
     if (executing.length >= maxConcurrency) {
-      await Promise.race(executing)
-      executing.splice(executing.findIndex(p => p === promise), 1)
+      // Crea promise che risolvono con l'index quando completano
+      const racePromises = executing.map((e, idx) => 
+        e.promise.then(() => idx).catch(() => idx)
+      )
+      
+      // Aspetta che QUALSIASI promise completi e ottieni il suo index nell'array
+      const completedArrayIndex = await Promise.race(racePromises)
+      
+      // Rimuovi il promise che ha completato (non quello corrente!)
+      executing.splice(completedArrayIndex, 1)
     }
   }
 
   // Aspetta che tutte finiscano
-  await Promise.all(executing)
+  await Promise.all(executing.map(e => e.promise))
 
   return results
 }
