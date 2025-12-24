@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/auth-context'
 import { motion } from 'framer-motion'
 import Logo from '@/components/Logo'
 import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
-import WelcomeVideoModal from '@/components/WelcomeVideoModal'
 import { 
   BarChart, 
   Zap, 
@@ -25,8 +24,7 @@ import {
   GraduationCap,
   TrendingUp,
   Route,
-  Sparkles,
-  PlayCircle
+  Sparkles
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -106,22 +104,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
-      {/* Welcome Video Modal - available from all dashboard pages */}
-      <WelcomeVideoModal 
-        videoSrc="/videos/welcome.mp4"
-        title="Benvenuto in PRO DOTA ANALISI"
-        showOnFirstVisit={true}
-        storageKey="welcome-video-seen"
-      />
-      
       {/* Sidebar */}
       <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
         <div className="p-6 border-b border-gray-700">
           <Logo href="/dashboard" size="md" />
         </div>
         
-        {/* Guida Utente e Video Benvenuto - In alto con colore evidenziato */}
-        <div className="p-4 border-b border-gray-700 space-y-2">
+        {/* Guida Utente - In alto con colore evidenziato */}
+        <div className="p-4 border-b border-gray-700">
           <Link
             href="/dashboard/guida-utente"
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-all bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 text-yellow-300 hover:from-yellow-600/30 hover:to-orange-600/30 hover:border-yellow-400 hover:text-yellow-200 hover:shadow-lg hover:shadow-yellow-500/20"
@@ -129,28 +119,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <GraduationCap className="w-5 h-5 flex-shrink-0" />
             <span>Guida Utente</span>
           </Link>
-          <button
-            onClick={() => {
-              // Trigger event per aprire il video
-              try {
-                if (typeof window !== 'undefined') {
-                  // Prova prima con la funzione diretta
-                  if ((window as any).openWelcomeVideo) {
-                    (window as any).openWelcomeVideo()
-                  } else {
-                    // Altrimenti usa l'evento custom
-                    window.dispatchEvent(new Event('openWelcomeVideoEvent'))
-                  }
-                }
-              } catch (err) {
-                console.error('Failed to open video:', err)
-              }
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-all bg-gradient-to-r from-red-600/20 to-pink-600/20 border border-red-500/50 text-red-300 hover:from-red-600/30 hover:to-pink-600/30 hover:border-red-400 hover:text-red-200 hover:shadow-lg hover:shadow-red-500/20"
-          >
-            <PlayCircle className="w-5 h-5 flex-shrink-0" />
-            <span>Video Benvenuto</span>
-          </button>
         </div>
         
         <nav className="flex-1 overflow-y-auto p-4 space-y-6" data-tour="sidebar">

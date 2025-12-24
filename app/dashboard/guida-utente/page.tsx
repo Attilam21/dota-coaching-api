@@ -86,7 +86,7 @@ export default function GuidaUtentePage() {
     },
     {
       title: 'Personalizzazione Dashboard',
-      description: 'Personalizza lo sfondo del dashboard e guarda il video di benvenuto. Scegli tra diversi sfondi disponibili e accedi al video tutorial quando vuoi.',
+      description: 'Personalizza lo sfondo del dashboard. Scegli tra diversi sfondi disponibili nelle impostazioni.',
       icon: Settings,
       href: '/dashboard/settings',
       color: 'bg-pink-900/30 border-pink-700',
@@ -353,10 +353,6 @@ export default function GuidaUtentePage() {
             <h3 className="text-lg font-semibold text-pink-400 mb-2">🎨 Personalizzazione Dashboard</h3>
             <div className="text-gray-300 text-sm space-y-2">
               <p>
-                <strong>Video di Benvenuto:</strong> Al primo accesso al dashboard vedrai automaticamente un video di benvenuto che ti introduce alla piattaforma. 
-                Puoi chiuderlo in qualsiasi momento e non verrà più mostrato automaticamente. Se vuoi rivederlo, clicca sul pulsante <strong>"Video Benvenuto"</strong> nella sidebar (accanto a "Guida Utente").
-              </p>
-              <p>
                 <strong>Sfondo Personalizzato:</strong> Puoi personalizzare lo sfondo del dashboard scegliendo tra diverse opzioni disponibili. 
                 Vai su <strong>Dashboard → Impostazioni → Sfondo Dashboard</strong> per vedere tutte le opzioni disponibili.
               </p>
@@ -465,10 +461,6 @@ export default function GuidaUtentePage() {
           <li className="flex items-start gap-2">
             <CheckCircle className="w-5 h-5 text-pink-400 flex-shrink-0 mt-0.5" />
             <span><strong>Personalizza lo sfondo</strong> del dashboard nelle Impostazioni. Scegli tra diversi sfondi disponibili e vedi l'anteprima prima di applicare.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle className="w-5 h-5 text-pink-400 flex-shrink-0 mt-0.5" />
-            <span>Il <strong>Video di Benvenuto</strong> si mostra solo al primo accesso. Puoi rivederlo in qualsiasi momento cliccando "Video Benvenuto" nella sidebar.</span>
           </li>
         </ul>
       </div>
