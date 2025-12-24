@@ -132,7 +132,6 @@ export default function FantasyRankAvatar({ icon, color, size = 64 }: FantasyRan
         className="object-contain"
         style={{ width: size, height: size }}
         onError={() => setImageError(true)}
-        // Aggiungi overlay colorato per mantenere coerenza visiva con il parametro color
         onLoad={() => setImageError(false)}
       />
       {/* Overlay colorato sottile per mantenere coerenza con il parametro color */}
