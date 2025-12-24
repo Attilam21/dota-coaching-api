@@ -19,17 +19,17 @@ async function verificaTrigger() {
   
   console.log('📋 TRIGGER DEFINITI NEI FILE SQL:\n')
   console.log('1. ✅ on_auth_user_created')
-  console.log('   - File: SCHEMA_ENTERPRISE.sql, RIPRISTINO_TABELLE.sql')
+  console.log('   - File: schema.sql')
   console.log('   - Tabella: auth.users')
   console.log('   - Scopo: Auto-crea profilo alla registrazione\n')
   
   console.log('2. ✅ prevent_dota_id_change_trigger')
-  console.log('   - File: SCHEMA_ENTERPRISE.sql')
+  console.log('   - File: schema.sql') // Nota: trigger non più utilizzato nel codice attuale
   console.log('   - Tabella: public.users')
   console.log('   - Scopo: Blocca modifiche Player ID dopo verifica\n')
   
   console.log('3. ✅ update_last_analyzed_match_trigger')
-  console.log('   - File: SCHEMA_ENTERPRISE.sql')
+  console.log('   - File: schema.sql') // Nota: trigger non più utilizzato nel codice attuale
   console.log('   - Tabella: public.match_analyses')
   console.log('   - Scopo: Aggiorna ultima partita analizzata\n')
   

@@ -107,7 +107,7 @@ Prova questi endpoint:
 - **Repository Backend**: [dota-coaching-backend](https://github.com/Attilam21/dota-coaching-backend)
 - **Documentazione**: Vedi [README.md](./README.md)
 - **Architettura**: Vedi [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Stato Progetto**: Vedi [PROJECT_STATUS.md](./PROJECT_STATUS.md)
+- **Stato Progetto**: Vedi [DOCUMENTAZIONE_CONSOLIDATA.md](./DOCUMENTAZIONE_CONSOLIDATA.md) (sezione "Stato Progetto")
 
 ---
 

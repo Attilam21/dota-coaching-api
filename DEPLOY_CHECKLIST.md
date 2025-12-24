@@ -22,7 +22,7 @@
 
 ### ✅ 3. Documentazione
 - [x] README aggiornato
-- [x] PROJECT_STATUS.md creato
+- [x] Documentazione consolidata (DOCUMENTAZIONE_CONSOLIDATA.md)
 - [x] ADSENSE_SETUP.md creato
 - [x] File obsoleti rimossi
 

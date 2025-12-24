@@ -22,7 +22,7 @@ if (!projectRef) {
 if (!SUPABASE_DB_PASSWORD) {
   console.error('❌ Variabile d\'ambiente SUPABASE_DB_PASSWORD non impostata.')
   console.error('   Per eseguire questo script, devi fornire la password del database PostgreSQL.')
-  console.error('   Vedi supabase/COME_TROVARE_PASSWORD_DB.md per istruzioni.')
+  console.error('   Vedi documentazione Supabase per trovare la password del database.')
   process.exit(1)
 }
 

@@ -108,14 +108,14 @@ CREATE POLICY "Users can insert own analyses" ON public.match_analyses
 ### Passo 4.5: Se vedi "permission denied" ⚠️
 Se dopo aver eseguito lo script vedi ancora errori **"permission denied for table users"**, esegui anche questo script:
 
-1. Nel SQL Editor, apri il file `supabase/fix_rls_policies.sql` (o copia il contenuto)
+1. Nel SQL Editor, esegui lo script `supabase/fix_rls_policies.sql` (o copia il contenuto)
 2. Esegui lo script
 3. Questo configurerà correttamente le Row Level Security policies
 
 ### Passo 4.6: Se vedi policies duplicate ⚠️
 Se lo script `quick_check.sql` o `diagnostic_script.sql` mostra **4 policies invece di 3**:
 
-1. Esegui `supabase/fix_all_policies.sql` per rimuovere tutte le policies e ricrearle corrette
+1. Esegui `supabase/fix_all_policies.sql` per rimuovere tutte le policies e ricrearle corrette (se necessario)
 2. Oppure esegui solo: `DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.users;`
 3. Verifica che rimangano solo 3 policies corrette (SELECT, UPDATE, INSERT)
 

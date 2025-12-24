@@ -8,7 +8,7 @@ console.log('═'.repeat(60))
 const triggers = [
   {
     name: 'on_auth_user_created',
-    files: ['SCHEMA_ENTERPRISE.sql', 'RIPRISTINO_TABELLE.sql', 'schema.sql'],
+    files: ['schema.sql'],
     table: 'auth.users',
     target: 'public.users',
     type: 'AFTER INSERT',
@@ -18,7 +18,7 @@ const triggers = [
   },
   {
     name: 'prevent_dota_id_change_trigger',
-    files: ['SCHEMA_ENTERPRISE.sql'],
+    files: ['schema.sql'], // Nota: trigger non più utilizzato nel codice attuale
     table: 'public.users',
     target: 'public.users',
     type: 'BEFORE UPDATE',
@@ -28,7 +28,7 @@ const triggers = [
   },
   {
     name: 'update_last_analyzed_match_trigger',
-    files: ['SCHEMA_ENTERPRISE.sql'],
+    files: ['schema.sql'], // Nota: trigger non più utilizzato nel codice attuale
     table: 'public.match_analyses',
     target: 'public.users',
     type: 'AFTER INSERT',

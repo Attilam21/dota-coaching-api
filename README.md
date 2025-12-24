@@ -287,16 +287,16 @@ npm run dev
 ## 📚 Documentazione
 
 ### Documenti Principali
+- **[DOCUMENTAZIONE_CONSOLIDATA.md](./DOCUMENTAZIONE_CONSOLIDATA.md)** - 📖 **INDICE MASTER** - Indice completo di tutta la documentazione
 - **[TODO_NOW.md](./TODO_NOW.md)** - ⚠️ **LEGGI QUESTO** - Cosa fare adesso (in sviluppo)
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Stato completo del progetto
-- **[DOCUMENTAZIONE_MASTER.md](./DOCUMENTAZIONE_MASTER.md)** - Indice di tutta la documentazione
 - **[DEPLOY_CHECKLIST.md](./DEPLOY_CHECKLIST.md)** - Checklist per deploy produzione
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architettura sistema
 
 ### Setup & Configurazione
 - **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Setup database
+- **[SUPABASE_TROUBLESHOOTING.md](./SUPABASE_TROUBLESHOOTING.md)** - Risoluzione problemi Supabase
 - **[ADSENSE_SETUP.md](./ADSENSE_SETUP.md)** - Setup Google AdSense
 - **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** - Setup deploy Vercel
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architettura sistema
 
 ---
 

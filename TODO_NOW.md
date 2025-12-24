@@ -43,7 +43,7 @@
 - Con API key a pagamento e cache di 1 ora, probabilmente OK per < 10 utenti simultanei
 - Con 10-20 utenti simultanei → attenzione (60-100 req/sec)
 - Con > 20 utenti simultanei → rate limiting lato server OBBLIGATORIO
-- Vedi `SPIEGAZIONE_RATE_LIMITING.md` per dettagli completi
+- Vedi sezione "Rate Limiting OpenDota API" in questo documento per dettagli completi
 
 ---
 
