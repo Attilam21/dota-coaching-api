@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase-route-handler'
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +22,7 @@ export async function GET(
     // Try to get authenticated user for cache (optional - API works without auth)
     let userId: string | null = null
     try {
-      const supabase = createServerActionSupabaseClient()
+      const supabase = createRouteHandlerSupabaseClient(request)
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       
       console.log('[profile] Auth check:', {
@@ -75,7 +75,7 @@ export async function GET(
     // If user is authenticated and player_id matches, check cache
     if (userId) {
       try {
-        const supabase = createServerActionSupabaseClient()
+        const supabase = createRouteHandlerSupabaseClient(request)
         // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
         const { data: cachedProfile, error: cacheError } = await (supabase as any)
           .from('player_profiles')
@@ -504,7 +504,7 @@ export async function GET(
     // Save to cache if user is authenticated and player_id matches
     if (userId) {
       try {
-        const supabase = createServerActionSupabaseClient()
+        const supabase = createRouteHandlerSupabaseClient(request)
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
         
         console.log('[profile] 💾 Attempting to save cache:', {
