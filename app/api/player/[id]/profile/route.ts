@@ -25,7 +25,6 @@ export async function GET(
       const supabase = createServerActionSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Verify that this player_id belongs to the user
         // Cast esplicito necessario perché TypeScript non inferisce correttamente le colonne estese
         const { data: userData } = await (supabase as any)
           .from('users')
@@ -33,7 +32,16 @@ export async function GET(
           .eq('id', user.id)
           .single()
         
-        if (userData?.dota_account_id === playerIdNum) {
+        // Logica cache:
+        // - Se l'utente NON ha ancora salvato un Player ID (dota_account_id IS NULL):
+        //   → Permette cache per qualsiasi Player ID (utente sta esplorando)
+        // - Se l'utente HA salvato un Player ID (dota_account_id IS NOT NULL):
+        //   → Cache solo se corrisponde (utente sta visualizzando il suo ID salvato)
+        // Questo gestisce correttamente:
+        // 1. Utente nuovo senza ID salvato: può esplorare e la cache funziona
+        // 2. Utente con ID salvato: cache solo per il suo ID (più sicuro)
+        // 3. Utente che cambia ID: quando cambia, la nuova cache viene salvata per il nuovo ID
+        if (userData?.dota_account_id === null || userData?.dota_account_id === playerIdNum) {
           userId = user.id
         }
       }
