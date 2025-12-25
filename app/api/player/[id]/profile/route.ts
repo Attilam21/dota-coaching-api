@@ -569,4 +569,3 @@ export async function GET(
     )
   }
 }
-
