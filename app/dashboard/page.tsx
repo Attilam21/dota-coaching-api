@@ -1332,16 +1332,6 @@ export default function DashboardPage() {
                         <p className="text-xs text-gray-400">Stile di gioco, benchmarks e percentili</p>
                       </Link>
                       <Link
-                        href="/dashboard/performance"
-                        className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="w-8 h-8 text-purple-400" />
-                          <h4 className="font-semibold">Profilazione AttilaLAB</h4>
-                        </div>
-                        <p className="text-xs text-gray-400">Profilo completo con analisi IA</p>
-                      </Link>
-                      <Link
                         href="/dashboard/advanced"
                         className="bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 transition-colors"
                       >
