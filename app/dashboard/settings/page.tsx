@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
 import HelpButton from '@/components/HelpButton'
-import { Info, Image as ImageIcon } from 'lucide-react'
+import { Info, Image as ImageIcon, Lock, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import AnimatedCard from '@/components/AnimatedCard'
 import AnimatedPage from '@/components/AnimatedPage'
 import AnimatedButton from '@/components/AnimatedButton'
@@ -18,19 +18,20 @@ import { supabase } from '@/lib/supabase'
  * SettingsPageContent - Pagina Impostazioni Account
  * 
  * Permette all'utente di:
- * 1. Impostare/modificare il Dota 2 Account ID (salvato in localStorage)
+ * 1. Impostare/modificare il Dota 2 Account ID (salvato in database Supabase)
  * 2. Scegliere lo sfondo della dashboard
  * 
  * ARCHITETTURA:
- * - Player ID salvato SOLO in localStorage (chiave: 'fzth_player_id')
- * - Nessun salvataggio nel database Supabase
- * - Quando l'utente salva, viene chiamato setPlayerId() che aggiorna localStorage e Context
- * - La dashboard si aggiorna automaticamente quando il Player ID cambia
+ * - Player ID salvato in database Supabase (fonte primaria)
+ * - localStorage sincronizzato per compatibilità
+ * - Limite 3 cambi Player ID (blocco automatico dopo 3 cambi)
+ * - Cache profilazione con TTL 7 giorni
  * 
  * FLUSSO:
  * 1. Utente può arrivare qui da PlayerIdInput con query param ?playerId=123
- * 2. Il form viene pre-compilato con il Player ID dal query param o dal Context
- * 3. Utente modifica e salva → salva in localStorage → aggiorna Context → dashboard si aggiorna
+ * 2. Il form viene pre-compilato con il Player ID dal Context (caricato da DB)
+ * 3. Utente modifica e salva → salva in DB → trigger verifica limite → aggiorna Context → dashboard si aggiorna
+ * 4. Se limite raggiunto → input disabilitato e messaggio informativo
  * 
  * NOTA: useSearchParams richiede Suspense boundary (Next.js 14 requirement)
  */
@@ -38,21 +39,14 @@ function SettingsPageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { playerId, setPlayerId } = usePlayerIdContext()
+  const { playerId, setPlayerId, isLocked, changesRemaining, changeCount, reload } = usePlayerIdContext()
   const { background, updateBackground } = useBackgroundPreference()
   
-  // State del form localStorage
+  // State del form unificato (DB come fonte primaria)
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [availableBackgrounds, setAvailableBackgrounds] = useState<BackgroundType[]>([])
-  
-  // State per sezione Supabase (opzionale)
-  const [supabasePlayerId, setSupabasePlayerId] = useState<string>('')
-  const [savingToSupabase, setSavingToSupabase] = useState(false)
-  const [loadingFromSupabase, setLoadingFromSupabase] = useState(false)
-  const [supabaseMessage, setSupabaseMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [supabaseSavedId, setSupabaseSavedId] = useState<number | null>(null)
   
   // Ref per tracciare se abbiamo già processato il query param ?playerId=xxx
   // Previene che il valore dal Context sovrascriva il valore inserito dall'utente
@@ -166,11 +160,13 @@ function SettingsPageContent() {
    * IMPORTANTE: Non sovrascrive se abbiamo già processato un query param.
    * Questo previene che il valore inserito dall'utente venga sovrascritto
    * dal valore salvato nel Context.
+   * 
+   * NOTA: Il Context carica da DB (fonte primaria) e sincronizza localStorage.
    */
   useEffect(() => {
     if (hasProcessedQueryParam.current) return
     
-    // Sincronizza con il valore dal Context (caricato da localStorage)
+    // Sincronizza con il valore dal Context (caricato da DB, sincronizzato con localStorage)
     if (playerId) {
       setDotaAccountId(playerId)
     } else {
@@ -178,199 +174,33 @@ function SettingsPageContent() {
     }
   }, [playerId])
 
-  /**
-   * Carica Player ID da Supabase (se salvato)
-   * Funzione opzionale per sincronizzare con il database
-   * 
-   * Usa Server Action getPlayerId per garantire:
-   * - apikey passato correttamente
-   * - RLS policies funzionanti (session gestita correttamente)
-   * - Coerenza con updatePlayerId
-   */
-  const loadPlayerIdFromSupabase = async () => {
-    if (!user) return
-    
-    try {
-      setLoadingFromSupabase(true)
-      setSupabaseMessage(null)
-      
-      // Usa Server Action che legge automaticamente la sessione dai cookie
-      // Non serve più passare accessToken - Supabase legge dai cookie HTTP
-      const result = await getPlayerId()
 
-      if (!result.success) {
-        // Se l'utente non esiste ancora nella tabella (PGRST116), non è un errore
-        if (result.code === 'PGRST116') {
-          setSupabaseSavedId(null)
-          setSupabasePlayerId('')
-          setSupabaseMessage({
-            type: 'success',
-            text: 'Nessun Player ID salvato in database. Puoi salvarlo qui sotto.'
-          })
-          return
-        }
-        
-        // Altri errori
-        setSupabaseMessage({
-          type: 'error',
-          text: result.error || 'Errore nel caricamento da database'
-        })
-        return
-      }
-
-      // Success - gestisci il risultato
-      if (result.playerId) {
-        const playerIdNum = parseInt(result.playerId, 10)
-        setSupabaseSavedId(playerIdNum)
-        setSupabasePlayerId(result.playerId)
-        setSupabaseMessage({
-          type: 'success',
-          text: `Player ID caricato da database: ${result.playerId}`
-        })
-      } else {
-        setSupabaseSavedId(null)
-        setSupabasePlayerId('')
-        setSupabaseMessage({
-          type: 'success',
-          text: 'Nessun Player ID salvato in database.'
-        })
-      }
-    } catch (err) {
-      console.error('Errore nel caricamento da Supabase:', err)
-      setSupabaseMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'Errore nel caricamento da database'
-      })
-    } finally {
-      setLoadingFromSupabase(false)
-    }
-  }
-
-  /**
-   * Salva Player ID in Supabase (opzionale)
-   * Questa è una funzionalità aggiuntiva - localStorage rimane la fonte primaria
-   */
-  const handleSaveToSupabase = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
-
-    try {
-      setSavingToSupabase(true)
-      setSupabaseMessage(null)
-
-      const playerIdString = supabasePlayerId.trim() || null
-      const dotaAccountIdNum = playerIdString 
-        ? parseInt(playerIdString, 10) 
-        : null
-
-      // Validazione
-      if (playerIdString && isNaN(dotaAccountIdNum!)) {
-        setSupabaseMessage({
-          type: 'error',
-          text: 'L\'ID Dota deve essere un numero valido',
-        })
-        setSavingToSupabase(false)
-        return
-      }
-
-      // Recupera sessione dal client Supabase (localStorage)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !session) {
-        setSupabaseMessage({
-          type: 'error',
-          text: 'Devi fare login.',
-        })
-        setSavingToSupabase(false)
-        return
-      }
-
-      if (!session.access_token || !session.refresh_token) {
-        setSupabaseMessage({
-          type: 'error',
-          text: 'Sessione non valida. Rifai login.',
-        })
-        setSavingToSupabase(false)
-        return
-      }
-
-      // Passa access_token e refresh_token esplicitamente alla Server Action
-      // refresh_token obbligatorio per setSession() che abilita RLS
-      const result = await updatePlayerId(
-        playerIdString, 
-        session.access_token,
-        session.refresh_token
-      )
-
-      if (!result.success) {
-        setSupabaseMessage({
-          type: 'error',
-          text: result.error || 'Errore nel salvataggio nel database.',
-        })
-        setSavingToSupabase(false)
-        return
-      }
-
-      // Aggiorna state locale Supabase
-      setSupabaseSavedId(dotaAccountIdNum)
-      
-      // SINCRONIZZAZIONE: Dopo salvataggio DB, aggiorna localStorage e Context
-      // Questo garantisce coerenza e forza il refresh della dashboard
-      if (playerIdString) {
-        // Aggiorna localStorage con lo stesso valore (coerenza)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('fzth_player_id', playerIdString)
-        }
-        
-        // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
-        // Questo forza il refresh automatico dei dati dashboard
-        setPlayerId(playerIdString)
-      } else {
-        // Se playerIdString è null, rimuovi da localStorage e Context
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('fzth_player_id')
-        }
-        setPlayerId(null)
-      }
-      
-      setSupabaseMessage({ 
-        type: 'success', 
-        text: result.message || 'Player ID salvato in database con successo!'
-      })
-    } catch (err) {
-      console.error('Errore nel salvataggio in Supabase:', err)
-      setSupabaseMessage({
-        type: 'error',
-        text: err instanceof Error ? err.message : 'Errore nel salvataggio nel database',
-      })
-    } finally {
-      setSavingToSupabase(false)
-    }
-  }
-
-  // Carica Player ID da Supabase al mount (solo se utente autenticato)
-  useEffect(() => {
-    if (user) {
-      loadPlayerIdFromSupabase()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
 
   /**
    * Gestisce il salvataggio del Player ID
    * 
    * FLUSSO:
    * 1. Valida che l'ID sia un numero valido
-   * 2. Salva in localStorage (chiave: 'fzth_player_id')
-   * 3. Aggiorna il Context chiamando setPlayerId()
-   * 4. Il Context notifica tutti i componenti sottoscritti
-   * 5. La dashboard si aggiorna automaticamente
+   * 2. Verifica lock e limite cambi
+   * 3. Salva in database Supabase (fonte primaria)
+   * 4. Trigger PostgreSQL verifica limite 3 cambi
+   * 5. Aggiorna localStorage e Context per sincronizzazione
+   * 6. La dashboard si aggiorna automaticamente
    * 
-   * NOTA: Nessun salvataggio nel database - localStorage è l'unica fonte.
+   * NOTA: Database è la fonte primaria, localStorage sincronizzato per compatibilità.
    */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
+
+    // Verifica lock
+    if (isLocked) {
+      setMessage({
+        type: 'error',
+        text: 'Player ID bloccato. Hai già cambiato 3 volte. Contatta il supporto per sbloccare.',
+      })
+      return
+    }
 
     try {
       setSaving(true)
@@ -391,24 +221,79 @@ function SettingsPageContent() {
         return
       }
 
-      // Salva in localStorage (fonte primaria)
-      if (typeof window !== 'undefined') {
-        if (playerIdString) {
-          localStorage.setItem('fzth_player_id', playerIdString)
-        } else {
-          localStorage.removeItem('fzth_player_id')
-        }
+      // Verifica se sta cambiando (non prima impostazione)
+      const isChanging = playerId && playerIdString && playerIdString !== playerId
+      if (isChanging && changesRemaining !== null && changesRemaining <= 0) {
+        setMessage({
+          type: 'error',
+          text: 'Hai raggiunto il limite di 3 cambi Player ID. Contatta il supporto.',
+        })
+        setSaving(false)
+        return
       }
 
-      // Aggiorna Context (notifica tutti i componenti sottoscritti)
-      setPlayerId(playerIdString)
+      // Recupera sessione dal client Supabase (localStorage)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        setMessage({
+          type: 'error',
+          text: 'Devi fare login.',
+        })
+        setSaving(false)
+        return
+      }
+
+      if (!session.access_token || !session.refresh_token) {
+        setMessage({
+          type: 'error',
+          text: 'Sessione non valida. Rifai login.',
+        })
+        setSaving(false)
+        return
+      }
+
+      // Salva in database (fonte primaria) - il trigger gestisce limite e storico
+      const result = await updatePlayerId(
+        playerIdString, 
+        session.access_token,
+        session.refresh_token
+      )
+
+      if (!result.success) {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Errore nel salvataggio nel database.',
+        })
+        setSaving(false)
+        return
+      }
+
+      // SINCRONIZZAZIONE: Dopo salvataggio DB, aggiorna localStorage e Context
+      if (playerIdString) {
+        // Aggiorna localStorage (sincronizzazione)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fzth_player_id', playerIdString)
+        }
+        // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
+        setPlayerId(playerIdString)
+      } else {
+        // Se playerIdString è null, rimuovi da localStorage e Context
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('fzth_player_id')
+        }
+        setPlayerId(null)
+      }
+      
+      // Ricarica dati dal Context per aggiornare lock e cambi rimanenti
+      await reload()
       
       // Reset ref per permettere sincronizzazione futura
       hasProcessedQueryParam.current = false
 
       setMessage({ 
         type: 'success', 
-        text: 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
+        text: result.message || 'Player ID salvato con successo! La dashboard si aggiornerà automaticamente.'
       })
     } catch (err) {
       console.error('Errore nel salvataggio impostazioni:', err)
@@ -501,6 +386,55 @@ function SettingsPageContent() {
               <p className="text-xs text-gray-500 mt-1">L'email non può essere modificata</p>
             </div>
 
+            {/* Info su lock e cambi rimanenti */}
+            {playerId && (
+              <div className={`p-4 rounded-lg border ${
+                isLocked 
+                  ? 'bg-red-900/30 border-red-700' 
+                  : changesRemaining !== null && changesRemaining < 3
+                    ? 'bg-yellow-900/30 border-yellow-700'
+                    : 'bg-blue-900/30 border-blue-700'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {isLocked ? (
+                    <Lock className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    {isLocked ? (
+                      <>
+                        <h3 className="font-semibold text-red-200 mb-1">Player ID Bloccato</h3>
+                        <p className="text-sm text-red-300">
+                          Hai raggiunto il limite di 3 cambi Player ID. Per sbloccare, contatta il supporto.
+                        </p>
+                      </>
+                    ) : changesRemaining !== null ? (
+                      <>
+                        <h3 className="font-semibold text-blue-200 mb-1">Cambi Rimanenti</h3>
+                        <p className="text-sm text-blue-300">
+                          Puoi cambiare il Player ID ancora <strong>{changesRemaining}</strong> {changesRemaining === 1 ? 'volta' : 'volte'}.
+                          {changesRemaining === 0 && ' Dopo il prossimo cambio, il Player ID verrà bloccato.'}
+                        </p>
+                        {changeCount > 0 && (
+                          <p className="text-xs text-blue-400 mt-1">
+                            Cambi effettuati: {changeCount} / 3
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-semibold text-blue-200 mb-1">Player ID Attivo</h3>
+                        <p className="text-sm text-blue-300">
+                          Il tuo Player ID è salvato e sincronizzato. Puoi cambiarlo fino a 3 volte.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSave}>
               <div className="mb-4">
                 <label htmlFor="dotaAccountId" className="block text-sm font-medium text-gray-300 mb-2">
@@ -512,8 +446,17 @@ function SettingsPageContent() {
                   value={dotaAccountId}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDotaAccountId(e.target.value)}
                   placeholder="es. 8607682237"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={isLocked}
+                  className={`w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    isLocked ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 />
+                {isLocked && (
+                  <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    Input disabilitato: Player ID bloccato
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mt-1">
                   Il tuo Steam Account ID per Dota 2. Cercalo su{' '}
                   <a
@@ -531,25 +474,38 @@ function SettingsPageContent() {
               <div className="flex gap-3">
                 <AnimatedButton
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || isLocked}
                   variant="primary"
                 >
                   {saving ? 'Salvataggio...' : 'Salva Impostazioni'}
                 </AnimatedButton>
-                {playerId && (
+                {playerId && !isLocked && (
                   <AnimatedButton
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
-                        // Rimuovi da localStorage (fonte primaria)
-                        if (typeof window !== 'undefined') {
-                          localStorage.removeItem('fzth_player_id')
+                        try {
+                          // Recupera sessione
+                          const { data: { session } } = await supabase.auth.getSession()
+                          if (session?.access_token && session?.refresh_token) {
+                            const result = await updatePlayerId(null, session.access_token, session.refresh_token)
+                            if (result.success) {
+                              // Rimuovi da localStorage e Context
+                              if (typeof window !== 'undefined') {
+                                localStorage.removeItem('fzth_player_id')
+                              }
+                              setPlayerId(null)
+                              setDotaAccountId('')
+                              hasProcessedQueryParam.current = false
+                              await reload()
+                              setMessage({ type: 'success', text: 'Player ID rimosso con successo.' })
+                            } else {
+                              setMessage({ type: 'error', text: result.error || 'Errore nella rimozione.' })
+                            }
+                          }
+                        } catch (err) {
+                          setMessage({ type: 'error', text: 'Errore nella rimozione del Player ID.' })
                         }
-                        // Aggiorna Context e form
-                        setPlayerId(null)
-                        setDotaAccountId('')
-                        hasProcessedQueryParam.current = false
-                        setMessage({ type: 'success', text: 'Player ID rimosso con successo.' })
                       }
                     }}
                     variant="secondary"
@@ -562,116 +518,30 @@ function SettingsPageContent() {
           </div>
         </AnimatedCard>
 
-        {/* Sezione Salvataggio in Supabase (Opzionale) */}
+        {/* Info sistema Player ID */}
         <AnimatedCard delay={0.22} className="mt-6 bg-blue-900/20 border border-blue-700 rounded-lg p-6 max-w-2xl">
-          <div className="flex items-start gap-3 mb-4">
+          <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-2">Salvataggio in Database (Opzionale)</h2>
-              <p className="text-gray-300 text-sm mb-4">
-                Puoi salvare il tuo Player ID anche nel database Supabase per sincronizzarlo tra dispositivi.
-                Questa è un'opzione aggiuntiva - il salvataggio in localStorage rimane la fonte primaria.
+              <h2 className="text-xl font-semibold mb-2">Sistema Player ID</h2>
+              <p className="text-gray-300 text-sm mb-3">
+                Il tuo Player ID è salvato nel database e sincronizzato automaticamente tra dispositivi.
               </p>
-            </div>
-          </div>
-
-          {supabaseMessage && (
-            <div className={`mb-4 border rounded-lg p-3 ${
-              supabaseMessage.type === 'success'
-                ? 'bg-green-900/50 border-green-700 text-green-200'
-                : 'bg-red-900/50 border-red-700 text-red-200'
-            }`}>
-              {supabaseMessage.text}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="supabasePlayerId" className="block text-sm font-medium text-gray-300 mb-2">
-                Dota 2 Account ID (per Database)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="supabasePlayerId"
-                  type="text"
-                  value={supabasePlayerId}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSupabasePlayerId(e.target.value)}
-                  placeholder={supabaseSavedId ? supabaseSavedId.toString() : "es. 8607682237"}
-                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <AnimatedButton
-                  type="button"
-                  onClick={loadPlayerIdFromSupabase}
-                  disabled={loadingFromSupabase}
-                  variant="secondary"
-                >
-                  {loadingFromSupabase ? 'Caricamento...' : 'Carica da DB'}
-                </AnimatedButton>
-              </div>
-              {supabaseSavedId && (
-                <p className="text-xs text-green-400 mt-1">
-                  ✓ Salvato in database: {supabaseSavedId}
-                </p>
+              <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm ml-2">
+                <li>Puoi cambiare il Player ID fino a <strong>3 volte</strong></li>
+                <li>Dopo 3 cambi, il Player ID verrà <strong>bloccato</strong> per prevenire abusi</li>
+                <li>La profilazione viene <strong>cachata</strong> per 7 giorni per migliorare le performance</li>
+                <li>Il Player ID viene sincronizzato automaticamente con localStorage per compatibilità</li>
+              </ul>
+              {isLocked && (
+                <div className="mt-4 p-3 bg-red-900/30 border border-red-700 rounded-lg">
+                  <p className="text-sm text-red-200 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <strong>Player ID bloccato:</strong> Contatta il supporto per sbloccare.
+                  </p>
+                </div>
               )}
             </div>
-
-            <form onSubmit={handleSaveToSupabase}>
-              <div className="flex gap-3">
-                <AnimatedButton
-                  type="submit"
-                  disabled={savingToSupabase}
-                  variant="primary"
-                >
-                  {savingToSupabase ? 'Salvataggio...' : 'Salva in Database'}
-                </AnimatedButton>
-                {supabaseSavedId && (
-                  <AnimatedButton
-                    type="button"
-                    onClick={async () => {
-                      if (confirm('Sei sicuro di voler rimuovere il Player ID dal database?')) {
-                        // Recupera sessione dal client Supabase (localStorage)
-                        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-                        
-                        if (sessionError || !session?.access_token) {
-                          setSupabaseMessage({
-                            type: 'error',
-                            text: 'Non autenticato. Effettua il login per rimuovere il Player ID.',
-                          })
-                          return
-                        }
-
-                        // Passa access_token e refresh_token esplicitamente alla Server Action
-                        const result = await updatePlayerId(null, session.access_token, session.refresh_token || '')
-                        if (result.success) {
-                          setSupabaseSavedId(null)
-                          setSupabasePlayerId('')
-                          
-                          // SINCRONIZZAZIONE: Dopo rimozione da DB, aggiorna localStorage e Context
-                          // Rimuovi da localStorage (coerenza)
-                          if (typeof window !== 'undefined') {
-                            localStorage.removeItem('fzth_player_id')
-                          }
-                          
-                          // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
-                          // Questo forza il refresh automatico dei dati dashboard
-                          setPlayerId(null)
-                          
-                          setSupabaseMessage({ type: 'success', text: 'Player ID rimosso dal database.' })
-                        } else {
-                          setSupabaseMessage({
-                            type: 'error',
-                            text: result.error || 'Errore nella rimozione del Player ID.',
-                          })
-                        }
-                      }
-                    }}
-                    variant="secondary"
-                  >
-                    Rimuovi da DB
-                  </AnimatedButton>
-                )}
-              </div>
-            </form>
           </div>
         </AnimatedCard>
 

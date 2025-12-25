@@ -13,6 +13,9 @@ export type Database = {
           dota_account_id: number | null
           dota_account_verified_at: string | null
           dota_verification_method: string | null
+          dota_account_id_change_count: number | null
+          dota_account_id_last_changed_at: string | null
+          dota_account_id_locked: boolean | null
           created_at: string
           updated_at: string
         }
@@ -22,6 +25,9 @@ export type Database = {
           dota_account_id?: number | null
           dota_account_verified_at?: string | null
           dota_verification_method?: string | null
+          dota_account_id_change_count?: number | null
+          dota_account_id_last_changed_at?: string | null
+          dota_account_id_locked?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -31,6 +37,70 @@ export type Database = {
           dota_account_id?: number | null
           dota_account_verified_at?: string | null
           dota_verification_method?: string | null
+          dota_account_id_change_count?: number | null
+          dota_account_id_last_changed_at?: string | null
+          dota_account_id_locked?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      player_id_history: {
+        Row: {
+          id: string
+          user_id: string
+          dota_account_id: number
+          changed_at: string
+          changed_from: number | null
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          dota_account_id: number
+          changed_at?: string
+          changed_from?: number | null
+          reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          dota_account_id?: number
+          changed_at?: string
+          changed_from?: number | null
+          reason?: string | null
+          created_at?: string
+        }
+      }
+      player_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          dota_account_id: number
+          profile_data: Record<string, any>
+          calculated_at: string
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          dota_account_id: number
+          profile_data: Record<string, any>
+          calculated_at?: string
+          expires_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          dota_account_id?: number
+          profile_data?: Record<string, any>
+          calculated_at?: string
+          expires_at?: string
           created_at?: string
           updated_at?: string
         }

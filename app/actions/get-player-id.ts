@@ -28,10 +28,10 @@ export async function getPlayerId() {
       return { success: false, error: 'User not authenticated', playerId: null }
     }
 
-    // Carica Player ID dal database
+    // Carica Player ID dal database (include anche info su lock e cambi)
     const { data: userData, error: fetchError } = await supabase
       .from('users')
-      .select('dota_account_id, dota_account_verified_at, dota_verification_method')
+      .select('dota_account_id, dota_account_verified_at, dota_verification_method, dota_account_id_locked, dota_account_id_change_count')
       .eq('id', user.id)
       .single()
 
@@ -50,9 +50,18 @@ export async function getPlayerId() {
       dota_account_id: number | null
       dota_account_verified_at: string | null
       dota_verification_method: string | null
+      dota_account_id_locked: boolean | null
+      dota_account_id_change_count: number | null
     }
 
     const typedUserData = userData as UserData | null
+
+    // Calcola cambi rimanenti
+    const changeCount = typedUserData?.dota_account_id_change_count || 0
+    const changesRemaining = typedUserData?.dota_account_id 
+      ? Math.max(0, 3 - changeCount)
+      : null
+    const isLocked = typedUserData?.dota_account_id_locked || false
 
     if (typedUserData?.dota_account_id) {
       return {
@@ -60,7 +69,10 @@ export async function getPlayerId() {
         playerId: String(typedUserData.dota_account_id),
         verified: !!typedUserData.dota_account_verified_at,
         verifiedAt: typedUserData.dota_account_verified_at,
-        verificationMethod: typedUserData.dota_verification_method
+        verificationMethod: typedUserData.dota_verification_method,
+        isLocked,
+        changesRemaining,
+        changeCount,
       }
     }
 
@@ -69,7 +81,10 @@ export async function getPlayerId() {
       playerId: null,
       verified: false,
       verifiedAt: null,
-      verificationMethod: null
+      verificationMethod: null,
+      isLocked: false,
+      changesRemaining: null,
+      changeCount: 0,
     }
   } catch (error) {
     console.error('[getPlayerId] Exception:', error)

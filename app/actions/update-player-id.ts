@@ -91,7 +91,48 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       }
     }
 
-    // Update user record
+    // Verifica stato attuale utente (lock e contatore cambi)
+    const { data: userData, error: fetchError } = await (supabase as any)
+      .from('users')
+      .select('dota_account_id, dota_account_id_locked, dota_account_id_change_count')
+      .eq('id', user.id)
+      .single()
+
+    if (fetchError) {
+      console.error('[updatePlayerId] Errore fetch user data:', fetchError)
+      return {
+        success: false,
+        error: 'Errore nel recupero dati utente.',
+      }
+    }
+
+    // Se sta cercando di cambiare ID e l'utente è bloccato
+    if (userData?.dota_account_id_locked && dotaAccountId && dotaAccountId !== userData.dota_account_id) {
+      return {
+        success: false,
+        error: 'Player ID bloccato. Hai già cambiato 3 volte. Contatta il supporto per sbloccare.',
+        isLocked: true,
+        changesRemaining: 0,
+      }
+    }
+
+    // Calcola cambi rimanenti (solo se sta cambiando, non se rimuove)
+    const currentCount = userData?.dota_account_id_change_count || 0
+    const changesRemaining = dotaAccountId && dotaAccountId !== userData?.dota_account_id
+      ? Math.max(0, 3 - currentCount)
+      : null
+
+    // Se sta cambiando e ha raggiunto il limite, blocca
+    if (dotaAccountId && dotaAccountId !== userData?.dota_account_id && changesRemaining !== null && changesRemaining <= 0) {
+      return {
+        success: false,
+        error: 'Hai raggiunto il limite di 3 cambi Player ID. Contatta il supporto.',
+        isLocked: true,
+        changesRemaining: 0,
+      }
+    }
+
+    // Update user record (il trigger gestisce il limite e lo storico)
     console.log('[updatePlayerId] Aggiornamento database per user:', user.id, 'dota_account_id:', dotaAccountId)
     // Cast esplicito necessario per type inference
     const { data, error: updateError } = await (supabase as any)
@@ -112,24 +153,59 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
         hint: updateError.hint,
         userId: user.id
       })
+      
+      // Gestione specifica per errore limite raggiunto (dal trigger)
+      if (updateError.message?.includes('limite') || updateError.message?.includes('bloccato')) {
+        return {
+          success: false,
+          error: updateError.message,
+          isLocked: true,
+          changesRemaining: 0,
+        }
+      }
+      
       return {
         success: false,
         error: updateError.message || 'Errore nel salvataggio del Player ID.',
       }
     }
 
+    // Se l'ID è cambiato, invalida cache profilo vecchio
+    if (dotaAccountId && userData?.dota_account_id && dotaAccountId !== userData.dota_account_id) {
+      try {
+        // Rimuovi cache profilo vecchio
+        await (supabase as any)
+          .from('player_profiles')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('dota_account_id', userData.dota_account_id)
+      } catch (cacheError) {
+        // Non bloccare se la cache fallisce
+        console.warn('[updatePlayerId] Errore invalidazione cache profilo:', cacheError)
+      }
+    }
+
+    // Calcola nuovi cambi rimanenti dopo l'update
+    const newCount = data?.dota_account_id_change_count || 0
+    const newChangesRemaining = dotaAccountId ? Math.max(0, 3 - newCount) : null
+
     console.log('[updatePlayerId] Salvataggio riuscito:', {
       userId: user.id,
       dotaAccountId: dotaAccountId,
+      changeCount: newCount,
+      changesRemaining: newChangesRemaining,
+      isLocked: data?.dota_account_id_locked || false,
       updatedData: data
     })
 
     return {
       success: true,
       message: dotaAccountId 
-        ? `Player ID ${dotaAccountId} salvato con successo!`
+        ? `Player ID ${dotaAccountId} salvato con successo!${newChangesRemaining !== null && newChangesRemaining < 3 ? ` (${newChangesRemaining} cambi rimanenti)` : ''}`
         : 'Player ID rimosso con successo.',
       data,
+      changesRemaining: newChangesRemaining,
+      isLocked: data?.dota_account_id_locked || false,
     }
   } catch (error) {
     console.error('[updatePlayerId] Exception:', error)

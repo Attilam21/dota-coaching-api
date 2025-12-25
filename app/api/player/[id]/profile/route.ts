@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerActionSupabaseClient } from '@/lib/supabase-server-action'
 
 export async function GET(
   request: NextRequest,
@@ -16,6 +17,60 @@ export async function GET(
     }
     
     const playerId = id.trim()
+    const playerIdNum = parseInt(playerId, 10)
+    
+    // Try to get authenticated user for cache (optional - API works without auth)
+    let userId: string | null = null
+    try {
+      const supabase = createServerActionSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Verify that this player_id belongs to the user
+        // Cast esplicito necessario perché TypeScript non inferisce correttamente le colonne estese
+        const { data: userData } = await (supabase as any)
+          .from('users')
+          .select('dota_account_id')
+          .eq('id', user.id)
+          .single()
+        
+        if (userData?.dota_account_id === playerIdNum) {
+          userId = user.id
+        }
+      }
+    } catch (authError) {
+      // Non bloccare se auth fallisce - API funziona anche senza auth
+      console.warn('[profile] Auth check failed, proceeding without cache:', authError)
+    }
+    
+    // If user is authenticated and player_id matches, check cache
+    if (userId) {
+      try {
+        const supabase = createServerActionSupabaseClient()
+        // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
+        const { data: cachedProfile, error: cacheError } = await (supabase as any)
+          .from('player_profiles')
+          .select('profile_data, expires_at, calculated_at')
+          .eq('user_id', userId)
+          .eq('dota_account_id', playerIdNum)
+          .single()
+        
+        // If cache exists and is valid, return cached data
+        if (cachedProfile && !cacheError && new Date(cachedProfile.expires_at) > new Date()) {
+          return NextResponse.json({
+            ...cachedProfile.profile_data,
+            cached: true,
+            cached_at: cachedProfile.calculated_at,
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=1800', // 30 minutes
+            },
+          })
+        }
+      } catch (cacheError) {
+        // Non bloccare se cache fallisce - procedi con calcolo
+        console.warn('[profile] Cache check failed, proceeding with calculation:', cacheError)
+      }
+    }
     
     // Fetch both basic and advanced stats
     // Come nella versione backup: usa fetch normale con request.nextUrl.origin
@@ -416,7 +471,35 @@ export async function GET(
       response.partial = true
     }
     
-    return NextResponse.json(response, {
+    // Save to cache if user is authenticated and player_id matches
+    if (userId) {
+      try {
+        const supabase = createServerActionSupabaseClient()
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+        
+        // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
+        await (supabase as any)
+          .from('player_profiles')
+          .upsert({
+            user_id: userId,
+            dota_account_id: playerIdNum,
+            profile_data: response,
+            calculated_at: new Date().toISOString(),
+            expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id,dota_account_id'
+          })
+      } catch (cacheError) {
+        // Non bloccare se cache fallisce - logga solo
+        console.warn('[profile] Failed to save cache:', cacheError)
+      }
+    }
+    
+    return NextResponse.json({
+      ...response,
+      cached: false,
+    }, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800', // 30 minutes
       },

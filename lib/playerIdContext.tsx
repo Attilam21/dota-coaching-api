@@ -50,6 +50,12 @@ interface PlayerIdContextType {
   reload: () => Promise<void>
   /** Stato di caricamento iniziale */
   isLoading: boolean
+  /** Player ID bloccato (raggiunto limite 3 cambi) */
+  isLocked: boolean
+  /** Cambi rimanenti (null se non impostato, max 3) */
+  changesRemaining: number | null
+  /** Numero di cambi effettuati */
+  changeCount: number
 }
 
 const PlayerIdContext = createContext<PlayerIdContextType>({
@@ -61,6 +67,9 @@ const PlayerIdContext = createContext<PlayerIdContextType>({
   setVerified: () => {},
   reload: async () => {},
   isLoading: false,
+  isLocked: false,
+  changesRemaining: null,
+  changeCount: 0,
 })
 
 /**
@@ -77,6 +86,9 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
   const [verificationMethod, setVerificationMethodState] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLocked, setIsLocked] = useState<boolean>(false)
+  const [changesRemaining, setChangesRemaining] = useState<number | null>(null)
+  const [changeCount, setChangeCount] = useState<number>(0)
   
   // Auth context per sapere se l'utente è autenticato
   const { user, loading: authLoading } = useAuth()
@@ -113,26 +125,39 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       
       const result = await getPlayerId()
       
-      if (result.success && result.playerId) {
-        // Valida che sia un numero valido
-        const trimmedId = result.playerId.trim()
-        if (/^\d+$/.test(trimmedId)) {
-          // Aggiorna state e localStorage (sincronizzazione)
-          setPlayerIdState(trimmedId)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(PLAYER_ID_KEY, trimmedId)
+      if (result.success) {
+        // Aggiorna info lock e cambi
+        setIsLocked(result.isLocked || false)
+        setChangesRemaining(result.changesRemaining ?? null)
+        setChangeCount(result.changeCount || 0)
+        
+        if (result.playerId) {
+          // Valida che sia un numero valido
+          const trimmedId = result.playerId.trim()
+          if (/^\d+$/.test(trimmedId)) {
+            // Aggiorna state e localStorage (sincronizzazione)
+            setPlayerIdState(trimmedId)
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(PLAYER_ID_KEY, trimmedId)
+            }
+            
+            // Aggiorna dati verifica se disponibili
+            if (result.verified) {
+              setIsVerifiedState(true)
+              setVerifiedAtState(result.verifiedAt)
+              setVerificationMethodState(result.verificationMethod)
+            } else {
+              setIsVerifiedState(false)
+              setVerifiedAtState(null)
+              setVerificationMethodState(null)
+            }
           }
-          
-          // Aggiorna dati verifica se disponibili
-          if (result.verified) {
-            setIsVerifiedState(true)
-            setVerifiedAtState(result.verifiedAt)
-            setVerificationMethodState(result.verificationMethod)
-          } else {
-            setIsVerifiedState(false)
-            setVerifiedAtState(null)
-            setVerificationMethodState(null)
-          }
+        } else {
+          // Nessun Player ID nel DB
+          setPlayerIdState(null)
+          setIsVerifiedState(false)
+          setVerifiedAtState(null)
+          setVerificationMethodState(null)
         }
       }
     } catch (err) {
@@ -164,7 +189,38 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
         
         // PRIORITÀ 1: localStorage (se presente e valido)
         if (savedPlayerId && savedPlayerId.trim() && /^\d+$/.test(savedPlayerId.trim())) {
-          setPlayerIdState(savedPlayerId.trim())
+          // Carica anche da Supabase per sincronizzazione e info lock
+          if (user && !authLoading) {
+            await loadPlayerIdFromSupabase()
+            
+            // Risolvi conflitti: se DB ha ID diverso, usa DB (fonte di verità)
+            const dbResult = await getPlayerId()
+            if (dbResult.success && dbResult.playerId && dbResult.playerId !== savedPlayerId.trim()) {
+              console.warn('[PlayerIdContext] Conflitto ID: localStorage vs DB. Usando DB (fonte di verità).')
+              setPlayerIdState(dbResult.playerId)
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(PLAYER_ID_KEY, dbResult.playerId)
+              }
+              setIsLocked(dbResult.isLocked || false)
+              setChangesRemaining(dbResult.changesRemaining ?? null)
+              setChangeCount(dbResult.changeCount || 0)
+            } else {
+              // Usa localStorage, ma aggiorna info lock da DB
+              setPlayerIdState(savedPlayerId.trim())
+              if (dbResult.success) {
+                setIsLocked(dbResult.isLocked || false)
+                setChangesRemaining(dbResult.changesRemaining ?? null)
+                setChangeCount(dbResult.changeCount || 0)
+              }
+            }
+          } else {
+            // Solo localStorage disponibile (utente non autenticato)
+            setPlayerIdState(savedPlayerId.trim())
+            setIsLocked(false)
+            setChangesRemaining(null)
+            setChangeCount(0)
+          }
+          
           // Reset dati verifica (non persistiti in localStorage)
           setIsVerifiedState(false)
           setVerifiedAtState(null)
@@ -187,6 +243,9 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
           setIsVerifiedState(false)
           setVerifiedAtState(null)
           setVerificationMethodState(null)
+          setIsLocked(false)
+          setChangesRemaining(null)
+          setChangeCount(0)
         }
       } else {
         // SSR: non c'è localStorage, imposta valori di default
@@ -194,6 +253,9 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
         setIsVerifiedState(false)
         setVerifiedAtState(null)
         setVerificationMethodState(null)
+        setIsLocked(false)
+        setChangesRemaining(null)
+        setChangeCount(0)
       }
     } catch (err) {
       console.error('[PlayerIdContext] Errore nel caricamento Player ID:', err)
@@ -201,6 +263,9 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       setIsVerifiedState(false)
       setVerifiedAtState(null)
       setVerificationMethodState(null)
+      setIsLocked(false)
+      setChangesRemaining(null)
+      setChangeCount(0)
     } finally {
       setIsLoading(false)
       loadingRef.current = false
@@ -297,8 +362,11 @@ export function PlayerIdProvider({ children }: { children: React.ReactNode }) {
       setVerified,
       reload,
       isLoading,
+      isLocked,
+      changesRemaining,
+      changeCount,
     }),
-    [playerId, setPlayerId, isVerified, verifiedAt, verificationMethod, setVerified, reload, isLoading]
+    [playerId, setPlayerId, isVerified, verifiedAt, verificationMethod, setVerified, reload, isLoading, isLocked, changesRemaining, changeCount]
   )
 
   return (
