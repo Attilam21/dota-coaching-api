@@ -235,23 +235,6 @@ export default function DashboardPage() {
 
       const statsData = await statsResponse.json()
       const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
-      
-      // Log per debug: verifica se profile viene chiamato
-      if (profileResponse) {
-        console.log('[Dashboard] Profile response:', {
-          ok: profileResponse.ok,
-          status: profileResponse.status,
-          statusText: profileResponse.statusText
-        })
-        if (profileResponse.ok) {
-          console.log('[Dashboard] ✅ Profile API chiamata con successo')
-        } else {
-          console.error('[Dashboard] ❌ Profile API fallita:', profileResponse.status, profileResponse.statusText)
-        }
-      } else {
-        console.warn('[Dashboard] ⚠️ Profile response è null (probabilmente catch ha silenziato l\'errore)')
-      }
-      
       const profileData = profileResponse?.ok ? await profileResponse.json() : null
       const wlData = wlResponse?.ok ? await wlResponse.json() : null
       const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
