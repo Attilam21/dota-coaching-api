@@ -5,46 +5,63 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let id: string = ''
   try {
-    const { id } = await params
+    const resolvedParams = await params
+    id = resolvedParams.id
     
     // Fetch player data
     // Use request.nextUrl.origin for internal API calls (works on Vercel)
-    const [statsResponse, advancedStatsResponse, heroesData] = await Promise.all([
-      fetch(`${request.nextUrl.origin}/api/player/${id}/stats`),
-      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`),
-      fetchOpenDota<any[]>(`/players/${id}/heroes`).catch(() => null)
+    // Gestione resiliente ai timeout VPN: usa Promise.allSettled per non bloccare su errori
+    const [statsResponse, advancedStatsResponse, heroesData] = await Promise.allSettled([
+      fetch(`${request.nextUrl.origin}/api/player/${id}/stats`).catch((err) => {
+        console.warn(`[role-analysis] Stats fetch failed:`, err instanceof Error ? err.message : String(err))
+        return { ok: false, status: 500 } as Response
+      }),
+      fetch(`${request.nextUrl.origin}/api/player/${id}/advanced-stats`).catch((err) => {
+        console.warn(`[role-analysis] Advanced stats fetch failed:`, err instanceof Error ? err.message : String(err))
+        return { ok: false, status: 500 } as Response
+      }),
+      fetchOpenDota<any[]>(`/players/${id}/heroes`).catch((err) => {
+        console.warn(`[role-analysis] Heroes fetch failed:`, err instanceof Error ? err.message : String(err))
+        return null
+      })
     ])
+    
+    // Estrai i risultati da Promise.allSettled
+    const statsResult = statsResponse.status === 'fulfilled' ? statsResponse.value : { ok: false, status: 500 } as Response
+    const advancedStatsResult = advancedStatsResponse.status === 'fulfilled' ? advancedStatsResponse.value : { ok: false, status: 500 } as Response
+    const heroesResult = heroesData.status === 'fulfilled' ? heroesData.value : null
     
     // Parse responses safely
     let statsData: any = null
     let advancedData: any = null
     let playerHeroes: any = null
     
-    if (statsResponse.ok) {
+    if (statsResult.ok) {
       try {
-        statsData = await statsResponse.json()
+        statsData = await statsResult.json()
       } catch (err) {
-        console.error('Failed to parse stats response:', err)
+        console.error('[role-analysis] Failed to parse stats response:', err)
       }
     } else {
-      const errorText = await statsResponse.text().catch(() => 'Unknown error')
-      console.error('Stats fetch failed:', statsResponse.status, errorText)
+      const errorText = await statsResult.text().catch(() => 'Unknown error')
+      console.error('[role-analysis] Stats fetch failed:', statsResult.status, errorText)
     }
     
-    if (advancedStatsResponse.ok) {
+    if (advancedStatsResult.ok) {
       try {
-        advancedData = await advancedStatsResponse.json()
+        advancedData = await advancedStatsResult.json()
       } catch (err) {
-        console.error('Failed to parse advanced stats response:', err)
+        console.error('[role-analysis] Failed to parse advanced stats response:', err)
       }
     } else {
-      const errorText = await advancedStatsResponse.text().catch(() => 'Unknown error')
-      console.error('Advanced stats fetch failed:', advancedStatsResponse.status, errorText)
+      const errorText = await advancedStatsResult.text().catch(() => 'Unknown error')
+      console.error('[role-analysis] Advanced stats fetch failed:', advancedStatsResult.status, errorText)
     }
     
-    if (heroesData) {
-      playerHeroes = heroesData
+    if (heroesResult) {
+      playerHeroes = heroesResult
     }
     
     // Use default stats if missing (graceful degradation)
@@ -229,24 +246,39 @@ export async function GET(
     }
 
     // Fetch matches for trend calculation (if needed by client)
+    // Gestione resiliente ai timeout VPN: usa catch per ogni match
     const matchesForTrend = stats.matches || []
     const matchesToFetch = matchesForTrend.slice(0, 50)
     const matchIds = matchesToFetch.map((m: any) => m.match_id)
-    const fullMatches = await mapWithConcurrency(
-      matchIds,
-      async (matchId: number) => {
-        const matchCacheKey = `match:${matchId}`
-        const cached = getCached<any>(matchCacheKey)
-        if (cached) return cached
-        
-        const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
-        if (matchData) {
-          setCached(matchCacheKey, matchData, 21600)
-        }
-        return matchData
-      },
-      6
-    )
+    
+    let fullMatches: any[] = []
+    try {
+      fullMatches = await mapWithConcurrency(
+        matchIds,
+        async (matchId: number) => {
+          try {
+            const matchCacheKey = `match:${matchId}`
+            const cached = getCached<any>(matchCacheKey)
+            if (cached) return cached
+            
+            const matchData = await fetchOpenDota<any>(`/matches/${matchId}`)
+            if (matchData) {
+              setCached(matchCacheKey, matchData, 21600)
+            }
+            return matchData
+          } catch (matchError) {
+            // Non bloccare se un singolo match fallisce (timeout VPN, ecc.)
+            console.warn(`[role-analysis] Failed to fetch match ${matchId}:`, matchError instanceof Error ? matchError.message : String(matchError))
+            return null
+          }
+        },
+        6
+      )
+    } catch (concurrencyError) {
+      // Se mapWithConcurrency fallisce completamente, usa array vuoto
+      console.error('[role-analysis] mapWithConcurrency failed:', concurrencyError instanceof Error ? concurrencyError.message : String(concurrencyError))
+      fullMatches = []
+    }
 
     const response: any = {
       roles: rolePerformance,
@@ -277,9 +309,23 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error fetching role analysis:', error)
+    console.error('[role-analysis] Error fetching role analysis:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      playerId: id
+    })
+    
+    // Ritorna errore più dettagliato in development
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? (error instanceof Error ? error.message : 'Internal server error')
+      : 'Internal server error'
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: errorMessage,
+        playerId: id,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     )
   }

@@ -570,6 +570,7 @@ export async function GET(
           }
           
           // Esegui upsert
+          // Supabase PostgREST accetta le colonne separate da virgola per onConflict
           const { data: upsertData, error: upsertError } = await (supabase as any)
             .from('player_profiles')
             .upsert({
@@ -580,7 +581,7 @@ export async function GET(
               expires_at: expiresAt,
               updated_at: new Date().toISOString(),
             }, {
-              onConflict: 'user_id,dota_account_id'
+              onConflict: 'user_id,dota_account_id' // Colonne separate da virgola (formato corretto per PostgREST)
             })
             .select()
           
