@@ -23,14 +23,31 @@ export async function GET(
     let userId: string | null = null
     try {
       const supabase = createServerActionSupabaseClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      console.log('[profile] Auth check:', {
+        hasUser: !!user,
+        userId: user?.id,
+        playerId: playerIdNum,
+        authError: authError?.message
+      })
+      
       if (user) {
         // Cast esplicito necessario perché TypeScript non inferisce correttamente le colonne estese
-        const { data: userData } = await (supabase as any)
+        const { data: userData, error: userDataError } = await (supabase as any)
           .from('users')
           .select('dota_account_id')
           .eq('id', user.id)
           .single()
+        
+        console.log('[profile] User data check:', {
+          userId: user.id,
+          userDotaId: userData?.dota_account_id,
+          requestedPlayerId: playerIdNum,
+          isNull: userData?.dota_account_id === null,
+          matches: userData?.dota_account_id === playerIdNum,
+          userDataError: userDataError?.message
+        })
         
         // Logica cache:
         // - Se l'utente NON ha ancora salvato un Player ID (dota_account_id IS NULL):
@@ -43,7 +60,12 @@ export async function GET(
         // 3. Utente che cambia ID: quando cambia, la nuova cache viene salvata per il nuovo ID
         if (userData?.dota_account_id === null || userData?.dota_account_id === playerIdNum) {
           userId = user.id
+          console.log('[profile] ✅ Cache enabled for userId:', userId)
+        } else {
+          console.log('[profile] ❌ Cache disabled: user has different dota_account_id')
         }
+      } else {
+        console.log('[profile] ⚠️ No authenticated user, cache disabled')
       }
     } catch (authError) {
       // Non bloccare se auth fallisce - API funziona anche senza auth
@@ -485,8 +507,14 @@ export async function GET(
         const supabase = createServerActionSupabaseClient()
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
         
+        console.log('[profile] 💾 Attempting to save cache:', {
+          userId,
+          dota_account_id: playerIdNum,
+          expiresAt
+        })
+        
         // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
-        await (supabase as any)
+        const { data: upsertData, error: upsertError } = await (supabase as any)
           .from('player_profiles')
           .upsert({
             user_id: userId,
@@ -498,10 +526,31 @@ export async function GET(
           }, {
             onConflict: 'user_id,dota_account_id'
           })
+          .select()
+        
+        if (upsertError) {
+          console.error('[profile] ❌ Cache save failed:', {
+            error: upsertError.message,
+            code: upsertError.code,
+            details: upsertError.details,
+            hint: upsertError.hint
+          })
+        } else {
+          console.log('[profile] ✅ Cache saved successfully:', {
+            userId,
+            dota_account_id: playerIdNum,
+            upsertData: upsertData ? 'data returned' : 'no data returned'
+          })
+        }
       } catch (cacheError) {
         // Non bloccare se cache fallisce - logga solo
-        console.warn('[profile] Failed to save cache:', cacheError)
+        console.error('[profile] ❌ Cache save exception:', {
+          error: cacheError instanceof Error ? cacheError.message : String(cacheError),
+          stack: cacheError instanceof Error ? cacheError.stack : undefined
+        })
       }
+    } else {
+      console.log('[profile] ⏭️ Skipping cache save: userId is null')
     }
     
     return NextResponse.json({
