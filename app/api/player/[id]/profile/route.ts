@@ -90,7 +90,7 @@ export async function GET(
       console.warn('[profile] Auth check failed, proceeding without cache:', authError)
     }
     
-    // If user is authenticated and player_id matches, check cache
+    // If user is authenticated and dota_account_id matches, check cache
     if (userId) {
       try {
         // Usa createRouteHandlerSupabaseClient per Route Handlers
@@ -521,58 +521,113 @@ export async function GET(
       response.partial = true
     }
     
-    // Save to cache if user is authenticated and player_id matches
+    // Save to cache if user is authenticated and dota_account_id matches
     if (userId) {
       try {
         // Usa createRouteHandlerSupabaseClient per Route Handlers
         const { createRouteHandlerSupabaseClient } = await import('@/lib/supabase-route-handler')
         const supabase = createRouteHandlerSupabaseClient(request)
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
         
-        console.log('[profile] 💾 Attempting to save cache:', {
-          userId,
-          dota_account_id: playerIdNum,
-          expiresAt
-        })
+        // Verifica che l'utente sia ancora autenticato prima di salvare
+        const { data: { user: verifyUser }, error: verifyError } = await supabase.auth.getUser()
         
-        // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
-        const { data: upsertData, error: upsertError } = await (supabase as any)
-          .from('player_profiles')
-          .upsert({
-            user_id: userId,
-            dota_account_id: playerIdNum,
-            profile_data: response,
-            calculated_at: new Date().toISOString(),
-            expires_at: expiresAt,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'user_id,dota_account_id'
+        if (verifyError || !verifyUser) {
+          console.error('[profile] ❌ User verification failed before cache save:', {
+            error: verifyError?.message,
+            userId
           })
-          .select()
-        
-        if (upsertError) {
-          console.error('[profile] ❌ Cache save failed:', {
-            error: upsertError.message,
-            code: upsertError.code,
-            details: upsertError.details,
-            hint: upsertError.hint
+        } else if (verifyUser.id !== userId) {
+          console.error('[profile] ❌ User ID mismatch:', {
+            expected: userId,
+            actual: verifyUser.id
           })
         } else {
-          console.log('[profile] ✅ Cache saved successfully:', {
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+          
+          console.log('[profile] 💾 Attempting to save cache:', {
             userId,
             dota_account_id: playerIdNum,
-            upsertData: upsertData ? 'data returned' : 'no data returned'
+            expiresAt,
+            profileDataKeys: Object.keys(response).slice(0, 10) // Log primi 10 keys per debug
           })
+          
+          // Cast esplicito necessario perché TypeScript non inferisce correttamente le nuove tabelle
+          // Prova prima a verificare se esiste già un record
+          const { data: existingProfile, error: checkError } = await (supabase as any)
+            .from('player_profiles')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('dota_account_id', playerIdNum)
+            .maybeSingle()
+          
+          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned (normale)
+            console.error('[profile] ❌ Error checking existing profile:', {
+              error: checkError.message,
+              code: checkError.code,
+              details: checkError.details,
+              hint: checkError.hint
+            })
+          }
+          
+          // Esegui upsert
+          const { data: upsertData, error: upsertError } = await (supabase as any)
+            .from('player_profiles')
+            .upsert({
+              user_id: userId,
+              dota_account_id: playerIdNum,
+              profile_data: response,
+              calculated_at: new Date().toISOString(),
+              expires_at: expiresAt,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'user_id,dota_account_id'
+            })
+            .select()
+          
+          if (upsertError) {
+            console.error('[profile] ❌ Cache save failed:', {
+              error: upsertError.message,
+              code: upsertError.code,
+              details: upsertError.details,
+              hint: upsertError.hint,
+              userId,
+              dota_account_id: playerIdNum,
+              existingProfile: existingProfile ? 'found' : 'not found'
+            })
+            
+            // Se l'errore è "relation does not exist", la tabella non esiste
+            if (upsertError.message?.includes('does not exist') || upsertError.code === '42P01') {
+              console.error('[profile] ❌ CRITICAL: player_profiles table does not exist! Run migration: supabase/migrations/20250101000000_player_id_management.sql')
+            }
+            
+            // Se l'errore è RLS policy violation, c'è un problema con le policies
+            if (upsertError.code === '42501' || upsertError.message?.includes('policy')) {
+              console.error('[profile] ❌ RLS policy violation! Check policies for player_profiles table')
+            }
+          } else {
+            console.log('[profile] ✅ Cache saved successfully:', {
+              userId,
+              dota_account_id: playerIdNum,
+              upsertData: upsertData ? (Array.isArray(upsertData) ? upsertData.length : 'object') : 'no data returned',
+              profileId: upsertData?.[0]?.id || 'unknown',
+              wasUpdate: !!existingProfile
+            })
+          }
         }
       } catch (cacheError) {
         // Non bloccare se cache fallisce - logga solo
         console.error('[profile] ❌ Cache save exception:', {
           error: cacheError instanceof Error ? cacheError.message : String(cacheError),
-          stack: cacheError instanceof Error ? cacheError.stack : undefined
+          stack: cacheError instanceof Error ? cacheError.stack : undefined,
+          userId,
+          dota_account_id: playerIdNum
         })
       }
     } else {
-      console.log('[profile] ⏭️ Skipping cache save: userId is null')
+      console.log('[profile] ⏭️ Skipping cache save: userId is null', {
+        playerId: playerIdNum,
+        hasAuth: 'checking...'
+      })
     }
     
     return NextResponse.json({
