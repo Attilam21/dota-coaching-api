@@ -33,11 +33,30 @@ export function createRouteHandlerSupabaseClient(request: NextRequest) {
           cookieHeader.split(';').forEach((cookie) => {
             const [name, ...rest] = cookie.trim().split('=')
             if (name && rest.length > 0) {
-              // Decode URI component per gestire caratteri speciali
-              cookies.push({ name: name.trim(), value: decodeURIComponent(rest.join('=')) })
+              try {
+                // Decode URI component per gestire caratteri speciali
+                const decodedValue = decodeURIComponent(rest.join('='))
+                cookies.push({ name: name.trim(), value: decodedValue })
+              } catch (err) {
+                // Se decodeURIComponent fallisce, usa il valore raw
+                console.warn(`[RouteHandler] Failed to decode cookie ${name}:`, err)
+                cookies.push({ name: name.trim(), value: rest.join('=') })
+              }
             }
           })
         }
+        
+        // DEBUG: Log solo i cookie Supabase per non loggare tutto
+        const supabaseCookies = cookies.filter(c => c.name.startsWith('sb-') || c.name.includes('supabase'))
+        if (supabaseCookies.length > 0) {
+          console.log('[RouteHandler] 🔍 Parsed Supabase cookies:', {
+            count: supabaseCookies.length,
+            names: supabaseCookies.map(c => c.name)
+          })
+        } else {
+          console.warn('[RouteHandler] ⚠️ No Supabase cookies found in request')
+        }
+        
         return cookies
       },
       setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {

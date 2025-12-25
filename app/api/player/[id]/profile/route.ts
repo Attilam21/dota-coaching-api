@@ -24,6 +24,21 @@ export async function GET(
       // IMPORTANTE: Usa createRouteHandlerSupabaseClient per Route Handlers
       // perché cookies() da next/headers non funziona correttamente in API routes
       const { createRouteHandlerSupabaseClient } = await import('@/lib/supabase-route-handler')
+      
+      // DEBUG: Verifica se i cookie sono presenti nella richiesta
+      const cookieHeader = request.headers.get('cookie') || ''
+      const hasCookies = cookieHeader.length > 0
+      const cookieCount = cookieHeader ? cookieHeader.split(';').length : 0
+      const hasSupabaseCookies = cookieHeader.includes('sb-') || cookieHeader.includes('supabase')
+      
+      console.log('[profile] 🔍 Cookie check:', {
+        hasCookies,
+        cookieCount,
+        hasSupabaseCookies,
+        cookieHeaderLength: cookieHeader.length,
+        cookiePreview: cookieHeader.substring(0, 100) + (cookieHeader.length > 100 ? '...' : '')
+      })
+      
       const supabase = createRouteHandlerSupabaseClient(request)
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       
@@ -31,7 +46,8 @@ export async function GET(
         hasUser: !!user,
         userId: user?.id,
         playerId: playerIdNum,
-        authError: authError?.message
+        authError: authError?.message,
+        authErrorCode: authError?.status
       })
       
       if (user) {
