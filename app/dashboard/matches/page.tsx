@@ -690,11 +690,11 @@ export default function MatchesPage() {
                                   <p className="text-xs text-gray-500 mb-1">{formatDate(match.start_time)}</p>
                                 </div>
                                 <Link
-                                  href={`/dashboard/match-advice/${match.match_id}`}
+                                  href={`/dashboard/match-analysis/${match.match_id}`}
                                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-xs font-semibold text-white transition-colors whitespace-nowrap"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  Analisi Tommaso
+                                  Analisi Partita
                                 </Link>
                               </div>
                             </div>
