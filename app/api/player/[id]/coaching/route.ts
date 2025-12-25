@@ -83,6 +83,10 @@ export async function GET(
     // Use absolute URL with internal call header to bypass Vercel Deployment Protection
     const baseUrl = request.nextUrl.origin
     
+    // Estrai i cookie dalla richiesta originale per passarli alle chiamate interne
+    // Questo permette all'API route di autenticare l'utente e salvare in cache
+    const cookieHeader = request.headers.get('cookie') || ''
+    
     const [profileResponse, statsResponse, advancedResponse] = await Promise.allSettled([
       fetchWithTimeout(`${baseUrl}/api/player/${playerId}/profile`, {
         timeout: 15000,
@@ -90,6 +94,7 @@ export async function GET(
         headers: {
           'x-internal-call': 'true',
           'user-agent': 'Internal-API-Call/1.0',
+          'Cookie': cookieHeader, // Passa i cookie per autenticazione
         }
       }),
       fetchWithTimeout(`${baseUrl}/api/player/${playerId}/stats`, {

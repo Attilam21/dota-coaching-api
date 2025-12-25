@@ -169,7 +169,13 @@ export async function GET(
     const profileUrl = `${request.nextUrl.origin}/api/player/${id}/profile`
     console.log('Fetching profile from:', profileUrl)
     
-    const profileResponse = await fetch(profileUrl)
+    // Estrai i cookie dalla richiesta originale per passarli alla chiamata interna
+    // Questo permette all'API route di autenticare l'utente e salvare in cache
+    const cookieHeader = request.headers.get('cookie') || ''
+    
+    const profileResponse = await fetch(profileUrl, {
+      headers: { 'Cookie': cookieHeader } // Passa i cookie per autenticazione
+    })
     if (!profileResponse.ok) {
       const errorData = await profileResponse.json().catch(() => ({}))
       const errorText = await profileResponse.text().catch(() => 'Unknown error')

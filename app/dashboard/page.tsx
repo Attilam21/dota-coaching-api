@@ -210,7 +210,9 @@ export default function DashboardPage() {
       const [statsResponse, advancedResponse, profileResponse, wlResponse, benchmarksResponse] = await Promise.all([
         fetch(`/api/player/${playerId}/stats`),
         fetch(`/api/player/${playerId}/advanced-stats`),
-        fetch(`/api/player/${playerId}/profile`).catch(() => null), // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/profile`, {
+          credentials: 'include' // Passa i cookie per autenticazione e cache
+        }).catch(() => null), // Non bloccare se fallisce
         fetch(`/api/player/${playerId}/wl`).catch(() => null), // Non bloccare se fallisce
         fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
       ])

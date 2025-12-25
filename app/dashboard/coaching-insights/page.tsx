@@ -108,7 +108,9 @@ export default function CoachingInsightsPage() {
       setLoadingProfile(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/profile`)
+      const response = await fetch(`/api/player/${playerId}/profile`, {
+        credentials: 'include' // Passa i cookie per autenticazione e cache
+      })
       if (!response.ok) throw new Error('Failed to fetch player profile')
 
       const data = await response.json()

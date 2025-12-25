@@ -88,11 +88,18 @@ export async function GET(
     }
 
     // Fetch optional data separately
+    // Estrai i cookie dalla richiesta originale per passarli alle chiamate interne
+    const cookieHeader = request.headers.get('cookie') || ''
+    
     let benchmarksResponse: Response | null = null
     let profileResponse: Response | null = null
     try {
-      benchmarksResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/benchmarks`).catch(() => null)
-      profileResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/profile`).catch(() => null)
+      benchmarksResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/benchmarks`, {
+        headers: { 'Cookie': cookieHeader }
+      }).catch(() => null)
+      profileResponse = await fetch(`${request.nextUrl.origin}/api/player/${id}/profile`, {
+        headers: { 'Cookie': cookieHeader } // Passa i cookie per autenticazione
+      }).catch(() => null)
     } catch (err) {
       // Non bloccare se questi falliscono
       console.warn('Optional data fetch failed:', err)
