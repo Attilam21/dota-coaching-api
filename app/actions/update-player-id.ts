@@ -215,4 +215,3 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
     }
   }
 }
-

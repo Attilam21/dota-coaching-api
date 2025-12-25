@@ -223,7 +223,10 @@ function SettingsPageContent() {
 
       // Verifica se sta cambiando (non prima impostazione)
       const isChanging = playerId && playerIdString && playerIdString !== playerId
-      if (isChanging && changesRemaining !== null && changesRemaining <= 0) {
+      // IMPORTANTE: Controlla changeCount >= 3 invece di changesRemaining <= 0
+      // perché changesRemaining è calcolato come 3 - changeCount e potrebbe essere desincronizzato
+      // dopo un cambio rapido. Controllare direttamente changeCount garantisce coerenza.
+      if (isChanging && changeCount >= 3) {
         setMessage({
           type: 'error',
           text: 'Hai raggiunto il limite di 3 cambi Player ID. Contatta il supporto.',
