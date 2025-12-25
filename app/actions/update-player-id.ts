@@ -106,8 +106,22 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
       }
     }
 
-    // Se sta cercando di cambiare ID e l'utente è bloccato
-    if (userData?.dota_account_id_locked && dotaAccountId && dotaAccountId !== userData.dota_account_id) {
+    // Calcola cambi rimanenti e stato corrente
+    const currentCount = userData?.dota_account_id_change_count || 0
+    const isCurrentlyLocked = userData?.dota_account_id_locked || false
+    
+    // Se sta cercando di RIMUOVERE l'ID (dotaAccountId è NULL) e ha fatto 3 cambi, blocca
+    if (dotaAccountId === null && userData?.dota_account_id && (currentCount >= 3 || isCurrentlyLocked)) {
+      return {
+        success: false,
+        error: 'Non puoi rimuovere il Player ID dopo aver fatto 3 cambi. Contatta il supporto.',
+        isLocked: true,
+        changesRemaining: 0,
+      }
+    }
+    
+    // Se sta cercando di cambiare ID e l'utente è bloccato, blocca
+    if (isCurrentlyLocked && dotaAccountId && dotaAccountId !== userData.dota_account_id) {
       return {
         success: false,
         error: 'Player ID bloccato. Hai già cambiato 3 volte. Contatta il supporto per sbloccare.',
@@ -117,7 +131,6 @@ export async function updatePlayerId(playerId: string | null, accessToken: strin
     }
 
     // Calcola cambi rimanenti (solo se sta cambiando, non se rimuove)
-    const currentCount = userData?.dota_account_id_change_count || 0
     const changesRemaining = dotaAccountId && dotaAccountId !== userData?.dota_account_id
       ? Math.max(0, 3 - currentCount)
       : null
