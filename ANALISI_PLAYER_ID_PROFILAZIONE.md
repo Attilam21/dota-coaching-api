@@ -259,38 +259,62 @@ export async function updatePlayerId(
 
 export async function GET(request: NextRequest, { params }) {
   const { id } = await params;
-  const userId = request.headers.get('x-user-id'); // Da middleware auth
-
-  // 1. Controlla cache nel database
-  const { data: cachedProfile } = await supabase
-    .from('player_profiles')
-    .select('profile_data, expires_at')
-    .eq('user_id', userId)
-    .eq('dota_account_id', parseInt(id))
-    .single();
-
-  // 2. Se cache valida, ritorna cache
-  if (cachedProfile && new Date(cachedProfile.expires_at) > new Date()) {
-    return NextResponse.json({
-      ...cachedProfile.profile_data,
-      cached: true,
-      cached_at: cachedProfile.calculated_at,
-    });
+  
+  // 1. Autentica utente tramite cookie (createServerActionSupabaseClient)
+  const supabase = createServerActionSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  let userId: string | null = null
+  if (user) {
+    // Verifica che questo player_id appartiene all'utente
+    const { data: userData } = await supabase
+      .from('users')
+      .select('dota_account_id')
+      .eq('id', user.id)
+      .single()
+    
+    if (userData?.dota_account_id === parseInt(id)) {
+      userId = user.id
+    }
   }
 
-  // 3. Calcola profilazione (logica esistente)
+  // 2. Controlla cache nel database (solo se autenticato)
+  if (userId) {
+    const { data: cachedProfile } = await supabase
+      .from('player_profiles')
+      .select('profile_data, expires_at, calculated_at')
+      .eq('user_id', userId)
+      .eq('dota_account_id', parseInt(id))
+      .single();
+
+    // 3. Se cache valida, ritorna cache
+    if (cachedProfile && new Date(cachedProfile.expires_at) > new Date()) {
+      return NextResponse.json({
+        ...cachedProfile.profile_data,
+        cached: true,
+        cached_at: cachedProfile.calculated_at,
+      });
+    }
+  }
+
+  // 4. Calcola profilazione (logica esistente)
   const profileData = await calculateProfile(id);
 
-  // 4. Salva in cache (7 giorni)
-  await supabase
-    .from('player_profiles')
-    .upsert({
-      user_id: userId,
-      dota_account_id: parseInt(id),
-      profile_data: profileData,
-      calculated_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    });
+  // 5. Salva in cache (7 giorni) - solo se autenticato
+  if (userId) {
+    await supabase
+      .from('player_profiles')
+      .upsert({
+        user_id: userId,
+        dota_account_id: parseInt(id),
+        profile_data: profileData,
+        calculated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,dota_account_id'
+      });
+  }
 
   return NextResponse.json({
     ...profileData,
@@ -298,6 +322,35 @@ export async function GET(request: NextRequest, { params }) {
   });
 }
 ```
+
+**⚠️ IMPORTANTE - Fix Autenticazione (25/12/2024):**
+
+Per permettere l'autenticazione corretta e il salvataggio della cache, è necessario passare i cookie HTTP:
+
+1. **Frontend → API Routes:**
+   ```typescript
+   fetch(`/api/player/${playerId}/profile`, {
+     credentials: 'include' // Passa i cookie automaticamente
+   })
+   ```
+
+2. **Server-to-Server (API Route → API Route):**
+   ```typescript
+   const cookieHeader = request.headers.get('cookie') || ''
+   fetch(`${baseUrl}/api/player/${playerId}/profile`, {
+     headers: { 'Cookie': cookieHeader } // Passa cookie manualmente
+   })
+   ```
+
+**File Modificati:**
+- `app/dashboard/page.tsx` - Aggiunto `credentials: 'include'`
+- `app/dashboard/coaching-insights/page.tsx` - Aggiunto `credentials: 'include'`
+- `app/api/player/[id]/coaching/route.ts` - Aggiunto header `Cookie`
+- `app/api/player/[id]/meta-comparison/route.ts` - Aggiunto header `Cookie`
+- `app/api/ai-summary/profile/[id]/route.ts` - Aggiunto header `Cookie`
+
+**Problema Risolto:**
+Prima di questo fix, la tabella `player_profiles` non si popolava perché i cookie di autenticazione non venivano passati alle API routes, causando `userId = null` e quindi il salto del salvataggio cache.
 
 ### 5. **Flusso Coerente tra Login**
 
@@ -382,7 +435,8 @@ const loadPlayerId = useCallback(async () => {
 - [ ] Aggiungere funzione `unlockPlayerId()` (admin only)
 
 ### Fase 3: API Routes
-- [ ] Aggiornare `/api/player/[id]/profile` con cache
+- [x] Aggiornare `/api/player/[id]/profile` con cache
+- [x] Fix autenticazione: aggiungere `credentials: 'include'` e header `Cookie`
 - [ ] Aggiungere invalidazione cache quando ID cambia
 
 ### Fase 4: Frontend
