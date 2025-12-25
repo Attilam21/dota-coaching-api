@@ -53,4 +53,3 @@ export function createRouteHandlerSupabaseClient(request: NextRequest) {
   
   return client as unknown as SupabaseClient<Database>
 }
-
