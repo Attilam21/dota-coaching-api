@@ -42,6 +42,10 @@ interface RoleAnalysis {
     mostPlayedRole: string
     bestRole: string
   }
+  // Optional fields for trend calculation (included in API response)
+  heroes?: Array<{ id: number; roles?: string[] }>
+  matches?: Array<{ match_id: number; player_slot: number }>
+  fullMatches?: Array<{ match_id: number; start_time: number; radiant_win?: boolean; players?: Array<{ player_slot: number; hero_id: number; kills?: number; assists?: number; deaths?: number; gold_per_min?: number }> }>
 }
 
 interface RoleTrendData {
@@ -172,12 +176,126 @@ export default function RoleAnalysisPage() {
     }
   }, [playerId])
 
+  // Calculate trend data from existing analysis (no fetch needed)
+  const calculateTrendData = useCallback((analysisData: RoleAnalysis, role: string) => {
+    if (!analysisData) return null
+
+    // Extract heroes data from analysis
+    const allHeroes = Array.isArray(analysisData.heroes) ? analysisData.heroes : []
+    const heroesMap: Record<number, string[]> = {}
+    allHeroes.forEach((hero: any) => {
+      if (hero && typeof hero === 'object' && hero.id) {
+        heroesMap[hero.id] = Array.isArray(hero.roles) ? hero.roles : []
+      }
+    })
+
+    // Use matches from analysis
+    const matches = Array.isArray(analysisData.matches) ? analysisData.matches : []
+    const matchesToFetch = matches.slice(0, 50)
+    const fullMatches = Array.isArray(analysisData.fullMatches) ? analysisData.fullMatches : []
+
+    // Group matches by period (last 10, 20, 30, 50 matches) for selected role
+    const roleMatches = fullMatches
+      .map((match: any, idx: number) => {
+        if (!match?.players) return null
+        const listMatch = matchesToFetch[idx]
+        if (!listMatch) return null
+        
+        const player = match.players.find((p: any) => 
+          p.player_slot === listMatch.player_slot
+        )
+        if (!player || !player.hero_id) return null
+
+        const heroRoles = heroesMap[player.hero_id] || []
+        if (!heroRoles.includes(role)) return null
+
+        const playerTeam = listMatch.player_slot < 128 ? 'radiant' : 'dire'
+        const radiantWin = match.radiant_win ?? false
+        const won = (playerTeam === 'radiant' && radiantWin) || (playerTeam === 'dire' && !radiantWin)
+        
+        const kills = player.kills ?? 0
+        const assists = player.assists ?? 0
+        const deaths = player.deaths ?? 0
+        const kda = deaths > 0 ? (kills + assists) / deaths : (kills + assists)
+        const gpm = player.gold_per_min ?? 0
+
+        const matchId = match.match_id ?? 0
+        const startTime = match.start_time ?? 0
+
+        return {
+          match_id: matchId,
+          start_time: startTime,
+          won,
+          kda: isNaN(kda) ? 0 : kda,
+          gpm,
+          games: 1,
+        }
+      })
+      .filter((m: any) => m !== null)
+      .reverse() // Most recent first
+
+    if (roleMatches.length === 0) return null
+
+    // Calculate periods
+    const periods = [
+      { name: 'Ultime 10', count: Math.min(10, roleMatches.length) },
+      { name: 'Ultime 20', count: Math.min(20, roleMatches.length) },
+      { name: 'Ultime 30', count: Math.min(30, roleMatches.length) },
+      { name: 'Ultime 50', count: roleMatches.length },
+    ]
+
+    const trendPeriods = periods.map(period => {
+      const periodMatches = roleMatches.slice(0, period.count)
+      
+      // Prevent division by zero - check array length before calculations
+      if (periodMatches.length === 0) {
+        return {
+          period: period.name,
+          games: 0,
+          wins: 0,
+          winrate: 0,
+          avgKDA: 0,
+          avgGPM: 0,
+        }
+      }
+      
+      const wins = periodMatches.filter((m: any) => m.won).length
+      const avgKDA = periodMatches.reduce((sum: number, m: any) => sum + (m.kda || 0), 0) / periodMatches.length
+      const avgGPM = periodMatches.reduce((sum: number, m: any) => sum + (m.gpm || 0), 0) / periodMatches.length
+
+      return {
+        period: period.name,
+        games: periodMatches.length,
+        wins,
+        winrate: (wins / periodMatches.length) * 100,
+        avgKDA: parseFloat(avgKDA.toFixed(2)),
+        avgGPM: Math.round(avgGPM),
+      }
+    })
+
+    return {
+      role,
+      periods: trendPeriods,
+    }
+  }, [])
+
   const fetchTrendData = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId || !selectedRoleForTrend) return
 
     try {
       setTrendLoading(true)
-      // Use backend API instead of direct OpenDota calls
+
+      // First, try to use existing analysis data (no fetch needed)
+      if (analysis && analysis.heroes && analysis.matches && analysis.fullMatches) {
+        const trendResult = calculateTrendData(analysis, selectedRoleForTrend)
+        if (trendResult && !abortSignal?.aborted) {
+          setTrendData([trendResult])
+          setTrendLoading(false)
+          return
+        }
+      }
+
+      // Fallback: fetch only if data is missing
       const response = await fetch(`/api/player/${playerId}/role-analysis`, { signal: abortSignal })
       if (abortSignal?.aborted || !response.ok) return
 
@@ -196,110 +314,11 @@ export default function RoleAnalysisPage() {
         console.error('Invalid role analysis data format for trend')
         return
       }
-      
-      if (!data.roleStats || typeof data.roleStats !== 'object') {
-        return
-      }
 
-      // Extract heroes data from response
-      const allHeroes = Array.isArray(data.heroes) ? data.heroes : []
-      const heroesMap: Record<number, string[]> = {}
-      allHeroes.forEach((hero: any) => {
-        if (hero && typeof hero === 'object' && hero.id) {
-          heroesMap[hero.id] = Array.isArray(hero.roles) ? hero.roles : []
-        }
-      })
-
-      // For trend calculation, we need match details - use cached data from API
-      // The backend already fetches matches, so we'll work with what we have
-      const matches = Array.isArray(data.matches) ? data.matches : []
-      const matchesToFetch = matches.slice(0, 50)
-      const fullMatches = Array.isArray(data.fullMatches) ? data.fullMatches : []
-
-      // Group matches by period (last 10, 20, 30, 50 matches) for selected role
-      const roleMatches = fullMatches
-        .map((match: any, idx: number) => {
-          if (!match?.players) return null
-          const listMatch = matchesToFetch[idx]
-          if (!listMatch) return null
-          
-          const player = match.players.find((p: any) => 
-            p.player_slot === listMatch.player_slot
-          )
-          if (!player || !player.hero_id) return null
-
-          const heroRoles = heroesMap[player.hero_id] || []
-          if (!heroRoles.includes(selectedRoleForTrend)) return null
-
-          const playerTeam = listMatch.player_slot < 128 ? 'radiant' : 'dire'
-          const radiantWin = match.radiant_win ?? false
-          const won = (playerTeam === 'radiant' && radiantWin) || (playerTeam === 'dire' && !radiantWin)
-          
-          const kills = player.kills ?? 0
-          const assists = player.assists ?? 0
-          const deaths = player.deaths ?? 0
-          const kda = deaths > 0 ? (kills + assists) / deaths : (kills + assists)
-          const gpm = player.gold_per_min ?? 0
-
-          const matchId = match.match_id ?? 0
-          const startTime = match.start_time ?? 0
-
-          return {
-            match_id: matchId,
-            start_time: startTime,
-            won,
-            kda: isNaN(kda) ? 0 : kda,
-            gpm,
-            games: 1,
-          }
-        })
-        .filter((m: any) => m !== null)
-        .reverse() // Most recent first
-
-      if (roleMatches.length === 0) return
-
-      // Calculate periods
-      const periods = [
-        { name: 'Ultime 10', count: Math.min(10, roleMatches.length) },
-        { name: 'Ultime 20', count: Math.min(20, roleMatches.length) },
-        { name: 'Ultime 30', count: Math.min(30, roleMatches.length) },
-        { name: 'Ultime 50', count: roleMatches.length },
-      ]
-
-      const trendPeriods = periods.map(period => {
-        const periodMatches = roleMatches.slice(0, period.count)
-        
-        // Prevent division by zero - check array length before calculations
-        if (periodMatches.length === 0) {
-          return {
-            period: period.name,
-            games: 0,
-            wins: 0,
-            winrate: 0,
-            avgKDA: 0,
-            avgGPM: 0,
-          }
-        }
-        
-        const wins = periodMatches.filter((m: any) => m.won).length
-        const avgKDA = periodMatches.reduce((sum: number, m: any) => sum + (m.kda || 0), 0) / periodMatches.length
-        const avgGPM = periodMatches.reduce((sum: number, m: any) => sum + (m.gpm || 0), 0) / periodMatches.length
-
-        return {
-          period: period.name,
-          games: periodMatches.length,
-          wins,
-          winrate: (wins / periodMatches.length) * 100,
-          avgKDA: parseFloat(avgKDA.toFixed(2)),
-          avgGPM: Math.round(avgGPM),
-        }
-      })
-
-      if (!abortSignal?.aborted) {
-        setTrendData([{
-          role: selectedRoleForTrend,
-          periods: trendPeriods,
-        }])
+      // Calculate trend from fetched data
+      const trendResult = calculateTrendData(data as RoleAnalysis, selectedRoleForTrend)
+      if (trendResult && !abortSignal?.aborted) {
+        setTrendData([trendResult])
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -313,7 +332,7 @@ export default function RoleAnalysisPage() {
         setTrendLoading(false)
       }
     }
-  }, [playerId, selectedRoleForTrend])
+  }, [playerId, selectedRoleForTrend, analysis, calculateTrendData])
 
   // Reset state when playerId changes
   useEffect(() => {
@@ -347,6 +366,16 @@ export default function RoleAnalysisPage() {
       }
     }
   }, [selectedRoleForTrend, fetchTrendData])
+
+  // Recalculate trend when analysis is updated (if role is already selected)
+  useEffect(() => {
+    if (selectedRoleForTrend && analysis && analysis.heroes && analysis.matches && analysis.fullMatches) {
+      const trendResult = calculateTrendData(analysis, selectedRoleForTrend)
+      if (trendResult) {
+        setTrendData([trendResult])
+      }
+    }
+  }, [analysis, selectedRoleForTrend, calculateTrendData])
 
   if (authLoading) {
     return (
