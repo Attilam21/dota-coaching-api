@@ -121,12 +121,28 @@ export default function RoleAnalysisPage() {
 
       if (!roleResponse.ok) throw new Error('Failed to fetch role analysis')
 
-      const roleData = await roleResponse.json()
+      let roleData
+      try {
+        roleData = await roleResponse.json()
+      } catch (err) {
+        throw new Error('Failed to parse role analysis response')
+      }
+      
+      if (!roleData || typeof roleData !== 'object') {
+        throw new Error('Invalid role analysis data format')
+      }
+      
       setAnalysis(roleData)
 
       if (advancedResponse?.ok) {
-        const advancedData = await advancedResponse.json()
-        setAdvancedStats(advancedData.stats)
+        try {
+          const advancedData = await advancedResponse.json()
+          if (advancedData && typeof advancedData === 'object' && advancedData.stats) {
+            setAdvancedStats(advancedData.stats)
+          }
+        } catch (err) {
+          console.warn('Failed to parse advanced stats, continuing without them')
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load role analysis')
@@ -144,21 +160,37 @@ export default function RoleAnalysisPage() {
       const response = await fetch(`/api/player/${playerId}/role-analysis`)
       if (!response.ok) return
 
-      const data = await response.json()
-      if (!data || !data.roleStats) return
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        console.error('Failed to parse role analysis response for trend:', err)
+        return
+      }
+      
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid role analysis data format for trend')
+        return
+      }
+      
+      if (!data.roleStats || typeof data.roleStats !== 'object') {
+        return
+      }
 
       // Extract heroes data from response
-      const allHeroes = data.heroes || []
+      const allHeroes = Array.isArray(data.heroes) ? data.heroes : []
       const heroesMap: Record<number, string[]> = {}
       allHeroes.forEach((hero: any) => {
-        heroesMap[hero.id] = hero.roles || []
+        if (hero && typeof hero === 'object' && hero.id) {
+          heroesMap[hero.id] = Array.isArray(hero.roles) ? hero.roles : []
+        }
       })
 
       // For trend calculation, we need match details - use cached data from API
       // The backend already fetches matches, so we'll work with what we have
-      const matches = data.matches || []
+      const matches = Array.isArray(data.matches) ? data.matches : []
       const matchesToFetch = matches.slice(0, 50)
-      const fullMatches = data.fullMatches || []
+      const fullMatches = Array.isArray(data.fullMatches) ? data.fullMatches : []
 
       // Group matches by period (last 10, 20, 30, 50 matches) for selected role
       const roleMatches = fullMatches
@@ -204,9 +236,22 @@ export default function RoleAnalysisPage() {
 
       const trendPeriods = periods.map(period => {
         const periodMatches = roleMatches.slice(0, period.count)
+        
+        // Prevent division by zero - check array length before calculations
+        if (periodMatches.length === 0) {
+          return {
+            period: period.name,
+            games: 0,
+            wins: 0,
+            winrate: 0,
+            avgKDA: 0,
+            avgGPM: 0,
+          }
+        }
+        
         const wins = periodMatches.filter((m: any) => m.won).length
-        const avgKDA = periodMatches.reduce((sum: number, m: any) => sum + m.kda, 0) / periodMatches.length
-        const avgGPM = periodMatches.reduce((sum: number, m: any) => sum + m.gpm, 0) / periodMatches.length
+        const avgKDA = periodMatches.reduce((sum: number, m: any) => sum + (m.kda || 0), 0) / periodMatches.length
+        const avgGPM = periodMatches.reduce((sum: number, m: any) => sum + (m.gpm || 0), 0) / periodMatches.length
 
         return {
           period: period.name,
