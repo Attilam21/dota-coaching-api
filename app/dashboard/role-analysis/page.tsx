@@ -315,6 +315,16 @@ export default function RoleAnalysisPage() {
     }
   }, [playerId, selectedRoleForTrend])
 
+  // Reset state when playerId changes
+  useEffect(() => {
+    setAnalysis(null)
+    setAdvancedStats(null)
+    setError(null)
+    setSelectedRole(null)
+    setSelectedRoleForTrend(null)
+    setTrendData([])
+  }, [playerId])
+
   useEffect(() => {
     // Don't fetch if playerId is loading or not available
     if (playerIdLoading || !playerId) return
