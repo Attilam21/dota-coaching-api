@@ -58,7 +58,7 @@ export default function GuidaUtentePage() {
     },
     {
       title: 'Panoramica Dashboard',
-      description: 'Dashboard principale con Hero Pool (Top 6), Partite Chiave, Benchmark OpenDota, Attività Recente e Azioni Rapide per accesso veloce alle analisi.',
+      description: 'Dashboard principale con Hero Pool (Top 6), Partite Chiave, Benchmark, Attività Recente e Azioni Rapide per accesso veloce alle analisi.',
       icon: BarChart,
       href: '/dashboard',
       color: 'bg-green-900/30 border-green-700',
@@ -207,7 +207,7 @@ export default function GuidaUtentePage() {
             <div className="text-gray-300 text-sm space-y-2">
               <p>
                 <strong>Panoramica:</strong> Dashboard principale con Hero Pool (Top 6 eroi più giocati), Partite Chiave (migliore, peggiore, outlier), 
-                Benchmark OpenDota (percentili GPM, XPM, KDA), Attività Recente (ultime 5 partite) e Azioni Rapide per accesso veloce alle analisi.
+                Benchmark (percentili GPM, XPM, KDA), Attività Recente (ultime 5 partite) e Azioni Rapide per accesso veloce alle analisi.
               </p>
               <p>
                 <strong>Performance & Stile:</strong> Analisi approfondita con Focus Areas (3 aree prioritarie per il miglioramento identificate automaticamente), 
@@ -276,7 +276,7 @@ export default function GuidaUtentePage() {
                 trend delle metriche chiave, punti di forza e debolezze identificati automaticamente, e top eroi per ruolo.
               </p>
               <p>
-                <strong>Confronto Meta:</strong> Confronto delle tue metriche con i percentili OpenDota (GPM, XPM, KDA, ecc.) per vedere come ti posizioni rispetto alla community. 
+                <strong>Confronto Meta:</strong> Confronto delle tue metriche con i percentili della community (GPM, XPM, KDA, ecc.) per vedere come ti posizioni rispetto agli altri giocatori. 
                 Insights AI che identificano aree di miglioramento specifiche e gap rispetto al meta.
               </p>
               <p>
@@ -375,8 +375,7 @@ export default function GuidaUtentePage() {
                 <li><strong>Nessuno</strong> - Rimuove lo sfondo per un look più pulito</li>
               </ul>
               <p>
-                <strong>Nota:</strong> Se aggiungi nuovi file di sfondo (dashboard-bg.png, profile-bg.png) nella cartella <code className="bg-gray-900 px-1 rounded text-xs">public/</code>, 
-                appariranno automaticamente come opzioni nel selettore. Vedi <code className="bg-gray-900 px-1 rounded text-xs">public/README_SFONDI.md</code> per istruzioni dettagliate.
+                <strong>Nota:</strong> Gli sfondi disponibili vengono rilevati automaticamente. Se non vedi un'opzione, significa che il file corrispondente non è disponibile.
               </p>
             </div>
           </div>
@@ -424,7 +423,7 @@ export default function GuidaUtentePage() {
           
           <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 mt-3">
             <p className="text-yellow-200 text-xs">
-              <strong>Nota:</strong> Questa funzionalità richiede la configurazione delle chiavi API (GEMINI_API_KEY o OPENAI_API_KEY) nel server. Se il servizio non è disponibile, vedrai un messaggio informativo.
+              <strong>Nota:</strong> Questa funzionalità utilizza l'intelligenza artificiale per generare consigli personalizzati. Se il servizio non è disponibile, vedrai un messaggio informativo.
             </p>
           </div>
         </div>

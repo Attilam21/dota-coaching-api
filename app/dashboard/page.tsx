@@ -236,13 +236,54 @@ export default function DashboardPage() {
         throw new Error(`Failed to fetch player stats: ${statsResponse.status} ${statsResponse.statusText}`)
       }
 
-      const statsData = await statsResponse.json()
-      const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
-      const profileData = profileResponse?.ok ? await profileResponse.json() : null
-      const wlData = wlResponse?.ok ? await wlResponse.json() : null
-      const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
+      let statsData
+      let advancedData = null
+      let profileData = null
+      let wlData = null
+      let benchmarksData = null
+      
+      try {
+        statsData = await statsResponse.json()
+      } catch (err) {
+        throw new Error('Failed to parse stats response')
+      }
+      
+      if (advancedResponse.ok) {
+        try {
+          advancedData = await advancedResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse advanced stats, continuing without them')
+        }
+      }
+      
+      if (profileResponse?.ok) {
+        try {
+          profileData = await profileResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse profile data, continuing without it')
+        }
+      }
+      
+      if (wlResponse?.ok) {
+        try {
+          wlData = await wlResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse win/loss data, continuing without it')
+        }
+      }
+      
+      if (benchmarksResponse?.ok) {
+        try {
+          benchmarksData = await benchmarksResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse benchmarks data, continuing without it')
+        }
+      }
 
-      // Enhance stats with advanced data if available
+      if (!statsData || !statsData.stats) {
+        throw new Error('Invalid stats data format')
+      }
+      
       if (advancedData?.stats) {
         setStats({
           ...statsData.stats,

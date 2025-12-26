@@ -93,8 +93,12 @@ export default function MatchesPage() {
       if (!response.ok) throw new Error('Failed to fetch matches')
 
       const data = await response.json()
-      // Extract matches from response (matches are at root level, not in stats)
-      setMatches(data.matches || [])
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format')
+      }
+      
+      setMatches(Array.isArray(data.matches) ? data.matches : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load matches')
     } finally {

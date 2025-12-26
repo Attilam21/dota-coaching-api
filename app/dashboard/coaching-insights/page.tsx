@@ -116,7 +116,17 @@ export default function CoachingInsightsPage() {
       })
       if (!response.ok) throw new Error('Failed to fetch player profile')
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse profile data')
+      }
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid profile data format')
+      }
+      
       setProfile(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile')
@@ -135,7 +145,17 @@ export default function CoachingInsightsPage() {
       const response = await fetch(`/api/player/${playerId}/meta-comparison`)
       if (!response.ok) throw new Error('Failed to fetch meta comparison data')
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse meta comparison data')
+      }
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid meta comparison data format')
+      }
+      
       setMetaData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load meta comparison data')
@@ -154,7 +174,17 @@ export default function CoachingInsightsPage() {
       const response = await fetch(`/api/player/${playerId}/win-conditions`)
       if (!response.ok) throw new Error('Failed to fetch win conditions data')
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse win conditions data')
+      }
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid win conditions data format')
+      }
+      
       setWinConditions(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load win conditions data')

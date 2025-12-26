@@ -106,12 +106,21 @@ export default function HeroesPage() {
 
       const data = await response.json()
       
-      // Save full analysis data
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format')
+      }
+      
       setAnalysisData({
-        heroStats: data.heroStats || [],
-        bestHeroes: data.bestHeroes || [],
-        worstHeroes: data.worstHeroes || [],
-        overall: data.overall || {
+        heroStats: Array.isArray(data.heroStats) ? data.heroStats : [],
+        bestHeroes: Array.isArray(data.bestHeroes) ? data.bestHeroes : [],
+        worstHeroes: Array.isArray(data.worstHeroes) ? data.worstHeroes : [],
+        overall: data.overall && typeof data.overall === 'object' ? {
+          totalGames: data.overall.totalGames || 0,
+          totalWins: data.overall.totalWins || 0,
+          overallWinrate: String(data.overall.overallWinrate || '0'),
+          diverseHeroes: data.overall.diverseHeroes || 0,
+          totalHeroesPlayed: data.overall.totalHeroesPlayed || 0,
+        } : {
           totalGames: 0,
           totalWins: 0,
           overallWinrate: '0',
@@ -119,8 +128,8 @@ export default function HeroesPage() {
           totalHeroesPlayed: 0,
         },
         mostPlayed: data.mostPlayed || null,
-        roleStats: data.roleStats || {},
-        insights: data.insights || [],
+        roleStats: data.roleStats && typeof data.roleStats === 'object' ? data.roleStats : {},
+        insights: Array.isArray(data.insights) ? data.insights : [],
       })
       
       // Keep existing heroStats for backward compatibility (top 10)

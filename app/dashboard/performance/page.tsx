@@ -90,11 +90,33 @@ export default function PerformancePage() {
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
 
-      const statsData = await statsResponse.json()
-      const advancedData = advancedResponse.ok ? await advancedResponse.json() : null
-      const benchmarksData = benchmarksResponse?.ok ? await benchmarksResponse.json() : null
+      let statsData
+      let advancedData = null
+      let benchmarksData = null
+      
+      try {
+        statsData = await statsResponse.json()
+      } catch (err) {
+        throw new Error('Failed to parse stats response')
+      }
+      
+      if (advancedResponse.ok) {
+        try {
+          advancedData = await advancedResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse advanced stats, continuing without them')
+        }
+      }
+      
+      if (benchmarksResponse?.ok) {
+        try {
+          benchmarksData = await benchmarksResponse.json()
+        } catch (err) {
+          console.warn('Failed to parse benchmarks, continuing without them')
+        }
+      }
 
-      if (!statsData.stats) throw new Error('No stats available')
+      if (!statsData || !statsData.stats) throw new Error('No stats available')
       
       // Set benchmarks if available
       if (benchmarksData) {
@@ -102,7 +124,7 @@ export default function PerformancePage() {
       }
 
       // Calculate performance metrics from basic stats
-      const matches = statsData.stats.matches || []
+      const matches = Array.isArray(statsData.stats.matches) ? statsData.stats.matches : []
       // Prevent division by zero - always check array length before dividing
       const matchCount = matches.length
       const avgKDA = matchCount > 0 ? matches.reduce((acc: number, m: { kda: number }) => acc + m.kda, 0) / matchCount : 0

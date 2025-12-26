@@ -164,14 +164,19 @@ export default function TeammatesPage() {
       if (!response.ok) throw new Error('Failed to fetch teammates')
 
       const data = await response.json()
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format: expected array')
+      }
+      
       const teammatesData: Teammate[] = data
         .filter((t: { games?: number }) => t.games && t.games > 0)
         .map((t: { account_id: number; games: number; win: number; personaname?: string; avatarfull?: string }) => ({
           account_id: t.account_id,
           name: t.personaname || `Player ${t.account_id}`,
           games: t.games,
-          wins: t.win,
-          winrate: (t.win / t.games) * 100,
+          wins: t.win || 0,
+          winrate: t.games > 0 ? ((t.win || 0) / t.games) * 100 : 0,
           avatar: t.avatarfull || undefined,
           personaname: t.personaname || undefined,
         }))
