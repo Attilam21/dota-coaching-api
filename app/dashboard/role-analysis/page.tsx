@@ -232,15 +232,23 @@ export default function RoleAnalysisPage() {
           if (!heroRoles.includes(selectedRoleForTrend)) return null
 
           const playerTeam = listMatch.player_slot < 128 ? 'radiant' : 'dire'
-          const won = (playerTeam === 'radiant' && match.radiant_win) || (playerTeam === 'dire' && !match.radiant_win)
-          const kda = player.deaths > 0 ? (player.kills + player.assists) / player.deaths : (player.kills + player.assists)
-          const gpm = player.gold_per_min || 0
+          const radiantWin = match.radiant_win ?? false
+          const won = (playerTeam === 'radiant' && radiantWin) || (playerTeam === 'dire' && !radiantWin)
+          
+          const kills = player.kills ?? 0
+          const assists = player.assists ?? 0
+          const deaths = player.deaths ?? 0
+          const kda = deaths > 0 ? (kills + assists) / deaths : (kills + assists)
+          const gpm = player.gold_per_min ?? 0
+
+          const matchId = match.match_id ?? 0
+          const startTime = match.start_time ?? 0
 
           return {
-            match_id: match.match_id,
-            start_time: match.start_time,
+            match_id: matchId,
+            start_time: startTime,
             won,
-            kda,
+            kda: isNaN(kda) ? 0 : kda,
             gpm,
             games: 1,
           }
@@ -543,7 +551,7 @@ export default function RoleAnalysisPage() {
         </div>
       )}
 
-      {analysis && !loading && (
+      {analysis && !loading && analysis.summary && analysis.roles && (
         <div className="space-y-6">
           {/* Tabs */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
@@ -577,19 +585,19 @@ export default function RoleAnalysisPage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                       <h3 className="text-sm text-gray-400 mb-2">Ruoli Giocati</h3>
-                      <p className="text-2xl font-bold text-white">{analysis.summary.totalRolesPlayed}</p>
+                      <p className="text-2xl font-bold text-white">{analysis.summary.totalRolesPlayed ?? 0}</p>
                       <p className="text-xs text-gray-500 mt-1">Ruoli diversi</p>
                     </div>
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                       <h3 className="text-sm text-gray-400 mb-2">Ruolo Più Giocato</h3>
-                      <p className="text-lg font-bold text-blue-400 capitalize">{analysis.summary.mostPlayedRole}</p>
+                      <p className="text-lg font-bold text-blue-400 capitalize">{analysis.summary.mostPlayedRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.mostPlayedRole]?.games || 0} partite
                       </p>
                     </div>
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                       <h3 className="text-sm text-gray-400 mb-2">Ruolo Migliore</h3>
-                      <p className="text-lg font-bold text-green-400 capitalize">{analysis.summary.bestRole}</p>
+                      <p className="text-lg font-bold text-green-400 capitalize">{analysis.summary.bestRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.bestRole]?.winrate ? 
                           `${analysis.roles[analysis.summary.bestRole].winrate.toFixed(1)}% winrate` : 
@@ -599,16 +607,16 @@ export default function RoleAnalysisPage() {
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                       <h3 className="text-sm text-gray-400 mb-2">Versatilità</h3>
                       <p className={`text-2xl font-bold ${
-                        analysis.summary.totalRolesPlayed >= 3 ? 'text-green-400' :
-                        analysis.summary.totalRolesPlayed >= 2 ? 'text-yellow-400' :
+                        (analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'text-green-400' :
+                        (analysis.summary.totalRolesPlayed ?? 0) >= 2 ? 'text-yellow-400' :
                         'text-red-400'
                       }`}>
-                        {analysis.summary.totalRolesPlayed >= 3 ? 'Alta' :
-                         analysis.summary.totalRolesPlayed >= 2 ? 'Media' : 'Bassa'}
+                        {(analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'Alta' :
+                         (analysis.summary.totalRolesPlayed ?? 0) >= 2 ? 'Media' : 'Bassa'}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {analysis.summary.totalRolesPlayed >= 3 ? 'Pool versatile' :
-                         analysis.summary.totalRolesPlayed >= 2 ? 'Diversifica di più' : 'Focus su 1-2 ruoli'}
+                        {(analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'Pool versatile' :
+                         (analysis.summary.totalRolesPlayed ?? 0) >= 2 ? 'Diversifica di più' : 'Focus su 1-2 ruoli'}
                       </p>
                     </div>
                   </div>
@@ -849,7 +857,7 @@ export default function RoleAnalysisPage() {
                       .filter(([_, perf]) => perf.games >= 5)
                     const weakRoles = rolesWithGames.filter(([_, perf]) => perf.winrate < 45)
                     const strongRoles = rolesWithGames.filter(([_, perf]) => perf.winrate >= 55)
-                    const needsDiversity = analysis.summary.totalRolesPlayed < 2
+                    const needsDiversity = (analysis.summary?.totalRolesPlayed ?? 0) < 2
 
                     if (weakRoles.length === 0 && strongRoles.length === 0 && !needsDiversity) return null
 
@@ -911,7 +919,7 @@ export default function RoleAnalysisPage() {
                   })()}
 
                   {/* Recommendations */}
-                  {analysis.recommendations.length > 0 && (
+                  {Array.isArray(analysis.recommendations) && analysis.recommendations.length > 0 && (
                     <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-6">
                       <h3 className="text-xl font-semibold mb-4 text-blue-200 flex items-center gap-2">
                         <Lightbulb className="w-5 h-5" />
