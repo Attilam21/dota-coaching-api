@@ -67,7 +67,6 @@ export default function RoleAnalysisPage() {
   const router = useRouter()
   const { playerId, isLoading: playerIdLoading } = usePlayerIdContext()
   const [analysis, setAnalysis] = useState<RoleAnalysis | null>(null)
-  const [advancedStats, setAdvancedStats] = useState<any>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -126,10 +125,7 @@ export default function RoleAnalysisPage() {
       setLoading(true)
       setError(null)
 
-      const [roleResponse, advancedResponse] = await Promise.all([
-        fetch(`/api/player/${playerId}/role-analysis`, { signal: abortSignal }),
-        fetch(`/api/player/${playerId}/advanced-stats`, { signal: abortSignal }).catch(() => null)
-      ])
+      const roleResponse = await fetch(`/api/player/${playerId}/role-analysis`, { signal: abortSignal })
 
       if (abortSignal?.aborted) return
 
@@ -150,17 +146,6 @@ export default function RoleAnalysisPage() {
       
       if (!abortSignal?.aborted) {
         setAnalysis(roleData)
-      }
-
-      if (advancedResponse?.ok && !abortSignal?.aborted) {
-        try {
-          const advancedData = await advancedResponse.json()
-          if (advancedData && typeof advancedData === 'object' && advancedData.stats && !abortSignal?.aborted) {
-            setAdvancedStats(advancedData.stats)
-          }
-        } catch (err) {
-          console.warn('Failed to parse advanced stats, continuing without them')
-        }
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -337,7 +322,6 @@ export default function RoleAnalysisPage() {
   // Reset state when playerId changes
   useEffect(() => {
     setAnalysis(null)
-    setAdvancedStats(null)
     setError(null)
     setSelectedRole(null)
     setSelectedRoleForTrend(null)
