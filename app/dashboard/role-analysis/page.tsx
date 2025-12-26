@@ -85,7 +85,15 @@ export default function RoleAnalysisPage() {
     let isMounted = true
     
     fetch('/api/opendota/heroes')
-      .then((res) => res.ok ? res.json() : null)
+      .then(async (res) => {
+        if (!res.ok) return null
+        try {
+          return await res.json()
+        } catch (err) {
+          console.error('Failed to parse heroes JSON:', err)
+          return null
+        }
+      })
       .then((data) => {
         if (data && isMounted && Array.isArray(data)) {
           const heroesMap: Record<number, { name: string; localized_name: string }> = {}
@@ -107,7 +115,7 @@ export default function RoleAnalysisPage() {
     }
   }, [])
 
-  const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId) return
 
     try {
@@ -115,9 +123,11 @@ export default function RoleAnalysisPage() {
       setError(null)
 
       const [roleResponse, advancedResponse] = await Promise.all([
-        fetch(`/api/player/${playerId}/role-analysis`),
-        fetch(`/api/player/${playerId}/advanced-stats`).catch(() => null)
+        fetch(`/api/player/${playerId}/role-analysis`, { signal: abortSignal }),
+        fetch(`/api/player/${playerId}/advanced-stats`, { signal: abortSignal }).catch(() => null)
       ])
+
+      if (abortSignal?.aborted) return
 
       if (!roleResponse.ok) throw new Error('Failed to fetch role analysis')
 
@@ -128,16 +138,20 @@ export default function RoleAnalysisPage() {
         throw new Error('Failed to parse role analysis response')
       }
       
+      if (abortSignal?.aborted) return
+      
       if (!roleData || typeof roleData !== 'object') {
         throw new Error('Invalid role analysis data format')
       }
       
-      setAnalysis(roleData)
+      if (!abortSignal?.aborted) {
+        setAnalysis(roleData)
+      }
 
-      if (advancedResponse?.ok) {
+      if (advancedResponse?.ok && !abortSignal?.aborted) {
         try {
           const advancedData = await advancedResponse.json()
-          if (advancedData && typeof advancedData === 'object' && advancedData.stats) {
+          if (advancedData && typeof advancedData === 'object' && advancedData.stats && !abortSignal?.aborted) {
             setAdvancedStats(advancedData.stats)
           }
         } catch (err) {
@@ -145,28 +159,38 @@ export default function RoleAnalysisPage() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load role analysis')
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to load role analysis')
+      }
     } finally {
-      setLoading(false)
+      if (!abortSignal?.aborted) {
+        setLoading(false)
+      }
     }
   }, [playerId])
 
-  const fetchTrendData = useCallback(async () => {
+  const fetchTrendData = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId || !selectedRoleForTrend) return
 
     try {
       setTrendLoading(true)
       // Use backend API instead of direct OpenDota calls
-      const response = await fetch(`/api/player/${playerId}/role-analysis`)
-      if (!response.ok) return
+      const response = await fetch(`/api/player/${playerId}/role-analysis`, { signal: abortSignal })
+      if (abortSignal?.aborted || !response.ok) return
 
       let data
       try {
         data = await response.json()
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
         console.error('Failed to parse role analysis response for trend:', err)
         return
       }
+      
+      if (abortSignal?.aborted) return
       
       if (!data || typeof data !== 'object') {
         console.error('Invalid role analysis data format for trend')
@@ -263,14 +287,23 @@ export default function RoleAnalysisPage() {
         }
       })
 
-      setTrendData([{
-        role: selectedRoleForTrend,
-        periods: trendPeriods,
-      }])
+      if (!abortSignal?.aborted) {
+        setTrendData([{
+          role: selectedRoleForTrend,
+          periods: trendPeriods,
+        }])
+      }
     } catch (err) {
-      console.error('Error fetching trend data:', err)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        console.error('Error fetching trend data:', err)
+      }
     } finally {
-      setTrendLoading(false)
+      if (!abortSignal?.aborted) {
+        setTrendLoading(false)
+      }
     }
   }, [playerId, selectedRoleForTrend])
 
@@ -278,12 +311,22 @@ export default function RoleAnalysisPage() {
     // Don't fetch if playerId is loading or not available
     if (playerIdLoading || !playerId) return
     
-    fetchAnalysis()
+    const abortController = new AbortController()
+    fetchAnalysis(abortController.signal)
+    
+    return () => {
+      abortController.abort()
+    }
   }, [playerId, playerIdLoading, fetchAnalysis])
 
   useEffect(() => {
     if (selectedRoleForTrend) {
-      fetchTrendData()
+      const abortController = new AbortController()
+      fetchTrendData(abortController.signal)
+      
+      return () => {
+        abortController.abort()
+      }
     }
   }, [selectedRoleForTrend, fetchTrendData])
 
@@ -446,7 +489,7 @@ export default function RoleAnalysisPage() {
     metrics.push({
       label: 'Winrate',
       value: `${perf.winrate.toFixed(1)}%`,
-      description: `${perf.wins}W / ${perf.games - perf.wins}L`
+      description: `${perf.wins}W / ${Math.max(0, perf.games - perf.wins)}L`
     })
 
     metrics.push({
@@ -620,7 +663,7 @@ export default function RoleAnalysisPage() {
                         .map(([role, perf]) => {
                           const { strengths, weaknesses } = getRoleStrengthsWeaknesses(role, perf)
                           const totalGames = Object.values(analysis.roles).reduce((sum, r) => sum + r.games, 0)
-                          const percentage = ((perf.games / totalGames) * 100).toFixed(1)
+                          const percentage = totalGames > 0 ? ((perf.games / totalGames) * 100).toFixed(1) : '0.0'
 
                           return (
                             <div
