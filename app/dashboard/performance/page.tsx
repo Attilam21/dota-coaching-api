@@ -10,6 +10,7 @@ import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import InsightBadge from '@/components/InsightBadge'
 import { BarChart as BarChartIcon, Target, Lightbulb, Coins, Sword, Shield, Scale, Info, Activity, Eye } from 'lucide-react'
+import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
 
 interface PerformanceStats {
   avgKDA: number
@@ -59,6 +60,8 @@ export default function PerformancePage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const { backgroundUrl } = useBackgroundPreference()
+  const hasBackground = !!backgroundUrl
   const [stats, setStats] = useState<PerformanceStats | null>(null)
   const [benchmarks, setBenchmarks] = useState<Benchmarks | null>(null)
   const [loading, setLoading] = useState(false)
@@ -211,7 +214,7 @@ export default function PerformancePage() {
       {stats && !loading && (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+          <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -239,8 +242,8 @@ export default function PerformancePage() {
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Benchmarks Section */}
-                  <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700 rounded-lg p-6">
-                    <h2 className="text-2xl font-semibold text-blue-300 mb-4 flex items-center gap-2">
+                  <div className={`${hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-blue-900/30 to-purple-900/30'} border border-blue-700 rounded-lg p-6`}>
+                    <h2 className={`text-2xl font-semibold ${hasBackground ? 'text-blue-200 drop-shadow-sm' : 'text-blue-300'} mb-4 flex items-center gap-2`}>
                       <BarChartIcon className="w-6 h-6" />
                       Benchmarks & Percentili
                     </h2>
@@ -251,8 +254,8 @@ export default function PerformancePage() {
                       <>
                         <div className="grid md:grid-cols-3 gap-4">
                           {benchmarks.percentiles?.gpm && (
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                              <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                            <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                              <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>GPM (Gold per Minuto)</div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
                                 <span className={`text-2xl font-bold ${
@@ -267,8 +270,8 @@ export default function PerformancePage() {
                             </div>
                           )}
                           {benchmarks.percentiles?.xpm && (
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                              <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                            <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                              <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>XPM (XP per Minuto)</div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
                                 <span className={`text-2xl font-bold ${
@@ -283,8 +286,8 @@ export default function PerformancePage() {
                             </div>
                           )}
                           {benchmarks.percentiles?.kda && (
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                              <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                            <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                              <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>KDA Ratio</div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Percentile:</span>
                                 <span className={`text-2xl font-bold ${
@@ -301,8 +304,8 @@ export default function PerformancePage() {
                           {/* Fallback to calculated percentiles if OpenDota ratings not available */}
                           {!benchmarks.percentiles && benchmarks.calculatedPercentiles && (
                             <>
-                              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                                <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
+                              <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                                <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>GPM (Gold per Minuto)</div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
                                   <span className={`text-2xl font-bold ${
@@ -315,8 +318,8 @@ export default function PerformancePage() {
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                               </div>
-                              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                                <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
+                              <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                                <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>XPM (XP per Minuto)</div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
                                   <span className={`text-2xl font-bold ${
@@ -329,8 +332,8 @@ export default function PerformancePage() {
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
                               </div>
-                              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors">
-                                <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
+                              <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                                <div className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>KDA Ratio</div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">Percentile:</span>
                                   <span className={`text-2xl font-bold ${
@@ -366,7 +369,7 @@ export default function PerformancePage() {
 
 
                   {/* Playstyle Banner - Enhanced */}
-                  <div className="bg-gradient-to-r from-red-900/50 to-gray-800 border border-red-700 rounded-lg p-6 relative">
+                  <div className={`${hasBackground ? 'bg-red-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-red-900/50 to-gray-800'} border border-red-700 rounded-lg p-6 relative`}>
                     {playerId && (
                       <InsightBadge
                         elementType="playstyle"
@@ -378,12 +381,12 @@ export default function PerformancePage() {
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h2 className="text-2xl font-semibold mb-3 flex items-center gap-2">
+                        <h2 className={`text-2xl font-semibold mb-3 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
                           <Target className="w-6 h-6 text-red-400" />
                           Stile di Gioco Identificato
                         </h2>
-                        <p className="text-3xl font-bold text-red-400 mb-2">{stats.playstyle}</p>
-                        <p className="text-sm text-gray-400 mb-3">Basato su {stats.matches?.length || 20} partite recenti</p>
+                        <p className={`text-3xl font-bold ${hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400'} mb-2`}>{stats.playstyle}</p>
+                        <p className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-3`}>Basato su {stats.matches?.length || 20} partite recenti</p>
                         {stats.advanced && (
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-red-700/50">
                             <div>
@@ -412,7 +415,7 @@ export default function PerformancePage() {
 
                   {/* Performance Overview - Enhanced Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors relative shadow-lg">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gradient-to-br from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors relative shadow-lg`}>
                       {playerId && (
                         <InsightBadge
                           elementType="metric-card"
@@ -423,11 +426,11 @@ export default function PerformancePage() {
                         />
                       )}
                       <div className="flex items-center justify-between mb-2 pr-8">
-                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">KDA</h3>
+                        <h3 className={`text-xs ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} uppercase tracking-wider font-semibold`}>KDA</h3>
                         <Sword className="w-5 h-5 text-red-400" />
                       </div>
-                      <p className="text-3xl font-bold text-white mb-1 pr-8">{stats.avgKDA.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
+                      <p className={`text-3xl font-bold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} mb-1 pr-8`}>{stats.avgKDA.toFixed(2)}</p>
+                      <p className={`text-xs ${hasBackground ? 'text-gray-400 drop-shadow-sm' : 'text-gray-500'} mb-2`}>Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">KP:</span>
                         <span className="font-semibold text-gray-300">{stats.teamfightParticipation.toFixed(0)}%</span>
@@ -449,7 +452,7 @@ export default function PerformancePage() {
                         </div>
                       )}
                     </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-yellow-500 transition-colors relative shadow-lg">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gradient-to-br from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors relative shadow-lg`}>
                       {playerId && (
                         <InsightBadge
                           elementType="metric-card"
@@ -460,11 +463,11 @@ export default function PerformancePage() {
                         />
                       )}
                       <div className="flex items-center justify-between mb-2 pr-8">
-                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">GPM</h3>
+                        <h3 className={`text-xs ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} uppercase tracking-wider font-semibold`}>GPM</h3>
                         <Coins className="w-5 h-5 text-yellow-400" />
                       </div>
-                      <p className="text-3xl font-bold text-yellow-400 mb-1 pr-8">{stats.avgGPM.toFixed(0)}</p>
-                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
+                      <p className={`text-3xl font-bold ${hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'} mb-1 pr-8`}>{stats.avgGPM.toFixed(0)}</p>
+                      <p className={`text-xs ${hasBackground ? 'text-gray-400 drop-shadow-sm' : 'text-gray-500'} mb-2`}>Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Efficienza:</span>
                         <span className="font-semibold text-gray-300">{stats.farmEfficiency.toFixed(0)}%</span>
@@ -486,13 +489,13 @@ export default function PerformancePage() {
                         </div>
                       )}
                     </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-blue-500 transition-colors shadow-lg">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gradient-to-br from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-4 hover:border-blue-500 transition-colors shadow-lg`}>
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">XPM</h3>
+                        <h3 className={`text-xs ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} uppercase tracking-wider font-semibold`}>XPM</h3>
                         <Activity className="w-5 h-5 text-blue-400" />
                       </div>
-                      <p className="text-3xl font-bold text-blue-400 mb-1">{stats.avgXPM.toFixed(0)}</p>
-                      <p className="text-xs text-gray-500 mb-2">Media su {stats.matches?.length || 20} partite</p>
+                      <p className={`text-3xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'} mb-1`}>{stats.avgXPM.toFixed(0)}</p>
+                      <p className={`text-xs ${hasBackground ? 'text-gray-400 drop-shadow-sm' : 'text-gray-500'} mb-2`}>Media su {stats.matches?.length || 20} partite</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">XP acquisita</span>
                         <span className="font-semibold text-gray-300">/min</span>
@@ -514,12 +517,12 @@ export default function PerformancePage() {
                         </div>
                       )}
                     </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors shadow-lg">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gradient-to-br from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors shadow-lg`}>
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Deaths</h3>
+                        <h3 className={`text-xs ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} uppercase tracking-wider font-semibold`}>Deaths</h3>
                         <Shield className="w-5 h-5 text-red-400" />
                       </div>
-                      <p className="text-3xl font-bold text-red-400 mb-2">{stats.avgDeaths.toFixed(1)}</p>
+                      <p className={`text-3xl font-bold ${hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400'} mb-2`}>{stats.avgDeaths.toFixed(1)}</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Assist:</span>
                         <span className="font-semibold text-gray-300">{stats.avgAssists.toFixed(1)}</span>
@@ -546,7 +549,7 @@ export default function PerformancePage() {
                 <div className="space-y-6">
                   {/* Trend Chart */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 relative">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
               {playerId && (
                 <InsightBadge
                   elementType="trend-chart"
@@ -586,9 +589,9 @@ export default function PerformancePage() {
                   {/* Charts Grid */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Radar Chart - Compact */}
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xl font-semibold">Profilo Performance</h3>
+                <h3 className={`text-xl font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Profilo Performance</h3>
                 <span className="text-xs text-gray-400">Multi-dimensionale</span>
               </div>
               {radarData.length > 0 ? (
@@ -623,8 +626,8 @@ export default function PerformancePage() {
 
                 {/* Additional Metrics Bar Chart */}
                 {stats.advanced && (
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                    <h3 className="text-xl font-semibold mb-3">Metriche Chiave</h3>
+                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                    <h3 className={`text-xl font-semibold mb-3 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Metriche Chiave</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={[
                     { name: 'Last Hits', value: stats.advanced.lane.avgLastHits },
@@ -654,12 +657,12 @@ export default function PerformancePage() {
               {/* Focus Areas Tab - Risponde a "Cosa devo migliorare PRIMA?" */}
               {activeTab === 'focus' && (
                 <div className="space-y-6">
-                  <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-700 rounded-lg p-6">
-                    <h2 className="text-2xl font-semibold text-red-300 mb-2 flex items-center gap-2">
+                  <div className={`${hasBackground ? 'bg-red-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-red-900/30 to-orange-900/30'} border border-red-700 rounded-lg p-6`}>
+                    <h2 className={`text-2xl font-semibold ${hasBackground ? 'text-red-200 drop-shadow-sm' : 'text-red-300'} mb-2 flex items-center gap-2`}>
                       <Target className="w-6 h-6" />
                       Focus Areas - Priorità di Miglioramento
                     </h2>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className={`text-sm mb-4 ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'}`}>
                       Le 3 aree su cui concentrarti per massimizzare il tuo impatto
                     </p>
                   
@@ -868,17 +871,17 @@ export default function PerformancePage() {
                             : area.current >= area.target * 0.9 // 90% del target = buono
                           
                           return (
-                            <div key={idx} className="bg-gray-800/50 border border-gray-700 rounded-lg p-5 hover:border-red-500 transition-colors">
+                            <div key={idx} className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} border border-gray-700 rounded-lg p-4 hover:border-red-500 transition-colors`}>
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                   <div className={`p-2 rounded-lg ${isGood ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
                                     <area.icon className={`w-5 h-5 ${isGood ? 'text-green-400' : 'text-red-400'}`} />
                                   </div>
                                   <div>
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <h3 className={`text-lg font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} flex items-center gap-2`}>
                                       #{idx + 1} {area.area}
                                     </h3>
-                                    <p className="text-sm text-gray-400 mt-1">{area.action}</p>
+                                    <p className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mt-1`}>{area.action}</p>
                                   </div>
                                 </div>
                                 <div className="text-right">
@@ -919,8 +922,8 @@ export default function PerformancePage() {
                   </div>
                   
                   {/* Link a Profiling per analisi dettagliata */}
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                    <p className="text-sm text-gray-400">
+                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                    <p className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'}`}>
                       💡 Per un'analisi completa con raccomandazioni dettagliate, visita la sezione{' '}
                       <Link href="/dashboard/coaching-insights" className="text-red-400 hover:text-red-300 underline">
                         Coaching & Insights

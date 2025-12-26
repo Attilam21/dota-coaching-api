@@ -766,7 +766,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Tabs */}
-          <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-2`}>
+          <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },

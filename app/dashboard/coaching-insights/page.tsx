@@ -12,6 +12,7 @@ import AISuggestionCard from '@/components/AISuggestionCard'
 import { buildAISuggestion } from '@/lib/insight-utils'
 import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon, Lightbulb, AlertTriangle, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
 
 interface MetaComparison {
   role: string
@@ -84,6 +85,8 @@ export default function CoachingInsightsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const { backgroundUrl } = useBackgroundPreference()
+  const hasBackground = !!backgroundUrl
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [metaData, setMetaData] = useState<MetaComparison | null>(null)
   const [winConditions, setWinConditions] = useState<any>(null)
@@ -415,7 +418,7 @@ export default function CoachingInsightsPage() {
       {!isLoading && (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg">
+          <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -445,7 +448,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Profile Overview */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
                       <InsightBadge
                         elementType="role"
                         elementId="role"
@@ -465,7 +468,7 @@ export default function CoachingInsightsPage() {
                         </span>
                       </p>
                     </div>
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 relative">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
                       <InsightBadge
                         elementType="playstyle"
                         elementId="playstyle"
@@ -480,13 +483,13 @@ export default function CoachingInsightsPage() {
 
                   {/* Trends */}
                   {profile.trends && (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-                      <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                      <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
                         <TrendingUp className="w-5 h-5" />
                         Trend Performance
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-400">GPM Trend</span>
                             <span className={`text-lg font-bold ${
@@ -503,7 +506,7 @@ export default function CoachingInsightsPage() {
                           </p>
                         </div>
                         {profile.trends.xpm && (
-                          <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                          <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm text-gray-400">XPM Trend</span>
                               <span className={`text-lg font-bold ${
@@ -520,7 +523,7 @@ export default function CoachingInsightsPage() {
                             </p>
                           </div>
                         )}
-                        <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-400">KDA Trend</span>
                             <span className={`text-lg font-bold ${
@@ -536,7 +539,7 @@ export default function CoachingInsightsPage() {
                             {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs media 5 partite precedenti
                           </p>
                         </div>
-                        <div className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative">
+                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-400">Winrate Trend</span>
                             <span className={`text-lg font-bold ${
@@ -559,7 +562,7 @@ export default function CoachingInsightsPage() {
                   {/* Key Metrics */}
                   {profile.metrics && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors">
+                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors`}>
                         <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
                         <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
                       </div>
@@ -613,7 +616,7 @@ export default function CoachingInsightsPage() {
                       </div>
 
                       {/* Key Metrics Comparison */}
-                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                         <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
                           <BarChart3 className="w-6 h-6" />
                           Confronto Performance vs Meta
@@ -622,7 +625,7 @@ export default function CoachingInsightsPage() {
                           {Object.entries(metaData.comparisons).map(([metric, comp]) => (
                             <div
                               key={metric}
-                              className="bg-gray-700/50 rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors"
+                              className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors`}
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
@@ -661,7 +664,7 @@ export default function CoachingInsightsPage() {
 
                       {/* AI Insights for Improvement Areas */}
                       {metaData.aiInsights && metaData.aiInsights.length > 0 && (
-                        <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                           <div className="flex items-center gap-3 mb-6">
                             <AlertCircle className="w-6 h-6 text-orange-400" />
                             <h2 className="text-2xl font-semibold">Aree di Miglioramento Prioritario</h2>
@@ -781,14 +784,14 @@ export default function CoachingInsightsPage() {
                       </div>
                     </>
                   ) : loadingWinConditions ? (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                       <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                         <p className="mt-4 text-gray-400">Analisi pattern di vittoria in corso...</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                       <div className="text-center py-8">
                         <p className="text-gray-400">Carica i dati per visualizzare l'analisi Win Conditions</p>
                       </div>
@@ -802,7 +805,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Strengths */}
                   {profile.strengths && profile.strengths.length > 0 && (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-green-700 rounded-lg p-6">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-green-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <CheckCircle2 className="w-6 h-6 text-green-400" />
                         <h2 className="text-2xl font-semibold">Punti di Forza</h2>
@@ -819,7 +822,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Weaknesses */}
                   {profile.weaknesses && profile.weaknesses.length > 0 && (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-orange-700 rounded-lg p-6">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-orange-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <AlertTriangle className="w-6 h-6 text-orange-400" />
                         <h2 className="text-2xl font-semibold">Aree di Miglioramento</h2>
@@ -836,7 +839,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Recommendations */}
                   {profile.recommendations && profile.recommendations.length > 0 && (
-                    <div className="bg-gray-800/90 backdrop-blur-sm border border-blue-700 rounded-lg p-6">
+                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-blue-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <Lightbulb className="w-6 h-6 text-blue-400" />
                         <h2 className="text-2xl font-semibold">Raccomandazioni Personalizzate</h2>
