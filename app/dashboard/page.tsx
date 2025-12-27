@@ -586,7 +586,7 @@ export default function DashboardPage() {
             
             {/* Timestamp ultimo aggiornamento */}
             {lastUpdate && !isRefreshing && (
-              <span className="text-xs text-gray-400 hidden md:block">
+              <span className={`text-xs ${styles.textSecondary} hidden md:block`}>
                 Aggiornato {formatLastUpdate(lastUpdate)}
               </span>
             )}
@@ -619,7 +619,7 @@ export default function DashboardPage() {
         <div className="flex-shrink-0" data-tour="settings-button">
           <Link
             href="/dashboard/settings"
-            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white rounded-lg font-medium transition-all duration-200"
+            className={`inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 ${styles.textSecondary} hover:text-white rounded-lg font-medium transition-all duration-200`}
             title="Impostazioni"
           >
             <Settings className="w-4 h-4" />
@@ -665,7 +665,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="mb-4 bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
-          <p className="text-gray-400">Accedi per sbloccare il Percorso</p>
+          <p className={styles.textSecondary}>Accedi per sbloccare il Percorso</p>
         </div>
       )}
 
@@ -758,7 +758,7 @@ export default function DashboardPage() {
                             />
                           ) : (
                             <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center">
-                              <span className="text-xs text-gray-400 font-bold">{hero.hero_id}</span>
+                              <span className={`text-xs ${styles.textSecondary} font-bold`}>{hero.hero_id}</span>
                             </div>
                           )}
                           <div className="text-center w-full">
@@ -777,7 +777,7 @@ export default function DashboardPage() {
 
                         {/* Stats */}
                         <div className="text-center mb-1.5">
-                          <div className="text-[10px] text-gray-300 leading-tight">
+                          <div className={`text-[10px] ${styles.textSecondary} leading-tight`}>
                             {hero.games}p • {hero.wins}W/{hero.games - hero.wins}L
                           </div>
                         </div>
@@ -794,7 +794,7 @@ export default function DashboardPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500 py-4">Nessun dato hero disponibile</div>
+                <div className={`text-sm ${styles.textMuted} py-4`}>Nessun dato hero disponibile</div>
               )}
             </div>
 
@@ -820,8 +820,8 @@ export default function DashboardPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -849,15 +849,15 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="text-gray-400">Ultime 5 partite: </span>
+                    <span className={styles.textSecondary}>Ultime 5 partite: </span>
                     <span className="font-bold">{(stats.kda?.last5 ?? 0).toFixed(2)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400">Ultime 10 partite: </span>
+                    <span className={styles.textSecondary}>Ultime 10 partite: </span>
                     <span className="font-bold">{(stats.kda?.last10 ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="pt-2 border-t border-gray-700">
-                    <span className="text-gray-400">Delta: </span>
+                    <span className={styles.textSecondary}>Delta: </span>
                     {(stats.kda?.delta ?? 0) > 0.5 ? (
                       <motion.span 
                         className={`font-bold ${(stats.kda?.delta ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}
@@ -873,7 +873,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-4">KDA = (Kill + Assist) / Death</p>
+                <p className={`text-xs ${styles.textMuted} mt-4`}>KDA = (Kill + Assist) / Death</p>
               </AnimatedCard>
 
               {/* Farm Trend Card */}
@@ -882,24 +882,24 @@ export default function DashboardPage() {
                 <div className="space-y-3 text-sm">
                   <div className="space-y-1">
                     <div>
-                      <span className="text-gray-400">Ultime 5 partite: </span>
+                      <span className={styles.textSecondary}>Ultime 5 partite: </span>
                       <span className="font-bold text-yellow-400">{(stats.farm?.gpm?.last5 ?? 0).toFixed(0)}</span>
                       <span className="text-gray-500 text-xs ml-1">GPM</span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Ultime 10 partite: </span>
-                      <span className="font-bold text-gray-300">{(stats.farm?.gpm?.last10 ?? 0).toFixed(0)}</span>
+                      <span className={styles.textSecondary}>Ultime 10 partite: </span>
+                      <span className={`font-bold ${styles.textSecondary}`}>{(stats.farm?.gpm?.last10 ?? 0).toFixed(0)}</span>
                       <span className="text-gray-500 text-xs ml-1">GPM</span>
                     </div>
                   </div>
                   <div className="space-y-1 pt-2 border-t border-gray-700">
                     <div>
-                      <span className="text-gray-400">Ultime 5 partite: </span>
+                      <span className={styles.textSecondary}>Ultime 5 partite: </span>
                       <span className="font-bold text-blue-400">{(stats.farm?.xpm?.last5 ?? 0).toFixed(0)}</span>
                       <span className="text-gray-500 text-xs ml-1">XPM</span>
                     </div>
                     <div>
-                      <span className="text-gray-400">Ultime 10 partite: </span>
+                      <span className={styles.textSecondary}>Ultime 10 partite: </span>
                       <span className="font-bold text-gray-300">{(stats.farm?.xpm?.last10 ?? 0).toFixed(0)}</span>
                       <span className="text-gray-500 text-xs ml-1">XPM</span>
                     </div>
