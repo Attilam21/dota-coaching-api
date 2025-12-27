@@ -209,7 +209,7 @@ export default function PredictionsPage() {
       </div>
 
       {/* Top Patterns - Most Important */}
-      <div className={`${styles.card} p-6`}>
+      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Target className="w-6 h-6 text-cyan-400" />
@@ -285,7 +285,7 @@ export default function PredictionsPage() {
       </div>
 
       {/* Recommendations by Category */}
-      <div className={`${styles.card} p-6`}>
+      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-cyan-400" />
           Recommendations per Categoria

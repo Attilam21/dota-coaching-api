@@ -189,7 +189,7 @@ export default function ImprovementPathPage() {
 
         {/* Current Stats */}
         {data.currentStats && (
-          <div className={`${styles.card} p-6`}>
+          <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
             <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
               <Target className="w-5 h-5 text-cyan-400" />
               Le Tue Statistiche Attuali
@@ -404,7 +404,7 @@ export default function ImprovementPathPage() {
       </div>
 
       {/* Meta Comparison */}
-      <div className={`${styles.card} p-6`}>
+      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
         <h2 className={`text-xl font-bold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
           <TrendingUp className="w-6 h-6 text-cyan-400" />
           Confronto con Meta ({data.metaComparison.role})
