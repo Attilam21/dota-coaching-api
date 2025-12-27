@@ -803,7 +803,7 @@ export default function CoachingInsightsPage() {
 
                         {/* AI Insight */}
                         {winConditions.aiInsight && (
-                          <div className="bg-gray-800/70 rounded-lg p-5 border border-green-600/30">
+                          <div className={`${styles.cardSubtle} p-5 border border-green-600/30`}>
                             <div className="flex items-center gap-2 mb-3">
                               <Zap className="w-5 h-5 text-yellow-400" />
                               <h3 className="text-lg font-semibold text-yellow-300">Insight AI: Pattern di Vittoria</h3>
