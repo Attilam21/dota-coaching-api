@@ -1349,8 +1349,8 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {/* Link to Full Matches Page */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 text-center`}>
-                      <h3 className={`text-xl font-semibold mb-3 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Partite</h3>
+                    <div className={`${styles.card} p-6 text-center`}>
+                      <h3 className={`text-xl font-semibold mb-3 ${styles.textPrimary}`}>Partite</h3>
                       <p className="text-gray-400 mb-4">Visualizza tutte le tue partite con analisi dettagliate</p>
                       <Link
                         href="/dashboard/matches"
@@ -1362,8 +1362,8 @@ export default function DashboardPage() {
                   )}
 
                   {/* Quick Links - Semplificato, solo link essenziali */}
-                  <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gradient-to-r from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-6`}>
-                    <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gradient-to-r from-gray-800 to-gray-900'} border border-gray-700 rounded-lg p-6`}>
+                    <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <Search className="w-5 h-5" />
                       Analisi Approfondite
                     </h3>
