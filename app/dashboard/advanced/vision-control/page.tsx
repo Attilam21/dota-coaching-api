@@ -110,11 +110,11 @@ export default function VisionControlPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
       <div className="mb-6">
-        <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+        <Link href="/dashboard/advanced" className={`${styles.textLink} text-sm mb-4 inline-block`}>
           ← Torna alle Analisi Avanzate
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Vision & Map Control</h1>
-        <p className="text-gray-400 mb-6">Analisi di visione, wards e controllo mappa</p>
+        <p className={`${styles.textSecondary} mb-6`}>Analisi di visione, wards e controllo mappa</p>
       </div>
 
       {error && (
@@ -126,7 +126,7 @@ export default function VisionControlPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento analisi vision & map control...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento analisi vision & map control...</p>
         </div>
       )}
 
@@ -144,8 +144,8 @@ export default function VisionControlPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -162,9 +162,9 @@ export default function VisionControlPage() {
                   {/* Overview Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Observer Placed</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Observer Placed</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.vision.avgObserverPlaced.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">Observer wards per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Observer wards per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Deward Efficiency</h3>
@@ -213,7 +213,7 @@ export default function VisionControlPage() {
                       <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Dettagliate</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Sentry Placed</span>
+                          <span className={styles.textSecondary}>Sentry Placed</span>
                           <span className="font-bold">{stats.vision.avgSentryPlaced.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">

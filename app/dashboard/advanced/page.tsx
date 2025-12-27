@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
 import { Target, Coins, Sword, Map } from 'lucide-react'
@@ -14,6 +15,7 @@ import { motion } from 'framer-motion'
 export default function AdvancedPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const styles = useDashboardStyles()
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -102,7 +104,7 @@ export default function AdvancedPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-2">{card.title}</h3>
-                <p className="text-gray-400 text-sm">{card.description}</p>
+                <p className={`${styles.textSecondary} text-sm`}>{card.description}</p>
               </div>
             </div>
             </Link>
@@ -112,7 +114,7 @@ export default function AdvancedPage() {
 
         <AnimatedCard delay={0.6} className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
           <h2 className="text-2xl font-semibold mb-4">Analisi Approfondite</h2>
-          <p className="text-gray-400 mb-4">
+          <p className={`${styles.textSecondary} mb-4`}>
             Le analisi avanzate forniscono metriche dettagliate e visualizzazioni approfondite delle tue performance di gioco.
           </p>
           <div className="flex gap-4">
