@@ -175,7 +175,7 @@ export default function PredictionsPage() {
       </div>
 
       {/* Impact Score Card - WOW Factor */}
-      <div className={`${styles.card} border-cyan-500/50 rounded-xl p-6 shadow-lg shadow-cyan-500/20`}>
+      <div className={`${styles.hasBackground ? 'bg-cyan-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-cyan-900/30 via-blue-900/30 to-purple-900/30'} border border-cyan-500/50 rounded-xl p-6 shadow-lg shadow-cyan-500/20`}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold mb-1">Impact Score</h2>
@@ -257,7 +257,7 @@ export default function PredictionsPage() {
       <div className="grid md:grid-cols-2 gap-4">
         <Link
           href="/dashboard/predictions/improvement-path"
-          className={`${styles.card} border-cyan-500/50 rounded-lg p-6 hover:border-cyan-400 transition-all group`}
+          className={`${styles.hasBackground ? 'bg-cyan-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-cyan-900/30 to-blue-900/30'} border border-cyan-500/50 rounded-lg p-6 hover:border-cyan-400 transition-all group`}
         >
           <div className="flex items-center justify-between mb-3">
             <Route className="w-8 h-8 text-cyan-400 group-hover:scale-110 transition-transform" />
@@ -271,7 +271,7 @@ export default function PredictionsPage() {
 
         <Link
           href="/dashboard/predictions/what-if"
-          className={`${styles.card} border-purple-500/50 rounded-lg p-6 hover:border-purple-400 transition-all group`}
+          className={`${styles.hasBackground ? 'bg-purple-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-purple-900/30 to-pink-900/30'} border border-purple-500/50 rounded-lg p-6 hover:border-purple-400 transition-all group`}
         >
           <div className="flex items-center justify-between mb-3">
             <TrendingUp className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
