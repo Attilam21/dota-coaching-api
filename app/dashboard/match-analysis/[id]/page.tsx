@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter, useParams } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import Link from 'next/link'
 import HelpButton from '@/components/HelpButton'
@@ -413,7 +414,7 @@ export default function MatchAnalysisDetailPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <Link href="/dashboard/matches" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+      <Link href="/dashboard/matches" className={`${styles.textLink} text-sm mb-4 inline-block`}>
         ← Torna a Partite
       </Link>
 
@@ -423,16 +424,16 @@ export default function MatchAnalysisDetailPage() {
           {/* Left Side - Match Info */}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-white">Analisi Partita</h1>
-              <span className="text-lg md:text-xl text-gray-400 font-mono">#{matchId}</span>
+              <h1 className={`text-2xl md:text-3xl font-bold ${styles.textPrimary}`}>Analisi Partita</h1>
+              <span className={`text-lg md:text-xl ${styles.textSecondary} font-mono`}>#{matchId}</span>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+            <div className={`flex flex-wrap items-center gap-4 text-sm ${styles.textSecondary}`}>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <span>Durata: <span className="font-semibold text-white">{formatDuration(match.duration)}</span></span>
+                <Clock className={`w-4 h-4 ${styles.textSecondary}`} />
+                <span>Durata: <span className={`font-semibold ${styles.textPrimary}`}>{formatDuration(match.duration)}</span></span>
               </div>
               <div className="flex items-center gap-2">
-                <Timer className="w-4 h-4 text-gray-400" />
+                <Timer className={`w-4 h-4 ${styles.textSecondary}`} />
                 <span>{formatDate(match.start_time)}</span>
               </div>
             </div>
@@ -445,7 +446,7 @@ export default function MatchAnalysisDetailPage() {
             </div>
             <div className="flex items-center gap-4 text-4xl font-bold">
               <span className="text-green-400">{match.radiant_score || 0}</span>
-              <span className="text-gray-500 text-2xl">-</span>
+              <span className={`${styles.textMuted} text-2xl`}>-</span>
               <span className="text-red-400">{match.dire_score || 0}</span>
             </div>
           </div>
@@ -461,8 +462,8 @@ export default function MatchAnalysisDetailPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                 activeTab === tab.id
-                  ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-gray-700 border-b-2 border-red-500'
+                  : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -496,8 +497,8 @@ export default function MatchAnalysisDetailPage() {
                       const comparison = getComparison(metric.current, metric.avg)
                       return (
                         <div key={metric.label} className="bg-gray-800/50 rounded-lg p-4">
-                          <div className="text-sm text-gray-400 mb-1">{metric.label}</div>
-                          <div className="text-2xl font-bold text-white mb-1">{metric.current.toFixed(metric.label === 'KDA' ? 2 : 0)}</div>
+                          <div className={`text-sm ${styles.textSecondary} mb-1`}>{metric.label}</div>
+                          <div className={`text-2xl font-bold ${styles.textPrimary} mb-1`}>{metric.current.toFixed(metric.label === 'KDA' ? 2 : 0)}</div>
                           {comparison && (
                             <div className={`text-sm font-semibold flex items-center gap-1 ${comparison.isBetter ? 'text-green-400' : 'text-red-400'}`}>
                               vs media: {metric.avg.toFixed(metric.label === 'KDA' ? 2 : 0)} ({comparison.isBetter ? '+' : ''}{comparison.percent}% {comparison.isBetter ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />})
@@ -513,7 +514,7 @@ export default function MatchAnalysisDetailPage() {
               {/* Players Table */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
                 <div className="px-6 py-4 bg-gray-700 border-b border-gray-600">
-                  <h2 className="text-xl md:text-2xl font-semibold text-white">Performance Giocatori</h2>
+                  <h2 className={`text-xl md:text-2xl font-semibold ${styles.textPrimary}`}>Performance Giocatori</h2>
                 </div>
                 
                 {/* Radiant Team */}
@@ -546,11 +547,11 @@ export default function MatchAnalysisDetailPage() {
                                 <span className="font-medium text-white">{getHeroName(player.hero_id)}</span>
                               </div>
                             </td>
-                            <td className="py-2 font-semibold text-gray-300">
+                            <td className={`py-2 font-semibold ${styles.textSecondary}`}>
                               {player.kills}/{player.deaths}/{player.assists}
                             </td>
-                            <td className="py-2 text-gray-300">{player.last_hits}/{player.denies}</td>
-                            <td className="py-2 text-gray-300">{player.gold_per_min}</td>
+                            <td className={`py-2 ${styles.textSecondary}`}>{player.last_hits}/{player.denies}</td>
+                            <td className={`py-2 ${styles.textSecondary}`}>{player.gold_per_min}</td>
                             <td className="py-2 text-gray-300">{player.xp_per_min}</td>
                             {player.net_worth && <td className="py-2 text-gray-300">{player.net_worth.toLocaleString()}</td>}
                           </tr>
