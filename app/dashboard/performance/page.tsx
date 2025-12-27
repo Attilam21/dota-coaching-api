@@ -184,7 +184,9 @@ export default function PerformancePage() {
         setError(err instanceof Error ? err.message : 'Failed to load performance data')
       }
     } finally {
-      setLoading(false)
+      if (!abortSignal?.aborted) {
+        setLoading(false)
+      }
     }
   }, [playerId])
 
