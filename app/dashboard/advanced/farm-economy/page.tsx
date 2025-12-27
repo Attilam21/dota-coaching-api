@@ -177,9 +177,9 @@ export default function FarmEconomyPage() {
               <p className={`text-xs ${styles.textMuted} mt-2`}>Gold per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">XPM Medio</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</p>
-              <p className="text-xs text-gray-500 mt-2">XP per minuto</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>XP per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Gold Utilization</h3>
@@ -224,31 +224,31 @@ export default function FarmEconomyPage() {
                       <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Farm & Economy</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">GPM Medio</span>
+                          <span className={styles.textSecondary}>GPM Medio</span>
                           <span className="font-bold text-yellow-400">{stats.farm.avgGPM.toFixed(0)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">XPM Medio</span>
+                          <span className={styles.textSecondary}>XPM Medio</span>
                           <span className="font-bold text-blue-400">{stats.farm.avgXPM.toFixed(0)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Net Worth Medio</span>
+                          <span className={styles.textSecondary}>Net Worth Medio</span>
                           <span className="font-bold">{Math.round(stats.farm.avgNetWorth).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Gold Utilization</span>
+                          <span className={styles.textSecondary}>Gold Utilization</span>
                           <span className="font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Buyback Medio</span>
+                          <span className={styles.textSecondary}>Buyback Medio</span>
                           <span className="font-bold">{stats.farm.avgBuybacks.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Buyback Usage</span>
+                          <span className={styles.textSecondary}>Buyback Usage</span>
                           <span className="font-bold">{stats.farm.buybackUsageRate.toFixed(1)}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Buyback Efficiency</span>
+                          <span className={styles.textSecondary}>Buyback Efficiency</span>
                           <span className="font-bold text-purple-400">{stats.farm.buybackEfficiency}%</span>
                         </div>
                       </div>
@@ -298,7 +298,7 @@ export default function FarmEconomyPage() {
                 <div className="space-y-6">
                   {/* Grafici Section */}
                   <div>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">Grafici</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-6 ${styles.textPrimary}`}>Grafici</h2>
                     <div className="space-y-6">
                       {/* GPM/XPM Trend Chart */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
@@ -354,7 +354,7 @@ export default function FarmEconomyPage() {
 
       {!stats && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Nessun dato disponibile per l'analisi farm & economy</p>
+          <p className={styles.textSecondary}>Nessun dato disponibile per l'analisi farm & economy</p>
         </div>
       )}
     </div>
