@@ -255,7 +255,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             style={{
               backgroundImage: `url('${backgroundUrl}')`,
               backgroundColor: '#111827',
-              left: isSidebarOpen ? '256px' : '0px'
             }}
           >
             {/* Dark overlay for better text readability */}

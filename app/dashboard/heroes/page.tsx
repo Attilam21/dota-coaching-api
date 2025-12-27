@@ -12,6 +12,7 @@ import HeroCard from '@/components/HeroCard'
 import HeroIcon from '@/components/HeroIcon'
 import { BarChart as BarChartIcon, Table, Target, TrendingUp, Users, CheckCircle, AlertCircle, Grid3x3, List, ArrowUpDown } from 'lucide-react'
 import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 
 interface HeroStats {
   hero_id: number
@@ -49,8 +50,7 @@ export default function HeroesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
-  const { backgroundUrl } = useBackgroundPreference()
-  const hasBackground = !!backgroundUrl
+  const styles = useDashboardStyles()
   const [heroStats, setHeroStats] = useState<HeroStats[]>([])
   const [analysisData, setAnalysisData] = useState<HeroAnalysisData | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
@@ -212,7 +212,7 @@ export default function HeroesPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento statistiche heroes...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento statistiche heroes...</p>
         </div>
       )}
 
@@ -220,21 +220,21 @@ export default function HeroesPage() {
         <div className="space-y-6">
           {/* Hero Pool Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-              <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Heroes Totali</h3>
-              <p className={`text-2xl font-bold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>{analysisData?.overall.totalHeroesPlayed || heroStats.length}</p>
-              <p className="text-xs text-gray-500 mt-1">Heroes giocati</p>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Heroes Totali</h3>
+              <p className={`text-2xl font-bold ${styles.textPrimary}`}>{analysisData?.overall.totalHeroesPlayed || heroStats.length}</p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Heroes giocati</p>
             </div>
             {analysisData && (
               <>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Heroes per Ruolo</h3>
-                  <p className={`text-2xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'}`}>{Object.keys(analysisData.roleStats).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Ruoli diversi giocati</p>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Heroes per Ruolo</h3>
+                  <p className="text-2xl font-bold text-blue-400">{Object.keys(analysisData.roleStats).length}</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>Ruoli diversi giocati</p>
                 </div>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Ruolo Preferito</h3>
-                  <p className={`text-lg font-bold ${hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'}`}>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Preferito</h3>
+                  <p className="text-lg font-bold text-yellow-400">
                     {(() => {
                       const roleEntries = Object.entries(analysisData.roleStats)
                       if (roleEntries.length === 0) return 'N/A'
@@ -242,26 +242,26 @@ export default function HeroesPage() {
                       return mostPlayedRole[0].charAt(0).toUpperCase() + mostPlayedRole[0].slice(1)
                     })()}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Più giocato</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>Più giocato</p>
                 </div>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Pool Completo?</h3>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Pool Completo?</h3>
                   <p className={`text-2xl font-bold ${
-                    analysisData.overall.diverseHeroes >= 12 ? (hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400') :
-                    analysisData.overall.diverseHeroes >= 8 ? (hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400') :
-                    (hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400')
+                    analysisData.overall.diverseHeroes >= 12 ? 'text-green-400' :
+                    analysisData.overall.diverseHeroes >= 8 ? 'text-yellow-400' :
+                    'text-red-400'
                   }`}>
                     {analysisData.overall.diverseHeroes >= 12 ? '✓' : analysisData.overall.diverseHeroes >= 8 ? '~' : '✗'}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{analysisData.overall.diverseHeroes} heroes con 5+ partite</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>{analysisData.overall.diverseHeroes} heroes con 5+ partite</p>
                 </div>
               </>
             )}
             {!analysisData && (
               <>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>KDA Medio</h3>
-                  <p className={`text-2xl font-bold ${hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400'}`}>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
+                  <p className="text-2xl font-bold text-red-400">
                     {(() => {
                       const validKDA = heroStats.filter(h => {
                         if (!h.kda) return false
@@ -274,11 +274,11 @@ export default function HeroesPage() {
                       return isNaN(avg) ? '0.00' : avg.toFixed(2)
                     })()}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
                 </div>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>GPM Medio</h3>
-                  <p className={`text-2xl font-bold ${hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'}`}>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
+                  <p className="text-2xl font-bold text-yellow-400">
                     {(() => {
                       const validGPM = heroStats.filter(h => {
                         if (!h.avg_gpm) return false
@@ -291,11 +291,11 @@ export default function HeroesPage() {
                       return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
                     })()}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
                 </div>
-                <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                  <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>XPM Medio</h3>
-                  <p className={`text-2xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'}`}>
+                <div className={`${styles.card} p-4`}>
+                  <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
+                  <p className="text-2xl font-bold text-blue-400">
                     {(() => {
                       const validXPM = heroStats.filter(h => {
                         if (!h.avg_xpm) return false
@@ -308,13 +308,13 @@ export default function HeroesPage() {
                       return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
                     })()}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+                  <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
                 </div>
               </>
             )}
-            <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-              <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>KDA Medio</h3>
-              <p className={`text-2xl font-bold ${hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400'}`}>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
+              <p className="text-2xl font-bold text-red-400">
                 {(() => {
                   const validKDA = heroStats.filter(h => {
                     if (!h.kda) return false
@@ -327,11 +327,11 @@ export default function HeroesPage() {
                   return isNaN(avg) ? '0.00' : avg.toFixed(2)
                 })()}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
             </div>
-            <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-              <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>GPM Medio</h3>
-              <p className={`text-2xl font-bold ${hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'}`}>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
+              <p className="text-2xl font-bold text-yellow-400">
                 {(() => {
                   const validGPM = heroStats.filter(h => {
                     if (!h.avg_gpm) return false
@@ -344,11 +344,11 @@ export default function HeroesPage() {
                   return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
                 })()}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
             </div>
-            <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-              <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>XPM Medio</h3>
-              <p className={`text-2xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'}`}>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
+              <p className="text-2xl font-bold text-blue-400">
                 {(() => {
                   const validXPM = heroStats.filter(h => {
                     if (!h.avg_xpm) return false
@@ -361,12 +361,12 @@ export default function HeroesPage() {
                   return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
                 })()}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Media su tutti gli heroes</p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
+          <div className={`${styles.tabContainer} mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'chart' as TabType, name: 'Grafico', icon: BarChartIcon },
@@ -394,7 +394,7 @@ export default function HeroesPage() {
               {activeTab === 'chart' && (
                 <div className="space-y-6">
                   {/* Winrate Chart */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 relative`}>
+                  <div className={`${styles.card} p-6 relative`}>
                     {playerId && (
                       <InsightBadge
                         elementType="trend-chart"
@@ -404,7 +404,7 @@ export default function HeroesPage() {
                         position="top-right"
                       />
                     )}
-                    <h2 className={`text-2xl font-semibold mb-4 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Winrate per Hero</h2>
+                    <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>Winrate per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -425,8 +425,8 @@ export default function HeroesPage() {
 
 
                   {/* GPM/XPM Chart */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                    <h2 className={`text-2xl font-semibold mb-4 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>GPM e XPM per Hero</h2>
+                  <div className={`${styles.card} p-6`}>
+                    <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>GPM e XPM per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <ComposedChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -448,8 +448,8 @@ export default function HeroesPage() {
                   </div>
 
                   {/* KDA Chart */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                    <h2 className={`text-2xl font-semibold mb-4 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>KDA per Hero</h2>
+                  <div className={`${styles.card} p-6`}>
+                    <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>KDA per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -474,8 +474,8 @@ export default function HeroesPage() {
               {activeTab === 'analysis' && analysisData && (
                 <div className="space-y-6">
                   {/* Diversity & Role Coverage */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                  <div className={`${styles.card} p-6`}>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <Users className="w-5 h-5" />
                       Diversità & Copertura Ruoli
                     </h2>
@@ -493,9 +493,9 @@ export default function HeroesPage() {
                               const percentage = ((stats.games / totalGames) * 100).toFixed(1)
                               
                               return (
-                                <div key={role} className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                                <div key={role} className={`${styles.cardSubtle} p-4 hover:border-blue-500 transition-colors`}>
                                   <div className="mb-3">
-                                    <span className={`font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} capitalize text-sm`}>{role}</span>
+                                    <span className={`font-semibold ${styles.textPrimary} capitalize text-sm`}>{role}</span>
                                   </div>
                                   
                                   <div className="space-y-2">
@@ -536,8 +536,8 @@ export default function HeroesPage() {
                   </div>
 
                   {/* Specialization Analysis */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                  <div className={`${styles.card} p-6`}>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <TrendingUp className="w-5 h-5" />
                       Analisi Specializzazione
                     </h2>
@@ -548,16 +548,16 @@ export default function HeroesPage() {
                       
                       return (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className={`${hasBackground ? 'bg-green-900/40 backdrop-blur-sm' : 'bg-green-900/30'} border border-green-700 rounded-lg p-4`}>
-                            <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Ruolo con Miglior Winrate</h3>
-                            <p className={`text-2xl font-bold ${hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'} capitalize`}>{bestWinrateRole[0]}</p>
+                          <div className="bg-green-900/40 backdrop-blur-sm border border-green-700 rounded-lg p-4">
+                            <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo con Miglior Winrate</h3>
+                            <p className="text-2xl font-bold text-green-400 capitalize">{bestWinrateRole[0]}</p>
                             <p className="text-sm text-gray-400 mt-1">
                               {bestWinrateRole[1].winrate.toFixed(1)}% su {bestWinrateRole[1].games} partite
                             </p>
                           </div>
-                          <div className={`${hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-blue-900/30'} border border-blue-700 rounded-lg p-4`}>
-                            <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Ruolo Più Giocato</h3>
-                            <p className={`text-2xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'} capitalize`}>{mostPlayedRole[0]}</p>
+                          <div className="bg-blue-900/40 backdrop-blur-sm border border-blue-700 rounded-lg p-4">
+                            <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Più Giocato</h3>
+                            <p className="text-2xl font-bold text-blue-400 capitalize">{mostPlayedRole[0]}</p>
                             <p className="text-sm text-gray-400 mt-1">
                               {mostPlayedRole[1].games} partite ({((mostPlayedRole[1].games / analysisData.overall.totalGames) * 100).toFixed(1)}% del totale)
                             </p>
@@ -566,8 +566,8 @@ export default function HeroesPage() {
                       )
                     })()}
                     {analysisData.overall.diverseHeroes < 12 && (
-                      <div className={`mt-4 ${hasBackground ? 'bg-yellow-900/40 backdrop-blur-sm' : 'bg-yellow-900/30'} border border-yellow-700 rounded-lg p-4`}>
-                        <p className={`${hasBackground ? 'text-yellow-200 drop-shadow-sm' : 'text-yellow-300'} text-sm`}>
+                      <div className="mt-4 bg-yellow-900/40 backdrop-blur-sm border border-yellow-700 rounded-lg p-4">
+                        <p className="text-yellow-200 drop-shadow-sm text-sm">
                           💡 <strong>Suggerimento:</strong> Hai {analysisData.overall.diverseHeroes} heroes con 5+ partite. 
                           Per un pool completo, considera di avere almeno 4-5 heroes per ruolo principale.
                         </p>
@@ -576,8 +576,8 @@ export default function HeroesPage() {
                   </div>
 
                   {/* Recommendations */}
-                  <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                  <div className={`${styles.card} p-6`}>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <Target className="w-5 h-5" />
                       Raccomandazioni
                     </h2>
@@ -591,7 +591,7 @@ export default function HeroesPage() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                           {analysisData.bestHeroes.slice(0, 6).map((hero) => (
-                            <div key={hero.hero_id} className={`${hasBackground ? 'bg-green-900/30 backdrop-blur-sm' : 'bg-green-900/20'} border border-green-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between`}>
+                            <div key={hero.hero_id} className="bg-green-900/30 backdrop-blur-sm border border-green-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between">
                               <div className="flex items-center gap-3 mb-3">
                                 <HeroIcon
                                   heroId={hero.hero_id}
@@ -600,12 +600,12 @@ export default function HeroesPage() {
                                   className="rounded flex-shrink-0"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <p className={`font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} text-base leading-tight`}>{hero.hero_name}</p>
-                                  <p className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mt-0.5`}>{hero.games} partite</p>
+                                  <p className={`font-semibold ${styles.textPrimary} text-base leading-tight`}>{hero.hero_name}</p>
+                                  <p className={`text-sm ${styles.textSecondary} mt-0.5`}>{hero.games} partite</p>
                                 </div>
-                                <span className={`${hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'} font-bold text-lg flex-shrink-0`}>{hero.winrate.toFixed(1)}%</span>
+                                <span className="text-green-400 font-bold text-lg flex-shrink-0">{hero.winrate.toFixed(1)}%</span>
                               </div>
-                              <p className={`text-sm ${hasBackground ? 'text-green-200 drop-shadow-sm' : 'text-green-300'}`}>Winrate eccellente - continua a giocarlo!</p>
+                              <p className="text-sm text-green-300">Winrate eccellente - continua a giocarlo!</p>
                             </div>
                           ))}
                         </div>
@@ -621,7 +621,7 @@ export default function HeroesPage() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                           {analysisData.worstHeroes.slice(0, 6).map((hero) => (
-                            <div key={hero.hero_id} className={`${hasBackground ? 'bg-red-900/30 backdrop-blur-sm' : 'bg-red-900/20'} border border-red-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between`}>
+                            <div key={hero.hero_id} className="bg-red-900/30 backdrop-blur-sm border border-red-700/50 rounded-lg p-4 min-h-[120px] flex flex-col justify-between">
                               <div className="flex items-center gap-3 mb-3">
                                 <HeroIcon
                                   heroId={hero.hero_id}
@@ -630,12 +630,12 @@ export default function HeroesPage() {
                                   className="rounded flex-shrink-0"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <p className={`font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} text-base leading-tight`}>{hero.hero_name}</p>
-                                  <p className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mt-0.5`}>{hero.games} partite</p>
+                                  <p className={`font-semibold ${styles.textPrimary} text-base leading-tight`}>{hero.hero_name}</p>
+                                  <p className={`text-sm ${styles.textSecondary} mt-0.5`}>{hero.games} partite</p>
                                 </div>
-                                <span className={`${hasBackground ? 'text-red-300 drop-shadow-sm' : 'text-red-400'} font-bold text-lg flex-shrink-0`}>{hero.winrate.toFixed(1)}%</span>
+                                <span className="text-red-400 font-bold text-lg flex-shrink-0">{hero.winrate.toFixed(1)}%</span>
                               </div>
-                              <p className={`text-sm ${hasBackground ? 'text-red-200 drop-shadow-sm' : 'text-red-300'}`}>Winrate bassa - pratica o evita in ranked</p>
+                              <p className="text-sm text-red-300">Winrate bassa - pratica o evita in ranked</p>
                             </div>
                           ))}
                         </div>
@@ -644,11 +644,11 @@ export default function HeroesPage() {
 
                     {/* Insights */}
                     {analysisData.insights.length > 0 && (
-                      <div className={`${hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-blue-900/30'} border border-blue-700 rounded-lg p-4`}>
-                        <h3 className={`text-lg font-semibold ${hasBackground ? 'text-blue-200 drop-shadow-sm' : 'text-blue-200'} mb-3`}>💡 Insights</h3>
+                      <div className="bg-blue-900/40 backdrop-blur-sm border border-blue-700 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-blue-200 drop-shadow-sm mb-3">💡 Insights</h3>
                         <ul className="space-y-2">
                           {analysisData.insights.map((insight, idx) => (
-                            <li key={idx} className={`${hasBackground ? 'text-blue-200 drop-shadow-sm' : 'text-blue-300'} text-sm flex items-start gap-2`}>
+                            <li key={idx} className="text-blue-200 drop-shadow-sm text-sm flex items-start gap-2">
                               <span className="text-blue-400 mt-1">→</span>
                               {insight}
                             </li>
