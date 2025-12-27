@@ -13,6 +13,10 @@ export const pageGuides: Record<string, PageGuide> = {
     description: 'Vista d\'insieme completa delle tue performance recenti con statistiche chiave, trend, hero pool, benchmark e accesso rapido a tutte le analisi.',
     sections: [
       {
+        title: 'Navigazione e Interfaccia',
+        content: 'La sidebar laterale può essere aperta/chiusa cliccando sul pulsante con le frecce in alto a sinistra. La preferenza viene salvata automaticamente. Quando la sidebar è chiusa, hai più spazio per visualizzare i contenuti. Il pulsante Help in alto a destra ti fornisce una guida specifica per ogni pagina.'
+      },
+      {
         title: 'Cosa trovi qui',
         content: 'Dashboard principale con: Hero Pool (Top 6 heroes più giocati), Partite Chiave (Best/Worst/Outlier), Snapshot Stato Forma (KDA e Farm trend), Confronto con Meta (percentili OpenDota), Attività Recente (ultime 5 partite) e Azioni Rapide per accedere velocemente alle analisi. Tutte le statistiche sono basate sulle ultime 20 partite. I trend confrontano le ultime 5 e 10 partite per identificare miglioramenti o peggioramenti.'
       },
@@ -346,7 +350,7 @@ export const pageGuides: Record<string, PageGuide> = {
   },
   '/dashboard/settings': {
     title: 'Impostazioni Account',
-    description: 'Gestione del tuo profilo e configurazione del Dota 2 Account ID necessario per visualizzare le tue statistiche.',
+    description: 'Gestione del tuo profilo, configurazione del Dota 2 Account ID e personalizzazione dell\'interfaccia del dashboard.',
     sections: [
       {
         title: 'Dota 2 Account ID',
@@ -359,6 +363,18 @@ export const pageGuides: Record<string, PageGuide> = {
       {
         title: 'Come trovare il tuo Account ID',
         content: '1) Apri Steam → Visualizza Profilo → Modifica Profilo → URL personalizzato (se configurato). 2) Vai su OpenDota.com e cerca il tuo profilo. 3) Vai su Dotabuff.com e cerca il tuo profilo. L\'Account ID è un numero (es. 123456789).'
+      },
+      {
+        title: 'Personalizzazione Sfondo Dashboard',
+        content: 'Puoi personalizzare lo sfondo del dashboard scegliendo tra diverse opzioni disponibili. Vai alla sezione "Sfondo Dashboard" per vedere tutte le anteprime. Clicca su uno sfondo per applicarlo immediatamente. La modifica viene salvata automaticamente e applicata a tutte le pagine del dashboard. Gli sfondi disponibili includono: Dashboard (sfondo principale), Profile (sfondo pagina profilazione), Landa Desolata, Sfondo Pop, e Nessuno (per un look più pulito). Il sistema adatta automaticamente trasparenze e contrasti per garantire la leggibilità su tutti gli sfondi.'
+      },
+      {
+        title: 'Gestione Password',
+        content: 'Nella sezione "Sicurezza Account" puoi cambiare la tua password. Inserisci la password corrente, la nuova password e confermala. La nuova password deve essere diversa da quella attuale e rispettare i requisiti di sicurezza.'
+      },
+      {
+        title: 'Informazioni Account',
+        content: 'Vedi le informazioni del tuo account: email, data di registrazione e altre informazioni di profilo. Queste informazioni sono utilizzate per personalizzare la tua esperienza sulla piattaforma.'
       }
     ]
   },

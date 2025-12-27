@@ -362,18 +362,28 @@ export default function GuidaUtentePage() {
               <ul className="list-disc list-inside ml-4 space-y-1">
                 <li>Vai su <strong>Impostazioni</strong> (icona ingranaggio nella sidebar)</li>
                 <li>Scorri fino alla sezione <strong>"Sfondo Dashboard"</strong></li>
-                <li>Vedrai le anteprime di tutti gli sfondi disponibili</li>
+                <li>Vedrai le anteprime di tutti gli sfondi disponibili con effetti hover</li>
                 <li>Clicca sullo sfondo che preferisci</li>
                 <li>La modifica viene applicata immediatamente senza bisogno di ricaricare la pagina</li>
+                <li>Il sistema adatta automaticamente trasparenze e contrasti per garantire la leggibilità</li>
               </ul>
+              <p>
+                <strong>Sidebar Collassabile:</strong> Puoi aprire/chiudere la sidebar laterale cliccando sul pulsante con le frecce in alto a sinistra. 
+                La preferenza viene salvata automaticamente e mantenuta tra le sessioni. Quando la sidebar è chiusa, hai più spazio per visualizzare i contenuti.
+              </p>
               <p>
                 <strong>Sfondi Disponibili:</strong> Attualmente puoi scegliere tra:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-1">
                 <li><strong>Dashboard JPG</strong> - Sfondo principale dashboard (formato JPG)</li>
                 <li><strong>Profile JPG</strong> - Sfondo pagina profilazione (formato JPG)</li>
+                <li><strong>Landa Desolata</strong> - Sfondo tematico Dota 2</li>
+                <li><strong>Sfondo Pop</strong> - Sfondo colorato e vivace</li>
                 <li><strong>Nessuno</strong> - Rimuove lo sfondo per un look più pulito</li>
               </ul>
+              <p>
+                <strong>Adattamento Automatico:</strong> Il sistema adatta automaticamente trasparenze, contrasti e drop-shadow in base allo sfondo selezionato per garantire sempre la massima leggibilità del testo e delle card. Gli sfondi più vivaci ricevono trasparenze più alte e drop-shadow più forti per mantenere il contrasto ottimale.
+              </p>
               <p>
                 <strong>Nota:</strong> Gli sfondi disponibili vengono rilevati automaticamente. Se non vedi un'opzione, significa che il file corrispondente non è disponibile.
               </p>
