@@ -12,6 +12,7 @@ import HeroIcon from '@/components/HeroIcon'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { List, BarChart as BarChartIcon, Search, Filter, X, TrendingUp, Target, Lightbulb, Activity, CheckCircle, AlertCircle } from 'lucide-react'
 import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 
 interface Match {
   match_id: number
@@ -34,7 +35,7 @@ export default function MatchesPage() {
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const { backgroundUrl } = useBackgroundPreference()
-  const hasBackground = !!backgroundUrl
+  const styles = useDashboardStyles()
   const [matches, setMatches] = useState<Match[]>([])
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
   const [loading, setLoading] = useState(false)
@@ -432,7 +433,7 @@ export default function MatchesPage() {
       {matches.length > 0 && !loading && (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
+          <div className={`${styles.tabContainer} mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -461,24 +462,24 @@ export default function MatchesPage() {
                 <div className="space-y-6">
                   {/* Summary Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Partite Totali</h3>
-                      <p className={`text-2xl font-bold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>{allMatchesStats.total}</p>
+                    <div className={`${styles.card} p-4`}>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Partite Totali</h3>
+                      <p className={`text-2xl font-bold ${styles.textPrimary}`}>{allMatchesStats.total}</p>
                       <p className="text-xs text-gray-500 mt-1">Ultime 20 partite</p>
                     </div>
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-green-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>Winrate</h3>
-                      <p className={`text-2xl font-bold ${hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'}`}>{allMatchesStats.winrate.toFixed(1)}%</p>
+                    <div className={`${styles.card} border-green-700 p-4`}>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Winrate</h3>
+                      <p className={`text-2xl font-bold ${styles.hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'}`}>{allMatchesStats.winrate.toFixed(1)}%</p>
                       <p className="text-xs text-gray-500 mt-1">{allMatchesStats.wins}V / {allMatchesStats.losses}L</p>
                     </div>
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>KDA Medio</h3>
-                      <p className={`text-2xl font-bold ${hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'}`}>{allMatchesStats.avgKDA.toFixed(2)}</p>
+                    <div className={`${styles.card} p-4`}>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
+                      <p className={`text-2xl font-bold ${styles.hasBackground ? 'text-yellow-300 drop-shadow-sm' : 'text-yellow-400'}`}>{allMatchesStats.avgKDA.toFixed(2)}</p>
                       <p className="text-xs text-gray-500 mt-1">Performance media</p>
                     </div>
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm ${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'} mb-2`}>GPM Medio</h3>
-                      <p className={`text-2xl font-bold ${hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'}`}>{allMatchesStats.avgGPM.toFixed(0)}</p>
+                    <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
+                      <p className={`text-2xl font-bold ${styles.hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'}`}>{allMatchesStats.avgGPM.toFixed(0)}</p>
                       <p className="text-xs text-gray-500 mt-1">Gold per minuto</p>
                     </div>
                   </div>
@@ -488,8 +489,8 @@ export default function MatchesPage() {
                     <>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Winrate Trend */}
-                      <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                        <h3 className={`text-sm font-semibold mb-3 ${hasBackground ? 'text-gray-200 drop-shadow-sm' : 'text-gray-300'}`}>Trend Winrate</h3>
+                      <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                        <h3 className={`text-sm font-semibold mb-3 ${styles.textSecondary}`}>Trend Winrate</h3>
                         <ResponsiveContainer width="100%" height={200}>
                           <LineChart data={trendData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -512,8 +513,8 @@ export default function MatchesPage() {
                       </div>
 
                       {/* KDA Trend */}
-                      <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                        <h3 className={`text-sm font-semibold mb-3 ${hasBackground ? 'text-gray-200 drop-shadow-sm' : 'text-gray-300'}`}>Trend KDA</h3>
+                      <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                        <h3 className={`text-sm font-semibold mb-3 ${styles.textSecondary}`}>Trend KDA</h3>
                         <ResponsiveContainer width="100%" height={200}>
                           <LineChart data={trendData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -540,8 +541,8 @@ export default function MatchesPage() {
 
                   {/* Hero Performance Preview */}
                   {heroPerformance.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800/50'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm font-semibold mb-3 ${hasBackground ? 'text-gray-200 drop-shadow-sm' : 'text-gray-300'}`}>Performance per Hero (Top 5)</h3>
+                    <div className={`${styles.cardSubtle} p-4`}>
+                      <h3 className={`text-sm font-semibold mb-3 ${styles.textSecondary}`}>Performance per Hero (Top 5)</h3>
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                         {heroPerformance.slice(0, 5).map((hero) => (
                           <div key={hero.hero_id} className="bg-gray-700/50 rounded-lg p-3 text-center">
@@ -678,7 +679,7 @@ export default function MatchesPage() {
                         return (
                           <div
                             key={match.match_id}
-                            className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition`}
+                            className={`${styles.card} border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition`}
                           >
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -726,8 +727,8 @@ export default function MatchesPage() {
                       })}
                     </div>
                   ) : (
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-12 text-center`}>
-                      <p className={`${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'}`}>Nessuna partita corrisponde ai filtri selezionati</p>
+                    <div className={`${styles.card} border border-gray-700 rounded-lg p-12 text-center`}>
+                      <p className={`${styles.textSecondary}`}>Nessuna partita corrisponde ai filtri selezionati</p>
                       <button
                         onClick={() => {
                           setFilterWin('all')
@@ -764,15 +765,15 @@ export default function MatchesPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-8 text-center`}>
-                      <p className={`${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'}`}>Non ci sono insights disponibili. Gioca più partite per ottenere analisi dettagliate.</p>
+                    <div className={`${styles.card} border border-gray-700 rounded-lg p-8 text-center`}>
+                      <p className={`${styles.textSecondary}`}>Non ci sono insights disponibili. Gioca più partite per ottenere analisi dettagliate.</p>
                     </div>
                   )}
 
                   {/* Win vs Loss Comparison */}
                   {winLossComparison && (
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800/50'} border border-gray-700 rounded-lg p-6`}>
-                      <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                    <div className={`${styles.cardSubtle} p-6`}>
+                      <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                         <Target className="w-5 h-5" />
                         Confronto Vittorie vs Sconfitte
                       </h3>
@@ -834,8 +835,8 @@ export default function MatchesPage() {
 
                   {/* Hero Performance Chart */}
                   {heroPerformance.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800/50'} border border-gray-700 rounded-lg p-6`}>
-                      <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                    <div className={`${styles.cardSubtle} p-6`}>
+                      <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                         <BarChartIcon className="w-5 h-5" />
                         Winrate per Hero
                       </h3>
@@ -878,8 +879,8 @@ export default function MatchesPage() {
       )}
 
       {matches.length === 0 && !loading && (
-        <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-12 text-center`}>
-          <p className={`${hasBackground ? 'text-gray-300 drop-shadow-sm' : 'text-gray-400'}`}>Nessuna partita trovata</p>
+        <div className={`${styles.card} border border-gray-700 rounded-lg p-12 text-center`}>
+          <p className={`${styles.textSecondary}`}>Nessuna partita trovata</p>
         </div>
       )}
     </div>

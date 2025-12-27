@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
@@ -89,6 +90,7 @@ export default function HeroAnalysisPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [analysis, setAnalysis] = useState<HeroAnalysis | null>(null)
   const [matchupData, setMatchupData] = useState<MatchupData | null>(null)
   const [heroes, setHeroes] = useState<Record<number, { name: string; localized_name: string }>>({})
@@ -420,11 +422,11 @@ export default function HeroAnalysisPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+      <Link href="/dashboard" className={`${styles.textLink} text-sm mb-4 inline-block`}>
         ← Torna a Dashboard
       </Link>
       <h1 className="text-2xl md:text-3xl font-bold mb-2">Analisi Eroi</h1>
-      <p className="text-gray-400 mb-6">Decisioni di pick/ban e analisi matchup per migliorare le tue performance</p>
+      <p className={`${styles.textSecondary} mb-6`}>Decisioni di pick/ban e analisi matchup per migliorare le tue performance</p>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -434,7 +436,7 @@ export default function HeroAnalysisPage() {
 
       <div className="space-y-6">
         {/* Tabs */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+        <div className={`${styles.tabContainer} mb-6`}>
           <div className="flex border-b border-gray-700 overflow-x-auto">
             {[
               { id: 'matchup' as TabType, name: 'Matchup & Counters', icon: Swords },

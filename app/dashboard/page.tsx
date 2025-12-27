@@ -22,6 +22,7 @@ import { usePlayerDataRefresh } from '@/lib/hooks/usePlayerDataRefresh'
 import { supabase } from '@/lib/supabase'
 import PercorsoCard from '@/components/PercorsoCard'
 import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 
 interface PlayerStats {
   winrate: {
@@ -66,7 +67,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
   const { backgroundUrl } = useBackgroundPreference()
-  const hasBackground = !!backgroundUrl
+  const styles = useDashboardStyles()
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [playerProfile, setPlayerProfile] = useState<{ avatar?: string; personaname?: string; rankTier?: number; rankMedalUrl?: string; soloMMR?: number | string | null } | null>(null)
   const [fullProfile, setFullProfile] = useState<{ recommendations?: string[]; phaseAnalysis?: { early: { score: number; strength: string }; mid: { score: number; strength: string }; late: { score: number; strength: string } } } | null>(null)
@@ -730,8 +731,8 @@ export default function DashboardPage() {
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4 mb-4 items-start">
             {/* Hero Pool Card */}
-            <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-xl p-3 flex flex-col`}>
-              <h3 className={`text-sm font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} mb-3 flex-shrink-0`}>Hero Pool (Top 6)</h3>
+            <div className={`${styles.card} p-3 flex flex-col`}>
+              <h3 className={`text-sm font-semibold ${styles.textPrimary} mb-3 flex-shrink-0`}>Hero Pool (Top 6)</h3>
               {topHeroes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                   {topHeroes.slice(0, 6).map((hero) => {
@@ -807,7 +808,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Tabs */}
-          <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
+          <div className={`${styles.tabContainer} mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -839,8 +840,8 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* KDA Trend Card */}
-              <AnimatedCard index={0} className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                <h4 className={`text-lg font-semibold mb-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>KDA Trend</h4>
+              <AnimatedCard index={0} className={`${styles.card} p-4`}>
+                <h4 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
                     {kdaTrend.label}
@@ -876,8 +877,8 @@ export default function DashboardPage() {
               </AnimatedCard>
 
               {/* Farm Trend Card */}
-              <AnimatedCard index={1} className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                <h4 className={`text-lg font-semibold mb-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Farm Trend</h4>
+              <AnimatedCard index={1} className={`${styles.card} p-4`}>
+                <h4 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div className="space-y-1">
                     <div>
@@ -915,7 +916,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                     {/* Benchmark Comparison Card */}
                     {benchmarks && benchmarks.percentiles && benchmarks.source === 'opendota_ratings' && (
-                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                      <div className={`${styles.card} p-4`}>
                         <div className="flex items-center gap-2 mb-4">
                           <BarChartIcon className="w-5 h-5 text-blue-400" />
                           <h3 className="text-lg font-semibold">Confronto con Meta</h3>
@@ -990,10 +991,10 @@ export default function DashboardPage() {
 
                     {/* Recent Activity Feed */}
                     {stats.matches && stats.matches.length > 0 && (
-                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                      <div className={`${styles.card} p-4`}>
                         <div className="flex items-center gap-2 mb-4">
                           <Clock className="w-5 h-5 text-green-400" />
-                          <h3 className={`text-lg font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Attività Recente</h3>
+                          <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Attività Recente</h3>
                         </div>
                         <div className="space-y-2">
                           {stats.matches.slice(0, 5).map((match) => {
@@ -1044,10 +1045,10 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className={`mt-4 ${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-3`}>
+                  <div className={`mt-4 ${styles.card} p-3`}>
                     <div className="flex items-center gap-2 mb-4">
                       <Zap className="w-5 h-5 text-yellow-400" />
-                      <h3 className={`text-lg font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Azioni Rapide</h3>
+                      <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Azioni Rapide</h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                       {stats.matches && stats.matches.length > 0 && stats.matches[0] && (
@@ -1100,9 +1101,9 @@ export default function DashboardPage() {
                     {/* Statistiche Globali - Compatte */}
                     {winLoss && (winLoss.win > 0 || winLoss.lose > 0) && (
                       <>
-                        <AnimatedCard index={0} className={`${hasBackground ? 'bg-green-900/40 backdrop-blur-sm' : 'bg-gradient-to-br from-green-900/30 to-gray-800'} border border-green-700/50 rounded-lg p-4`}>
+                        <AnimatedCard index={0} className={`${styles.hasBackground ? 'bg-green-900/40 backdrop-blur-sm' : 'bg-gradient-to-br from-green-900/30 to-gray-800'} border border-green-700/50 rounded-lg p-4`}>
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className={`text-sm font-semibold ${hasBackground ? 'text-green-200 drop-shadow-sm' : 'text-green-300'}`}>Winrate Globale</h4>
+                            <h4 className={`text-sm font-semibold ${styles.hasBackground ? 'text-green-200 drop-shadow-sm' : 'text-green-300'}`}>Winrate Globale</h4>
                             <Trophy className="w-4 h-4 text-green-400" />
                           </div>
                           <div className="text-2xl font-bold text-white mb-1">
@@ -1113,9 +1114,9 @@ export default function DashboardPage() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard index={1} className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                        <AnimatedCard index={1} className={`${styles.card} p-4`}>
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className={`text-sm font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Vittorie Totali</h4>
+                            <h4 className={`text-sm font-semibold ${styles.textPrimary}`}>Vittorie Totali</h4>
                             <TrendingUp className="w-4 h-4 text-green-400" />
                           </div>
                           <div className="text-2xl font-bold text-green-400 mb-1">
@@ -1129,9 +1130,9 @@ export default function DashboardPage() {
                     )}
 
                     {/* Winrate Trend - Compatto */}
-                    <AnimatedCard index={2} className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
+                    <AnimatedCard index={2} className={`${styles.card} p-4`}>
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className={`text-sm font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Winrate Trend</h4>
+                        <h4 className={`text-sm font-semibold ${styles.textPrimary}`}>Winrate Trend</h4>
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${winrateTrend.color} text-white`}>
                           {winrateTrend.label}
                         </span>
@@ -1157,7 +1158,7 @@ export default function DashboardPage() {
 
                   {/* Trend Grafico - Ridotto */}
                   {chartData.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
+                    <div className={`${styles.card} p-4 relative`}>
                       {playerId && (
                         <InsightBadge
                           elementType="trend-chart"
@@ -1168,7 +1169,7 @@ export default function DashboardPage() {
                         />
                       )}
                       <div className="flex justify-between items-center mb-3">
-                        <h3 className={`text-lg font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>Trend Ultime 20 Partite</h3>
+                        <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Trend Ultime 20 Partite</h3>
                         <span className="text-xs text-gray-400">{chartData.length} partite</span>
                       </div>
                       <ResponsiveContainer width="100%" height={200}>
@@ -1216,8 +1217,8 @@ export default function DashboardPage() {
 
                   {/* Benchmarks Section - Allineato a Performance Page */}
                   {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) && (
-                    <div className={`${hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-blue-900/30 to-purple-900/30'} border border-blue-700 rounded-lg p-6`}>
-                      <h2 className={`text-xl md:text-2xl font-semibold ${hasBackground ? 'text-blue-200 drop-shadow-sm' : 'text-blue-300'} mb-2 flex items-center gap-2`}>
+                    <div className={`${styles.hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-gradient-to-r from-blue-900/30 to-purple-900/30'} border border-blue-700 rounded-lg p-6`}>
+                      <h2 className={`text-xl md:text-2xl font-semibold ${styles.hasBackground ? 'text-blue-200 drop-shadow-sm' : 'text-blue-300'} mb-2 flex items-center gap-2`}>
                         <Award className="w-5 h-5 md:w-6 md:h-6" />
                         Come ti posizioni rispetto alla comunità Dota 2
                       </h2>
@@ -1227,7 +1228,7 @@ export default function DashboardPage() {
                       <div className="grid md:grid-cols-3 gap-4">
                         {/* GPM Percentile */}
                         {(benchmarks.percentiles?.gpm || benchmarks.calculatedPercentiles?.gpm) && (
-                          <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                          <div className={`${styles.cardSubtle} p-4 hover:border-blue-500 transition-colors`}>
                             <div className="text-sm text-gray-400 mb-2">GPM (Gold per Minuto)</div>
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-xs text-gray-500">Percentile:</span>
@@ -1245,7 +1246,7 @@ export default function DashboardPage() {
 
                         {/* XPM Percentile */}
                         {(benchmarks.percentiles?.xpm || benchmarks.calculatedPercentiles?.xpm) && (
-                          <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                          <div className={`${styles.cardSubtle} p-4 hover:border-blue-500 transition-colors`}>
                             <div className="text-sm text-gray-400 mb-2">XPM (XP per Minuto)</div>
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-xs text-gray-500">Percentile:</span>
@@ -1263,7 +1264,7 @@ export default function DashboardPage() {
 
                         {/* KDA Percentile */}
                         {(benchmarks.percentiles?.kda || benchmarks.calculatedPercentiles?.kda) && (
-                          <div className={`${hasBackground ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-gray-800/50'} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
+                          <div className={`${styles.cardSubtle} p-4 hover:border-blue-500 transition-colors`}>
                             <div className="text-sm text-gray-400 mb-2">KDA Ratio</div>
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-xs text-gray-500">Percentile:</span>
@@ -1290,8 +1291,8 @@ export default function DashboardPage() {
 
                   {/* Phase Analysis - Separato da Benchmarks */}
                   {fullProfile?.phaseAnalysis && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                    <div className={`${styles.card} p-4`}>
+                      <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${styles.textPrimary}`}>
                         <Clock className="w-4 h-4 text-purple-400" />
                         Fase del Gioco Preferita
                       </h3>
@@ -1317,9 +1318,9 @@ export default function DashboardPage() {
 
                   {/* Quick Recommendations - Compatto */}
                   {fullProfile?.recommendations && fullProfile.recommendations.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-yellow-900/30 backdrop-blur-sm' : 'bg-gradient-to-r from-yellow-900/20 to-gray-800'} border border-yellow-700/50 rounded-lg p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-yellow-900/30 backdrop-blur-sm' : 'bg-gradient-to-r from-yellow-900/20 to-gray-800'} border border-yellow-700/50 rounded-lg p-4`}>
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-sm font-semibold flex items-center gap-2 ${hasBackground ? 'text-yellow-200 drop-shadow-sm' : 'text-yellow-300'}`}>
+                        <h3 className={`text-sm font-semibold flex items-center gap-2 ${styles.hasBackground ? 'text-yellow-200 drop-shadow-sm' : 'text-yellow-300'}`}>
                           <Lightbulb className="w-4 h-4 text-yellow-400" />
                           Raccomandazioni Rapide
                         </h3>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
@@ -565,7 +566,7 @@ export default function RoleAnalysisPage() {
       {analysis && !loading && analysis.summary && analysis.roles && (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg mb-6">
+          <div className={`${styles.tabContainer} mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -594,28 +595,28 @@ export default function RoleAnalysisPage() {
                 <div className="space-y-6">
                   {/* Summary Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <h3 className="text-sm text-gray-400 mb-2">Ruoli Giocati</h3>
-                      <p className="text-2xl font-bold text-white">{analysis.summary.totalRolesPlayed ?? 0}</p>
+                    <div className={`${styles.card} p-4`}>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruoli Giocati</h3>
+                      <p className={`text-2xl font-bold ${styles.textPrimary}`}>{analysis.summary.totalRolesPlayed ?? 0}</p>
                       <p className="text-xs text-gray-500 mt-1">Ruoli diversi</p>
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <div className={`${styles.card} p-4`}>
                       <h3 className="text-sm text-gray-400 mb-2">Ruolo Più Giocato</h3>
-                      <p className="text-lg font-bold text-blue-400 capitalize">{analysis.summary.mostPlayedRole || 'N/A'}</p>
+                      <p className={`text-lg font-bold ${styles.hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'} capitalize`}>{analysis.summary.mostPlayedRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.mostPlayedRole]?.games || 0} partite
                       </p>
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <div className={`${styles.card} p-4`}>
                       <h3 className="text-sm text-gray-400 mb-2">Ruolo Migliore</h3>
-                      <p className="text-lg font-bold text-green-400 capitalize">{analysis.summary.bestRole || 'N/A'}</p>
+                      <p className={`text-lg font-bold ${styles.hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'} capitalize`}>{analysis.summary.bestRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.bestRole]?.winrate ? 
                           `${analysis.roles[analysis.summary.bestRole].winrate.toFixed(1)}% winrate` : 
                           'N/A'}
                       </p>
                     </div>
-                    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                    <div className={`${styles.card} p-4`}>
                       <h3 className="text-sm text-gray-400 mb-2">Versatilità</h3>
                       <p className={`text-2xl font-bold ${
                         (analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'text-green-400' :
@@ -687,7 +688,7 @@ export default function RoleAnalysisPage() {
                           return (
                             <div
                               key={role}
-                              className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500 hover:bg-gray-800 transition-all cursor-pointer group"
+                              className={`${styles.cardSubtle} p-4 hover:border-blue-500 transition-all cursor-pointer group`}
                               onClick={() => {
                                 setSelectedRole(role)
                                 setActiveTab('improvement')
