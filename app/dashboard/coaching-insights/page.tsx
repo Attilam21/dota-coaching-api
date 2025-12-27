@@ -13,6 +13,7 @@ import { buildAISuggestion } from '@/lib/insight-utils'
 import { TrendingUp, TrendingDown, Minus, Target, BarChart3, Zap, AlertCircle, CheckCircle2, Trophy, XCircle, BarChart as BarChartIcon, Lightbulb, AlertTriangle, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useBackgroundPreference } from '@/lib/hooks/useBackgroundPreference'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 
 interface MetaComparison {
   role: string
@@ -85,8 +86,7 @@ export default function CoachingInsightsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
-  const { backgroundUrl } = useBackgroundPreference()
-  const hasBackground = !!backgroundUrl
+  const styles = useDashboardStyles()
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [metaData, setMetaData] = useState<MetaComparison | null>(null)
   const [winConditions, setWinConditions] = useState<any>(null)
@@ -301,7 +301,7 @@ export default function CoachingInsightsPage() {
   const getTrendIcon = (gapPercent: number) => {
     if (gapPercent > 0) return <TrendingUp className="w-4 h-4 text-green-400" />
     if (gapPercent < 0) return <TrendingDown className="w-4 h-4 text-red-400" />
-    return <Minus className="w-4 h-4 text-gray-400" />
+    return <Minus className={`w-4 h-4 ${styles.textSecondary}`} />
   }
 
   if (authLoading) {
@@ -351,7 +351,7 @@ export default function CoachingInsightsPage() {
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Coaching & Insights</h1>
-        <p className="text-gray-400">
+        <p className={styles.textSecondary}>
           Analisi completa del tuo profilo con confronto meta, pattern di vittoria e raccomandazioni personalizzate
         </p>
       </div>
@@ -390,7 +390,7 @@ export default function CoachingInsightsPage() {
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-white">AttilaLAB Score</h2>
               <p className="text-4xl font-bold text-red-400">{profile.fzthScore}/100</p>
-              <p className="text-sm text-gray-300 mt-2">
+              <p className={`text-sm ${styles.textSecondary} mt-2`}>
                 Score complessivo basato su Farm, Teamfight, Survival, Impact, Vision e Winrate
               </p>
             </div>
@@ -441,14 +441,14 @@ export default function CoachingInsightsPage() {
       {isLoading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento dati...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento dati...</p>
         </div>
       )}
 
       {!isLoading && (
         <div className="space-y-6">
           {/* Tabs */}
-          <div className={`${hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg mb-6`}>
+          <div className={`${styles.tabContainer} mb-6`}>
             <div className="flex border-b border-gray-700 overflow-x-auto">
               {[
                 { id: 'overview' as TabType, name: 'Overview', icon: BarChartIcon },
@@ -462,7 +462,7 @@ export default function CoachingInsightsPage() {
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
                       ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -478,7 +478,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Profile Overview */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
+                    <div className={`${styles.card} p-4 relative`}>
                       <InsightBadge
                         elementType="role"
                         elementId="role"
@@ -486,9 +486,9 @@ export default function CoachingInsightsPage() {
                         playerId={playerId || ''}
                         position="top-right"
                       />
-                      <h2 className="text-xl font-semibold mb-3 pr-8">Ruolo Principale</h2>
+                      <h2 className={`text-xl font-semibold mb-3 pr-8 ${styles.textPrimary}`}>Ruolo Principale</h2>
                       <p className="text-2xl font-bold text-red-400 mb-2">{profile.role}</p>
-                      <p className="text-sm text-gray-300">
+                      <p className={`text-sm ${styles.textSecondary}`}>
                         Confidenza: <span className={`font-semibold ${
                           profile.roleConfidence === 'high' ? 'text-green-400' : 
                           profile.roleConfidence === 'medium' ? 'text-yellow-400' : 
@@ -498,7 +498,7 @@ export default function CoachingInsightsPage() {
                         </span>
                       </p>
                     </div>
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
+                    <div className={`${styles.card} p-4 relative`}>
                       <InsightBadge
                         elementType="playstyle"
                         elementId="playstyle"
@@ -506,22 +506,22 @@ export default function CoachingInsightsPage() {
                         playerId={playerId || ''}
                         position="top-right"
                       />
-                      <h2 className="text-xl font-semibold mb-3 pr-8">Stile di Gioco</h2>
+                      <h2 className={`text-xl font-semibold mb-3 pr-8 ${styles.textPrimary}`}>Stile di Gioco</h2>
                       <p className="text-2xl font-bold text-blue-400">{profile.playstyle}</p>
                     </div>
                   </div>
 
                   {/* Trends */}
                   {profile.trends && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
-                      <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
+                    <div className={`${styles.card} p-4`}>
+                      <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                         <TrendingUp className="w-5 h-5" />
                         Trend Performance
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
+                        <div className={`${styles.cardSubtle} p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-400">GPM Trend</span>
+                            <span className={`text-sm ${styles.textSecondary}`}>GPM Trend</span>
                             <span className={`text-lg font-bold ${
                               profile.trends.gpm.direction === 'up' ? 'text-green-400' :
                               profile.trends.gpm.direction === 'down' ? 'text-red-400' :
@@ -536,9 +536,9 @@ export default function CoachingInsightsPage() {
                           </p>
                         </div>
                         {profile.trends.xpm && (
-                          <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
+                          <div className={`${styles.cardSubtle} p-4 hover:bg-gray-700/70 transition-colors relative`}>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-400">XPM Trend</span>
+                              <span className={`text-sm ${styles.textSecondary}`}>XPM Trend</span>
                               <span className={`text-lg font-bold ${
                                 profile.trends.xpm.direction === 'up' ? 'text-green-400' :
                                 profile.trends.xpm.direction === 'down' ? 'text-red-400' :
@@ -553,9 +553,9 @@ export default function CoachingInsightsPage() {
                             </p>
                           </div>
                         )}
-                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
+                        <div className={`${styles.cardSubtle} p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-400">KDA Trend</span>
+                            <span className={`text-sm ${styles.textSecondary}`}>KDA Trend</span>
                             <span className={`text-lg font-bold ${
                               profile.trends.kda.direction === 'up' ? 'text-green-400' :
                               profile.trends.kda.direction === 'down' ? 'text-red-400' :
@@ -569,9 +569,9 @@ export default function CoachingInsightsPage() {
                             {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs media 5 partite precedenti
                           </p>
                         </div>
-                        <div className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 hover:bg-gray-700/70 transition-colors relative`}>
+                        <div className={`${styles.cardSubtle} p-4 hover:bg-gray-700/70 transition-colors relative`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-400">Winrate Trend</span>
+                            <span className={`text-sm ${styles.textSecondary}`}>Winrate Trend</span>
                             <span className={`text-lg font-bold ${
                               profile.trends.winrate.direction === 'up' ? 'text-green-400' :
                               profile.trends.winrate.direction === 'down' ? 'text-red-400' :
@@ -592,20 +592,20 @@ export default function CoachingInsightsPage() {
                   {/* Key Metrics */}
                   {profile.metrics && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors`}>
-                        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">GPM Medio</p>
+                      <div className={`${styles.card} p-4 hover:border-yellow-500 transition-colors`}>
+                        <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>GPM Medio</p>
                         <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
                       </div>
-                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-orange-500 transition-colors">
-                        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">XPM Medio</p>
+                      <div className={`${styles.card} p-4 hover:border-orange-500 transition-colors`}>
+                        <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>XPM Medio</p>
                         <p className="text-2xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
                       </div>
-                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
-                        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">KDA Medio</p>
+                      <div className={`${styles.card} p-4 hover:border-purple-500 transition-colors`}>
+                        <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>KDA Medio</p>
                         <p className="text-2xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
                       </div>
-                      <div className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors">
-                        <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Winrate</p>
+                      <div className={`${styles.card} p-4 hover:border-green-500 transition-colors`}>
+                        <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>Winrate</p>
                         <p className="text-2xl font-bold text-green-400">{profile.metrics.winrate}%</p>
                       </div>
                     </div>
@@ -636,9 +636,9 @@ export default function CoachingInsightsPage() {
                       )}
 
                       {/* Role Badge */}
-                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                      <div className={`${styles.card} p-4`}>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-400">Ruolo Analizzato:</span>
+                          <span className={`text-sm ${styles.textSecondary}`}>Ruolo Analizzato:</span>
                           <span className="px-3 py-1 bg-red-600/20 border border-red-600 rounded-full text-red-400 font-semibold">
                             {metaData.role}
                           </span>
@@ -646,8 +646,8 @@ export default function CoachingInsightsPage() {
                       </div>
 
                       {/* Key Metrics Comparison */}
-                      <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
-                        <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+                      <div className={`${styles.card} p-6`}>
+                        <h2 className={`text-2xl font-semibold mb-6 flex items-center gap-2 ${styles.textPrimary}`}>
                           <BarChart3 className="w-6 h-6" />
                           Confronto Performance vs Meta
                         </h2>
@@ -655,33 +655,33 @@ export default function CoachingInsightsPage() {
                           {Object.entries(metaData.comparisons).map(([metric, comp]) => (
                             <div
                               key={metric}
-                              className={`${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 border border-gray-600 hover:border-gray-500 transition-colors`}
+                              className={`${styles.cardSubtle} p-4 border border-gray-600 hover:border-gray-500 transition-colors`}
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                   {getMetricIcon(metric)}
-                                  <span className="font-semibold text-gray-300">{getMetricLabel(metric)}</span>
+                                  <span className={`font-semibold ${styles.textSecondary}`}>{getMetricLabel(metric)}</span>
                                 </div>
                                 {getTrendIcon(comp.gapPercent)}
                               </div>
                               
                               <div className="space-y-2">
                                 <div className="flex items-baseline justify-between">
-                                  <span className="text-xs text-gray-400">Tuo</span>
-                                  <span className="text-lg font-bold text-white">{formatValue(metric, comp.player)}</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Tuo</span>
+                                  <span className={`text-lg font-bold ${styles.textPrimary}`}>{formatValue(metric, comp.player)}</span>
                                 </div>
                                 <div className="flex items-baseline justify-between">
-                                  <span className="text-xs text-gray-400">Meta (p50)</span>
-                                  <span className="text-sm font-semibold text-gray-300">{formatValue(metric, comp.meta.p50)}</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Meta (p50)</span>
+                                  <span className={`text-sm font-semibold ${styles.textSecondary}`}>{formatValue(metric, comp.meta.p50)}</span>
                                 </div>
                                 <div className="flex items-center justify-between pt-2 border-t border-gray-600">
-                                  <span className="text-xs text-gray-400">Gap</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Gap</span>
                                   <span className={`text-sm font-semibold ${getGapColor(comp.gapPercent)}`}>
                                     {comp.gapPercent != null ? (comp.gapPercent >= 0 ? '+' : '') + comp.gapPercent.toFixed(1) : '0.0'}%
                                   </span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs text-gray-400">Percentile</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Percentile</span>
                                   <span className={`text-sm font-semibold ${getPercentileColor(comp.percentile)}`}>
                                     Top {100 - comp.percentile}%
                                   </span>
@@ -694,7 +694,7 @@ export default function CoachingInsightsPage() {
 
                       {/* AI Insights for Improvement Areas */}
                       {metaData.aiInsights && metaData.aiInsights.length > 0 && (
-                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
+                        <div className={`${styles.card} p-6`}>
                           <div className="flex items-center gap-3 mb-6">
                             <AlertCircle className="w-6 h-6 text-orange-400" />
                             <h2 className="text-2xl font-semibold">Aree di Miglioramento Prioritario</h2>
@@ -723,7 +723,7 @@ export default function CoachingInsightsPage() {
                     </>
                   ) : (
                     <div className="text-center py-12">
-                      <p className="text-gray-400">Caricamento dati confronto meta...</p>
+                      <p className={styles.textSecondary}>Caricamento dati confronto meta...</p>
                     </div>
                   )}
                 </div>
@@ -764,7 +764,7 @@ export default function CoachingInsightsPage() {
                               <span className="text-sm text-gray-400">Replicabilità</span>
                             </div>
                             <p className="text-2xl font-bold text-blue-400">{winConditions.winConditionScore?.overallScore ? winConditions.winConditionScore.overallScore.toFixed(0) : '0'}%</p>
-                            <p className="text-xs text-gray-500 mt-1">Quanto replichi i pattern vincenti</p>
+                            <p className={`text-xs ${styles.textMuted} mt-1`}>Quanto replichi i pattern vincenti</p>
                           </div>
                         </div>
 
@@ -774,22 +774,22 @@ export default function CoachingInsightsPage() {
                             <h3 className="text-lg font-semibold mb-4 text-green-300">Cosa Fai di Diverso Quando Vinci</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               {winConditions.keyDifferentiators.map((diff: any, idx: number) => (
-                                <div key={idx} className="bg-gray-800/70 rounded-lg p-4 border border-green-600/30">
+                                <div key={idx} className={`${styles.cardSubtle} p-4 border border-green-600/30`}>
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-semibold text-gray-300">{getMetricLabel(diff.metric)}</span>
+                                    <span className={`text-sm font-semibold ${styles.textSecondary}`}>{getMetricLabel(diff.metric)}</span>
                                     <TrendingUp className="w-4 h-4 text-green-400" />
                                   </div>
                                   <div className="space-y-1">
                                     <div className="flex justify-between text-xs">
-                                      <span className="text-gray-400">Vittorie:</span>
+                                      <span className={styles.textSecondary}>Vittorie:</span>
                                       <span className="text-green-400 font-semibold">{formatValue(diff.metric, diff.winValue)}</span>
                                     </div>
                                     <div className="flex justify-between text-xs">
-                                      <span className="text-gray-400">Sconfitte:</span>
+                                      <span className={styles.textSecondary}>Sconfitte:</span>
                                       <span className="text-red-400 font-semibold">{formatValue(diff.metric, diff.lossValue)}</span>
                                     </div>
                                     <div className="pt-2 border-t border-gray-700 flex justify-between items-center">
-                                      <span className="text-xs text-gray-400">Differenza</span>
+                                      <span className={`text-xs ${styles.textSecondary}`}>Differenza</span>
                                       <span className="text-sm font-bold text-green-400">
                                         {diff.differencePercent != null ? (diff.differencePercent > 0 ? '+' : '') + diff.differencePercent.toFixed(1) : '0.0'}%
                                       </span>
@@ -814,16 +814,16 @@ export default function CoachingInsightsPage() {
                       </div>
                     </>
                   ) : loadingWinConditions ? (
-                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
+                        <div className={`${styles.card} p-6`}>
                       <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                        <p className="mt-4 text-gray-400">Analisi pattern di vittoria in corso...</p>
+                        <p className={`mt-4 ${styles.textSecondary}`}>Analisi pattern di vittoria in corso...</p>
                       </div>
                     </div>
                   ) : (
-                        <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
+                        <div className={`${styles.card} p-6`}>
                       <div className="text-center py-8">
-                        <p className="text-gray-400">Carica i dati per visualizzare l'analisi Win Conditions</p>
+                        <p className={styles.textSecondary}>Carica i dati per visualizzare l'analisi Win Conditions</p>
                       </div>
                     </div>
                   )}
@@ -835,7 +835,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Strengths */}
                   {profile.strengths && profile.strengths.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-green-700 rounded-lg p-6`}>
+                    <div className={`${styles.card} border border-green-700 p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <CheckCircle2 className="w-6 h-6 text-green-400" />
                         <h2 className="text-2xl font-semibold">Punti di Forza</h2>
@@ -852,7 +852,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Weaknesses */}
                   {profile.weaknesses && profile.weaknesses.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-orange-700 rounded-lg p-6`}>
+                    <div className={`${styles.card} border border-orange-700 p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <AlertTriangle className="w-6 h-6 text-orange-400" />
                         <h2 className="text-2xl font-semibold">Aree di Miglioramento</h2>
@@ -869,7 +869,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Recommendations */}
                   {profile.recommendations && profile.recommendations.length > 0 && (
-                    <div className={`${hasBackground ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-gray-800'} border border-blue-700 rounded-lg p-6`}>
+                    <div className={`${styles.card} border border-blue-700 p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <Lightbulb className="w-6 h-6 text-blue-400" />
                         <h2 className="text-2xl font-semibold">Raccomandazioni Personalizzate</h2>
@@ -893,7 +893,7 @@ export default function CoachingInsightsPage() {
                    (!profile.weaknesses || profile.weaknesses.length === 0) && 
                    (!profile.recommendations || profile.recommendations.length === 0) && (
                     <div className="text-center py-12">
-                      <p className="text-gray-400">Nessuna raccomandazione disponibile al momento</p>
+                      <p className={styles.textSecondary}>Nessuna raccomandazione disponibile al momento</p>
                     </div>
                   )}
                 </div>
