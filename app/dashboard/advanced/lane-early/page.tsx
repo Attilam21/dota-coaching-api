@@ -165,28 +165,28 @@ export default function LaneEarlyPage() {
               <p className={`text-xs ${styles.textMuted} mt-2`}>CS previsto a 10 minuti</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Deny Rate</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Deny Rate</h3>
               <p className="text-3xl font-bold text-yellow-400">{stats.lane.denyRate.toFixed(1)}%</p>
-              <p className="text-xs text-gray-500 mt-2">% denies su CS totale</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>% denies su CS totale</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">First Blood</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>First Blood</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.lane.firstBloodInvolvement.toFixed(1)}%</p>
-              <p className="text-xs text-gray-500 mt-2">% partite con FB</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>% partite con FB</p>
                   </div>
                 </div>
                   
                   {/* Additional Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Last Hits Medio</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Last Hits Medio</h3>
               <p className="text-2xl font-bold text-green-400">{stats.lane.avgLastHits.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">CS medio per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>CS medio per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Denies Medio</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Denies Medio</h3>
               <p className="text-2xl font-bold text-red-400">{stats.lane.avgDenies.toFixed(1)}</p>
-              <p className="text-xs text-gray-500 mt-2">Denies medio per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Denies medio per partita</p>
                   </div>
                 </div>
 
@@ -228,7 +228,7 @@ export default function LaneEarlyPage() {
                     <div className="space-y-6">
                       {/* CS Chart */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                    <h2 className="text-xl md:text-2xl font-semibold mb-4">Last Hits & Denies per Partita</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 ${styles.textPrimary}`}>Last Hits & Denies per Partita</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={csData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

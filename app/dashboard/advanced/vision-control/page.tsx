@@ -169,43 +169,43 @@ export default function VisionControlPage() {
               <p className={`text-xs ${styles.textMuted} mt-2`}>Observer wards per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Deward Efficiency</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Deward Efficiency</h3>
               <p className="text-3xl font-bold text-green-400">{stats.vision.dewardEfficiency}%</p>
-              <p className="text-xs text-gray-500 mt-2">Sentry killed / placed</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Sentry killed / placed</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Rune Control</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Rune Control</h3>
               <p className="text-3xl font-bold text-yellow-400">{stats.vision.runesPerMinute}</p>
-              <p className="text-xs text-gray-500 mt-2">Rune per minuto</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Rune per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Roshan Control</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Roshan Control</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.vision.roshanControlRate}%</p>
-              <p className="text-xs text-gray-500 mt-2">% partite con Roshan</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>% partite con Roshan</p>
                   </div>
                 </div>
                   
                   {/* Support Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Camps Stacked</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Camps Stacked</h3>
               <p className="text-2xl font-bold text-cyan-400">{stats.vision.avgCampsStacked}</p>
-              <p className="text-xs text-gray-500 mt-2">Camp stacked per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Camp stacked per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Courier Kills</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Courier Kills</h3>
               <p className="text-2xl font-bold text-orange-400">{stats.vision.avgCourierKills}</p>
-              <p className="text-xs text-gray-500 mt-2">Courier uccisi per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Courier uccisi per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Roshan Kills</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Roshan Kills</h3>
               <p className="text-2xl font-bold text-red-400">{stats.vision.avgRoshanKills}</p>
-              <p className="text-xs text-gray-500 mt-2">Roshan uccisi per partita</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Roshan uccisi per partita</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Vision Score</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Vision Score</h3>
               <p className="text-2xl font-bold text-purple-400">{Math.round(stats.vision.visionScore)}</p>
-              <p className="text-xs text-gray-500 mt-2">Score totale vision</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Score totale vision</p>
                   </div>
                 </div>
 
