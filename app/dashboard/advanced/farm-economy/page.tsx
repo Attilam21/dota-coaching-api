@@ -182,14 +182,14 @@ export default function FarmEconomyPage() {
               <p className={`text-xs ${styles.textMuted} mt-2`}>XP per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Gold Utilization</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Gold Utilization</h3>
               <p className="text-3xl font-bold text-green-400">{stats.farm.goldUtilization.toFixed(1)}%</p>
-              <p className="text-xs text-gray-500 mt-2">Gold speso / guadagnato</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Gold speso / guadagnato</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">Buyback Efficiency</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Buyback Efficiency</h3>
               <p className="text-3xl font-bold text-purple-400">{stats.farm.buybackEfficiency}%</p>
-              <p className="text-xs text-gray-500 mt-2">Winrate con buyback</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Winrate con buyback</p>
                   </div>
                 </div>
                   
@@ -210,10 +210,10 @@ export default function FarmEconomyPage() {
                 <p className={`text-xs ${styles.textMuted}`}>Durata media: {Math.round(stats.farm.phaseAnalysis.mid.avgDuration / 60)}min</p>
               </div>
               <div className="bg-gray-700/50 rounded-lg p-4">
-                <h3 className="text-sm text-gray-400 mb-2">Late Game (30+min)</h3>
+                <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Late Game (30+min)</h3>
                 <p className="text-2xl font-bold text-purple-400">{stats.farm.phaseAnalysis.late.winrate}%</p>
-                <p className="text-xs text-gray-500 mt-1">{stats.farm.phaseAnalysis.late.matches} partite</p>
-                <p className="text-xs text-gray-500">Durata media: {Math.round(stats.farm.phaseAnalysis.late.avgDuration / 60)}min</p>
+                <p className={`text-xs ${styles.textMuted} mt-1`}>{stats.farm.phaseAnalysis.late.matches} partite</p>
+                <p className={`text-xs ${styles.textMuted}`}>Durata media: {Math.round(stats.farm.phaseAnalysis.late.avgDuration / 60)}min</p>
                     </div>
                   </div>
                 </div>
