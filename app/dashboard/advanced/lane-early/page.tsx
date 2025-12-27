@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import Link from 'next/link'
@@ -24,6 +25,7 @@ export default function LaneEarlyPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [stats, setStats] = useState<AdvancedStats | null>(null)
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(false)
@@ -101,11 +103,11 @@ export default function LaneEarlyPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
       <div className="mb-6">
-        <Link href="/dashboard/advanced" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+        <Link href="/dashboard/advanced" className={`${styles.textLink} text-sm mb-4 inline-block`}>
           ← Torna alle Analisi Avanzate
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Lane & Early Game</h1>
-        <p className="text-gray-400 mb-6">Analisi della fase di lane: CS, denies, lane efficiency e first blood</p>
+        <p className={`${styles.textSecondary} mb-6`}>Analisi della fase di lane: CS, denies, lane efficiency e first blood</p>
       </div>
 
       {error && (
@@ -117,7 +119,7 @@ export default function LaneEarlyPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento analisi lane & early game...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento analisi lane & early game...</p>
         </div>
       )}
 
@@ -135,8 +137,8 @@ export default function LaneEarlyPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -153,9 +155,9 @@ export default function LaneEarlyPage() {
                   {/* Overview Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">CS per Minuto</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>CS per Minuto</h3>
               <p className="text-3xl font-bold text-green-400">{stats.lane.csPerMinute}</p>
-              <p className="text-xs text-gray-500 mt-2">Creep score per minuto</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>Creep score per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">CS Stimato a 10min</h3>
@@ -222,7 +224,7 @@ export default function LaneEarlyPage() {
                 <div className="space-y-6">
                   {/* Grafici Section */}
                   <div>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">Grafici</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-6 ${styles.textPrimary}`}>Grafici</h2>
                     <div className="space-y-6">
                       {/* CS Chart */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
@@ -252,7 +254,7 @@ export default function LaneEarlyPage() {
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">CS per Minuto</span>
+                          <span className={styles.textSecondary}>CS per Minuto</span>
                           <span className="font-bold">{stats.lane.csPerMinute}</span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-4">
