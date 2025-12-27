@@ -42,6 +42,7 @@ export default function TeammatesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [teammates, setTeammates] = useState<Teammate[]>([])
   const [insights, setInsights] = useState<TeammateInsights | null>(null)
   const [loading, setLoading] = useState(false)
