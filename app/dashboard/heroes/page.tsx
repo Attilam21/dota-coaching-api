@@ -312,6 +312,57 @@ export default function HeroesPage() {
                 </div>
               </>
             )}
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
+              <p className="text-2xl font-bold text-red-400">
+                {(() => {
+                  const validKDA = heroStats.filter(h => {
+                    if (!h.kda) return false
+                    const kdaValue = parseFloat(h.kda)
+                    return !isNaN(kdaValue) && kdaValue > 0 && h.kda !== '0.00'
+                  })
+                  if (validKDA.length === 0) return '0.00'
+                  const count = validKDA.length
+                  const avg = count > 0 ? validKDA.reduce((acc, h) => acc + parseFloat(h.kda || '0'), 0) / count : 0
+                  return isNaN(avg) ? '0.00' : avg.toFixed(2)
+                })()}
+              </p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
+            </div>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
+              <p className="text-2xl font-bold text-yellow-400">
+                {(() => {
+                  const validGPM = heroStats.filter(h => {
+                    if (!h.avg_gpm) return false
+                    const gpmValue = parseFloat(h.avg_gpm)
+                    return !isNaN(gpmValue) && gpmValue > 0 && h.avg_gpm !== '0'
+                  })
+                  if (validGPM.length === 0) return 'N/A'
+                  const count = validGPM.length
+                  const avg = count > 0 ? validGPM.reduce((acc, h) => acc + parseFloat(h.avg_gpm || '0'), 0) / count : 0
+                  return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
+                })()}
+              </p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
+            </div>
+            <div className={`${styles.card} p-4`}>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
+              <p className="text-2xl font-bold text-blue-400">
+                {(() => {
+                  const validXPM = heroStats.filter(h => {
+                    if (!h.avg_xpm) return false
+                    const xpmValue = parseFloat(h.avg_xpm)
+                    return !isNaN(xpmValue) && xpmValue > 0 && h.avg_xpm !== '0'
+                  })
+                  if (validXPM.length === 0) return 'N/A'
+                  const count = validXPM.length
+                  const avg = count > 0 ? validXPM.reduce((acc, h) => acc + parseFloat(h.avg_xpm || '0'), 0) / count : 0
+                  return isNaN(avg) ? 'N/A' : Math.round(avg).toString()
+                })()}
+              </p>
+              <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
+            </div>
           </div>
 
           {/* Tabs */}

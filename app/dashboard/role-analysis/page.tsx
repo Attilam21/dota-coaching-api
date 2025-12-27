@@ -545,11 +545,11 @@ export default function RoleAnalysisPage() {
   return (
     <div className="p-4 md:p-6">
       <HelpButton />
-      <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+      <Link href="/dashboard" className={`${styles.textLink} text-sm mb-4 inline-block`}>
         ← Torna a Dashboard
       </Link>
       <h1 className="text-2xl md:text-3xl font-bold mb-2">Analisi Ruolo</h1>
-      <p className="text-gray-400 mb-6">Migliora le tue performance per ruolo con insights actionable e metriche specifiche</p>
+      <p className={`${styles.textSecondary} mb-6`}>Migliora le tue performance per ruolo con insights actionable e metriche specifiche</p>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -560,7 +560,7 @@ export default function RoleAnalysisPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento analisi ruoli...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento analisi ruoli...</p>
         </div>
       )}
 
@@ -579,8 +579,8 @@ export default function RoleAnalysisPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:${styles.textPrimary} hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -599,17 +599,17 @@ export default function RoleAnalysisPage() {
                     <div className={`${styles.card} p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruoli Giocati</h3>
                       <p className={`text-2xl font-bold ${styles.textPrimary}`}>{analysis.summary.totalRolesPlayed ?? 0}</p>
-                      <p className="text-xs text-gray-500 mt-1">Ruoli diversi</p>
+                      <p className={`text-xs ${styles.textMuted} mt-1`}>Ruoli diversi</p>
                     </div>
                     <div className={`${styles.card} p-4`}>
-                      <h3 className="text-sm text-gray-400 mb-2">Ruolo Più Giocato</h3>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Più Giocato</h3>
                       <p className={`text-lg font-bold ${styles.hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'} capitalize`}>{analysis.summary.mostPlayedRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.mostPlayedRole]?.games || 0} partite
                       </p>
                     </div>
                     <div className={`${styles.card} p-4`}>
-                      <h3 className="text-sm text-gray-400 mb-2">Ruolo Migliore</h3>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Migliore</h3>
                       <p className={`text-lg font-bold ${styles.hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'} capitalize`}>{analysis.summary.bestRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.bestRole]?.winrate ? 
@@ -618,7 +618,7 @@ export default function RoleAnalysisPage() {
                       </p>
                     </div>
                     <div className={`${styles.card} p-4`}>
-                      <h3 className="text-sm text-gray-400 mb-2">Versatilità</h3>
+                      <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Versatilità</h3>
                       <p className={`text-2xl font-bold ${
                         (analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'text-green-400' :
                         (analysis.summary.totalRolesPlayed ?? 0) >= 2 ? 'text-yellow-400' :
@@ -660,7 +660,7 @@ export default function RoleAnalysisPage() {
                                           analysis.preferredRole.confidence === 'medium' ? 'Media' : 'Bassa'}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-400 mt-2">
+                          <p className={`text-sm ${styles.textSecondary} mt-2`}>
                             {analysis.preferredRole.games} partite • Winrate: {analysis.preferredRole.winrate.toFixed(1)}%
                           </p>
                         </div>
@@ -675,7 +675,7 @@ export default function RoleAnalysisPage() {
                         <Users className="w-5 h-5" />
                         Performance per Ruolo
                       </h3>
-                      <span className="text-xs text-gray-500">Clicca su una card per vedere l'analisi dettagliata</span>
+                      <span className={`text-xs ${styles.textMuted}`}>Clicca su una card per vedere l'analisi dettagliata</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(analysis.roles)
@@ -697,17 +697,17 @@ export default function RoleAnalysisPage() {
                               title="Clicca per vedere l'analisi dettagliata"
                             >
                               <div className="mb-3">
-                                <span className="font-semibold text-white capitalize text-sm">{role}</span>
+                                <span className={`font-semibold ${styles.textPrimary} capitalize text-sm`}>{role}</span>
                               </div>
                               
                               <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-xs text-gray-400">Partite</span>
-                                  <span className="text-sm font-medium text-white">{perf.games} <span className="text-gray-500 text-xs">({percentage}%)</span></span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Partite</span>
+                                  <span className={`text-sm font-medium ${styles.textPrimary}`}>{perf.games} <span className={`${styles.textMuted} text-xs`}>({percentage}%)</span></span>
                                 </div>
                                 
                                 <div className="flex justify-between items-center">
-                                  <span className="text-xs text-gray-400">Winrate</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>Winrate</span>
                                   <span className={`text-sm font-bold ${
                                     perf.winrate >= 55 ? 'text-green-400' :
                                     perf.winrate >= 50 ? 'text-blue-400' :
@@ -718,7 +718,7 @@ export default function RoleAnalysisPage() {
                                 </div>
 
                                 <div className="flex justify-between items-center">
-                                  <span className="text-xs text-gray-400">GPM</span>
+                                  <span className={`text-xs ${styles.textSecondary}`}>GPM</span>
                                   <span className="text-sm font-medium text-white">{perf.avgGPM.toFixed(0)}</span>
                                 </div>
 

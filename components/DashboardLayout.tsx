@@ -47,18 +47,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
   const { backgroundUrl } = useBackgroundPreference()
-  // Inizializza isSidebarOpen da localStorage se disponibile, altrimenti true
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
-      return saved !== null ? saved === 'true' : true
-    }
-    return true
-  })
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
+    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+    if (saved !== null) {
+      setIsSidebarOpen(saved === 'true')
+    }
   }, [])
 
   useEffect(() => {

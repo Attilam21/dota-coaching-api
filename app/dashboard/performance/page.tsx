@@ -247,7 +247,7 @@ export default function PerformancePage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento performance...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento performance...</p>
         </div>
       )}
 
@@ -266,8 +266,8 @@ export default function PerformancePage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:${styles.textPrimary} hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -287,7 +287,7 @@ export default function PerformancePage() {
                       <BarChartIcon className="w-6 h-6" />
                       Benchmarks & Percentili
                     </h2>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className={`${styles.textSecondary} text-sm mb-4`}>
                       Come ti posizioni rispetto alla comunità Dota 2
                     </p>
                     {benchmarks && (benchmarks.percentiles || benchmarks.calculatedPercentiles) ? (
@@ -297,48 +297,48 @@ export default function PerformancePage() {
                             <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                               <div className={`text-sm ${styles.textSecondary} mb-2`}>GPM (Gold per Minuto)</div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                 <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.gpm.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.gpm.percentile >= 50 ? 'text-blue-400' :
-                                  'text-gray-400'
+                                  styles.textSecondary
                                 }`}>
                                   {benchmarks.percentiles.gpm.label}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                              <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {benchmarks.percentiles?.xpm && (
                             <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                               <div className={`text-sm ${styles.textSecondary} mb-2`}>XPM (XP per Minuto)</div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                 <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.xpm.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.xpm.percentile >= 50 ? 'text-blue-400' :
-                                  'text-gray-400'
+                                  styles.textSecondary
                                 }`}>
                                   {benchmarks.percentiles.xpm.label}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                              <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {benchmarks.percentiles?.kda && (
                             <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                               <div className={`text-sm ${styles.textSecondary} mb-2`}>KDA Ratio</div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">Percentile:</span>
+                                <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                 <span className={`text-2xl font-bold ${
                                   benchmarks.percentiles.kda.percentile >= 75 ? 'text-green-400' :
                                   benchmarks.percentiles.kda.percentile >= 50 ? 'text-blue-400' :
-                                  'text-gray-400'
+                                  styles.textSecondary
                                 }`}>
                                   {benchmarks.percentiles.kda.label}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                              <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                             </div>
                           )}
                           {/* Fallback to calculated percentiles if OpenDota ratings not available */}
@@ -347,44 +347,44 @@ export default function PerformancePage() {
                               <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                                 <div className={`text-sm ${styles.textSecondary} mb-2`}>GPM (Gold per Minuto)</div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">Percentile:</span>
+                                  <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                   <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.gpm.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.gpm.percentile >= 50 ? 'text-blue-400' :
-                                    'text-gray-400'
+                                    styles.textSecondary
                                   }`}>
                                     {benchmarks.calculatedPercentiles.gpm.label}
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                                <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                               </div>
                               <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                                 <div className={`text-sm ${styles.textSecondary} mb-2`}>XPM (XP per Minuto)</div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">Percentile:</span>
+                                  <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                   <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.xpm.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.xpm.percentile >= 50 ? 'text-blue-400' :
-                                    'text-gray-400'
+                                    styles.textSecondary
                                   }`}>
                                     {benchmarks.calculatedPercentiles.xpm.label}
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                                <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                               </div>
                               <div className={`${styles.cardSubtle} rounded-lg p-4 border border-gray-700 hover:border-blue-500 transition-colors`}>
                                 <div className={`text-sm ${styles.textSecondary} mb-2`}>KDA Ratio</div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">Percentile:</span>
+                                  <span className={`text-xs ${styles.textMuted}`}>Percentile:</span>
                                   <span className={`text-2xl font-bold ${
                                     benchmarks.calculatedPercentiles.kda.percentile >= 75 ? 'text-green-400' :
                                     benchmarks.calculatedPercentiles.kda.percentile >= 50 ? 'text-blue-400' :
-                                    'text-gray-400'
+                                    styles.textSecondary
                                   }`}>
                                     {benchmarks.calculatedPercentiles.kda.label}
                                   </span>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">Posizionamento rispetto alla community</p>
+                                <p className={`text-xs ${styles.textMuted} mt-2`}>Posizionamento rispetto alla community</p>
                               </div>
                             </>
                           )}

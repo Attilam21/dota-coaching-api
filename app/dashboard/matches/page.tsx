@@ -415,7 +415,7 @@ export default function MatchesPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
       <h1 className="text-3xl font-bold mb-4">Partite</h1>
-      <p className="text-gray-400 mb-6">Le tue ultime partite</p>
+      <p className={`${styles.textSecondary} mb-6`}>Le tue ultime partite</p>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -426,7 +426,7 @@ export default function MatchesPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento partite...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento partite...</p>
         </div>
       )}
 
@@ -445,8 +445,8 @@ export default function MatchesPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:${styles.textPrimary} hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -465,7 +465,7 @@ export default function MatchesPage() {
                     <div className={`${styles.card} p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Partite Totali</h3>
                       <p className={`text-2xl font-bold ${styles.textPrimary}`}>{allMatchesStats.total}</p>
-                      <p className="text-xs text-gray-500 mt-1">Ultime 20 partite</p>
+                      <p className={`text-xs ${styles.textMuted} mt-1`}>Ultime 20 partite</p>
                     </div>
                     <div className={`${styles.card} border-green-700 p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Winrate</h3>
@@ -577,7 +577,7 @@ export default function MatchesPage() {
                   <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4 mb-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Filter className="w-5 h-5 text-gray-400" />
-                      <h3 className="text-lg font-semibold text-white">Filtri</h3>
+                      <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Filtri</h3>
                       {(filterWin !== 'all' || filterHero !== 'all' || filterDuration !== 'all' || filterDate !== 'all' || searchMatchId) && (
                         <button
                           onClick={() => {
