@@ -220,7 +220,7 @@ export default function ImprovementPathPage() {
         )}
 
         {/* Empty State with helpful message */}
-        <div className="bg-gradient-to-r from-green-900/30 to-cyan-900/30 border border-green-500/50 rounded-xl p-8 text-center">
+        <div className={`${styles.card} border-green-500/50 rounded-xl p-8 text-center`}>
           <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
           <h2 className={`text-2xl font-bold ${styles.textPrimary} mb-2`}>Ottimo Lavoro!</h2>
           <p className={`${styles.textSecondary} mb-4`}>
@@ -289,7 +289,7 @@ export default function ImprovementPathPage() {
       </div>
 
       {/* Current Stats vs Projected Outcome - WOW Card */}
-      <div className="bg-gradient-to-r from-cyan-900/30 via-blue-900/30 to-purple-900/30 border border-cyan-500/50 rounded-xl p-6 shadow-lg shadow-cyan-500/20">
+      <div className={`${styles.card} border-cyan-500/50 rounded-xl p-6 shadow-lg shadow-cyan-500/20`}>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <h3 className={`text-sm font-semibold ${styles.textSecondary} mb-3`}>STATO ATTUALE</h3>

@@ -228,7 +228,7 @@ export default function WhatIfPage() {
 
       {/* Best Scenario Highlight */}
       {data.summary.bestScenario && (
-        <div className="bg-gradient-to-r from-green-900/30 to-cyan-900/30 border border-green-500/50 rounded-xl p-6 shadow-lg shadow-green-500/20">
+        <div className={`${styles.card} border-green-500/50 rounded-xl p-6 shadow-lg shadow-green-500/20`}>
           <div className="flex items-center gap-3 mb-3">
             <Sparkles className="w-6 h-6 text-green-400" />
             <h2 className="text-xl font-bold">Scenario con Maggior Impatto</h2>
@@ -320,7 +320,7 @@ export default function WhatIfPage() {
 
       {/* Combined Impact */}
       {data.summary.combinedImpact && (
-        <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/50 rounded-xl p-6 shadow-lg shadow-purple-500/20">
+        <div className={`${styles.card} border-purple-500/50 rounded-xl p-6 shadow-lg shadow-purple-500/20`}>
           <div className="flex items-center gap-3 mb-4">
             <Zap className="w-6 h-6 text-purple-400" />
             <h2 className="text-xl font-bold">Impatto Combinato</h2>
