@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import Link from 'next/link'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
@@ -274,7 +275,7 @@ export default function TeammatesPage() {
     <div className="p-4 md:p-6">
       <HelpButton />
       <h1 className="text-3xl font-bold mb-2">Team & Compagni</h1>
-      <p className="text-gray-400 mb-6">Statistiche dei giocatori con cui hai giocato più spesso</p>
+      <p className={`${styles.textSecondary} mb-6`}>Statistiche dei giocatori con cui hai giocato più spesso</p>
 
       {error && (
         <div className="mb-6 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
@@ -285,7 +286,7 @@ export default function TeammatesPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-400">Caricamento compagni...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Caricamento compagni...</p>
         </div>
       )}
 
@@ -307,8 +308,8 @@ export default function TeammatesPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -326,29 +327,29 @@ export default function TeammatesPage() {
                   {/* Aggregate Statistics Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="text-sm text-gray-400 mb-1">Totale Compagni</div>
-                      <div className="text-2xl font-bold text-white">{aggregateStats.totalTeammates}</div>
+                      <div className={`text-sm ${styles.textSecondary} mb-1`}>Totale Compagni</div>
+                      <div className={`text-2xl font-bold ${styles.textPrimary}`}>{aggregateStats.totalTeammates}</div>
                     </div>
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="text-sm text-gray-400 mb-1">Winrate Medio</div>
+                      <div className={`text-sm ${styles.textSecondary} mb-1`}>Winrate Medio</div>
                       <div className={`text-2xl font-bold ${aggregateStats.avgWinrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
                         {aggregateStats.avgWinrate.toFixed(1)}%
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Media dei top 20 compagni</div>
+                      <div className={`text-xs ${styles.textMuted} mt-1`}>Media dei top 20 compagni</div>
                     </div>
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="text-sm text-gray-400 mb-1">Partite Totali (storico)</div>
-                      <div className="text-2xl font-bold text-white">{aggregateStats.totalGames}</div>
-                      <div className="text-xs text-gray-500 mt-1">Somma partite con top 20 compagni</div>
+                      <div className={`text-sm ${styles.textSecondary} mb-1`}>Partite Totali (storico)</div>
+                      <div className={`text-2xl font-bold ${styles.textPrimary}`}>{aggregateStats.totalGames}</div>
+                      <div className={`text-xs ${styles.textMuted} mt-1`}>Somma partite con top 20 compagni</div>
                     </div>
                     <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                      <div className="text-sm text-gray-400 mb-1">Compagno Più Frequente</div>
+                      <div className={`text-sm ${styles.textSecondary} mb-1`}>Compagno Più Frequente</div>
                       <div className="text-lg font-bold text-blue-400 truncate" title={aggregateStats.mostFrequent.name}>
                         {aggregateStats.mostFrequent.name.length > 20 
                           ? aggregateStats.mostFrequent.name.substring(0, 20) + '...' 
                           : aggregateStats.mostFrequent.name}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">{aggregateStats.mostFrequent.games} partite</div>
+                      <div className={`text-xs ${styles.textMuted} mt-1`}>{aggregateStats.mostFrequent.games} partite</div>
                     </div>
                   </div>
 
@@ -431,7 +432,7 @@ export default function TeammatesPage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                           filter === 'all'
                             ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : `bg-gray-700 ${styles.textSecondary} hover:bg-gray-600`
                         }`}
                       >
                         Tutti
@@ -441,7 +442,7 @@ export default function TeammatesPage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                           filter === 'best'
                             ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : `bg-gray-700 ${styles.textSecondary} hover:bg-gray-600`
                         }`}
                       >
                         <Trophy className="w-4 h-4 inline mr-1" /> Migliori (≥60%)
@@ -451,7 +452,7 @@ export default function TeammatesPage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                           filter === 'most-played'
                             ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : `bg-gray-700 ${styles.textSecondary} hover:bg-gray-600`
                         }`}
                       >
                         <Star className="w-4 h-4 inline mr-1" /> Più Giocati
@@ -461,7 +462,7 @@ export default function TeammatesPage() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                           filter === 'synergies'
                             ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : `bg-gray-700 ${styles.textSecondary} hover:bg-gray-600`
                         }`}
                       >
                         <Star className="w-4 h-4 inline mr-1" /> Sinergie (≥55%)
@@ -475,7 +476,7 @@ export default function TeammatesPage() {
                         placeholder="Cerca compagno per nome..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full md:w-96 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className={`w-full md:w-96 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 ${styles.textPrimary} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500`}
                       />
                     </div>
                   </div>
@@ -485,7 +486,7 @@ export default function TeammatesPage() {
                     <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700">
                 <h2 className="text-2xl font-semibold">Lista Compagni</h2>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className={`text-xs ${styles.textSecondary} mt-1`}>
                   {filteredAndSortedTeammates.length} {filteredAndSortedTeammates.length === 1 ? 'compagno trovato' : 'compagni trovati'}
                 </p>
               </div>
@@ -494,25 +495,25 @@ export default function TeammatesPage() {
                   <thead className="bg-gray-700">
                     <tr>
                       <th 
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase cursor-pointer hover:bg-gray-600 transition"
+                        className={`px-4 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase cursor-pointer hover:bg-gray-600 transition`}
                         onClick={() => handleSort('name')}
                       >
                         Giocatore {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
                       </th>
                       <th 
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase cursor-pointer hover:bg-gray-600 transition"
+                        className={`px-4 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase cursor-pointer hover:bg-gray-600 transition`}
                         onClick={() => handleSort('games')}
                       >
                         Partite {sortField === 'games' && (sortDirection === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">Vittorie</th>
+                      <th className={`px-4 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase`}>Vittorie</th>
                       <th 
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase cursor-pointer hover:bg-gray-600 transition"
+                        className={`px-4 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase cursor-pointer hover:bg-gray-600 transition`}
                         onClick={() => handleSort('winrate')}
                       >
                         Winrate {sortField === 'winrate' && (sortDirection === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase">Azioni</th>
+                      <th className={`px-4 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase`}>Azioni</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
@@ -525,7 +526,7 @@ export default function TeammatesPage() {
                           key={teammate.account_id} 
                           className={`hover:bg-gray-700/50 transition ${isBest ? 'bg-green-900/20' : isHighWinrate ? 'bg-blue-900/20' : ''}`}
                         >
-                          <td className="px-4 py-2 whitespace-nowrap text-white font-medium">
+                          <td className={`px-4 py-2 whitespace-nowrap ${styles.textPrimary} font-medium`}>
                             <div className="flex items-center gap-2">
                               {isBest && <span title="Miglior winrate"><Trophy className="w-4 h-4 text-yellow-400" /></span>}
                               {isHighWinrate && !isBest && <span title="Alta sinergia"><Star className="w-4 h-4 text-blue-400" /></span>}
@@ -538,8 +539,8 @@ export default function TeammatesPage() {
                               <span className="text-sm">{teammate.name}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-gray-300 text-sm">{teammate.games}</td>
-                          <td className="px-4 py-2 whitespace-nowrap text-gray-300 text-sm">{teammate.wins}</td>
+                          <td className={`px-4 py-2 whitespace-nowrap ${styles.textSecondary} text-sm`}>{teammate.games}</td>
+                          <td className={`px-4 py-2 whitespace-nowrap ${styles.textSecondary} text-sm`}>{teammate.wins}</td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <span className={`font-semibold text-sm ${teammate.winrate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
                               {teammate.winrate.toFixed(1)}%
@@ -564,7 +565,7 @@ export default function TeammatesPage() {
 
                   {filteredAndSortedTeammates.length === 0 && !loading && (
                     <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-lg">
-                      <p className="text-gray-400">
+                      <p className={styles.textSecondary}>
                         {searchQuery ? 'Nessun compagno trovato con questo nome' : 'Nessun compagno trovato con questi filtri'}
                       </p>
                     </div>
@@ -599,7 +600,7 @@ export default function TeammatesPage() {
 
       {teammates.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Nessun compagno trovato</p>
+          <p className={styles.textSecondary}>Nessun compagno trovato</p>
         </div>
       )}
     </div>
