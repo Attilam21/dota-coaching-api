@@ -340,7 +340,7 @@ export default function CoachingInsightsPage() {
         <div className="flex-shrink-0">
           <Link
             href="/dashboard/settings"
-            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white rounded-lg font-medium transition-all duration-200"
+            className={`inline-flex items-center gap-2 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:border-gray-500 ${styles.textSecondary} hover:text-white rounded-lg font-medium transition-all duration-200`}
             title="Impostazioni"
           >
             <Settings className="w-4 h-4" />
@@ -388,7 +388,7 @@ export default function CoachingInsightsPage() {
           />
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold mb-4 text-white">AttilaLAB Score</h2>
+              <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>AttilaLAB Score</h2>
               <p className="text-4xl font-bold text-red-400">{profile.fzthScore}/100</p>
               <p className={`text-sm ${styles.textSecondary} mt-2`}>
                 Score complessivo basato su Farm, Teamfight, Survival, Impact, Vision e Winrate
@@ -461,7 +461,7 @@ export default function CoachingInsightsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
                       : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
@@ -492,7 +492,7 @@ export default function CoachingInsightsPage() {
                         Confidenza: <span className={`font-semibold ${
                           profile.roleConfidence === 'high' ? 'text-green-400' : 
                           profile.roleConfidence === 'medium' ? 'text-yellow-400' : 
-                          'text-gray-400'
+                          styles.textSecondary
                         }`}>
                           {profile.roleConfidence === 'high' ? 'Alta' : profile.roleConfidence === 'medium' ? 'Media' : 'Bassa'}
                         </span>
@@ -525,13 +525,13 @@ export default function CoachingInsightsPage() {
                             <span className={`text-lg font-bold ${
                               profile.trends.gpm.direction === 'up' ? 'text-green-400' :
                               profile.trends.gpm.direction === 'down' ? 'text-red-400' :
-                              'text-gray-400'
+                              styles.textSecondary
                             }`}>
                               {profile.trends.gpm.direction === 'up' ? '↑' : profile.trends.gpm.direction === 'down' ? '↓' : '→'}
                             </span>
                           </div>
                           <p className="text-2xl font-bold">{profile.trends.gpm.label}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs ${styles.textMuted} mt-1`}>
                             {profile.trends.gpm.value > 0 ? '+' : ''}{profile.trends.gpm.value.toFixed(0)} vs media 5 partite precedenti
                           </p>
                         </div>
@@ -542,13 +542,13 @@ export default function CoachingInsightsPage() {
                               <span className={`text-lg font-bold ${
                                 profile.trends.xpm.direction === 'up' ? 'text-green-400' :
                                 profile.trends.xpm.direction === 'down' ? 'text-red-400' :
-                                'text-gray-400'
+                                styles.textSecondary
                               }`}>
                                 {profile.trends.xpm.direction === 'up' ? '↑' : profile.trends.xpm.direction === 'down' ? '↓' : '→'}
                               </span>
                             </div>
                             <p className="text-2xl font-bold">{profile.trends.xpm.label}</p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className={`text-xs ${styles.textMuted} mt-1`}>
                               {profile.trends.xpm.value > 0 ? '+' : ''}{profile.trends.xpm.value.toFixed(0)} vs media 5 partite precedenti
                             </p>
                           </div>
@@ -559,13 +559,13 @@ export default function CoachingInsightsPage() {
                             <span className={`text-lg font-bold ${
                               profile.trends.kda.direction === 'up' ? 'text-green-400' :
                               profile.trends.kda.direction === 'down' ? 'text-red-400' :
-                              'text-gray-400'
+                              styles.textSecondary
                             }`}>
                               {profile.trends.kda.direction === 'up' ? '↑' : profile.trends.kda.direction === 'down' ? '↓' : '→'}
                             </span>
                           </div>
                           <p className="text-2xl font-bold">{profile.trends.kda.label}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs ${styles.textMuted} mt-1`}>
                             {profile.trends.kda.value > 0 ? '+' : ''}{profile.trends.kda.value.toFixed(2)} vs media 5 partite precedenti
                           </p>
                         </div>
@@ -575,13 +575,13 @@ export default function CoachingInsightsPage() {
                             <span className={`text-lg font-bold ${
                               profile.trends.winrate.direction === 'up' ? 'text-green-400' :
                               profile.trends.winrate.direction === 'down' ? 'text-red-400' :
-                              'text-gray-400'
+                              styles.textSecondary
                             }`}>
                               {profile.trends.winrate.direction === 'up' ? '↑' : profile.trends.winrate.direction === 'down' ? '↓' : '→'}
                             </span>
                           </div>
                           <p className="text-2xl font-bold">{profile.trends.winrate.label}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs ${styles.textMuted} mt-1`}>
                             {profile.trends.winrate.value > 0 ? '+' : ''}{profile.trends.winrate.value.toFixed(1)}% vs media 5 partite precedenti
                           </p>
                         </div>
@@ -631,7 +631,7 @@ export default function CoachingInsightsPage() {
                             <Target className="w-6 h-6 text-blue-400" />
                             <h2 className="text-2xl font-semibold text-blue-200">Raccomandazione Strategica</h2>
                           </div>
-                          <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{metaData.strategicInsight}</p>
+                          <p className={`${styles.textPrimary} leading-relaxed whitespace-pre-wrap`}>{metaData.strategicInsight}</p>
                         </div>
                       )}
 
@@ -714,7 +714,7 @@ export default function CoachingInsightsPage() {
                                     Priorità {idx + 1}
                                   </span>
                                 </div>
-                                <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{insight.insight}</p>
+                                <p className={`${styles.textPrimary} leading-relaxed whitespace-pre-wrap`}>{insight.insight}</p>
                               </div>
                             ))}
                           </div>
@@ -745,18 +745,18 @@ export default function CoachingInsightsPage() {
                           <div className="bg-gray-800/50 rounded-lg p-4 border border-green-700/30">
                             <div className="flex items-center gap-2 mb-2">
                               <Trophy className="w-5 h-5 text-green-400" />
-                              <span className="text-sm text-gray-400">Vittorie</span>
+                              <span className={`text-sm ${styles.textSecondary}`}>Vittorie</span>
                             </div>
                             <p className="text-2xl font-bold text-green-400">{winConditions.summary.wins}</p>
-                            <p className="text-xs text-gray-500 mt-1">Winrate: {winConditions.summary.winrate ? winConditions.summary.winrate.toFixed(1) : '0.0'}%</p>
+                            <p className={`text-xs ${styles.textMuted} mt-1`}>Winrate: {winConditions.summary.winrate ? winConditions.summary.winrate.toFixed(1) : '0.0'}%</p>
                           </div>
                           <div className="bg-gray-800/50 rounded-lg p-4 border border-red-700/30">
                             <div className="flex items-center gap-2 mb-2">
                               <XCircle className="w-5 h-5 text-red-400" />
-                              <span className="text-sm text-gray-400">Sconfitte</span>
+                              <span className={`text-sm ${styles.textSecondary}`}>Sconfitte</span>
                             </div>
                             <p className="text-2xl font-bold text-red-400">{winConditions.summary.losses}</p>
-                            <p className="text-xs text-gray-500 mt-1">Totale: {winConditions.summary.totalMatches} partite</p>
+                            <p className={`text-xs ${styles.textMuted} mt-1`}>Totale: {winConditions.summary.totalMatches} partite</p>
                           </div>
                           <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-700/30">
                             <div className="flex items-center gap-2 mb-2">

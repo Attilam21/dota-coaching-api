@@ -378,8 +378,8 @@ export default function HeroesPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 text-white border-b-2 border-red-500'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      ? 'bg-gray-700 border-b-2 border-red-500'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -481,7 +481,7 @@ export default function HeroesPage() {
                     </h2>
                     {Object.keys(analysisData.roleStats).length > 0 ? (
                       <div>
-                        <h3 className="text-base font-semibold mb-3 text-gray-300">Performance per Ruolo</h3>
+                        <h3 className={`text-base font-semibold mb-3 ${styles.textSecondary}`}>Performance per Ruolo</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {Object.entries(analysisData.roleStats)
                             .sort((a, b) => b[1].games - a[1].games)
@@ -500,12 +500,12 @@ export default function HeroesPage() {
                                   
                                   <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                      <span className="text-xs text-gray-400">Partite</span>
-                                      <span className="text-sm font-medium text-white">{stats.games} <span className="text-gray-500 text-xs">({percentage}%)</span></span>
+                                      <span className={`text-xs ${styles.textSecondary}`}>Partite</span>
+                                      <span className={`text-sm font-medium ${styles.textPrimary}`}>{stats.games} <span className={`${styles.textMuted} text-xs`}>({percentage}%)</span></span>
                                     </div>
                                     
                                     <div className="flex justify-between items-center">
-                                      <span className="text-xs text-gray-400">Winrate</span>
+                                      <span className={`text-xs ${styles.textSecondary}`}>Winrate</span>
                                       <span className={`text-sm font-bold ${
                                         stats.winrate >= 55 ? 'text-green-400' :
                                         stats.winrate >= 50 ? 'text-blue-400' :
@@ -516,9 +516,9 @@ export default function HeroesPage() {
                                     </div>
                                     
                                     <div className="flex justify-between items-center">
-                                      <span className="text-xs text-gray-400">Heroes (5+ partite)</span>
+                                      <span className={`text-xs ${styles.textSecondary}`}>Heroes (5+ partite)</span>
                                       <div className="flex items-center gap-1">
-                                        <span className="text-sm font-medium text-white">{heroesInRole}</span>
+                                        <span className={`text-sm font-medium ${styles.textPrimary}`}>{heroesInRole}</span>
                                         {heroesInRole < 4 && (
                                           <span className="text-xs text-yellow-400" title="Considera di espandere il pool per questo ruolo">⚠</span>
                                         )}
@@ -531,7 +531,7 @@ export default function HeroesPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-400">Nessun dato ruolo disponibile</p>
+                      <p className={styles.textSecondary}>Nessun dato ruolo disponibile</p>
                     )}
                   </div>
 
@@ -548,17 +548,17 @@ export default function HeroesPage() {
                       
                       return (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="bg-green-900/40 backdrop-blur-sm border border-green-700 rounded-lg p-4">
+                          <div className={`${styles.hasBackground ? 'bg-green-900/40 backdrop-blur-sm' : 'bg-green-900/30'} border border-green-700 rounded-lg p-4`}>
                             <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo con Miglior Winrate</h3>
                             <p className="text-2xl font-bold text-green-400 capitalize">{bestWinrateRole[0]}</p>
-                            <p className="text-sm text-gray-400 mt-1">
+                            <p className={`text-sm ${styles.textSecondary} mt-1`}>
                               {bestWinrateRole[1].winrate.toFixed(1)}% su {bestWinrateRole[1].games} partite
                             </p>
                           </div>
-                          <div className="bg-blue-900/40 backdrop-blur-sm border border-blue-700 rounded-lg p-4">
+                          <div className={`${styles.hasBackground ? 'bg-blue-900/40 backdrop-blur-sm' : 'bg-blue-900/30'} border border-blue-700 rounded-lg p-4`}>
                             <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Più Giocato</h3>
                             <p className="text-2xl font-bold text-blue-400 capitalize">{mostPlayedRole[0]}</p>
-                            <p className="text-sm text-gray-400 mt-1">
+                            <p className={`text-sm ${styles.textSecondary} mt-1`}>
                               {mostPlayedRole[1].games} partite ({((mostPlayedRole[1].games / analysisData.overall.totalGames) * 100).toFixed(1)}% del totale)
                             </p>
                           </div>
@@ -566,7 +566,7 @@ export default function HeroesPage() {
                       )
                     })()}
                     {analysisData.overall.diverseHeroes < 12 && (
-                      <div className="mt-4 bg-yellow-900/40 backdrop-blur-sm border border-yellow-700 rounded-lg p-4">
+                      <div className={`mt-4 ${styles.hasBackground ? 'bg-yellow-900/40 backdrop-blur-sm' : 'bg-yellow-900/30'} border border-yellow-700 rounded-lg p-4`}>
                         <p className="text-yellow-200 drop-shadow-sm text-sm">
                           💡 <strong>Suggerimento:</strong> Hai {analysisData.overall.diverseHeroes} heroes con 5+ partite. 
                           Per un pool completo, considera di avere almeno 4-5 heroes per ruolo principale.
@@ -669,11 +669,11 @@ export default function HeroesPage() {
                     <div className="flex items-center gap-2">
                       {/* Sort */}
                       <div className="flex items-center gap-2 bg-gray-700 rounded-lg p-1">
-                        <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                        <ArrowUpDown className={`w-4 h-4 ${styles.textSecondary}`} />
                         <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value as 'games' | 'winrate' | 'kda')}
-                          className="bg-transparent text-sm text-white border-none outline-none cursor-pointer"
+                          className={`bg-transparent text-sm ${styles.textPrimary} border-none outline-none cursor-pointer`}
                         >
                           <option value="games">Ordina per Partite</option>
                           <option value="winrate">Ordina per Winrate</option>
@@ -685,7 +685,7 @@ export default function HeroesPage() {
                         <button
                           onClick={() => setStatsView('grid')}
                           className={`p-2 rounded transition-colors ${
-                            statsView === 'grid' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'
+                            statsView === 'grid' ? `bg-gray-600 ${styles.textPrimary}` : `${styles.textSecondary} hover:text-white`
                           }`}
                           title="Vista griglia"
                         >
@@ -694,7 +694,7 @@ export default function HeroesPage() {
                         <button
                           onClick={() => setStatsView('table')}
                           className={`p-2 rounded transition-colors ${
-                            statsView === 'table' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'
+                            statsView === 'table' ? `bg-gray-600 ${styles.textPrimary}` : `${styles.textSecondary} hover:text-white`
                           }`}
                           title="Vista tabella"
                         >
@@ -733,7 +733,7 @@ export default function HeroesPage() {
                                 size={48}
                                 className="rounded"
                               />
-                              <span className="text-white font-medium text-xs text-center leading-tight">
+                              <span className={`${styles.textPrimary} font-medium text-xs text-center leading-tight`}>
                                 {hero.hero_name}
                               </span>
                             </div>
@@ -751,16 +751,16 @@ export default function HeroesPage() {
 
                             {/* Stats compatte */}
                             <div className="space-y-1 text-xs">
-                              <div className="flex justify-between text-gray-400">
+                              <div className={`flex justify-between ${styles.textSecondary}`}>
                                 <span>Partite:</span>
-                                <span className="text-white font-medium">{hero.games}</span>
+                                <span className={`${styles.textPrimary} font-medium`}>{hero.games}</span>
                               </div>
-                              <div className="flex justify-between text-gray-400">
+                              <div className={`flex justify-between ${styles.textSecondary}`}>
                                 <span>KDA:</span>
-                                <span className="text-white font-medium">{hero.kda || 'N/A'}</span>
+                                <span className={`${styles.textPrimary} font-medium`}>{hero.kda || 'N/A'}</span>
                               </div>
                               {hero.avg_gpm && (
-                                <div className="flex justify-between text-gray-400">
+                                <div className={`flex justify-between ${styles.textSecondary}`}>
                                   <span>GPM:</span>
                                   <span className="text-yellow-400 font-medium">{hero.avg_gpm}</span>
                                 </div>
@@ -792,9 +792,9 @@ export default function HeroesPage() {
                           <table className="w-full">
                             <thead className="bg-gray-700">
                               <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Hero</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Partite</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">Winrate</th>
+                                <th className={`px-3 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase`}>Hero</th>
+                                <th className={`px-3 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase`}>Partite</th>
+                                <th className={`px-3 py-2 text-left text-xs font-medium ${styles.textSecondary} uppercase`}>Winrate</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">KDA</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">GPM</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase">XPM</th>
