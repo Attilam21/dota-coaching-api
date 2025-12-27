@@ -268,7 +268,7 @@ function SettingsPageContent() {
               ? 'bg-green-900/60 backdrop-blur-sm border-green-700 text-green-200'
               : 'bg-red-900/60 backdrop-blur-sm border-red-700 text-red-200'
           }`}>
-            <div className="flex items-center gap-2 drop-shadow-sm">
+            <div className={`flex items-center gap-2 ${styles.hasBackground ? 'drop-shadow-sm' : ''}`}>
               {message.type === 'success' ? (
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
               ) : (
@@ -358,7 +358,7 @@ function SettingsPageContent() {
                     changesRemaining === 0 ? 'text-red-400' :
                     changesRemaining === 1 ? 'text-yellow-400' :
                     'text-green-400'
-                  } drop-shadow-sm`}>
+                  } ${styles.hasBackground ? 'drop-shadow-sm' : ''}`}>
                     {changesRemaining} / 3
                   </span>
                 </div>
@@ -377,7 +377,7 @@ function SettingsPageContent() {
                   changesRemaining === 0 ? 'text-red-300' :
                   changesRemaining === 1 ? 'text-yellow-300' :
                   styles.textSecondary
-                } drop-shadow-sm`}>
+                } ${styles.hasBackground ? 'drop-shadow-sm' : ''}`}>
                   {changesRemaining === 0 && '⚠️ Dopo il prossimo cambio, il Player ID verrà bloccato.'}
                   {changesRemaining === 1 && '⚠️ Ti rimane solo 1 cambio disponibile.'}
                   {changesRemaining > 1 && `Puoi cambiare il Player ID ancora ${changesRemaining} volte.`}
@@ -692,7 +692,7 @@ function SettingsPageContent() {
                       onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
                       placeholder="Minimo 6 caratteri"
                       autoComplete="new-password"
-                      className="w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white drop-shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className={`w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
                   <div>
@@ -705,7 +705,7 @@ function SettingsPageContent() {
                       onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
                       placeholder="Ripeti la nuova password"
                       autoComplete="new-password"
-                      className="w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white drop-shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className={`w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
                   <AnimatedButton
