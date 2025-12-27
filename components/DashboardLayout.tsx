@@ -247,7 +247,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {backgroundUrl && (
           <motion.div 
             key={backgroundUrl}
-            initial={{ left: 0 }}
+            initial={{ left: isSidebarOpen ? 256 : 0 }}
             animate={{
               left: isSidebarOpen ? 256 : 0,
             }}
