@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import Link from 'next/link'
@@ -66,6 +67,7 @@ export default function ImprovementPathPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<ImprovementPath | null>(null)
@@ -119,7 +121,7 @@ export default function ImprovementPathPage() {
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
-          <p className="mt-4 text-gray-400">Calcolando il tuo percorso di miglioramento...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Calcolando il tuo percorso di miglioramento...</p>
         </div>
       </div>
     )
@@ -154,7 +156,7 @@ export default function ImprovementPathPage() {
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <Route className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-          <p className="text-gray-400">Nessun percorso disponibile. Gioca alcune partite per vedere il tuo path to improvement.</p>
+          <p className={styles.textSecondary}>Nessun percorso disponibile. Gioca alcune partite per vedere il tuo path to improvement.</p>
         </div>
       </div>
     )
@@ -168,7 +170,7 @@ export default function ImprovementPathPage() {
           <div className="flex items-center gap-3">
             <Link 
               href="/dashboard/predictions"
-              className="text-gray-400 hover:text-white transition-colors"
+              className={`${styles.textLink} transition-colors`}
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
@@ -177,7 +179,7 @@ export default function ImprovementPathPage() {
                 <Route className="w-8 h-8 text-cyan-400" />
                 Path to Improvement
               </h1>
-              <p className="text-gray-400">
+              <p className={styles.textSecondary}>
                 Percorso step-by-step per raggiungere i tuoi obiettivi
               </p>
             </div>
@@ -187,30 +189,30 @@ export default function ImprovementPathPage() {
 
         {/* Current Stats */}
         {data.currentStats && (
-          <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+          <div className={`${styles.cardSubtle} p-6`}>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-cyan-400" />
               Le Tue Statistiche Attuali
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
-                <div className="text-sm text-gray-400 mb-1">Winrate</div>
+                <div className={`text-sm ${styles.textSecondary} mb-1`}>Winrate</div>
                 <div className="text-2xl font-bold text-white">{data.currentStats.winrate}%</div>
               </div>
               <div>
-                <div className="text-sm text-gray-400 mb-1">GPM</div>
+                <div className={`text-sm ${styles.textSecondary} mb-1`}>GPM</div>
                 <div className="text-2xl font-bold text-white">{data.currentStats.gpm}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-400 mb-1">KDA</div>
+                <div className={`text-sm ${styles.textSecondary} mb-1`}>KDA</div>
                 <div className="text-2xl font-bold text-white">{data.currentStats.kda}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-400 mb-1">Morti</div>
+                <div className={`text-sm ${styles.textSecondary} mb-1`}>Morti</div>
                 <div className="text-2xl font-bold text-white">{data.currentStats.deaths}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-400 mb-1">Ruolo</div>
+                <div className={`text-sm ${styles.textSecondary} mb-1`}>Ruolo</div>
                 <div className="text-2xl font-bold text-white capitalize">{data.currentStats.role}</div>
               </div>
             </div>
@@ -221,10 +223,10 @@ export default function ImprovementPathPage() {
         <div className="bg-gradient-to-r from-green-900/30 to-cyan-900/30 border border-green-500/50 rounded-xl p-8 text-center">
           <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">Ottimo Lavoro!</h2>
-          <p className="text-gray-300 mb-4">
+          <p className={`${styles.textSecondary} mb-4`}>
             Le tue statistiche sono già molto buone rispetto al meta. Continua a giocare e monitora le tue performance.
           </p>
-          <p className="text-sm text-gray-400">
+          <p className={`text-sm ${styles.textSecondary}`}>
             Il percorso di miglioramento verrà aggiornato automaticamente quando ci saranno nuove opportunità di ottimizzazione.
           </p>
         </div>
@@ -290,10 +292,10 @@ export default function ImprovementPathPage() {
       <div className="bg-gradient-to-r from-cyan-900/30 via-blue-900/30 to-purple-900/30 border border-cyan-500/50 rounded-xl p-6 shadow-lg shadow-cyan-500/20">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 mb-3">STATO ATTUALE</h3>
+            <h3 className={`text-sm font-semibold ${styles.textSecondary} mb-3`}>STATO ATTUALE</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-400">Winrate:</span>
+                <span className={styles.textSecondary}>Winrate:</span>
                 <span className="text-white font-bold">{data.currentStats.winrate}%</span>
               </div>
               <div className="flex justify-between">
@@ -315,10 +317,10 @@ export default function ImprovementPathPage() {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 mb-3">RISULTATO PREVISTO</h3>
+            <h3 className={`text-sm font-semibold ${styles.textSecondary} mb-3`}>RISULTATO PREVISTO</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-400">Winrate:</span>
+                <span className={styles.textSecondary}>Winrate:</span>
                 <span className="text-green-400 font-bold text-xl">{data.projectedOutcome.winrate}%</span>
               </div>
               <div className="flex justify-between">
@@ -351,7 +353,7 @@ export default function ImprovementPathPage() {
         {data.steps.map((step, idx) => (
           <div
             key={step.id}
-            className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 hover:border-cyan-500/50 transition-all"
+            className={`${styles.cardSubtle} p-6 hover:border-cyan-500/50 transition-all`}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start gap-4 flex-1">
@@ -365,12 +367,12 @@ export default function ImprovementPathPage() {
                       {step.priority.toUpperCase()} PRIORITY
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300 mb-3">{step.actionable}</p>
+                  <p className={`text-sm ${styles.textSecondary} mb-3`}>{step.actionable}</p>
                   
                   {/* Progress Bar */}
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-400">Attuale: {typeof step.currentValue === 'number' ? step.currentValue.toFixed(1) : step.currentValue}</span>
+                      <span className={styles.textSecondary}>Attuale: {typeof step.currentValue === 'number' ? step.currentValue.toFixed(1) : step.currentValue}</span>
                       <span className="text-cyan-400 font-semibold">Target: {typeof step.targetValue === 'number' ? step.targetValue.toFixed(1) : step.targetValue}</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
@@ -381,7 +383,7 @@ export default function ImprovementPathPage() {
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <div className={`flex justify-between text-xs ${styles.textMuted} mt-1`}>
                       <span>Gap: {typeof step.gap === 'number' ? step.gap.toFixed(1) : step.gap} ({typeof step.gapPercent === 'number' ? step.gapPercent.toFixed(1) : step.gapPercent}%)</span>
                       <span>{step.estimatedMatches} partite stimate</span>
                     </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import Link from 'next/link'
@@ -52,6 +53,7 @@ export default function WhatIfPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<WhatIfData | null>(null)
@@ -121,7 +123,7 @@ export default function WhatIfPage() {
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
-          <p className="mt-4 text-gray-400">Calcolando scenari...</p>
+          <p className={`mt-4 ${styles.textSecondary}`}>Calcolando scenari...</p>
         </div>
       </div>
     )
@@ -156,7 +158,7 @@ export default function WhatIfPage() {
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <TrendingUp className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-          <p className="text-gray-400">Nessun dato disponibile. Gioca alcune partite per vedere le analisi what-if.</p>
+          <p className={styles.textSecondary}>Nessun dato disponibile. Gioca alcune partite per vedere le analisi what-if.</p>
         </div>
       </div>
     )
@@ -177,7 +179,7 @@ export default function WhatIfPage() {
         <div className="flex items-center gap-3">
           <Link 
             href="/dashboard/predictions"
-            className="text-gray-400 hover:text-white transition-colors"
+            className={`${styles.textLink} transition-colors`}
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -186,7 +188,7 @@ export default function WhatIfPage() {
               <TrendingUp className="w-8 h-8 text-cyan-400" />
               What-If Analysis
             </h1>
-            <p className="text-gray-400">
+            <p className={styles.textSecondary}>
               Simula cosa succede se migliori metriche specifiche
             </p>
           </div>
@@ -195,30 +197,30 @@ export default function WhatIfPage() {
       </div>
 
       {/* Current Stats */}
-      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+      <div className={`${styles.cardSubtle} p-6`}>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <Target className="w-5 h-5 text-cyan-400" />
           Le Tue Statistiche Attuali
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div>
-            <div className="text-sm text-gray-400 mb-1">Winrate</div>
+            <div className={`text-sm ${styles.textSecondary} mb-1`}>Winrate</div>
             <div className="text-2xl font-bold text-white">{data.currentStats.winrate}%</div>
           </div>
           <div>
-            <div className="text-sm text-gray-400 mb-1">GPM</div>
+            <div className={`text-sm ${styles.textSecondary} mb-1`}>GPM</div>
             <div className="text-2xl font-bold text-white">{data.currentStats.gpm}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-400 mb-1">Morti</div>
+            <div className={`text-sm ${styles.textSecondary} mb-1`}>Morti</div>
             <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.deaths, 1)}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-400 mb-1">KDA</div>
+            <div className={`text-sm ${styles.textSecondary} mb-1`}>KDA</div>
             <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.kda, 2)}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-400 mb-1">Teamfight</div>
+            <div className={`text-sm ${styles.textSecondary} mb-1`}>Teamfight</div>
             <div className="text-2xl font-bold text-white">{formatStat(data.currentStats.teamfight, 1)}</div>
           </div>
         </div>
@@ -234,10 +236,10 @@ export default function WhatIfPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">{data.summary.bestScenario.title}</h3>
-              <p className="text-sm text-gray-300 mb-4">{data.summary.bestScenario.description}</p>
+              <p className={`text-sm ${styles.textSecondary} mb-4`}>{data.summary.bestScenario.description}</p>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Miglioramento:</span>
+                  <span className={styles.textSecondary}>Miglioramento:</span>
                   <span className="text-green-400 font-bold">{data.summary.bestScenario.improvement}</span>
                 </div>
                 <div className="flex justify-between">
@@ -257,7 +259,7 @@ export default function WhatIfPage() {
             <div>
               <div className={`p-3 rounded-lg mb-3 ${getConfidenceColor(data.summary.bestScenario.confidence)}`}>
                 <div className="text-sm font-semibold mb-1">Confidenza: {data.summary.bestScenario.confidence.toUpperCase()}</div>
-                <p className="text-xs text-gray-300">{data.summary.bestScenario.reasoning}</p>
+                <p className={`text-xs ${styles.textSecondary}`}>{data.summary.bestScenario.reasoning}</p>
               </div>
             </div>
           </div>
@@ -273,25 +275,25 @@ export default function WhatIfPage() {
         {data.scenarios.map((scenario, idx) => (
           <div
             key={idx}
-            className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 hover:border-cyan-500/50 transition-all"
+            className={`${styles.cardSubtle} p-6 hover:border-cyan-500/50 transition-all`}
           >
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-bold text-white mb-2">{scenario.title}</h3>
-                <p className="text-sm text-gray-300 mb-4">{scenario.description}</p>
+                <p className={`text-sm ${styles.textSecondary} mb-4`}>{scenario.description}</p>
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`px-3 py-1 rounded text-xs font-semibold ${getConfidenceColor(scenario.confidence)}`}>
                     {scenario.confidence.toUpperCase()} CONFIDENCE
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 italic">{scenario.reasoning}</p>
+                <p className={`text-xs ${styles.textSecondary} italic`}>{scenario.reasoning}</p>
               </div>
               <div className="space-y-3">
                 <div className="bg-gray-900/50 rounded-lg p-4">
-                  <div className="text-sm text-gray-400 mb-2">Risultato Previsto</div>
+                  <div className={`text-sm ${styles.textSecondary} mb-2`}>Risultato Previsto</div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-xs text-gray-500">Winrate</div>
+                      <div className={`text-xs ${styles.textMuted}`}>Winrate</div>
                       <div className="text-2xl font-bold text-cyan-400">{scenario.projectedWinrate}%</div>
                     </div>
                     <div>
@@ -323,20 +325,20 @@ export default function WhatIfPage() {
             <Zap className="w-6 h-6 text-purple-400" />
             <h2 className="text-xl font-bold">Impatto Combinato</h2>
           </div>
-          <p className="text-sm text-gray-300 mb-4">
+          <p className={`text-sm ${styles.textSecondary} mb-4`}>
             Se migliori TUTTE le metriche insieme, questo è il risultato previsto:
           </p>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Winrate Finale</div>
+              <div className={`text-sm ${styles.textSecondary} mb-1`}>Winrate Finale</div>
               <div className="text-3xl font-bold text-purple-400">{data.summary.combinedImpact.winrate}%</div>
             </div>
             <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">Miglioramento</div>
+              <div className={`text-sm ${styles.textSecondary} mb-1`}>Miglioramento</div>
               <div className="text-3xl font-bold text-green-400">+{data.summary.combinedImpact.winrateChange}%</div>
             </div>
             <div className="bg-gray-900/50 rounded-lg p-4">
-              <div className="text-sm text-gray-400 mb-1">MMR Gain Totale</div>
+              <div className={`text-sm ${styles.textSecondary} mb-1`}>MMR Gain Totale</div>
               <div className="text-3xl font-bold text-yellow-400">+{data.summary.combinedImpact.mmrGain}</div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
 import { usePlayerIdContext } from '@/lib/playerIdContext'
+import { useDashboardStyles } from '@/lib/hooks/useDashboardStyles'
 import PlayerIdInput from '@/components/PlayerIdInput'
 import HelpButton from '@/components/HelpButton'
 import Link from 'next/link'
@@ -52,6 +53,7 @@ export default function PredictionsPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<AggregatedRecommendations | null>(null)
@@ -165,7 +167,7 @@ export default function PredictionsPage() {
             <Sparkles className="w-8 h-8 text-cyan-400" />
             Analisi Predittive
           </h1>
-          <p className="text-gray-400">
+          <p className={styles.textSecondary}>
             Scopri cosa succederà se segui i consigli delle tue partite
           </p>
         </div>
@@ -177,11 +179,11 @@ export default function PredictionsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold mb-1">Impact Score</h2>
-            <p className="text-sm text-gray-400">Quanto impatto avrebbero i tuoi miglioramenti</p>
+            <p className={`text-sm ${styles.textSecondary}`}>Quanto impatto avrebbero i tuoi miglioramenti</p>
           </div>
           <div className="text-right">
             <div className="text-5xl font-bold text-cyan-400">{data.impactScore}</div>
-            <div className="text-sm text-gray-400">/ 100</div>
+            <div className={`text-sm ${styles.textSecondary}`}>/ 100</div>
           </div>
         </div>
         <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
@@ -193,31 +195,31 @@ export default function PredictionsPage() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-2xl font-bold text-green-400">+{data.projectedWinrateImprovement.toFixed(1)}%</div>
-            <div className="text-xs text-gray-400">Winrate Previsto</div>
+            <div className={`text-xs ${styles.textMuted}`}>Winrate Previsto</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-cyan-400">{data.totalRecommendations}</div>
-            <div className="text-xs text-gray-400">Recommendations</div>
+            <div className={`text-xs ${styles.textMuted}`}>Recommendations</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-blue-400">{data.totalMatches}</div>
-            <div className="text-xs text-gray-400">Partite Analizzate</div>
+            <div className={`text-xs ${styles.textMuted}`}>Partite Analizzate</div>
           </div>
         </div>
       </div>
 
       {/* Top Patterns - Most Important */}
-      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+      <div className={`${styles.cardSubtle} p-6`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Target className="w-6 h-6 text-cyan-400" />
             I Tuoi Errori Più Comuni
           </h2>
-          <span className="text-sm text-gray-400">
+          <span className={`text-sm ${styles.textSecondary}`}>
             Basato su {data.totalMatches} partite
           </span>
         </div>
-        <p className="text-sm text-gray-400 mb-4">
+        <p className={`text-sm ${styles.textSecondary} mb-4`}>
           Questi sono i consigli che appaiono più spesso nelle tue partite. Seguirli avrebbe il massimo impatto.
         </p>
         <div className="space-y-3">
@@ -233,7 +235,7 @@ export default function PredictionsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-white mb-1">{pattern.recommendation}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className={`flex items-center gap-4 text-xs ${styles.textSecondary}`}>
                       <span className="flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         Appare in {pattern.frequency} partite ({pattern.percentage.toFixed(0)}%)
@@ -262,7 +264,7 @@ export default function PredictionsPage() {
             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>
           <h3 className="text-lg font-bold mb-2">Path to Improvement</h3>
-          <p className="text-sm text-gray-400">
+          <p className={`text-sm ${styles.textSecondary}`}>
             Percorso step-by-step per raggiungere i tuoi obiettivi
           </p>
         </Link>
@@ -273,17 +275,17 @@ export default function PredictionsPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <TrendingUp className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
+            <ArrowRight className={`w-5 h-5 ${styles.textSecondary} group-hover:text-purple-400 group-hover:translate-x-1 transition-all`} />
           </div>
           <h3 className="text-lg font-bold mb-2">What-If Analysis</h3>
-          <p className="text-sm text-gray-400">
+          <p className={`text-sm ${styles.textSecondary}`}>
             Simula cosa succede se migliori metriche specifiche
           </p>
         </Link>
       </div>
 
       {/* Recommendations by Category */}
-      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+      <div className={`${styles.cardSubtle} p-6`}>
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-cyan-400" />
           Recommendations per Categoria
@@ -301,15 +303,15 @@ export default function PredictionsPage() {
             return (
               <div key={key} className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
                 <div className={`text-3xl font-bold ${color} mb-1`}>{value}</div>
-                <div className="text-sm text-gray-400">{label}</div>
+                <div className={`text-sm ${styles.textSecondary}`}>{label}</div>
               </div>
             )
           })}
-          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+          <div className={`${styles.cardSubtle} p-4`}>
             <div className="text-3xl font-bold text-cyan-400 mb-1 capitalize">
               {data.summary.mostCommonCategory}
             </div>
-            <div className="text-sm text-gray-400">Categoria Più Comune</div>
+            <div className={`text-sm ${styles.textSecondary}`}>Categoria Più Comune</div>
           </div>
         </div>
       </div>
