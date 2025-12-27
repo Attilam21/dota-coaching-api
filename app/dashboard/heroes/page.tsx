@@ -220,19 +220,19 @@ export default function HeroesPage() {
         <div className="space-y-6">
           {/* Hero Pool Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className={`${styles.card} p-4`}>
+            <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Heroes Totali</h3>
               <p className={`text-2xl font-bold ${styles.textPrimary}`}>{analysisData?.overall.totalHeroesPlayed || heroStats.length}</p>
               <p className={`text-xs ${styles.textMuted} mt-1`}>Heroes giocati</p>
             </div>
             {analysisData && (
               <>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Heroes per Ruolo</h3>
                   <p className="text-2xl font-bold text-blue-400">{Object.keys(analysisData.roleStats).length}</p>
                   <p className={`text-xs ${styles.textMuted} mt-1`}>Ruoli diversi giocati</p>
                 </div>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Preferito</h3>
                   <p className="text-lg font-bold text-yellow-400">
                     {(() => {
@@ -244,7 +244,7 @@ export default function HeroesPage() {
                   </p>
                   <p className={`text-xs ${styles.textMuted} mt-1`}>Più giocato</p>
                 </div>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Pool Completo?</h3>
                   <p className={`text-2xl font-bold ${
                     analysisData.overall.diverseHeroes >= 12 ? 'text-green-400' :
@@ -259,7 +259,7 @@ export default function HeroesPage() {
             )}
             {!analysisData && (
               <>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
                   <p className="text-2xl font-bold text-red-400">
                     {(() => {
@@ -276,7 +276,7 @@ export default function HeroesPage() {
                   </p>
                   <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
                 </div>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
                   <p className="text-2xl font-bold text-yellow-400">
                     {(() => {
@@ -293,7 +293,7 @@ export default function HeroesPage() {
                   </p>
                   <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
                 </div>
-                <div className={`${styles.card} p-4`}>
+                <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                   <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
                   <p className="text-2xl font-bold text-blue-400">
                     {(() => {
@@ -312,7 +312,7 @@ export default function HeroesPage() {
                 </div>
               </>
             )}
-            <div className={`${styles.card} p-4`}>
+            <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <h3 className={`text-sm ${styles.textSecondary} mb-2`}>KDA Medio</h3>
               <p className="text-2xl font-bold text-red-400">
                 {(() => {
@@ -329,7 +329,7 @@ export default function HeroesPage() {
               </p>
               <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
             </div>
-            <div className={`${styles.card} p-4`}>
+            <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <h3 className={`text-sm ${styles.textSecondary} mb-2`}>GPM Medio</h3>
               <p className="text-2xl font-bold text-yellow-400">
                 {(() => {
@@ -346,7 +346,7 @@ export default function HeroesPage() {
               </p>
               <p className={`text-xs ${styles.textMuted} mt-1`}>Media su tutti gli heroes</p>
             </div>
-            <div className={`${styles.card} p-4`}>
+            <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <h3 className={`text-sm ${styles.textSecondary} mb-2`}>XPM Medio</h3>
               <p className="text-2xl font-bold text-blue-400">
                 {(() => {
@@ -394,7 +394,7 @@ export default function HeroesPage() {
               {activeTab === 'chart' && (
                 <div className="space-y-6">
                   {/* Winrate Chart */}
-                  <div className={`${styles.card} p-6 relative`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 relative`}>
                     {playerId && (
                       <InsightBadge
                         elementType="trend-chart"
@@ -425,7 +425,7 @@ export default function HeroesPage() {
 
 
                   {/* GPM/XPM Chart */}
-                  <div className={`${styles.card} p-6`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                     <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>GPM e XPM per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <ComposedChart data={chartData}>
@@ -448,7 +448,7 @@ export default function HeroesPage() {
                   </div>
 
                   {/* KDA Chart */}
-                  <div className={`${styles.card} p-6`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                     <h2 className={`text-2xl font-semibold mb-4 ${styles.textPrimary}`}>KDA per Hero</h2>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={chartData}>
@@ -474,7 +474,7 @@ export default function HeroesPage() {
               {activeTab === 'analysis' && analysisData && (
                 <div className="space-y-6">
                   {/* Diversity & Role Coverage */}
-                  <div className={`${styles.card} p-6`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                     <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <Users className="w-5 h-5" />
                       Diversità & Copertura Ruoli
@@ -536,7 +536,7 @@ export default function HeroesPage() {
                   </div>
 
                   {/* Specialization Analysis */}
-                  <div className={`${styles.card} p-6`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                     <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <TrendingUp className="w-5 h-5" />
                       Analisi Specializzazione
@@ -576,7 +576,7 @@ export default function HeroesPage() {
                   </div>
 
                   {/* Recommendations */}
-                  <div className={`${styles.card} p-6`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                     <h2 className={`text-xl md:text-2xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                       <Target className="w-5 h-5" />
                       Raccomandazioni

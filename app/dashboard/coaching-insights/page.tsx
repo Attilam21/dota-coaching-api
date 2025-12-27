@@ -478,7 +478,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Profile Overview */}
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className={`${styles.card} p-4 relative`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
                       <InsightBadge
                         elementType="role"
                         elementId="role"
@@ -498,7 +498,7 @@ export default function CoachingInsightsPage() {
                         </span>
                       </p>
                     </div>
-                    <div className={`${styles.card} p-4 relative`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
                       <InsightBadge
                         elementType="playstyle"
                         elementId="playstyle"
@@ -513,7 +513,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Trends */}
                   {profile.trends && (
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${styles.textPrimary}`}>
                         <TrendingUp className="w-5 h-5" />
                         Trend Performance
@@ -592,19 +592,19 @@ export default function CoachingInsightsPage() {
                   {/* Key Metrics */}
                   {profile.metrics && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      <div className={`${styles.card} p-4 hover:border-yellow-500 transition-colors`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-yellow-500 transition-colors`}>
                         <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>GPM Medio</p>
                         <p className="text-2xl font-bold text-yellow-400">{profile.metrics.avgGPM}</p>
                       </div>
-                      <div className={`${styles.card} p-4 hover:border-orange-500 transition-colors`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-orange-500 transition-colors`}>
                         <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>XPM Medio</p>
                         <p className="text-2xl font-bold text-orange-400">{profile.metrics.avgXPM}</p>
                       </div>
-                      <div className={`${styles.card} p-4 hover:border-purple-500 transition-colors`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors`}>
                         <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>KDA Medio</p>
                         <p className="text-2xl font-bold text-purple-400">{profile.metrics.avgKDA}</p>
                       </div>
-                      <div className={`${styles.card} p-4 hover:border-green-500 transition-colors`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 hover:border-green-500 transition-colors`}>
                         <p className={`text-xs ${styles.textSecondary} mb-2 uppercase tracking-wider`}>Winrate</p>
                         <p className="text-2xl font-bold text-green-400">{profile.metrics.winrate}%</p>
                       </div>
@@ -636,7 +636,7 @@ export default function CoachingInsightsPage() {
                       )}
 
                       {/* Role Badge */}
-                      <div className={`${styles.card} p-4`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                         <div className="flex items-center gap-3">
                           <span className={`text-sm ${styles.textSecondary}`}>Ruolo Analizzato:</span>
                           <span className="px-3 py-1 bg-red-600/20 border border-red-600 rounded-full text-red-400 font-semibold">
@@ -646,7 +646,7 @@ export default function CoachingInsightsPage() {
                       </div>
 
                       {/* Key Metrics Comparison */}
-                      <div className={`${styles.card} p-6`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                         <h2 className={`text-2xl font-semibold mb-6 flex items-center gap-2 ${styles.textPrimary}`}>
                           <BarChart3 className="w-6 h-6" />
                           Confronto Performance vs Meta
@@ -694,7 +694,7 @@ export default function CoachingInsightsPage() {
 
                       {/* AI Insights for Improvement Areas */}
                       {metaData.aiInsights && metaData.aiInsights.length > 0 && (
-                        <div className={`${styles.card} p-6`}>
+                        <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                           <div className="flex items-center gap-3 mb-6">
                             <AlertCircle className="w-6 h-6 text-orange-400" />
                             <h2 className="text-2xl font-semibold">Aree di Miglioramento Prioritario</h2>
@@ -814,14 +814,14 @@ export default function CoachingInsightsPage() {
                       </div>
                     </>
                   ) : loadingWinConditions ? (
-                        <div className={`${styles.card} p-6`}>
+                        <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                       <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                         <p className={`mt-4 ${styles.textSecondary}`}>Analisi pattern di vittoria in corso...</p>
                       </div>
                     </div>
                   ) : (
-                        <div className={`${styles.card} p-6`}>
+                        <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6`}>
                       <div className="text-center py-8">
                         <p className={styles.textSecondary}>Carica i dati per visualizzare l'analisi Win Conditions</p>
                       </div>
@@ -835,7 +835,7 @@ export default function CoachingInsightsPage() {
                 <div className="space-y-6">
                   {/* Strengths */}
                   {profile.strengths && profile.strengths.length > 0 && (
-                    <div className={`${styles.card} border border-green-700 p-6`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-green-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <CheckCircle2 className="w-6 h-6 text-green-400" />
                         <h2 className="text-2xl font-semibold">Punti di Forza</h2>
@@ -852,7 +852,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Weaknesses */}
                   {profile.weaknesses && profile.weaknesses.length > 0 && (
-                    <div className={`${styles.card} border border-orange-700 p-6`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-orange-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <AlertTriangle className="w-6 h-6 text-orange-400" />
                         <h2 className="text-2xl font-semibold">Aree di Miglioramento</h2>
@@ -869,7 +869,7 @@ export default function CoachingInsightsPage() {
 
                   {/* Recommendations */}
                   {profile.recommendations && profile.recommendations.length > 0 && (
-                    <div className={`${styles.card} border border-blue-700 p-6`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-blue-700 rounded-lg p-6`}>
                       <div className="flex items-center gap-3 mb-4">
                         <Lightbulb className="w-6 h-6 text-blue-400" />
                         <h2 className="text-2xl font-semibold">Raccomandazioni Personalizzate</h2>

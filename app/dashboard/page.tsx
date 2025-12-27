@@ -731,7 +731,7 @@ export default function DashboardPage() {
           {/* Top Heroes / Key Matches - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4 mb-4 items-start">
             {/* Hero Pool Card */}
-            <div className={`${styles.card} p-3 flex flex-col`}>
+            <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-3 flex flex-col`}>
               <h3 className={`text-sm font-semibold ${styles.textPrimary} mb-3 flex-shrink-0`}>Hero Pool (Top 6)</h3>
               {topHeroes.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
@@ -840,7 +840,7 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-3">Snapshot Stato Forma (ultime 20 partite)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* KDA Trend Card */}
-              <AnimatedCard index={0} className={`${styles.card} p-4`}>
+              <AnimatedCard index={0} className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                 <h4 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>KDA Trend</h4>
                 <div className="mb-3">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${kdaTrend.color} text-white`}>
@@ -877,7 +877,7 @@ export default function DashboardPage() {
               </AnimatedCard>
 
               {/* Farm Trend Card */}
-              <AnimatedCard index={1} className={`${styles.card} p-4`}>
+              <AnimatedCard index={1} className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                 <h4 className={`text-lg font-semibold mb-2 ${styles.textPrimary}`}>Farm Trend</h4>
                 <div className="space-y-3 text-sm">
                   <div className="space-y-1">
@@ -916,7 +916,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                     {/* Benchmark Comparison Card */}
                     {benchmarks && benchmarks.percentiles && benchmarks.source === 'opendota_ratings' && (
-                      <div className={`${styles.card} p-4`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                         <div className="flex items-center gap-2 mb-4">
                           <BarChartIcon className="w-5 h-5 text-blue-400" />
                           <h3 className="text-lg font-semibold">Confronto con Meta</h3>
@@ -991,7 +991,7 @@ export default function DashboardPage() {
 
                     {/* Recent Activity Feed */}
                     {stats.matches && stats.matches.length > 0 && (
-                      <div className={`${styles.card} p-4`}>
+                      <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                         <div className="flex items-center gap-2 mb-4">
                           <Clock className="w-5 h-5 text-green-400" />
                           <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Attività Recente</h3>
@@ -1045,7 +1045,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className={`mt-4 ${styles.card} p-3`}>
+                  <div className={`mt-4 ${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-3`}>
                     <div className="flex items-center gap-2 mb-4">
                       <Zap className="w-5 h-5 text-yellow-400" />
                       <h3 className={`text-lg font-semibold ${styles.textPrimary}`}>Azioni Rapide</h3>
@@ -1114,7 +1114,7 @@ export default function DashboardPage() {
                           </div>
                         </AnimatedCard>
 
-                        <AnimatedCard index={1} className={`${styles.card} p-4`}>
+                        <AnimatedCard index={1} className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                           <div className="flex items-center justify-between mb-2">
                             <h4 className={`text-sm font-semibold ${styles.textPrimary}`}>Vittorie Totali</h4>
                             <TrendingUp className="w-4 h-4 text-green-400" />
@@ -1130,7 +1130,7 @@ export default function DashboardPage() {
                     )}
 
                     {/* Winrate Trend - Compatto */}
-                    <AnimatedCard index={2} className={`${styles.card} p-4`}>
+                    <AnimatedCard index={2} className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <div className="flex items-center justify-between mb-2">
                         <h4 className={`text-sm font-semibold ${styles.textPrimary}`}>Winrate Trend</h4>
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${winrateTrend.color} text-white`}>
@@ -1158,7 +1158,7 @@ export default function DashboardPage() {
 
                   {/* Trend Grafico - Ridotto */}
                   {chartData.length > 0 && (
-                    <div className={`${styles.card} p-4 relative`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
                       {playerId && (
                         <InsightBadge
                           elementType="trend-chart"
@@ -1291,7 +1291,7 @@ export default function DashboardPage() {
 
                   {/* Phase Analysis - Separato da Benchmarks */}
                   {fullProfile?.phaseAnalysis && (
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${styles.textPrimary}`}>
                         <Clock className="w-4 h-4 text-purple-400" />
                         Fase del Gioco Preferita
@@ -1349,7 +1349,7 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {/* Link to Full Matches Page */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className={`${styles.card} p-6 text-center`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 text-center`}>
                       <h3 className={`text-xl font-semibold mb-3 ${styles.textPrimary}`}>Partite</h3>
                       <p className="text-gray-400 mb-4">Visualizza tutte le tue partite con analisi dettagliate</p>
                       <Link

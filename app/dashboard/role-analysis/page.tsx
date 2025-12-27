@@ -596,19 +596,19 @@ export default function RoleAnalysisPage() {
                 <div className="space-y-6">
                   {/* Summary Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruoli Giocati</h3>
                       <p className={`text-2xl font-bold ${styles.textPrimary}`}>{analysis.summary.totalRolesPlayed ?? 0}</p>
                       <p className={`text-xs ${styles.textMuted} mt-1`}>Ruoli diversi</p>
                     </div>
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Più Giocato</h3>
                       <p className={`text-lg font-bold ${styles.hasBackground ? 'text-blue-300 drop-shadow-sm' : 'text-blue-400'} capitalize`}>{analysis.summary.mostPlayedRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {analysis.roles[analysis.summary.mostPlayedRole]?.games || 0} partite
                       </p>
                     </div>
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Ruolo Migliore</h3>
                       <p className={`text-lg font-bold ${styles.hasBackground ? 'text-green-300 drop-shadow-sm' : 'text-green-400'} capitalize`}>{analysis.summary.bestRole || 'N/A'}</p>
                       <p className="text-xs text-gray-500 mt-1">
@@ -617,7 +617,7 @@ export default function RoleAnalysisPage() {
                           'N/A'}
                       </p>
                     </div>
-                    <div className={`${styles.card} p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                       <h3 className={`text-sm ${styles.textSecondary} mb-2`}>Versatilità</h3>
                       <p className={`text-2xl font-bold ${
                         (analysis.summary.totalRolesPlayed ?? 0) >= 3 ? 'text-green-400' :

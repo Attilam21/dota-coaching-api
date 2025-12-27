@@ -314,7 +314,7 @@ function SettingsPageContent() {
         )}
 
         {/* Sezione Profilo Utente */}
-        <AnimatedCard delay={0.2} className={`${styles.card} p-6 max-w-2xl mb-6`}>
+        <AnimatedCard delay={0.2} className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 max-w-2xl mb-6`}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-blue-900/40 backdrop-blur-sm">
               <User className="w-5 h-5 text-blue-400" />
@@ -553,7 +553,7 @@ function SettingsPageContent() {
         </AnimatedCard>
 
         {/* Sezione Personalizzazione */}
-        <AnimatedCard delay={0.25} className={`mt-6 ${styles.card} p-6 max-w-2xl mb-6`}>
+        <AnimatedCard delay={0.25} className={`mt-6 ${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 max-w-2xl mb-6`}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-pink-900/40 backdrop-blur-sm">
               <Palette className="w-5 h-5 text-pink-400" />
@@ -641,7 +641,7 @@ function SettingsPageContent() {
         </AnimatedCard>
 
         {/* Sezione Sicurezza */}
-        <AnimatedCard delay={0.3} className={`mt-6 ${styles.card} p-6 max-w-2xl`}>
+        <AnimatedCard delay={0.3} className={`mt-6 ${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-6 max-w-2xl`}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-red-900/40 backdrop-blur-sm">
               <Shield className="w-5 h-5 text-red-400" />

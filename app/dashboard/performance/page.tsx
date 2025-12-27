@@ -589,7 +589,7 @@ export default function PerformancePage() {
                 <div className="space-y-6">
                   {/* Trend Chart */}
                   {stats.matches && stats.matches.length > 0 && (
-                    <div className={`${styles.card} border border-gray-700 rounded-lg p-4 relative`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4 relative`}>
               {playerId && (
                 <InsightBadge
                   elementType="trend-chart"
@@ -629,7 +629,7 @@ export default function PerformancePage() {
                   {/* Charts Grid */}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Radar Chart - Compact */}
-                    <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                    <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
               <div className="flex justify-between items-center mb-3">
                 <h3 className={`text-xl font-semibold ${styles.textPrimary}`}>Profilo Performance</h3>
                 <span className="text-xs text-gray-400">Multi-dimensionale</span>
@@ -666,7 +666,7 @@ export default function PerformancePage() {
 
                 {/* Additional Metrics Bar Chart */}
                 {stats.advanced && (
-                  <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                     <h3 className={`text-xl font-semibold mb-3 ${styles.textPrimary}`}>Metriche Chiave</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={[
@@ -962,7 +962,7 @@ export default function PerformancePage() {
                   </div>
                   
                   {/* Link a Profiling per analisi dettagliata */}
-                  <div className={`${styles.card} border border-gray-700 rounded-lg p-4`}>
+                  <div className={`${styles.hasBackground ? 'bg-gray-800 backdrop-blur-sm' : 'bg-gray-800'} border border-gray-700 rounded-lg p-4`}>
                     <p className={`text-sm ${styles.textSecondary}`}>
                       💡 Per un'analisi completa con raccomandazioni dettagliate, visita la sezione{' '}
                       <Link href="/dashboard/coaching-insights" className="text-red-400 hover:text-red-300 underline">
