@@ -47,15 +47,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
   const { backgroundUrl } = useBackgroundPreference()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  // Inizializza isSidebarOpen da localStorage se disponibile, altrimenti true
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+      return saved !== null ? saved === 'true' : true
+    }
+    return true
+  })
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
-    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
-    if (saved !== null) {
-      setIsSidebarOpen(saved === 'true')
-    }
   }, [])
 
   useEffect(() => {
@@ -247,7 +250,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {backgroundUrl && (
           <motion.div 
             key={backgroundUrl}
-            initial={{ left: isSidebarOpen ? 256 : 0 }}
+            initial={{ left: 0 }}
             animate={{
               left: isSidebarOpen ? 256 : 0,
             }}
