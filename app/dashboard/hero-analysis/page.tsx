@@ -137,53 +137,107 @@ export default function HeroAnalysisPage() {
     }
   }, [])
 
-  const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId) return
 
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/hero-analysis`)
+      const response = await fetch(`/api/player/${playerId}/hero-analysis`, { signal: abortSignal })
+      
+      if (abortSignal?.aborted) return
       if (!response.ok) throw new Error('Failed to fetch hero analysis')
 
-      const data = await response.json()
-      setAnalysis(data)
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse hero analysis response')
+      }
+      
+      if (abortSignal?.aborted) return
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid hero analysis data format')
+      }
+      
+      if (!abortSignal?.aborted) {
+        setAnalysis(data)
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load hero analysis')
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to load hero analysis')
+      }
     } finally {
-      setLoading(false)
+      if (!abortSignal?.aborted) {
+        setLoading(false)
+      }
     }
   }, [playerId])
 
-  const fetchMatchups = useCallback(async () => {
+  const fetchMatchups = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId) return
 
     try {
       setMatchupLoading(true)
-      const response = await fetch(`/api/player/${playerId}/matchups`)
+      const response = await fetch(`/api/player/${playerId}/matchups`, { signal: abortSignal })
+      
+      if (abortSignal?.aborted) return
       if (!response.ok) throw new Error('Failed to fetch matchups')
 
-      const data = await response.json()
-      setMatchupData(data)
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse matchups response')
+      }
+      
+      if (abortSignal?.aborted) return
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid matchups data format')
+      }
+      
+      if (!abortSignal?.aborted) {
+        setMatchupData(data)
+      }
     } catch (err) {
-      console.error('Error fetching matchups:', err)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        console.error('Error fetching matchups:', err)
+      }
     } finally {
-      setMatchupLoading(false)
+      if (!abortSignal?.aborted) {
+        setMatchupLoading(false)
+      }
     }
   }, [playerId])
 
-  const fetchTrendData = useCallback(async () => {
+  const fetchTrendData = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId || !selectedHeroForTrend) return
 
     try {
       setTrendLoading(true)
-      // Use backend API instead of direct OpenDota calls
-      const response = await fetch(`/api/player/${playerId}/hero-analysis`)
-      if (!response.ok) return
+      
+      // Fetch hero analysis data
+      const response = await fetch(`/api/player/${playerId}/hero-analysis`, { signal: abortSignal })
+      if (abortSignal?.aborted || !response.ok) return
 
-      const data = await response.json()
-      if (!data || !data.heroStats) return
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
+        console.error('Failed to parse hero analysis response for trend:', err)
+        return
+      }
+      
+      if (abortSignal?.aborted) return
+      if (!data || typeof data !== 'object' || !data.heroStats) return
 
       // Extract matches from response
       const matches = data.matches || []
@@ -244,23 +298,36 @@ export default function HeroAnalysisPage() {
         }
       })
 
-      const heroName = heroes[selectedHeroForTrend]?.localized_name || `Hero ${selectedHeroForTrend}`
-      setTrendData([{
-        hero_id: selectedHeroForTrend,
-        hero_name: heroName,
-        periods: trendPeriods,
-      }])
+      if (!abortSignal?.aborted) {
+        setTrendData([{
+          hero_id: selectedHeroForTrend,
+          hero_name: heroes[selectedHeroForTrend]?.localized_name || `Hero ${selectedHeroForTrend}`,
+          periods: trendPeriods,
+        }])
+      }
     } catch (err) {
-      console.error('Error fetching trend data:', err)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        console.error('Error fetching trend data:', err)
+      }
     } finally {
-      setTrendLoading(false)
+      if (!abortSignal?.aborted) {
+        setTrendLoading(false)
+      }
     }
   }, [playerId, selectedHeroForTrend, heroes])
 
   useEffect(() => {
     if (playerId) {
-      fetchAnalysis()
-      fetchMatchups()
+      const abortController = new AbortController()
+      fetchAnalysis(abortController.signal)
+      fetchMatchups(abortController.signal)
+      
+      return () => {
+        abortController.abort()
+      }
     }
   }, [playerId, fetchAnalysis, fetchMatchups])
 

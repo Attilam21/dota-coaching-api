@@ -163,7 +163,12 @@ export default function TeammatesPage() {
       const response = await fetch(`/api/player/${playerId}/peers`)
       if (!response.ok) throw new Error('Failed to fetch teammates')
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse teammates response')
+      }
       
       if (!Array.isArray(data)) {
         throw new Error('Invalid response format: expected array')

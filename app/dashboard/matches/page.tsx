@@ -92,7 +92,12 @@ export default function MatchesPage() {
       const response = await fetch(`/api/player/${playerId}/stats`)
       if (!response.ok) throw new Error('Failed to fetch matches')
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (err) {
+        throw new Error('Failed to parse matches response')
+      }
       
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format')
