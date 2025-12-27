@@ -17,30 +17,30 @@ export function useDashboardStyles() {
                                background === 'profile-bg.jpg' ||
                                background === 'profile-bg.png'
 
-  // Trasparenze intermedie: più alte per sfondi vivaci, medie per sfondi scuri
-  const cardOpacity = isVibrantBackground ? '85' : '80'
-  const cardSubtleOpacity = isVibrantBackground ? '70' : '60'
-  const containerOpacity = isVibrantBackground ? '80' : '70'
-  const overlayOpacity = isVibrantBackground ? '85' : '80'
-  const overlaySubtleOpacity = isVibrantBackground ? '70' : '60'
-  
   // Drop-shadow più forte per sfondi vivaci
   const textShadow = isVibrantBackground ? 'drop-shadow-md' : 'drop-shadow-sm'
 
   return {
     // Card styles - Standard card con bordo e background
+    // Usa classi complete hardcoded per permettere a Tailwind JIT di generare il CSS
     card: hasBackground
-      ? `bg-gray-800/${cardOpacity} backdrop-blur-sm border border-gray-700/${cardOpacity} rounded-lg`
+      ? isVibrantBackground
+        ? 'bg-gray-800/85 backdrop-blur-sm border border-gray-700/85 rounded-lg'
+        : 'bg-gray-800/80 backdrop-blur-sm border border-gray-700/80 rounded-lg'
       : 'bg-gray-800 border border-gray-700 rounded-lg',
     
     // Card styles - Card con trasparenza maggiore (per nested cards)
     cardSubtle: hasBackground
-      ? `bg-gray-800/${cardSubtleOpacity} backdrop-blur-sm border border-gray-700/${cardSubtleOpacity} rounded-lg`
+      ? isVibrantBackground
+        ? 'bg-gray-800/70 backdrop-blur-sm border border-gray-700/70 rounded-lg'
+        : 'bg-gray-800/60 backdrop-blur-sm border border-gray-700/60 rounded-lg'
       : 'bg-gray-800/50 border border-gray-700 rounded-lg',
     
     // Container styles - Container principale per tabs e sezioni
     container: hasBackground
-      ? `bg-gray-800/${containerOpacity} backdrop-blur-sm border border-gray-700 rounded-lg`
+      ? isVibrantBackground
+        ? 'bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg'
+        : 'bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg'
       : 'bg-gray-800 border border-gray-700 rounded-lg',
     
     // Tab container - Container per tab navigation
@@ -68,12 +68,16 @@ export function useDashboardStyles() {
     
     // Background overlay - Per sezioni speciali (info boxes, alerts)
     overlay: hasBackground
-      ? `bg-gray-800/${overlayOpacity} backdrop-blur-sm`
+      ? isVibrantBackground
+        ? 'bg-gray-800/85 backdrop-blur-sm'
+        : 'bg-gray-800/80 backdrop-blur-sm'
       : 'bg-gray-800',
     
     // Background overlay - Overlay più trasparente
     overlaySubtle: hasBackground
-      ? `bg-gray-800/${overlaySubtleOpacity} backdrop-blur-sm`
+      ? isVibrantBackground
+        ? 'bg-gray-800/70 backdrop-blur-sm'
+        : 'bg-gray-800/60 backdrop-blur-sm'
       : 'bg-gray-800/50',
     
     // Utility - Flag per sapere se c'è background
