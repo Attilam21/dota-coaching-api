@@ -125,6 +125,7 @@ export default function MatchAnalysisDetailPage() {
   const { user } = useAuth()
   const router = useRouter()
   const { playerId } = usePlayerIdContext()
+  const styles = useDashboardStyles()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [match, setMatch] = useState<MatchData | null>(null)
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
