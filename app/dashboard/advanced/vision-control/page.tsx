@@ -219,31 +219,31 @@ export default function VisionControlPage() {
                           <span className="font-bold">{stats.vision.avgSentryPlaced.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Sentry Killed</span>
+                          <span className={styles.textSecondary}>Sentry Killed</span>
                           <span className="font-bold">{stats.vision.avgSentryKilled.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Rune Raccolte</span>
+                          <span className={styles.textSecondary}>Rune Raccolte</span>
                           <span className="font-bold">{stats.vision.avgRunes.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Rune per Minuto</span>
+                          <span className={styles.textSecondary}>Rune per Minuto</span>
                           <span className="font-bold text-yellow-400">{stats.vision.runesPerMinute}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Camps Stacked</span>
+                          <span className={styles.textSecondary}>Camps Stacked</span>
                           <span className="font-bold text-cyan-400">{stats.vision.avgCampsStacked}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Courier Kills</span>
+                          <span className={styles.textSecondary}>Courier Kills</span>
                           <span className="font-bold text-orange-400">{stats.vision.avgCourierKills}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Roshan Kills</span>
+                          <span className={styles.textSecondary}>Roshan Kills</span>
                           <span className="font-bold text-red-400">{stats.vision.avgRoshanKills}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Deward Efficiency</span>
+                          <span className={styles.textSecondary}>Deward Efficiency</span>
                           <span className="font-bold text-green-400">{stats.vision.dewardEfficiency}%</span>
                         </div>
                       </div>
@@ -314,7 +314,7 @@ export default function VisionControlPage() {
                 <div className="space-y-6">
                   {/* Grafici Section */}
                   <div>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">Grafici</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-6 ${styles.textPrimary}`}>Grafici</h2>
                     <div className="space-y-6">
                       {/* Wards Chart */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
@@ -372,7 +372,7 @@ export default function VisionControlPage() {
 
       {!stats && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Nessun dato disponibile per l'analisi vision & map control</p>
+          <p className={styles.textSecondary}>Nessun dato disponibile per l'analisi vision & map control</p>
         </div>
       )}
     </div>

@@ -219,19 +219,19 @@ export default function FightsDamagePage() {
                       <h3 className="text-xl md:text-2xl font-semibold mb-4">Statistiche Fight</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Kills Medio</span>
+                          <span className={styles.textSecondary}>Kills Medio</span>
                           <span className="font-bold">{stats.fights.avgKills.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Assists Medio</span>
+                          <span className={styles.textSecondary}>Assists Medio</span>
                           <span className="font-bold">{stats.fights.avgAssists.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Deaths Medio</span>
+                          <span className={styles.textSecondary}>Deaths Medio</span>
                           <span className="font-bold">{stats.fights.avgDeaths.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Healing Medio</span>
+                          <span className={styles.textSecondary}>Healing Medio</span>
                           <span className="font-bold">{Math.round(stats.fights.avgHealing).toLocaleString()}</span>
                         </div>
                       </div>
@@ -293,7 +293,7 @@ export default function FightsDamagePage() {
                 <div className="space-y-6">
                   {/* Grafici Section */}
                   <div>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">Grafici</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-6 ${styles.textPrimary}`}>Grafici</h2>
                     <div className="space-y-6">
                       {/* Radar Chart */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
@@ -363,7 +363,7 @@ export default function FightsDamagePage() {
 
       {!stats && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Nessun dato disponibile per l'analisi fights & damage</p>
+          <p className={styles.textSecondary}>Nessun dato disponibile per l'analisi fights & damage</p>
         </div>
       )}
     </div>

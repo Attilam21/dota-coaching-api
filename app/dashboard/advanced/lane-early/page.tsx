@@ -160,9 +160,9 @@ export default function LaneEarlyPage() {
               <p className={`text-xs ${styles.textMuted} mt-2`}>Creep score per minuto</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-sm text-gray-400 mb-2">CS Stimato a 10min</h3>
+              <h3 className={`text-sm ${styles.textSecondary} mb-2`}>CS Stimato a 10min</h3>
               <p className="text-3xl font-bold text-blue-400">{stats.lane.estimatedCSAt10Min}</p>
-              <p className="text-xs text-gray-500 mt-2">CS previsto a 10 minuti</p>
+              <p className={`text-xs ${styles.textMuted} mt-2`}>CS previsto a 10 minuti</p>
             </div>
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <h3 className="text-sm text-gray-400 mb-2">Deny Rate</h3>
@@ -250,7 +250,7 @@ export default function LaneEarlyPage() {
 
                       {/* Benchmark Comparison */}
                       <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                    <h2 className="text-xl md:text-2xl font-semibold mb-4">Benchmark CS</h2>
+                    <h2 className={`text-xl md:text-2xl font-semibold mb-4 ${styles.textPrimary}`}>Benchmark CS</h2>
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between mb-2">
@@ -263,12 +263,12 @@ export default function LaneEarlyPage() {
                             style={{ width: `${Math.min((parseFloat(stats.lane.csPerMinute) / 8) * 100, 100)}%` }}
                           ></div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Obiettivo: 6-8 per carry, 4-6 per mid, 3-5 per offlane</p>
+                        <p className={`text-xs ${styles.textMuted} mt-1`}>Obiettivo: 6-8 per carry, 4-6 per mid, 3-5 per offlane</p>
                       </div>
                       
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">CS Stimato a 10min</span>
+                          <span className={styles.textSecondary}>CS Stimato a 10min</span>
                           <span className="font-bold">{stats.lane.estimatedCSAt10Min}</span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-4">
@@ -282,7 +282,7 @@ export default function LaneEarlyPage() {
                       
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">Il tuo Deny Rate</span>
+                          <span className={styles.textSecondary}>Il tuo Deny Rate</span>
                           <span className="font-bold">{stats.lane.denyRate.toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-4">
@@ -306,7 +306,7 @@ export default function LaneEarlyPage() {
 
       {!stats && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400">Nessun dato disponibile per l'analisi lane & early game</p>
+          <p className={styles.textSecondary}>Nessun dato disponibile per l'analisi lane & early game</p>
         </div>
       )}
     </div>
