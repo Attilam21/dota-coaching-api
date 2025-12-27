@@ -82,14 +82,16 @@ export default function MatchesPage() {
     }
   }, [])
 
-  const fetchMatches = useCallback(async () => {
+  const fetchMatches = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId) return
 
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/player/${playerId}/stats`)
+      const response = await fetch(`/api/player/${playerId}/stats`, { signal: abortSignal })
+      
+      if (abortSignal?.aborted) return
       if (!response.ok) throw new Error('Failed to fetch matches')
 
       let data
@@ -99,13 +101,21 @@ export default function MatchesPage() {
         throw new Error('Failed to parse matches response')
       }
       
+      if (abortSignal?.aborted) return
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format')
       }
       
-      setMatches(Array.isArray(data.matches) ? data.matches : [])
+      if (!abortSignal?.aborted) {
+        setMatches(Array.isArray(data.matches) ? data.matches : [])
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load matches')
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to load matches')
+      }
     } finally {
       setLoading(false)
     }
@@ -113,7 +123,12 @@ export default function MatchesPage() {
 
   useEffect(() => {
     if (playerId) {
-      fetchMatches()
+      const abortController = new AbortController()
+      fetchMatches(abortController.signal)
+      
+      return () => {
+        abortController.abort()
+      }
     }
   }, [playerId, fetchMatches])
 

@@ -214,51 +214,44 @@ export default function MatchAnalysisDetailPage() {
         // Fetch player average stats for comparison (if playerId available)
         if (playerId) {
           try {
-            const statsResponse = await fetch(`/api/player/${playerId}/stats`)
+            // Fetch stats and advanced-stats in parallel for better performance
+            const [statsResponse, advancedResponse] = await Promise.all([
+              fetch(`/api/player/${playerId}/stats`),
+              fetch(`/api/player/${playerId}/advanced-stats`)
+            ])
+            
             if (statsResponse.ok) {
               const statsData = await statsResponse.json()
               if (statsData.stats) {
                 // Calculate averages from last 10 matches
                 const matches = statsData.stats.matches || []
-                if (matches.length > 0) {
-                  const avgGpm = matches.reduce((acc: number, m: any) => acc + (m.gpm || 0), 0) / matches.length
-                  const avgXpm = matches.reduce((acc: number, m: any) => acc + (m.xpm || 0), 0) / matches.length
-                  const avgKda = matches.reduce((acc: number, m: any) => acc + (m.kda || 0), 0) / matches.length
-                  
-                  // Fetch advanced stats for more detailed averages
-                  const advancedResponse = await fetch(`/api/player/${playerId}/advanced-stats`)
-                  if (advancedResponse.ok) {
+                const avgGpm = matches.length > 0 ? matches.reduce((acc: number, m: any) => acc + (m.gpm || 0), 0) / matches.length : 0
+                const avgXpm = matches.length > 0 ? matches.reduce((acc: number, m: any) => acc + (m.xpm || 0), 0) / matches.length : 0
+                const avgKda = matches.length > 0 ? matches.reduce((acc: number, m: any) => acc + (m.kda || 0), 0) / matches.length : 0
+                
+                // Use advanced stats if available
+                let stats = null
+                if (advancedResponse.ok) {
+                  try {
                     const advancedData = await advancedResponse.json()
-                    const stats = advancedData.stats
-                    
-                    setPlayerStats({
-                      avgGpm,
-                      avgXpm,
-                      avgKda,
-                      avgKills: stats?.fights?.avgKills || 0,
-                      avgDeaths: stats?.fights?.avgDeaths || 0,
-                      avgAssists: stats?.fights?.avgAssists || 0,
-                      avgLastHits: stats?.lane?.avgLastHits || 0,
-                      avgDenies: stats?.lane?.avgDenies || 0,
-                      avgHeroDamage: stats?.fights?.avgHeroDamage || 0,
-                      avgTowerDamage: stats?.fights?.avgTowerDamage || 0,
-                    })
-                  } else {
-                    // Fallback to basic stats
-                    setPlayerStats({
-                      avgGpm,
-                      avgXpm,
-                      avgKda,
-                      avgKills: 0,
-                      avgDeaths: 0,
-                      avgAssists: 0,
-                      avgLastHits: 0,
-                      avgDenies: 0,
-                      avgHeroDamage: 0,
-                      avgTowerDamage: 0,
-                    })
+                    stats = advancedData.stats
+                  } catch (err) {
+                    console.warn('Failed to parse advanced stats, continuing without them')
                   }
                 }
+                
+                setPlayerStats({
+                  avgGpm,
+                  avgXpm,
+                  avgKda,
+                  avgKills: stats?.fights?.avgKills || 0,
+                  avgDeaths: stats?.fights?.avgDeaths || 0,
+                  avgAssists: stats?.fights?.avgAssists || 0,
+                  avgLastHits: stats?.lane?.avgLastHits || 0,
+                  avgDenies: stats?.lane?.avgDenies || 0,
+                  avgHeroDamage: stats?.fights?.avgHeroDamage || 0,
+                  avgTowerDamage: stats?.fights?.avgTowerDamage || 0,
+                })
               }
             }
           } catch (err) {

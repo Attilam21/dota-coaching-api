@@ -75,7 +75,7 @@ export default function PerformancePage() {
     }
   }, [user, authLoading, router])
 
-  const fetchPerformance = useCallback(async () => {
+  const fetchPerformance = useCallback(async (abortSignal?: AbortSignal) => {
     if (!playerId) return
 
     try {
@@ -83,10 +83,12 @@ export default function PerformancePage() {
       setError(null)
 
       const [statsResponse, advancedResponse, benchmarksResponse] = await Promise.all([
-        fetch(`/api/player/${playerId}/stats`),
-        fetch(`/api/player/${playerId}/advanced-stats`),
-        fetch(`/api/player/${playerId}/benchmarks`).catch(() => null) // Non bloccare se fallisce
+        fetch(`/api/player/${playerId}/stats`, { signal: abortSignal }),
+        fetch(`/api/player/${playerId}/advanced-stats`, { signal: abortSignal }),
+        fetch(`/api/player/${playerId}/benchmarks`, { signal: abortSignal }).catch(() => null) // Non bloccare se fallisce
       ])
+      
+      if (abortSignal?.aborted) return
 
       if (!statsResponse.ok) throw new Error('Failed to fetch player stats')
 
@@ -116,10 +118,11 @@ export default function PerformancePage() {
         }
       }
 
+      if (abortSignal?.aborted) return
       if (!statsData || !statsData.stats) throw new Error('No stats available')
       
       // Set benchmarks if available
-      if (benchmarksData) {
+      if (benchmarksData && !abortSignal?.aborted) {
         setBenchmarks(benchmarksData)
       }
 
@@ -159,20 +162,27 @@ export default function PerformancePage() {
       else if (avgGPM > 600) playstyle = 'Farm Focus'
       else if (avgGPM < 400) playstyle = 'Support - Team Focus'
 
-      setStats({
-        avgKDA: avgKDA || 0,
-        avgGPM: avgGPM || 0,
-        avgXPM: avgXPM || 0,
-        avgDeaths,
-        avgAssists,
-        playstyle,
-        farmEfficiency,
-        teamfightParticipation,
-        matches: matches.slice(0, 20),
-        advanced: advanced || undefined,
-      })
+      if (!abortSignal?.aborted) {
+        setStats({
+          avgKDA: avgKDA || 0,
+          avgGPM: avgGPM || 0,
+          avgXPM: avgXPM || 0,
+          avgDeaths,
+          avgAssists,
+          playstyle,
+          farmEfficiency,
+          teamfightParticipation,
+          matches: matches.slice(0, 20),
+          advanced: advanced || undefined,
+        })
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load performance data')
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
+      if (!abortSignal?.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to load performance data')
+      }
     } finally {
       setLoading(false)
     }
@@ -180,7 +190,12 @@ export default function PerformancePage() {
 
   useEffect(() => {
     if (playerId) {
-      fetchPerformance()
+      const abortController = new AbortController()
+      fetchPerformance(abortController.signal)
+      
+      return () => {
+        abortController.abort()
+      }
     }
   }, [playerId, fetchPerformance])
 
