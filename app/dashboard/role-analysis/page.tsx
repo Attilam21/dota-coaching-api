@@ -579,8 +579,8 @@ export default function RoleAnalysisPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 min-w-[150px] px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gray-700 border-b-2 border-red-500'
-                      : `${styles.textSecondary} hover:${styles.textPrimary} hover:bg-gray-700/50`
+                      ? 'bg-gray-700 border-b-2 border-red-500 text-white'
+                      : `${styles.textSecondary} hover:text-white hover:bg-gray-700/50`
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />

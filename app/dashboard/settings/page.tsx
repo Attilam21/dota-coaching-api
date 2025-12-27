@@ -692,7 +692,7 @@ function SettingsPageContent() {
                       onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
                       placeholder="Minimo 6 caratteri"
                       autoComplete="new-password"
-                      className={`w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
+                      className={`w-full px-4 py-2 ${styles.hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700'} border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
                   <div>
@@ -705,7 +705,7 @@ function SettingsPageContent() {
                       onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
                       placeholder="Ripeti la nuova password"
                       autoComplete="new-password"
-                      className={`w-full px-4 py-2 bg-gray-700/70 backdrop-blur-sm border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
+                      className={`w-full px-4 py-2 ${styles.hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700'} border border-gray-600 rounded-lg text-white ${styles.hasBackground ? 'drop-shadow-sm' : ''} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
                   <AnimatedButton
