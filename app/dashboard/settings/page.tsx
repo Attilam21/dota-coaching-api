@@ -14,27 +14,6 @@ import { updatePlayerId } from '@/app/actions/update-player-id'
 import { getPlayerId } from '@/app/actions/get-player-id'
 import { supabase } from '@/lib/supabase'
 
-/**
- * SettingsPageContent - Pagina Impostazioni Account
- * 
- * Permette all'utente di:
- * 1. Impostare/modificare il Dota 2 Account ID (salvato in database Supabase)
- * 2. Scegliere lo sfondo della dashboard
- * 
- * ARCHITETTURA:
- * - Player ID salvato in database Supabase (fonte primaria)
- * - localStorage sincronizzato per compatibilità
- * - Limite 3 cambi Player ID (blocco automatico dopo 3 cambi)
- * - Cache profilazione con TTL 7 giorni
- * 
- * FLUSSO:
- * 1. Utente può arrivare qui da PlayerIdInput con query param ?playerId=123
- * 2. Il form viene pre-compilato con il Player ID dal Context (caricato da DB)
- * 3. Utente modifica e salva → salva in DB → trigger verifica limite → aggiorna Context → dashboard si aggiorna
- * 4. Se limite raggiunto → input disabilitato e messaggio informativo
- * 
- * NOTA: useSearchParams richiede Suspense boundary (Next.js 14 requirement)
- */
 function SettingsPageContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -43,7 +22,6 @@ function SettingsPageContent() {
   const { background, updateBackground, backgroundUrl } = useBackgroundPreference()
   const hasBackground = !!backgroundUrl
   
-  // State del form unificato (DB come fonte primaria)
   const [dotaAccountId, setDotaAccountId] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -52,11 +30,8 @@ function SettingsPageContent() {
   const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' })
   const [changingPassword, setChangingPassword] = useState(false)
   
-  // Ref per tracciare se abbiamo già processato il query param ?playerId=xxx
-  // Previene che il valore dal Context sovrascriva il valore inserito dall'utente
   const hasProcessedQueryParam = useRef(false)
 
-  // Carica data registrazione utente
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return
@@ -79,71 +54,46 @@ function SettingsPageContent() {
     loadUserData()
   }, [user])
 
-  /**
-   * Verifica quali file di sfondo sono disponibili nella cartella public/
-   * 
-   * NOTA: Le richieste HEAD per file non esistenti generano errori 404 nella console.
-   * Questo è normale per file opzionali. Il codice gestisce correttamente questi casi
-   * ma il browser logga comunque gli errori 404.
-   * 
-   * Soluzione: Verifichiamo solo i file che potrebbero esistere e gestiamo
-   * silenziosamente i 404 senza loggarli.
-   */
   useEffect(() => {
     const checkAvailableBackgrounds = async () => {
       const backgrounds: BackgroundType[] = ['none']
       
-      // Lista file da verificare
-      // NOTA: Rimuovi i file .png dalla lista se non esistono per evitare errori 404
-      // Aggiungili quando li carichi nella cartella public/
       const possibleFiles: BackgroundType[] = [
         'dashboard-bg.jpg',
         'profile-bg.jpg',
-        // File opzionali - decommenta quando li aggiungi:
-        // 'dashboard-bg.png',
-        // 'profile-bg.png'
+        'landa desolata.jpeg',
+        'sfondo pop.jpeg',
       ]
 
-      // Verifica ogni file in parallelo per performance
       const checks = possibleFiles.map(async (file) => {
         const controller = new AbortController()
         let timeoutId: NodeJS.Timeout | null = null
         
         try {
-          // Usa AbortController per timeout e gestione errori migliore
-          timeoutId = setTimeout(() => controller.abort(), 3000) // 3s timeout
+          timeoutId = setTimeout(() => controller.abort(), 3000)
           
           const response = await fetch(`/${file}`, { 
             method: 'HEAD',
             signal: controller.signal,
-            // Non loggare errori 404 nella console del browser
             cache: 'no-cache'
           })
           
-          // Solo aggiungi se la risposta è OK (200)
           if (response.ok && response.status === 200) {
             return file
           }
           
-          // 404 è normale per file opzionali, non loggare
           return null
         } catch (err) {
-          // Ignora errori (file non esiste, timeout, network error, ecc.)
-          // Non loggare perché sono file opzionali
           return null
         } finally {
-          // CRITICO: Sempre cancella il timeout per evitare memory leak
-          // Questo viene eseguito sia in caso di successo che di errore
           if (timeoutId !== null) {
             clearTimeout(timeoutId)
           }
         }
       })
 
-      // Attendi tutti i check in parallelo
       const results = await Promise.all(checks)
       
-      // Aggiungi solo i file trovati
       results.forEach((file) => {
         if (file) {
           backgrounds.push(file)
@@ -158,42 +108,24 @@ function SettingsPageContent() {
     }
   }, [user])
 
-  // Redirect a login se utente non autenticato
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
     }
   }, [user, authLoading, router])
 
-  /**
-   * Gestisce il query param ?playerId=xxx quando l'utente arriva da PlayerIdInput
-   * 
-   * Quando l'utente inserisce un Player ID in PlayerIdInput, viene reindirizzato qui
-   * con ?playerId=123. Questo effect legge il valore e pre-compila il form.
-   */
   useEffect(() => {
     const playerIdFromQuery = searchParams.get('playerId')
     if (playerIdFromQuery && !hasProcessedQueryParam.current) {
       setDotaAccountId(playerIdFromQuery)
       hasProcessedQueryParam.current = true
-      // Rimuovi query param dall'URL per pulizia
       router.replace('/dashboard/settings', { scroll: false })
     }
   }, [searchParams, router])
 
-  /**
-   * Sincronizza il form con il Player ID dal Context
-   * 
-   * IMPORTANTE: Non sovrascrive se abbiamo già processato un query param.
-   * Questo previene che il valore inserito dall'utente venga sovrascritto
-   * dal valore salvato nel Context.
-   * 
-   * NOTA: Il Context carica da DB (fonte primaria) e sincronizza localStorage.
-   */
   useEffect(() => {
     if (hasProcessedQueryParam.current) return
     
-    // Sincronizza con il valore dal Context (caricato da DB, sincronizzato con localStorage)
     if (playerId) {
       setDotaAccountId(playerId)
     } else {
@@ -203,24 +135,10 @@ function SettingsPageContent() {
 
 
 
-  /**
-   * Gestisce il salvataggio del Player ID
-   * 
-   * FLUSSO:
-   * 1. Valida che l'ID sia un numero valido
-   * 2. Verifica lock e limite cambi
-   * 3. Salva in database Supabase (fonte primaria)
-   * 4. Trigger PostgreSQL verifica limite 3 cambi
-   * 5. Aggiorna localStorage e Context per sincronizzazione
-   * 6. La dashboard si aggiorna automaticamente
-   * 
-   * NOTA: Database è la fonte primaria, localStorage sincronizzato per compatibilità.
-   */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
 
-    // Verifica lock
     if (isLocked) {
       setMessage({
         type: 'error',
@@ -238,7 +156,6 @@ function SettingsPageContent() {
         ? parseInt(playerIdString, 10) 
         : null
 
-      // Validazione: Player ID deve essere un numero valido
       if (playerIdString && isNaN(dotaAccountIdNum!)) {
         setMessage({
           type: 'error',
@@ -248,11 +165,7 @@ function SettingsPageContent() {
         return
       }
 
-      // Verifica se sta cambiando (non prima impostazione)
       const isChanging = playerId && playerIdString && playerIdString !== playerId
-      // IMPORTANTE: Controlla changeCount >= 3 invece di changesRemaining <= 0
-      // perché changesRemaining è calcolato come 3 - changeCount e potrebbe essere desincronizzato
-      // dopo un cambio rapido. Controllare direttamente changeCount garantisce coerenza.
       if (isChanging && changeCount >= 3) {
         setMessage({
           type: 'error',
@@ -262,7 +175,6 @@ function SettingsPageContent() {
         return
       }
 
-      // Recupera sessione dal client Supabase (localStorage)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError || !session) {
@@ -283,7 +195,6 @@ function SettingsPageContent() {
         return
       }
 
-      // Salva in database (fonte primaria) - il trigger gestisce limite e storico
       const result = await updatePlayerId(
         playerIdString, 
         session.access_token,
@@ -299,26 +210,19 @@ function SettingsPageContent() {
         return
       }
 
-      // SINCRONIZZAZIONE: Dopo salvataggio DB, aggiorna localStorage e Context
       if (playerIdString) {
-        // Aggiorna localStorage (sincronizzazione)
         if (typeof window !== 'undefined') {
           localStorage.setItem('fzth_player_id', playerIdString)
         }
-        // Aggiorna Context (notifica tutti i componenti, inclusa dashboard)
         setPlayerId(playerIdString)
       } else {
-        // Se playerIdString è null, rimuovi da localStorage e Context
         if (typeof window !== 'undefined') {
           localStorage.removeItem('fzth_player_id')
         }
         setPlayerId(null)
       }
       
-      // Ricarica dati dal Context per aggiornare lock e cambi rimanenti
       await reload()
-      
-      // Reset ref per permettere sincronizzazione futura
       hasProcessedQueryParam.current = false
 
       setMessage({ 
@@ -589,12 +493,10 @@ function SettingsPageContent() {
                     onClick={async () => {
                       if (confirm('Sei sicuro di voler rimuovere il Player ID? Dovrai reinserirlo per vedere le statistiche.')) {
                         try {
-                          // Recupera sessione
                           const { data: { session } } = await supabase.auth.getSession()
                           if (session?.access_token && session?.refresh_token) {
                             const result = await updatePlayerId(null, session.access_token, session.refresh_token)
                             if (result.success) {
-                              // Rimuovi da localStorage e Context
                               if (typeof window !== 'undefined') {
                                 localStorage.removeItem('fzth_player_id')
                               }
@@ -661,36 +563,36 @@ function SettingsPageContent() {
             Scegli lo sfondo che preferisci per il dashboard. La modifica sarà applicata immediatamente.
           </p>
           
-          {/* Preview Sfondo Attuale */}
           {background !== 'none' && (
             <div className={`mb-6 ${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700/50'} rounded-lg p-4 border border-gray-600`}>
               <p className={`text-sm font-medium mb-3 ${hasBackground ? 'text-gray-200 drop-shadow-sm' : 'text-gray-300'}`}>
                 Anteprima Sfondo Attuale
               </p>
-              <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-gray-600 relative">
+              <div className="w-full h-40 rounded-lg overflow-hidden border-2 border-gray-600 relative shadow-lg">
                 <div 
-                  className="w-full h-full bg-cover bg-center"
+                  className="w-full h-full bg-cover bg-center transition-transform duration-300 hover:scale-105"
                   style={{ backgroundImage: `url('/${background}')` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className={`text-xs font-semibold ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'}`}>
-                    {background === 'dashboard-bg.jpg' ? 'Dashboard JPG' :
-                     background === 'profile-bg.jpg' ? 'Profile JPG' :
-                     background === 'dashboard-bg.png' ? 'Dashboard PNG' :
-                     background === 'profile-bg.png' ? 'Profile PNG' : background}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className={`text-sm font-semibold ${hasBackground ? 'text-white drop-shadow-md' : 'text-white'}`}>
+                    {background === 'dashboard-bg.jpg' ? 'Dashboard' :
+                     background === 'profile-bg.jpg' ? 'Profile' :
+                     background === 'landa desolata.jpeg' ? 'Landa Desolata' :
+                     background === 'sfondo pop.jpeg' ? 'Sfondo Pop' :
+                     background}
                   </p>
                 </div>
               </div>
             </div>
           )}
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {([
-              { value: 'dashboard-bg.jpg' as BackgroundType, label: 'Dashboard JPG', file: 'dashboard-bg.jpg' },
-              { value: 'dashboard-bg.png' as BackgroundType, label: 'Dashboard PNG', file: 'dashboard-bg.png' },
-              { value: 'profile-bg.jpg' as BackgroundType, label: 'Profile JPG', file: 'profile-bg.jpg' },
-              { value: 'profile-bg.png' as BackgroundType, label: 'Profile PNG', file: 'profile-bg.png' },
+              { value: 'dashboard-bg.jpg' as BackgroundType, label: 'Dashboard', file: 'dashboard-bg.jpg' },
+              { value: 'profile-bg.jpg' as BackgroundType, label: 'Profile', file: 'profile-bg.jpg' },
+              { value: 'landa desolata.jpeg' as BackgroundType, label: 'Landa Desolata', file: 'landa desolata.jpeg' },
+              { value: 'sfondo pop.jpeg' as BackgroundType, label: 'Sfondo Pop', file: 'sfondo pop.jpeg' },
               { value: 'none' as BackgroundType, label: 'Nessuno', file: null },
             ])
             .filter((option) => option.file === null || availableBackgrounds.includes(option.value))
@@ -704,46 +606,36 @@ function SettingsPageContent() {
                     text: `Sfondo cambiato in: ${option.label}`
                   })
                 }}
-                className={`p-4 rounded-lg border-2 transition-all relative ${
+                className={`group p-3 rounded-xl border-2 transition-all duration-200 relative overflow-hidden ${
                   background === option.value
-                    ? 'border-red-500 bg-red-900/20 text-white'
-                    : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
+                    ? 'border-red-500 bg-red-900/30 text-white shadow-lg shadow-red-500/20 scale-105'
+                    : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-400 hover:bg-gray-700 hover:scale-[1.02]'
                 }`}
               >
                 {option.file && (
-                  <div className="w-full h-20 mb-2 rounded overflow-hidden bg-gray-800">
+                  <div className="w-full h-28 mb-3 rounded-lg overflow-hidden bg-gray-800 shadow-md group-hover:shadow-lg transition-shadow">
                     <div 
-                      className="w-full h-full bg-cover bg-center"
+                      className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
                       style={{ backgroundImage: `url('/${option.file}')` }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 )}
-                <div className="text-sm font-medium">{option.label}</div>
+                {!option.file && (
+                  <div className="w-full h-28 mb-3 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-dashed border-gray-600 flex items-center justify-center">
+                    <span className="text-4xl">🚫</span>
+                  </div>
+                )}
+                <div className={`text-sm font-medium text-center ${background === option.value ? 'text-red-200' : ''}`}>
+                  {option.label}
+                </div>
                 {background === option.value && (
-                  <div className="text-xs text-red-400 mt-1 font-bold">✓ ATTIVO</div>
+                  <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1 shadow-lg">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
                 )}
               </button>
             ))}
-          </div>
-          
-          <div className="text-xs text-gray-500 mt-4 space-y-2">
-            <p>
-              💡 Per aggiungere nuove immagini, salva i file nella cartella <code className="bg-gray-900 px-1 rounded">public/</code>
-            </p>
-            <div className="bg-gray-900/50 p-3 rounded border border-gray-700">
-              <p className="font-semibold text-gray-400 mb-2">📂 Percorso esatto:</p>
-              <code className="text-xs text-gray-300 break-all">
-                C:\Users\attil\Desktop\dota-2-giusto\dota-coaching-api\dota-coaching-api\public\
-              </code>
-              <p className="mt-2 text-gray-400">File supportati:</p>
-              <ul className="list-disc list-inside ml-2 space-y-1 text-gray-400">
-                <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.jpg</code> ✅ presente</li>
-                <li><code className="bg-gray-800 px-1 rounded">profile-bg.jpg</code> ✅ presente</li>
-                {/* File opzionali - decommenta quando li aggiungi: */}
-                {/* <li><code className="bg-gray-800 px-1 rounded">dashboard-bg.png</code> ❌ opzionale</li> */}
-                {/* <li><code className="bg-gray-800 px-1 rounded">profile-bg.png</code> ❌ opzionale</li> */}
-              </ul>
-            </div>
           </div>
         </AnimatedCard>
 
@@ -798,6 +690,7 @@ function SettingsPageContent() {
                       value={passwordData.new}
                       onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
                       placeholder="Minimo 6 caratteri"
+                      autoComplete="new-password"
                       className={`w-full px-4 py-2 ${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700'} border border-gray-600 rounded-lg ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
@@ -810,6 +703,7 @@ function SettingsPageContent() {
                       value={passwordData.confirm}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
                       placeholder="Ripeti la nuova password"
+                      autoComplete="new-password"
                       className={`w-full px-4 py-2 ${hasBackground ? 'bg-gray-700/70 backdrop-blur-sm' : 'bg-gray-700'} border border-gray-600 rounded-lg ${hasBackground ? 'text-white drop-shadow-sm' : 'text-white'} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500`}
                     />
                   </div>
@@ -843,7 +737,6 @@ function SettingsPageContent() {
   )
 }
 
-// Export principale con Suspense boundary per useSearchParams
 export default function SettingsPage() {
   return (
     <Suspense fallback={

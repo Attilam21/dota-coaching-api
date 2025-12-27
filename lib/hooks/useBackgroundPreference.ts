@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-export type BackgroundType = 'dashboard-bg.jpg' | 'dashboard-bg.png' | 'profile-bg.jpg' | 'profile-bg.png' | 'none'
+export type BackgroundType = 'dashboard-bg.jpg' | 'dashboard-bg.png' | 'profile-bg.jpg' | 'profile-bg.png' | 'landa desolata.jpeg' | 'sfondo pop.jpeg' | 'none'
 
 const STORAGE_KEY = 'dashboard_background_preference'
 
@@ -14,7 +14,7 @@ export function useBackgroundPreference() {
   const loadFromStorage = () => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved && (saved.endsWith('.jpg') || saved.endsWith('.png') || saved === 'none')) {
+      if (saved && (saved.endsWith('.jpg') || saved.endsWith('.jpeg') || saved.endsWith('.png') || saved === 'none')) {
         return saved as BackgroundType
       }
     } catch (err) {
@@ -32,7 +32,7 @@ export function useBackgroundPreference() {
     // Listener per cambiamenti di localStorage (da altre tab/window)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
-        if (e.newValue.endsWith('.jpg') || e.newValue.endsWith('.png') || e.newValue === 'none') {
+        if (e.newValue.endsWith('.jpg') || e.newValue.endsWith('.jpeg') || e.newValue.endsWith('.png') || e.newValue === 'none') {
           setBackground(e.newValue as BackgroundType)
         }
       }
